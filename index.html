@@ -876,7 +876,8 @@
 
             setTimeout(async () => {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/proyectos/${id}/metricas`, { headers: { 'x-api-key': 'lanka_dev_key_super_secreta' } });
+                    // AQUÍ ESTÁ LA NUEVA RUTA APUNTANDO A VERCEL CON LA NUEVA LLAVE
+                    const response = await fetch(`/api/metricas?id=${id}`, { headers: { 'x-api-key': 'lanka_key_2026_super_secreta' } });
                     if (!response.ok) throw new Error("API Falla");
                     const data = await response.json();
                     
