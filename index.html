@@ -14,25 +14,28 @@
 
     <style>
         /* ==========================================================================
-           1. Variables y Core UI (Estilo Premium 2026)
+           1. Variables y Core UI (Spatial UI 2026/2027)
            ========================================================================== */
         :root {
+            /* Colores más puros y etéreos */
             --color-primario: #C4855A;
-            --color-fondo: #FDFCFB; 
-            --color-tarjeta: rgba(255, 255, 255, 0.5); 
+            --color-fondo: #FDFCFB; /* Blanco roto hiper limpio (Gris Etéreo) */
+            --color-tarjeta: rgba(255, 255, 255, 0.4); /* Transparencia agresiva para glass */
             --texto-principal: #111111;
-            --texto-secundario: #777777;
-            --color-borde: rgba(255, 255, 255, 0.9); 
-            --color-borde-fuerte: rgba(0, 0, 0, 0.05);
+            --texto-secundario: #888888;
+            --color-borde: rgba(255, 255, 255, 0.8); /* Bordes blancos de cristal */
+            --color-borde-fuerte: rgba(0, 0, 0, 0.04);
             --color-exito: #5C9E6E;
             --color-alerta: #E8902A;
             --color-peligro: #D95F4B;
             
-            --sombra-suave: 0 20px 40px -10px rgba(196, 133, 90, 0.08), 0 4px 12px -4px rgba(0,0,0,0.03);
+            /* Sombras 2026: Amplias, suaves y con tintes de color (Terracota Diffused Shadow) */
+            --sombra-suave: 0 30px 60px -15px rgba(196, 133, 90, 0.08), 0 4px 12px -4px rgba(0,0,0,0.03);
             --sombra-flotante: 0 40px 80px -20px rgba(196, 133, 90, 0.15);
             
+            /* Radios estilo Apple */
             --radio-esquina: 28px; 
-            --transicion: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            --transicion: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Animación más fluida */
             --font-display: 'Montserrat', sans-serif;
             --font-body: 'Inter', sans-serif;
 
@@ -40,7 +43,7 @@
             --pauta: #D4956A; --masaje: #9B8FA0; --facial: #8FA0A8; --urgente: #D95F4B;
         }
 
-        /* Ruido fotográfico sutil sobre toda la pantalla */
+        /* El truco premium 2026: Ruido fotográfico sutil sobre toda la pantalla (Relleno de grano) */
         body::after {
             content: ""; position: fixed; inset: 0; z-index: 9999;
             pointer-events: none; opacity: 0.18; mix-blend-mode: multiply;
@@ -54,7 +57,6 @@
                 radial-gradient(ellipse 60% 80% at 85% 90%, rgba(196, 133, 90, 0.10) 0%, transparent 55%);
             color: #FFFFFF;
         }
-        .tema-login::after { opacity: 0.08; mix-blend-mode: screen; } /* Ruido más suave en login oscuro */
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
         body { background-color: var(--color-fondo); color: var(--texto-principal); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
@@ -92,15 +94,15 @@
         /* Glassmorphism extremo en UI Principal */
         #pantalla-app { display: flex; height: 100vh; width: 100vw; }
         
-        .tarjeta, .bento-card, nav, .barra-superior, .briefing-card, .tarjeta-asset, .tarjeta-cliente, .kanban-col, .content-card, .offline-tarjeta, .selector-vista {
+        .tarjeta, .bento-card, nav, .barra-superior, .briefing-card, .tarjeta-asset, .tarjeta-cliente, .kanban-col {
             background: var(--color-tarjeta) !important;
-            backdrop-filter: blur(30px) saturate(150%) !important;
-            -webkit-backdrop-filter: blur(30px) saturate(150%) !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
             border: 1px solid var(--color-borde) !important;
             box-shadow: var(--sombra-suave);
         }
 
-        nav { width: 256px; display: flex; flex-direction: column; padding: 32px 18px; z-index: 100; overflow-y: auto; }
+        nav { width: 256px; display: flex; flex-direction: column; padding: 32px 18px; z-index: 100; overflow-y: auto; border: none; }
         .marca { font-family: var(--font-display); font-size: 24px; font-weight: 900; display: flex; align-items: center; gap: 8px; margin-bottom: 20px; color: var(--color-primario); letter-spacing: -0.04em; transition: color 0.3s ease; }
 
         .badge-rol { padding: 7px 14px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 32px; text-align: center; letter-spacing: 0.08em; font-family: var(--font-body); }
@@ -151,13 +153,13 @@
 
         /* Tablas y Dashboard Bento */
         .tabla-editable { width: 100%; border-collapse: collapse; font-size: 13px; font-family: var(--font-body); }
-        .tabla-editable th { text-align: left; padding: 14px 16px; color: var(--texto-secundario); font-weight: 700; border-bottom: 1px solid rgba(0,0,0,0.06); background: transparent; position: sticky; top: 0; z-index: 2; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .tabla-editable th { text-align: left; padding: 14px 16px; color: var(--texto-secundario); font-weight: 700; border-bottom: 1px solid rgba(0,0,0,0.03); background: transparent; position: sticky; top: 0; z-index: 2; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
         .tabla-editable td { padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.03); vertical-align: middle; }
         .input-celda { width: 100%; min-width: 90px; border: 1px solid transparent; background: transparent; padding: 8px 10px; border-radius: 10px; font-size: 13px; font-weight: 500; outline: none; transition: var(--transicion); font-family: var(--font-body); color: var(--texto-principal); }
-        .input-celda:not([readonly]):hover { background: rgba(255,255,255,0.4); border-color: rgba(196,133,90,0.2); }
-        .input-celda:focus { background: rgba(255,255,255,0.7); border-color: var(--color-primario); box-shadow: 0 0 0 3px rgba(196,133,90,0.15); }
+        .input-celda:not([readonly]):hover { background: rgba(255,255,255,0.8); border-color: rgba(196,133,90,0.2); }
+        .input-celda:focus { background: #fff; border-color: var(--color-primario); box-shadow: 0 0 0 3px rgba(196,133,90,0.15); }
         .select-celda { width: 100%; border: 1px solid transparent; background: transparent; padding: 8px 10px; border-radius: 10px; font-size: 13px; font-weight: 600; outline: none; cursor: pointer; color: var(--texto-principal); transition: var(--transicion); font-family: var(--font-body); }
-        .select-celda:hover { background: rgba(255,255,255,0.4); border-color: rgba(196,133,90,0.2); }
+        .select-celda:hover { background: rgba(255,255,255,0.8); border-color: rgba(196,133,90,0.2); }
 
         .chip { display: inline-flex; align-items: center; padding: 6px 14px; border-radius: 100px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--font-body); }
         .chip-pendiente { background: rgba(232,144,42,0.12); color: var(--color-alerta); }
@@ -189,7 +191,7 @@
         .offline-tarjeta:hover { transform: translateX(5px); border-color: rgba(196,133,90,0.25) !important; }
 
         /* PARRILLA EXPANDIBLE */
-        .selector-vista { padding: 4px; }
+        .selector-vista { padding: 4px; border-radius: 12px; }
         .btn-vista { background: transparent; border: none; padding: 8px 16px; font-size: 13px; font-weight: 600; color: var(--texto-secundario); cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 9px; transition: var(--transicion); font-family: var(--font-body); }
         .btn-vista.activo { background: #FFFFFF; color: var(--color-primario); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
 
@@ -218,7 +220,7 @@
         @media (max-width: 768px) { .body-grid { grid-template-columns: 1fr; gap: 20px; } }
         .body-section h4 { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-secundario); margin-bottom: 10px; font-weight: 700; font-family: var(--font-body); }
 
-        .hook-block { border-left: 4px solid var(--color-primario); padding-left: 16px; font-size: 14px; font-style: italic; color: var(--texto-secundario); line-height: 1.65; margin-bottom: 20px; font-weight: 400; border-radius: 0 4px 4px 0; }
+        .hook-block { border-left: 4px solid var(--color-primario); padding-left: 16px; font-size: 14px; font-style: italic; color: var(--texto-secundario); line-height: 1.65; margin-bottom: 20px; font-weight: 400; border-radius: 0 4px 4px 0; box-shadow: none; background: transparent; border-top: none; border-right: none; border-bottom: none; }
         .copy-block { background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.9); border-radius: 12px; padding: 16px; font-size: 14px; line-height: 1.65; color: var(--texto-principal); width: 100%; resize: vertical; min-height: 100px; outline: none; font-family: var(--font-body); transition: var(--transicion); }
         .copy-block:focus { border-color: var(--color-primario); box-shadow: 0 0 0 4px rgba(196,133,90,0.12); }
         .manychat-block { background: #1A1814; color: rgba(245,243,240,0.9); border-radius: 12px; padding: 16px; font-size: 13px; line-height: 1.65; margin-top: 20px; border: none; font-family: 'DM Mono', monospace; }
@@ -228,7 +230,7 @@
         .briefing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 40px; }
         .briefing-card { border-radius: 24px; padding: 32px; border-top: 4px solid var(--color-primario) !important; transition: border-top-color 0.3s; }
         .briefing-card h3 { font-size: 20px; margin-bottom: 24px; color: var(--texto-principal); letter-spacing: -0.03em; font-family: var(--font-display); }
-        .rule-item { display: flex; gap: 16px; margin-bottom: 20px; align-items: flex-start; }
+        .rule-item { display: flex; gap: 166px; margin-bottom: 20px; align-items: flex-start; }
         .rule-num { font-size: 28px; font-weight: 800; color: var(--color-primario); opacity: 0.25; line-height: 1; font-family: var(--font-display); font-style: italic; }
         
         /* DAM, Mood, Líneas */
@@ -277,15 +279,15 @@
 <body class="tema-login">
 
     <div id="pantalla-login">
-        <div style="font-size:64px; font-weight:900; letter-spacing:-0.04em; margin-bottom:2px; color:#FFFFFF; font-family:var(--font-display); animation: fadeUp 0.6s ease both; z-index: 2;">LANKA</div>
-        <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.25em; color:rgba(196,133,90,0.7); margin-bottom:52px; font-family:var(--font-body); animation: fadeUp 0.6s 0.1s ease both; z-index: 2;">Marketing</div>
+        <div style="font-size:64px; font-weight:900; letter-spacing:-0.04em; margin-bottom:2px; color:#FFFFFF; font-family:var(--font-display); animation: fadeUp 0.6s ease both;">LANKA</div>
+        <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.25em; color:rgba(196,133,90,0.7); margin-bottom:52px; font-family:var(--font-body); animation: fadeUp 0.6s 0.1s ease both;">Marketing</div>
         
-        <form class="form-login" onsubmit="ejecutarLogin(event)" style="animation: fadeUp 0.6s 0.2s ease both; z-index: 2;">
+        <form class="form-login" onsubmit="ejecutarLogin(event)" style="animation: fadeUp 0.6s 0.2s ease both;">
             <input type="password" id="input-password" class="input-login" placeholder="Clave de acceso" autocomplete="off" autofocus>
             <button type="submit" class="btn-login">Ingresar</button>
             <div id="error-login" style="color:rgba(217,95,75,0.9); opacity:0; font-size:13px; font-weight:600; text-align:center; transition: 0.3s; margin-top:4px; font-family:var(--font-body);">Acceso denegado.</div>
         </form>
-        <div class="footer-login" style="z-index: 2;">Lanka Collective &copy; 2026</div>
+        <div class="footer-login">Lanka Collective &copy; 2026</div>
     </div>
 
     <div id="pantalla-app" class="oculto">
@@ -954,7 +956,7 @@
 
                 return `<div class="tarjeta-asset" style="flex-direction:row; padding:16px; align-items:center; gap:16px;">
                     ${btnDel}
-                    <div style="font-size:28px; color:var(--color-primario); width:40px; text-align:center;"><i class="fa-solid ${a.tipo}"></i></div>
+                    <div style="font-size:28px; color:rgba(196,133,90,0.4); width:40px; text-align:center;"><i class="fa-solid ${a.tipo}"></i></div>
                     <div style="flex:1;">
                         <input class="input-celda" style="font-family:var(--font-display); font-weight:700; font-size:14px; padding:0; height:auto;" value="${a.nombre}" ${ro} onchange="updObj('dam',${i},'nombre',this.value, 'renderizarDAMWrapper')">
                         ${inputUrl}
@@ -976,10 +978,10 @@
             let optPro = DB.desplegables.productos.map(e=>`<option>${e}</option>`).join('');
             
             document.getElementById('contenedor-mood').innerHTML = d.mood.map((m, i) => `
-                <div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid rgba(0,0,0,0.05); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div>
-                <div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${ROL==='agencia' ? `<select class="select-celda" style="background:rgba(255,255,255,0.4);" onchange="updObj('mood',${i},'emocion',this.value,'renderizarMood')"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div>
-                <div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">BEBIDA</label>${ROL==='agencia' ? `<select class="select-celda" style="background:rgba(255,255,255,0.4);" onchange="updObj('mood',${i},'bebida',this.value,'renderizarMood')"><option selected hidden>${m.bebida}</option>${optBeb}</select>` : `<input class="input-celda" value="${m.bebida}" readonly>`}</div>
-                <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">PRODUCTO</label>${ROL==='agencia' ? `<select class="select-celda" style="background:rgba(255,255,255,0.4);" onchange="updObj('mood',${i},'producto',this.value,'renderizarMood')"><option selected hidden>${m.producto}</option>${optPro}</select>` : `<input class="input-celda" value="${m.producto}" readonly>`}</div></div>
+                <div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid rgba(196,133,90,0.12); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div>
+                <div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${ROL==='agencia' ? `<select class="select-celda" style="background:rgba(196,133,90,0.05);" onchange="updObj('mood',${i},'emocion',this.value,'renderizarMood')"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div>
+                <div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">BEBIDA</label>${ROL==='agencia' ? `<select class="select-celda" style="background:rgba(196,133,90,0.05);" onchange="updObj('mood',${i},'bebida',this.value,'renderizarMood')"><option selected hidden>${m.bebida}</option>${optBeb}</select>` : `<input class="input-celda" value="${m.bebida}" readonly>`}</div>
+                <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">PRODUCTO</label>${ROL==='agencia' ? `<select class="select-celda" style="background:rgba(196,133,90,0.05);" onchange="updObj('mood',${i},'producto',this.value,'renderizarMood')"><option selected hidden>${m.producto}</option>${optPro}</select>` : `<input class="input-celda" value="${m.producto}" readonly>`}</div></div>
             `).join('');
         }
 
@@ -1073,9 +1075,7 @@
             }
         }
 
-        /* ==========================================================================
-           MODIFICADORES
-           ========================================================================== */
+        /* MODIFICADORES */
         function updObj(lista, idx, campo, val, renderFnName) { DB.datos[SUC_ACTIVA][lista][idx][campo] = val; guardarBD(); if(renderFnName && window[renderFnName]) window[renderFnName](); else renderizarPantallas(); }
         function updMes(pIdx, mIdx, campo, val) { DB.datos[SUC_ACTIVA].presupuesto[pIdx].montos_mes[mIdx][campo] = Number(val); guardarBD(); renderizarPresupuesto(); renderizarDashboardWrapper(); }
         function eliminarObj(lista, idx, renderFnName) { if(confirm("¿Confirmas la eliminación?")) { DB.datos[SUC_ACTIVA][lista].splice(idx, 1); guardarBD(); if(renderFnName && window[renderFnName]) window[renderFnName](); else renderizarPantallas(); } }
