@@ -19,7 +19,7 @@
         :root {
             /* Colores más puros y etéreos */
             --color-primario: #C4855A;
-            --color-fondo: #FDFCFB; /* Blanco roto hiper limpio (Gris Etéreo) */
+            --color-fondo: #F5F5F7; /* Blanco roto hiper limpio (Gris Etéreo) */
             --color-tarjeta: rgba(255, 255, 255, 0.4); /* Transparencia agresiva para glass */
             --texto-principal: #111111;
             --texto-secundario: #888888;
@@ -41,13 +41,6 @@
 
             --asmr: #A7A28D; --story: #86826C; --reel: #C4855A; --carrusel: #7A8C6E;
             --pauta: #D4956A; --masaje: #9B8FA0; --facial: #8FA0A8; --urgente: #D95F4B;
-        }
-
-        /* El truco premium 2026: Ruido fotográfico sutil sobre toda la pantalla (Relleno de grano) */
-        body::after {
-            content: ""; position: fixed; inset: 0; z-index: 9999;
-            pointer-events: none; opacity: 0.18; mix-blend-mode: multiply;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
         .tema-login {
