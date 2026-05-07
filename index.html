@@ -17,48 +17,44 @@
            1. Variables y Core UI
            ========================================================================== */
         :root {
+            /* Colores más puros y etéreos */
             --color-primario: #C4855A;
-            --color-fondo: #F5F3F0;
-            --color-tarjeta: rgba(255, 255, 255, 0.72);
-            --texto-principal: #1A1814;
-            --texto-secundario: #8A8480;
-            --color-borde: rgba(0, 0, 0, 0.05);
-            --color-borde-fuerte: rgba(0, 0, 0, 0.09);
-            --color-exito: #5C9E6E;
-            --color-alerta: #E8902A;
-            --color-peligro: #D95F4B;
-            --sombra-suave: 0 2px 20px rgba(180, 140, 100, 0.07), 0 1px 4px rgba(0,0,0,0.04);
-            --sombra-flotante: 0 24px 48px rgba(100, 70, 40, 0.15), 0 8px 16px rgba(0,0,0,0.06);
-            --radio-esquina: 20px;
-            --transicion: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --color-fondo: #FDFCFB; /* Blanco roto hiper limpio */
+            --color-tarjeta: rgba(255, 255, 255, 0.4); /* Transparencia agresiva */
+            --texto-principal: #111111;
+            --texto-secundario: #888888;
+            --color-borde: rgba(255, 255, 255, 0.8); /* Bordes blancos de cristal */
+            --color-borde-fuerte: rgba(0, 0, 0, 0.04);
+            
+            /* Sombras 2026: Amplias, suaves y con tintes de color */
+            --sombra-suave: 0 30px 60px -15px rgba(196, 133, 90, 0.08), 0 4px 12px -4px rgba(0,0,0,0.03);
+            --sombra-flotante: 0 40px 80px -20px rgba(196, 133, 90, 0.15);
+            
+            /* Radios estilo Apple */
+            --radio-esquina: 28px; 
+            --transicion: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); /* Animación más fluida */
             --font-display: 'Montserrat', sans-serif;
             --font-body: 'Inter', sans-serif;
-
-            /* Content tags */
-            --asmr: #A7A28D; --story: #86826C; --reel: #C4855A; --carrusel: #7A8C6E;
-            --pauta: #D4956A; --masaje: #9B8FA0; --facial: #8FA0A8; --urgente: #D95F4B;
         }
 
-        .tema-login {
-            background: #0D0D0F;
-            background-image:
-                radial-gradient(ellipse 80% 60% at 20% 10%, rgba(196, 133, 90, 0.18) 0%, transparent 60%),
-                radial-gradient(ellipse 60% 80% at 85% 90%, rgba(196, 133, 90, 0.10) 0%, transparent 55%);
-            color: #FFFFFF;
+        /* El truco premium 2026: Ruido fotográfico sutil sobre toda la pantalla */
+        body::before {
+            content: ""; position: fixed; inset: 0; z-index: 9999;
+            pointer-events: none; opacity: 0.4; mix-blend-mode: overlay;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
-        body { background-color: var(--color-fondo); color: var(--texto-principal); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
-        .oculto { display: none !important; }
-        h1, h2, h3 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em; }
-
-        .btn { padding: 11px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: var(--transicion); border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: -0.01em; }
-        .btn-primario { background: var(--color-primario); color: white; box-shadow: 0 4px 14px rgba(196, 133, 90, 0.35); }
-        .btn-primario:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 6px 20px rgba(196, 133, 90, 0.45); }
-        .btn-fantasma { background: rgba(255,255,255,0.6); color: var(--texto-secundario); border: 1px solid var(--color-borde-fuerte); backdrop-filter: blur(8px); }
-        .btn-fantasma:hover { background: #FFFFFF; color: var(--texto-principal); box-shadow: var(--sombra-suave); border-color: transparent; }
-        .btn-peligro-suave { background: rgba(217, 95, 75, 0.1); color: var(--color-peligro); }
-        .btn-xs { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
+        /* Glassmorphism extremo en tarjetas y barra de navegación */
+        .tarjeta, .bento-card, nav, .barra-superior, .briefing-card, .tarjeta-asset, .tarjeta-cliente, .kanban-col {
+            background: var(--color-tarjeta) !important;
+            backdrop-filter: blur(40px) saturate(180%) !important;
+            -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+            border: 1px solid var(--color-borde) !important;
+            box-shadow: var(--sombra-suave);
+        }
+        
+        /* Eliminar bordes de tablas para limpieza absoluta */
+        .tabla-editable td, .tabla-editable th { border-bottom: 1px solid rgba(0,0,0,0.03); }
 
         /* ==========================================================================
            2. Animaciones & Skeleton
