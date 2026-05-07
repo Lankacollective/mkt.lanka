@@ -9,17 +9,16 @@
     
     <title>LANKA - Marketing OS</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
         /* ==========================================================================
-           1. Variables y Core UI — inspirado en las imágenes de referencia:
-           calendario minimalista b/w + glassmorphism cálido + terracotta accent
+           1. Variables y Core UI
            ========================================================================== */
         :root {
-            --color-primario: #C4855A;   /* terracota cálida */
-            --color-fondo: #F5F3F0;      /* crema papel */
+            --color-primario: #C4855A;
+            --color-fondo: #F5F3F0;
             --color-tarjeta: rgba(255, 255, 255, 0.72);
             --texto-principal: #1A1814;
             --texto-secundario: #8A8480;
@@ -32,15 +31,14 @@
             --sombra-flotante: 0 24px 48px rgba(100, 70, 40, 0.15), 0 8px 16px rgba(0,0,0,0.06);
             --radio-esquina: 20px;
             --transicion: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            --font-display: 'Syne', sans-serif;
-            --font-body: 'DM Sans', sans-serif;
+            --font-display: 'Montserrat', sans-serif;
+            --font-body: 'Inter', sans-serif;
 
             /* Content tags */
             --asmr: #A7A28D; --story: #86826C; --reel: #C4855A; --carrusel: #7A8C6E;
             --pauta: #D4956A; --masaje: #9B8FA0; --facial: #8FA0A8; --urgente: #D95F4B;
         }
 
-        /* Login dark theme */
         .tema-login {
             background: #0D0D0F;
             background-image:
@@ -52,7 +50,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
         body { background-color: var(--color-fondo); color: var(--texto-principal); overflow: hidden; height: 100vh; display: flex; flex-direction: column; }
         .oculto { display: none !important; }
-        h1, h2, h3 { font-family: var(--font-display); font-weight: 700; letter-spacing: -0.04em; }
+        h1, h2, h3 { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.03em; }
 
         .btn { padding: 11px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; font-family: var(--font-body); cursor: pointer; transition: var(--transicion); border: none; display: inline-flex; align-items: center; justify-content: center; gap: 8px; letter-spacing: -0.01em; }
         .btn-primario { background: var(--color-primario); color: white; box-shadow: 0 4px 14px rgba(196, 133, 90, 0.35); }
@@ -75,80 +73,29 @@
         .empty-state { text-align: center; padding: 48px 24px; color: var(--texto-secundario); font-size: 14px; border: 2px dashed rgba(196,133,90,0.2); border-radius: 16px; width: 100%; font-weight: 400; font-style: italic; }
 
         /* ==========================================================================
-           3. Login — Grande, dramático, glassmorphism
+           3. Login
            ========================================================================== */
         #pantalla-login { display: flex; align-items: center; justify-content: center; height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; z-index: 1000; flex-direction: column; }
-
         .form-login { width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 14px; padding: 0 24px; }
-        .input-login {
-            width: 100%;
-            padding: 18px 20px;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 14px;
-            font-size: 16px;
-            font-family: var(--font-body);
-            outline: none;
-            color: white;
-            text-align: center;
-            transition: var(--transicion);
-            backdrop-filter: blur(12px);
-            letter-spacing: 0.2em;
-        }
+        .input-login { width: 100%; padding: 18px 20px; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; font-size: 16px; font-family: var(--font-body); outline: none; color: white; text-align: center; transition: var(--transicion); backdrop-filter: blur(12px); letter-spacing: 0.2em; }
         .input-login::placeholder { letter-spacing: 0.05em; opacity: 0.5; }
         .input-login:focus { border-color: rgba(196,133,90,0.6); background: rgba(255,255,255,0.1); box-shadow: 0 0 0 4px rgba(196,133,90,0.15); }
-        .btn-login {
-            width: 100%;
-            background: #FFFFFF;
-            color: #1A1814;
-            padding: 18px;
-            border-radius: 14px;
-            font-size: 15px;
-            font-weight: 700;
-            font-family: var(--font-display);
-            border: none;
-            cursor: pointer;
-            transition: var(--transicion);
-            letter-spacing: -0.02em;
-        }
+        .btn-login { width: 100%; background: #FFFFFF; color: #1A1814; padding: 18px; border-radius: 14px; font-size: 15px; font-weight: 700; font-family: var(--font-display); border: none; cursor: pointer; transition: var(--transicion); letter-spacing: -0.02em; }
         .btn-login:hover { background: #F5F3F0; transform: translateY(-2px); box-shadow: 0 12px 32px rgba(255,255,255,0.2); }
         .footer-login { position: absolute; bottom: 32px; font-size: 11px; color: rgba(255,255,255,0.25); font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; }
 
         /* ==========================================================================
-           4. Navegación — glassmorphism cálido
+           4. Navegación
            ========================================================================== */
         #pantalla-app { display: flex; height: 100vh; width: 100vw; }
-
-        nav {
-            width: 256px;
-            background: rgba(255, 252, 248, 0.88);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(196,133,90,0.1);
-            display: flex;
-            flex-direction: column;
-            padding: 32px 18px;
-            z-index: 100;
-            overflow-y: auto;
-        }
-        .marca {
-            font-family: var(--font-display);
-            font-size: 22px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-            color: var(--color-primario);
-            letter-spacing: -0.05em;
-            transition: color 0.3s ease;
-        }
+        nav { width: 256px; background: rgba(255, 252, 248, 0.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(196,133,90,0.1); display: flex; flex-direction: column; padding: 32px 18px; z-index: 100; overflow-y: auto; }
+        .marca { font-family: var(--font-display); font-size: 24px; font-weight: 900; display: flex; align-items: center; gap: 8px; margin-bottom: 20px; color: var(--color-primario); letter-spacing: -0.04em; transition: color 0.3s ease; }
 
         .badge-rol { padding: 7px 14px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 32px; text-align: center; letter-spacing: 0.08em; font-family: var(--font-body); }
         .badge-agencia { background: rgba(196,133,90,0.12); color: var(--color-primario); border: 1px solid rgba(196,133,90,0.2); }
         .badge-cliente { background: rgba(232, 144, 42, 0.12); color: var(--color-alerta); border: 1px solid rgba(232,144,42,0.2); }
 
-        .menu-titulo { font-size: 10px; text-transform: uppercase; color: var(--texto-secundario); margin: 20px 0 8px 12px; font-weight: 600; letter-spacing: 0.12em; opacity: 0.6; font-family: var(--font-body); }
+        .menu-titulo { font-size: 10px; text-transform: uppercase; color: var(--texto-secundario); margin: 20px 0 8px 12px; font-weight: 700; letter-spacing: 0.12em; opacity: 0.6; font-family: var(--font-body); }
         .menu-nav { list-style: none; display: flex; flex-direction: column; gap: 4px; }
         .item-nav { padding: 10px 14px; border-radius: 12px; color: var(--texto-secundario); cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 13px; font-weight: 500; transition: var(--transicion); font-family: var(--font-body); }
         .item-nav:hover { background: rgba(196,133,90,0.08); color: var(--texto-principal); }
@@ -157,46 +104,25 @@
 
         main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
 
-        .barra-superior {
-            padding: 16px 36px;
-            background: rgba(245, 243, 240, 0.85);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(196,133,90,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 50;
-        }
-        #etiqueta-cliente { font-size: 20px; font-weight: 700; font-family: var(--font-display); letter-spacing: -0.04em; color: var(--color-primario); transition: color 0.3s ease; }
-        .select-apple { appearance: none; background: transparent; border: none; padding: 8px 28px 8px 0; font-size: 20px; font-weight: 700; font-family: var(--font-display); letter-spacing: -0.04em; outline: none; cursor: pointer; color: var(--color-primario); }
+        .barra-superior { padding: 16px 36px; background: rgba(245, 243, 240, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(196,133,90,0.1); display: flex; align-items: center; justify-content: space-between; z-index: 50; }
+        #etiqueta-cliente { font-size: 20px; font-weight: 800; font-family: var(--font-display); letter-spacing: -0.04em; color: var(--color-primario); transition: color 0.3s ease; }
+        .select-apple { appearance: none; background: transparent; border: none; padding: 8px 28px 8px 0; font-size: 20px; font-weight: 800; font-family: var(--font-display); letter-spacing: -0.04em; outline: none; cursor: pointer; color: var(--color-primario); }
         select.select-moneda { background: rgba(255,255,255,0.7); border: 1px solid var(--color-borde-fuerte); border-radius: 10px; font-size: 12px; font-weight: 600; padding: 7px 24px 7px 12px; color: var(--texto-principal); font-family: var(--font-body); backdrop-filter: blur(8px); appearance: none; }
 
-        .btn-ia { background: linear-gradient(135deg, #C4855A 0%, #8B5E42 100%); color: white; border: none; padding: 9px 18px; border-radius: 100px; font-size: 12px; font-weight: 700; font-family: var(--font-display); cursor: pointer; box-shadow: 0 4px 14px rgba(196,133,90,0.35); letter-spacing: -0.01em; transition: var(--transicion); }
+        .btn-ia { background: linear-gradient(135deg, #C4855A 0%, #8B5E42 100%); color: white; border: none; padding: 9px 18px; border-radius: 100px; font-size: 12px; font-weight: 700; font-family: var(--font-body); cursor: pointer; box-shadow: 0 4px 14px rgba(196,133,90,0.35); letter-spacing: -0.01em; transition: var(--transicion); }
         .btn-ia:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(196,133,90,0.45); }
 
         .area-desplazable { flex: 1; overflow-y: auto; padding: 40px 44px; scroll-behavior: smooth; }
         .encabezado-seccion { margin-bottom: 32px; display: flex; justify-content: space-between; align-items: flex-end; }
-        .encabezado-seccion h1 { font-size: 30px; letter-spacing: -0.05em; color: var(--texto-principal); margin-bottom: 4px; font-family: var(--font-display); }
-        .encabezado-seccion p { font-size: 13px; color: var(--texto-secundario); font-weight: 400; font-style: italic; }
+        .encabezado-seccion h1 { font-size: 28px; letter-spacing: -0.04em; color: var(--texto-principal); margin-bottom: 4px; font-family: var(--font-display); }
+        .encabezado-seccion p { font-size: 13px; color: var(--texto-secundario); font-weight: 400; }
 
-        .tarjeta {
-            background: var(--color-tarjeta);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border-radius: var(--radio-esquina);
-            box-shadow: var(--sombra-suave);
-            padding: 24px;
-            margin-bottom: 24px;
-            overflow-x: auto;
-            border: 1px solid var(--color-borde);
-        }
+        .tarjeta { background: var(--color-tarjeta); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: var(--radio-esquina); box-shadow: var(--sombra-suave); padding: 24px; margin-bottom: 24px; overflow-x: auto; border: 1px solid var(--color-borde); }
 
         /* ==========================================================================
            5. Responsive Móvil
            ========================================================================== */
         .btn-menu { display: none; background: transparent; border: none; font-size: 22px; color: var(--texto-principal); cursor: pointer; padding: 4px; transition: var(--transicion); }
-
         @media (max-width: 768px) {
             nav { position: fixed; left: -280px; top: 0; bottom: 0; transition: left 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: var(--sombra-flotante); width: 280px; }
             nav.activo-mobile { left: 0; }
@@ -210,15 +136,14 @@
             .cuadricula-kpi { grid-template-columns: 1fr !important; }
             .briefing-grid { grid-template-columns: 1fr !important; }
         }
-
         #overlay-mobile { position: fixed; inset: 0; background: rgba(26, 24, 20, 0.5); z-index: 90; opacity: 0; pointer-events: none; transition: opacity 0.3s; backdrop-filter: blur(3px); }
         #overlay-mobile.activo { opacity: 1; pointer-events: all; }
 
         /* ==========================================================================
-           6. Tablas y Dashboard Bento — inspirado en el calendario pill y cards
+           6. Tablas y Dashboard Bento
            ========================================================================== */
         .tabla-editable { width: 100%; border-collapse: collapse; font-size: 13px; font-family: var(--font-body); }
-        .tabla-editable th { text-align: left; padding: 14px 16px; color: var(--texto-secundario); font-weight: 600; border-bottom: 1px solid var(--color-borde-fuerte); background: transparent; position: sticky; top: 0; z-index: 2; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .tabla-editable th { text-align: left; padding: 14px 16px; color: var(--texto-secundario); font-weight: 700; border-bottom: 1px solid var(--color-borde-fuerte); background: transparent; position: sticky; top: 0; z-index: 2; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
         .tabla-editable td { padding: 12px 16px; border-bottom: 1px solid rgba(196,133,90,0.06); vertical-align: middle; }
         .input-celda { width: 100%; min-width: 90px; border: 1px solid transparent; background: transparent; padding: 8px 10px; border-radius: 10px; font-size: 13px; font-weight: 500; outline: none; transition: var(--transicion); font-family: var(--font-body); color: var(--texto-principal); }
         .input-celda:not([readonly]):hover { background: rgba(255,255,255,0.8); border-color: rgba(196,133,90,0.2); }
@@ -234,45 +159,11 @@
         /* Bento */
         .bento-grid { display: flex; flex-direction: column; gap: 20px; margin-bottom: 40px; max-width: 1060px; }
         .bento-row-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-        .bento-card {
-            background: rgba(255,252,248,0.75);
-            border: 1px solid rgba(196,133,90,0.1);
-            border-radius: 24px;
-            padding: 28px;
-            box-shadow: var(--sombra-suave);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: var(--transicion);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
+        .bento-card { background: rgba(255,252,248,0.75); border: 1px solid rgba(196,133,90,0.1); border-radius: 24px; padding: 28px; box-shadow: var(--sombra-suave); display: flex; flex-direction: column; justify-content: space-between; transition: var(--transicion); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
         .bento-card:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(196,133,90,0.1), 0 4px 8px rgba(0,0,0,0.04); border-color: rgba(196,133,90,0.2); }
         .bento-label { font-size: 11px; font-weight: 700; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; font-family: var(--font-body); }
-        
-        /* CORRECCIÓN TOPOGRÁFICA EN EL BENTO */
-        .bento-val { 
-            font-size: 34px; 
-            font-weight: 800; 
-            color: var(--texto-principal); 
-            letter-spacing: -0.04em; 
-            line-height: 1; 
-            margin-bottom: 10px; 
-            font-family: var(--font-display); 
-            display: flex; 
-            align-items: baseline; 
-            gap: 8px; 
-            flex-wrap: wrap; 
-        }
-        .bento-val span { 
-            font-size: 14px; 
-            font-weight: 500; 
-            font-family: var(--font-body); 
-            color: var(--texto-secundario); 
-            letter-spacing: 0; 
-            text-transform: lowercase;
-        }
-        
+        .bento-val { font-size: 34px; font-weight: 800; color: var(--texto-principal); letter-spacing: -0.04em; line-height: 1; margin-bottom: 10px; font-family: var(--font-display); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+        .bento-val span { font-size: 14px; font-weight: 500; font-family: var(--font-body); color: var(--texto-secundario); letter-spacing: 0; text-transform: lowercase; }
         .bento-trend { font-size: 13px; font-weight: 500; color: var(--texto-secundario); font-family: var(--font-body); }
         .trend-up { color: var(--color-exito); }
         .trend-down { color: var(--color-peligro); }
@@ -308,13 +199,10 @@
         /* Tarjeta expandible */
         .content-card { background: rgba(255,252,248,0.85); border: 1px solid rgba(196,133,90,0.1); border-radius: 20px; margin-bottom: 20px; overflow: hidden; box-shadow: var(--sombra-suave); transition: var(--transicion); backdrop-filter: blur(10px); }
         .content-card:hover { box-shadow: 0 10px 28px rgba(196,133,90,0.1); border-color: rgba(196,133,90,0.2); }
-        .card-header { display: grid; grid-template-columns: 80px 1fr auto; align-items: center; gap: 20px; padding: 18px 24px; cursor: pointer; user-select: none; }
-        .date-block { text-align: center; background: rgba(196,133,90,0.08); border-radius: 12px; padding: 10px 4px; border: 1px solid rgba(196,133,90,0.15); }
-        .date-day { font-size: 26px; font-weight: 800; line-height: 1; color: var(--texto-principal); letter-spacing: -0.06em; font-family: var(--font-display); }
-        .date-hora { font-size: 11px; color: var(--color-primario); margin-top: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
-
+        .card-header { display: grid; grid-template-columns: 140px 1fr auto; align-items: center; gap: 20px; padding: 18px 24px; cursor: pointer; user-select: none; }
+        
         .card-meta { flex: 1; display: flex; flex-direction: column; gap: 10px; }
-        .card-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .card-tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
         .tag { font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.12); font-family: var(--font-body); }
         .tag.asmr { background: var(--asmr); } .tag.reel { background: var(--reel); } .tag.pauta { background: var(--pauta); } .tag.urgente { background: var(--urgente); } .tag.gris { background: var(--texto-secundario); }
         .toggle-icon { font-size: 18px; color: var(--texto-secundario); transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1); min-width: 24px; text-align: center; }
@@ -346,11 +234,9 @@
         /* ==========================================================================
            9. DAM, Mood, Líneas
            ========================================================================== */
-        .cuadricula-dam { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-        .tarjeta-asset { background: rgba(255,252,248,0.8); border: 1px solid rgba(196,133,90,0.1); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--sombra-suave); transition: var(--transicion); backdrop-filter: blur(8px); }
+        .cuadricula-dam { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .tarjeta-asset { background: rgba(255,252,248,0.8); border: 1px solid rgba(196,133,90,0.1); border-radius: 20px; display: flex; box-shadow: var(--sombra-suave); transition: var(--transicion); backdrop-filter: blur(8px); position: relative;}
         .tarjeta-asset:hover { transform: translateY(-3px); box-shadow: 0 14px 32px rgba(196,133,90,0.1); }
-        .asset-preview { height: 90px; background: rgba(196,133,90,0.07); display: flex; justify-content: center; align-items: center; color: rgba(196,133,90,0.4); font-size: 32px; position: relative; border-bottom: 1px solid rgba(196,133,90,0.1); }
-        .asset-version { position: absolute; top: 12px; right: 12px; background: rgba(26,24,20,0.7); color: white; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; backdrop-filter: blur(6px); font-family: var(--font-body); letter-spacing: 0.05em; }
         .estado-dam { font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; display: inline-flex; align-items: center; gap: 6px; width: fit-content; font-family: var(--font-body); }
         .estado-revision { background: rgba(232,200,42,0.12); color: #7A6010; }
         .estado-cambios { background: rgba(217,95,75,0.1); color: var(--color-peligro); }
@@ -382,7 +268,7 @@
         .audit-dot { width: 36px; height: 36px; background: rgba(196,133,90,0.1); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: var(--color-primario); flex-shrink: 0; font-size: 14px; }
 
         /* ==========================================================================
-           11. Modales — glassmorphism oscuro como en la imagen 5
+           11. Modales
            ========================================================================== */
         .fondo-modal { position: fixed; inset: 0; background: rgba(26, 24, 20, 0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
         .fondo-modal.activo { opacity: 1; pointer-events: all; }
@@ -397,13 +283,13 @@
 <body class="tema-login">
 
     <div id="pantalla-login">
-        <div style="font-size:64px; font-weight:800; letter-spacing:-0.06em; margin-bottom:2px; color:#FFFFFF; font-family:'Syne',sans-serif; animation: fadeUp 0.6s ease both;">LANKA</div>
-        <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.25em; color:rgba(196,133,90,0.7); margin-bottom:52px; font-family:'DM Sans',sans-serif; animation: fadeUp 0.6s 0.1s ease both;">Marketing</div>
+        <div style="font-size:64px; font-weight:900; letter-spacing:-0.04em; margin-bottom:2px; color:#FFFFFF; font-family:var(--font-display); animation: fadeUp 0.6s ease both;">LANKA</div>
+        <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.25em; color:rgba(196,133,90,0.7); margin-bottom:52px; font-family:var(--font-body); animation: fadeUp 0.6s 0.1s ease both;">Marketing</div>
         
         <form class="form-login" onsubmit="ejecutarLogin(event)" style="animation: fadeUp 0.6s 0.2s ease both;">
             <input type="password" id="input-password" class="input-login" placeholder="Clave de acceso" autocomplete="off" autofocus>
             <button type="submit" class="btn-login">Ingresar</button>
-            <div id="error-login" style="color:rgba(217,95,75,0.9); opacity:0; font-size:13px; font-weight:600; text-align:center; transition: 0.3s; margin-top:4px; font-family:'DM Sans',sans-serif;">Acceso denegado.</div>
+            <div id="error-login" style="color:rgba(217,95,75,0.9); opacity:0; font-size:13px; font-weight:600; text-align:center; transition: 0.3s; margin-top:4px; font-family:var(--font-body);">Acceso denegado.</div>
         </form>
         <div class="footer-login">Lanka Collective &copy; 2026</div>
     </div>
@@ -426,7 +312,7 @@
 
             <div class="menu-titulo">Orquestación</div>
             <ul class="menu-nav">
-                <li class="item-nav" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario Content</li>
+                <li class="item-nav" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario de Contenido</li>
                 <li class="item-nav" data-target="vista-dam"><i class="fa-solid fa-photo-film"></i> DAM Governance</li>
             </ul>
 
@@ -435,7 +321,6 @@
                 <li class="item-nav" data-target="vista-briefing"><i class="fa-solid fa-chess-knight"></i> Briefing Mensual</li>
                 <li class="item-nav" data-target="vista-mood"><i class="fa-solid fa-calendar-week"></i> Mood & Ejes</li>
                 <li class="item-nav" data-target="vista-lineas"><i class="fa-solid fa-bars-staggered"></i> Líneas Com.</li>
-                <li class="item-nav" data-target="vista-audiovisual"><i class="fa-solid fa-camera-retro"></i> Guía Visual</li>
                 <li class="item-nav" data-target="vista-target"><i class="fa-solid fa-users-viewfinder"></i> Target</li>
             </ul>
 
@@ -514,7 +399,7 @@
                         <div class="bento-card" style="flex-direction:row; align-items:center; justify-content:space-between; flex-wrap: wrap; gap:16px;">
                             <div>
                                 <div class="bento-label" style="margin-bottom:8px;">PRÓXIMA PUBLICACIÓN</div>
-                                <div id="val-nextpost" style="font-size:18px; font-weight:600; font-family:var(--font-display); color:var(--texto-principal); letter-spacing:-0.02em; margin-bottom:6px; line-height:1.2;">Sin publicaciones</div>
+                                <div id="val-nextpost" style="font-size:18px; font-weight:700; font-family:var(--font-display); color:var(--texto-principal); letter-spacing:-0.02em; margin-bottom:6px; line-height:1.2;">Sin publicaciones</div>
                                 <div id="sub-nextpost" class="bento-trend">Revisa el calendario</div>
                             </div>
                             <span id="chip-nextpost" class="chip" style="background:rgba(196,133,90,0.08); border:1px solid rgba(196,133,90,0.2); font-size:11px; padding: 8px 18px;">N/A</span>
@@ -547,7 +432,7 @@
 
                 <section id="vista-calendario" class="seccion-app oculto">
                     <div class="encabezado-seccion">
-                        <div><h1>Calendario Content</h1><p>Pipeline editorial y estrategia profunda de contenido.</p></div>
+                        <div><h1>Calendario de Contenido</h1><p>Pipeline editorial y estrategia profunda de contenido.</p></div>
                         <div style="display:flex; align-items:center; flex-wrap:wrap; gap:12px;">
                             <div class="selector-vista">
                                 <button id="btn-vista-kanban" class="btn-vista activo" onclick="cambiarVistaCalendario('kanban')"><i class="fa-solid fa-columns"></i> Kanban</button>
@@ -582,14 +467,9 @@
                     <div id="contenedor-lineas"></div>
                 </section>
 
-                <section id="vista-audiovisual" class="seccion-app oculto">
-                    <div class="encabezado-seccion"><div><h1>Guía Audiovisual</h1><p>Estándares de producción fotográfica y de video.</p></div><button class="btn btn-primario req-agencia" onclick="agregarElemento('audiovisual')"><i class="fa-solid fa-plus"></i> Elemento</button></div>
-                    <div class="tarjeta"><table class="tabla-editable"><thead><tr><th>Elemento</th><th>Familia</th><th>Fondo</th><th>Encuadre</th><th>Comentarios</th><th class="req-agencia"></th></tr></thead><tbody id="tabla-audiovisual"></tbody></table></div>
-                </section>
-
                 <section id="vista-target" class="seccion-app oculto">
                     <div class="encabezado-seccion"><div><h1>Target y Segmentación</h1><p>Definición de audiencias objetivo.</p></div><button class="btn btn-primario req-agencia" onclick="agregarElemento('target')"><i class="fa-solid fa-plus"></i> Segmento</button></div>
-                    <div class="tarjeta"><table class="tabla-editable"><thead><tr><th>Segmento</th><th>Sexo</th><th>Nivel Socio</th><th>Consumo</th><th class="req-agencia"></th></tr></thead><tbody id="tabla-target"></tbody></table></div>
+                    <div class="tarjeta"><table class="tabla-editable"><thead><tr><th>Nombre</th><th>Sexo</th><th>Nivel Socio</th><th>Ubicación</th><th>Mood</th><th class="req-agencia"></th></tr></thead><tbody id="tabla-target"></tbody></table></div>
                 </section>
 
                 <section id="vista-clientes" class="seccion-app oculto">
@@ -615,10 +495,10 @@
         <div class="modal-caja">
             <div style="display:flex; align-items:center; border-bottom:1px solid rgba(196,133,90,0.12);">
                 <i class="fa-solid fa-bolt" style="color:var(--color-primario); font-size:22px; padding-left:24px;"></i>
-                <input type="text" id="input-comando-ia" style="width:100%; border:none; font-size:20px; outline:none; background:transparent; padding:20px; color:var(--texto-principal); font-family:'Syne',sans-serif; font-weight:600; letter-spacing:-0.02em;" placeholder="Programa un reel para el viernes..." autocomplete="off">
+                <input type="text" id="input-comando-ia" style="width:100%; border:none; font-size:20px; outline:none; background:transparent; padding:20px; color:var(--texto-principal); font-family:var(--font-display); font-weight:600; letter-spacing:-0.02em;" placeholder="Programa un reel para el viernes..." autocomplete="off">
             </div>
             <div style="padding:16px 24px; background:rgba(245,241,236,0.6); font-size:12px; display:flex; justify-content:space-between; align-items:center;">
-                <span id="estado-ia-texto" style="color:var(--texto-secundario); font-weight:500; font-family:'DM Sans',sans-serif;">Presiona Enter para ejecutar comando.</span>
+                <span id="estado-ia-texto" style="color:var(--texto-secundario); font-weight:500; font-family:var(--font-body);">Presiona Enter para ejecutar comando.</span>
                 <button class="btn-fantasma btn-sm" onclick="cerrarModales()">Cerrar</button>
             </div>
         </div>
@@ -643,7 +523,7 @@
         <div class="modal-caja" style="max-width: 600px;">
             <div class="modal-header"><h3>Exportación de Resultados</h3><button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button></div>
             <div style="padding:24px;">
-                <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:16px; font-family:'DM Sans',sans-serif;">Aprendizajes estratégicos para adjuntar al CSV de <strong id="rep-nombre-cliente"></strong>.</p>
+                <p style="font-size:13px; color:var(--texto-secundario); margin-bottom:16px;">Aprendizajes estratégicos para adjuntar al CSV de <strong id="rep-nombre-cliente"></strong>.</p>
                 <div style="display:flex; flex-direction:column; gap:12px;">
                     <textarea id="rep-insight-1" class="textarea-apple" style="min-height:60px;" placeholder="Aprendizaje 1 (Ej. El ticket se sostuvo sin promos...)"></textarea>
                     <textarea id="rep-insight-2" class="textarea-apple" style="min-height:60px;" placeholder="Aprendizaje 2 (Ej. El volumen de contactos creció...)"></textarea>
@@ -667,7 +547,8 @@
             desplegables: {
                 estado_factura: ["Pendiente", "Pagado", "Vencido"], 
                 emociones: ["Alegría", "Festejo", "Profesional"], bebidas: ["Aperol", "Ninguna"], productos: ["Pizza", "SaaS"],
-                cat_proveedor: ["Agencia", "Medios", "Producción"]
+                cat_proveedor: ["Agencia", "Medios", "Producción"],
+                sexo: ["Ambos", "Hombre", "Mujer"], nivel: ["A/B", "C+", "C", "D", "E"]
             },
             sucursales: [
                 { id: "mammut", nombre: "Aitama Wellness", color: "#C4855A", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Mammut1") },
@@ -683,22 +564,21 @@
                     presupuesto: [ { categoria: "Meta Ads", item: "Pauta", montos_mes: Array.from({length: 12}, () => ({directa: 2400, intercambio: 0})) } ],
                     facturas: [ { folio: "F-01", proveedor: "Google", concepto: "Workspace", monto: 1500, estado: "Pendiente" } ], 
                     kanban: [ 
-                        { id: "k1", titulo: "Video 1 Día de la Madre", fecha: "2026-05-04", hora: "18:00", estado: "Programado", tags: "Reel, madre, pauta", hook: "hay mujeres que cargan con todo sin pedir nada a cambio. para la tuya — esto.", copy: "este mes le das a ella lo que nunca se da a sí misma. los paquetes del día de las madres ya están listos en aitama.", hashtags: "#AitamaSpa #SpaMorelia", manychat: "MAMÁ -> Mensaje 1: hola 🤍 qué bueno que preguntas...", pauta: "★ Pautar directamente. Objetivo: Mensajes. $600 MXN", stories: "6:10 pm - Clip del Reel + sticker enlace\n8:00 pm - no es un facial más." },
-                        { id: "k2", titulo: "Reel ASMR Masaje", fecha: "2026-05-12", hora: "07:00", estado: "Producción", tags: "ASMR, masaje", hook: "Video abre con aceite cayendo sobre espalda en cámara lenta. Sin texto.", copy: "ya cuidaste a todos. ahora le toca a tu cuerpo guardar todo lo que cargó este mes.", hashtags: "#MasajeHolistico #SpaMorelia", manychat: "TENSIÓN -> Confirmar disponibilidad", pauta: "Superar 500 vistas orgánicas -> Meta Ads", stories: "" }
+                        { id: "k1", titulo: "Video 1 Día de la Madre", fecha: "2026-05-04", hora: "18:00", estado: "Programado", tags: "Reel, Pauta", hook: "hay mujeres que cargan con todo sin pedir nada a cambio. para la tuya — esto.", copy: "este mes le das a ella lo que nunca se da a sí misma. los paquetes del día de las madres ya están listos en aitama.", hashtags: "#AitamaSpa #SpaMorelia", manychat: "MAMÁ -> Mensaje 1: hola 🤍 qué bueno que preguntas...", pauta: "★ Pautar directamente. Objetivo: Mensajes. $600 MXN", stories: "6:10 pm - Clip del Reel + sticker enlace\n8:00 pm - no es un facial más." },
+                        { id: "k2", titulo: "Reel ASMR Masaje", fecha: "2026-05-12", hora: "07:00", estado: "Producción", tags: "ASMR, Masaje", hook: "Video abre con aceite cayendo sobre espalda en cámara lenta. Sin texto.", copy: "ya cuidaste a todos. ahora le toca a tu cuerpo guardar todo lo que cargó este mes.", hashtags: "#MasajeHolistico #SpaMorelia", manychat: "TENSIÓN -> Confirmar disponibilidad", pauta: "Superar 500 vistas orgánicas -> Meta Ads", stories: "" }
                     ],
-                    dam: [ { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } ],
+                    dam: [ { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, url: "", historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } ],
                     offline: [ { tactica: "Cortesías Cabina", impacto: "Retención", estado: "Activo" } ],
                     mood: Array.from({length: 12}, () => ({ emocion: "Relajación", bebida: "Té Matcha", producto: "Facial" })),
                     lineas: [ { eje: "CLÍNICA", plano: "Diagnóstico", pct: 100 } ],
-                    audiovisual: [ { elemento: "Cabina SPA", familia: "Espacio", fondo: "Luz cálida", encuadre: "Abierto", comentarios: "Sin personas" } ],
-                    target: [ { segmento: "Mujeres 25-50", sexo: "Mujer", nivel: "A/B", consumo: "Frecuente", mood: "Autocuidado" } ]
+                    target: [ { segmento: "Mamás Jóvenes", sexo: "Mujer", nivel: "A/B", ubicacion: "Morelia", mood: "Autocuidado" } ]
                 },
                 aitama: {
                     briefing: { reglas: [], manychat: [], kpis_obj: [] },
                     presupuesto: [ { categoria: "Ads", item: "Meta", montos_mes: Array.from({length: 12}, () => ({directa: 4500, intercambio: 0})) } ],
                     facturas: [], kanban: [], dam: [], offline: [],
                     mood: Array.from({length: 12}, () => ({ emocion: "Profesional", bebida: "Ninguna", producto: "SaaS" })),
-                    lineas: [ { eje: "B2B", plano: "Dashboard", pct: 100 } ], audiovisual: [], target: []
+                    lineas: [ { eje: "B2B", plano: "Dashboard", pct: 100 } ], target: []
                 }
             },
             proveedores: []
@@ -739,7 +619,7 @@
         }
 
         /* ==========================================================================
-           LOGICA LOGIN RBAC & LOGOUT
+           LOGIN & RBAC
            ========================================================================== */
         function ejecutarLogin(e) {
             e.preventDefault();
@@ -796,7 +676,7 @@
         function cambiarMoneda() { DB.configuracion.moneda = document.getElementById('selector-moneda').value; guardarBD(); renderizarPantallas(); }
 
         /* ==========================================================================
-           RENDERIZADO GRANULAR Y API
+           RENDERIZADO
            ========================================================================== */
         function renderizarPantallas() {
             const infoSuc = DB.sucursales.find(s => s.id === SUC_ACTIVA);
@@ -876,7 +756,7 @@
 
             setTimeout(async () => {
                 try {
-                    // AQUÍ ESTÁ LA NUEVA RUTA APUNTANDO A VERCEL CON LA NUEVA LLAVE
+                    // LLAMADA SEGURA AL BACKEND SERVERLESS DE VERCEL
                     const response = await fetch(`/api/metricas?id=${id}`, { headers: { 'x-api-key': 'lanka_key_2026_super_secreta' } });
                     if (!response.ok) throw new Error("API Falla");
                     const data = await response.json();
@@ -953,7 +833,7 @@
             
             let htmlReglas = d.reglas.map((r,i) => `<div class="rule-item"><div class="rule-num">0${i+1}</div><textarea class="copy-block" style="min-height:50px; background:transparent; border:none; padding:0; box-shadow:none; font-size:14px;" ${ro} onchange="DB.datos[SUC_ACTIVA].briefing.reglas[${i}]=this.value; guardarBD();">${r}</textarea><button class="btn btn-xs btn-peligro-suave req-agencia" onclick="DB.datos[SUC_ACTIVA].briefing.reglas.splice(${i},1); guardarBD(); renderizarBriefing();"><i class="fa-solid fa-trash"></i></button></div>`).join('');
             
-            let htmlManychat = d.manychat.map((m,i) => `<div style="background:#1A1814; color:rgba(245,243,240,0.9); padding:16px; border-radius:14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;"><div style="flex:1;"><input class="input-celda" style="color:var(--color-primario); font-weight:800; font-size:18px; padding:0; letter-spacing:0.05em; font-family:'Syne',sans-serif;" value="${m.kw}" ${ro} onchange="DB.datos[SUC_ACTIVA].briefing.manychat[${i}].kw=this.value; guardarBD();"><input class="input-celda" style="color:rgba(245,243,240,0.7); padding:0; margin-top:4px; font-size:13px;" value="${m.desc}" ${ro} onchange="DB.datos[SUC_ACTIVA].briefing.manychat[${i}].desc=this.value; guardarBD();"></div><button class="btn btn-xs btn-peligro-suave req-agencia" style="background:transparent; border:1px solid rgba(255,255,255,0.1);" onclick="DB.datos[SUC_ACTIVA].briefing.manychat.splice(${i},1); guardarBD(); renderizarBriefing();"><i class="fa-solid fa-trash"></i></button></div>`).join('');
+            let htmlManychat = d.manychat.map((m,i) => `<div style="background:#1A1814; color:rgba(245,243,240,0.9); padding:16px; border-radius:14px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-start;"><div style="flex:1;"><input class="input-celda" style="color:var(--color-primario); font-weight:800; font-size:18px; padding:0; letter-spacing:0.05em; font-family:var(--font-display);" value="${m.kw}" ${ro} onchange="DB.datos[SUC_ACTIVA].briefing.manychat[${i}].kw=this.value; guardarBD();"><textarea class="input-celda" style="color:rgba(245,243,240,0.7); padding:0; margin-top:4px; font-size:13px; background:transparent; border:none; resize:vertical; min-height:60px;" ${ro} onchange="DB.datos[SUC_ACTIVA].briefing.manychat[${i}].desc=this.value; guardarBD();">${m.desc}</textarea></div><button class="btn btn-xs btn-peligro-suave req-agencia" style="background:transparent; border:1px solid rgba(255,255,255,0.1);" onclick="DB.datos[SUC_ACTIVA].briefing.manychat.splice(${i},1); guardarBD(); renderizarBriefing();"><i class="fa-solid fa-trash"></i></button></div>`).join('');
 
             let htmlKPIs = `<table class="tabla-editable"><thead><tr><th>Métrica</th><th>Mínimo</th><th>Ideal</th><th class="req-agencia"></th></tr></thead><tbody>` + 
                 d.kpis_obj.map((k,i) => `<tr><td><input class="input-celda" style="font-weight:600;" value="${k.metrica}" ${ro} onchange="DB.datos[SUC_ACTIVA].briefing.kpis_obj[${i}].metrica=this.value; guardarBD();"></td><td><input class="input-celda" style="color:var(--texto-secundario); font-weight:600;" value="${k.min}" ${ro} onchange="DB.datos[SUC_ACTIVA].briefing.kpis_obj[${i}].min=this.value; guardarBD();"></td><td><input class="input-celda" style="color:var(--color-primario); font-weight:800;" value="${k.ideal}" ${ro} onchange="DB.datos[SUC_ACTIVA].briefing.kpis_obj[${i}].ideal=this.value; guardarBD();"></td><td class="req-agencia"><button class="btn btn-xs btn-peligro-suave" onclick="DB.datos[SUC_ACTIVA].briefing.kpis_obj.splice(${i},1); guardarBD(); renderizarBriefing();"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('') + `</tbody></table>`;
@@ -1014,10 +894,11 @@
             tareasSort.forEach((t) => {
                 let idx = d.kanban.findIndex(x => x.id === t.id);
                 let optParrilla = ['Ideas', 'Producción', 'Revisión', 'Programado'].map(e => `<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
-                let inEstParrilla = ROL==='agencia' ? `<select class="select-celda" style="background:rgba(196,133,90,0.08); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; font-size:11px; border:1px solid rgba(196,133,90,0.2);" onchange="updObj('kanban',${idx},'estado',this.value, 'renderizarOrquestacionWrapper')">${optParrilla}</select>` : `<span class="chip" style="background:rgba(196,133,90,0.08);color:var(--texto-principal); border:1px solid rgba(196,133,90,0.15);">${t.estado}</span>`;
+                let inEstParrilla = ROL==='agencia' ? `<select class="select-celda" style="background:rgba(196,133,90,0.08); font-weight:700; text-transform:uppercase; letter-spacing:0.06em; font-size:11px; border:1px solid rgba(196,133,90,0.2);" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value, 'renderizarOrquestacionWrapper')">${optParrilla}</select>` : `<span class="chip" style="background:rgba(196,133,90,0.08);color:var(--texto-principal); border:1px solid rgba(196,133,90,0.15);">${t.estado}</span>`;
                 
                 let tagsHTML = t.tags ? t.tags.split(',').map(tag => {
                     let trimTag = tag.trim(); let l = trimTag.toLowerCase();
+                    if (!trimTag) return '';
                     let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente';
                     return `<span class="tag ${cls}">${trimTag}</span>`;
                 }).join('') : '';
@@ -1025,10 +906,13 @@
                 htmlParrilla += `
                 <div class="content-card" id="card-${t.id}">
                     <div class="card-header" onclick="toggleCard('card-${t.id}')">
-                        <div class="date-block"><div class="date-day">${t.fecha.split('-')[2] || '00'}</div><div class="date-hora">${t.hora || '12:00'}</div></div>
+                        <div style="display:flex; flex-direction:column; gap:4px; width:120px;">
+                            <input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:rgba(196,133,90,0.08);" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'fecha',this.value, 'renderizarOrquestacion')">
+                            <input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'hora',this.value, 'renderizarOrquestacion')">
+                        </div>
                         <div class="card-meta">
                             <input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; letter-spacing:-0.03em; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'titulo',this.value, 'renderizarOrquestacionWrapper')">
-                            <div class="card-tags">${tagsHTML} <input class="input-celda" style="font-size:11px; width:180px; border-bottom:1px dashed rgba(196,133,90,0.3);" placeholder="+ Etiqueta..." value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'tags',this.value, 'renderizarOrquestacion')"></div>
+                            <div class="card-tags">${tagsHTML} <input class="input-celda" style="font-size:11px; width:180px; border-bottom:1px dashed rgba(196,133,90,0.3); padding-left:0;" placeholder="+ Etiqueta (Ej. Reel, ASMR)..." value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'tags',this.value, 'renderizarOrquestacion')"></div>
                         </div>
                         <div class="toggle-icon" style="display:flex; align-items:center; gap:16px;">${inEstParrilla} <i class="fa-solid fa-chevron-down"></i></div>
                     </div>
@@ -1071,7 +955,6 @@
                 let claseEst = a.estado === 'Aprobado' ? 'estado-aprobado' : (a.estado === 'Cambios solicitados' ? 'estado-cambios' : 'estado-revision');
                 let uiBoton = '';
                 
-                // Botón para abrir el link de Drive si existe
                 let btnVerArchivo = a.url ? `<a href="${a.url}" target="_blank" class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px; border-color:var(--color-primario); color:var(--color-primario); text-decoration:none; text-align:center;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver Archivo</a>` : '';
 
                 if (ROL === 'cliente' && a.estado === 'En revisión') {
@@ -1082,12 +965,21 @@
                     uiBoton = `${btnVerArchivo}<button class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px;" onclick="verHistorial('${a.id}')">Historial</button>`;
                 }
                 
-                let btnDel = ROL === 'agencia' ? `<button class="btn btn-xs btn-peligro-suave" style="position:absolute; top:12px; left:12px; z-index:10;" onclick="eliminarObj('dam',${i},'renderizarDAMWrapper')"><i class="fa-solid fa-trash"></i></button>` : '';
+                let btnDel = ROL === 'agencia' ? `<button class="btn btn-xs btn-peligro-suave" style="position:absolute; top:12px; right:12px; z-index:10;" onclick="eliminarObj('dam',${i},'renderizarDAMWrapper')"><i class="fa-solid fa-trash"></i></button>` : '';
+                let inputUrl = ROL === 'agencia' ? `<input class="input-celda" style="font-size:11px; margin-top:8px; border-bottom:1px dashed rgba(196,133,90,0.3); padding-left:0; height:auto;" placeholder="Pega el link de Google Drive aquí..." value="${a.url || ''}" onchange="updObj('dam',${i},'url',this.value, 'renderizarDAMWrapper')">` : '';
 
-                // Input para que la agencia pegue el link de Drive
-                let inputUrl = ROL === 'agencia' ? `<input class="input-celda" style="font-size:11px; margin-top:8px; border-bottom:1px dashed rgba(196,133,90,0.3); padding-left:0;" placeholder="Pega el link de Google Drive aquí..." value="${a.url || ''}" onchange="updObj('dam',${i},'url',this.value, 'renderizarDAMWrapper')">` : '';
-
-                return `<div class="tarjeta-asset"><div class="asset-preview">${btnDel}<i class="fa-solid ${a.tipo}"></i><div class="asset-version">V${a.version}</div></div><div style="padding:20px;"><input class="input-celda" style="font-family:var(--font-display); font-weight:700; font-size:14px; padding-left:0;" value="${a.nombre}" ${ro} onchange="updObj('dam',${i},'nombre',this.value, 'renderizarDAMWrapper')">${inputUrl}<br><span class="estado-dam ${claseEst}" style="margin-top:12px; display:inline-block;">${a.estado}</span><div style="display:flex; gap:8px; margin-top:20px; flex-wrap:wrap;">${uiBoton}</div></div></div>`;
+                return `<div class="tarjeta-asset" style="flex-direction:row; padding:16px; align-items:center; gap:16px;">
+                    ${btnDel}
+                    <div style="font-size:28px; color:rgba(196,133,90,0.4); width:40px; text-align:center;"><i class="fa-solid ${a.tipo}"></i></div>
+                    <div style="flex:1;">
+                        <input class="input-celda" style="font-family:var(--font-display); font-weight:700; font-size:14px; padding:0; height:auto;" value="${a.nombre}" ${ro} onchange="updObj('dam',${i},'nombre',this.value, 'renderizarDAMWrapper')">
+                        ${inputUrl}
+                        <div style="display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap;">
+                            <span class="estado-dam ${claseEst}" style="margin:0;">${a.estado} <b style="opacity:0.6; margin-left:4px;">V${a.version}</b></span>
+                            ${uiBoton}
+                        </div>
+                    </div>
+                </div>`;
             }).join('');
         }
         function renderizarDAMWrapper() { renderizarDAM(); renderizarDashboardWrapper(); }
@@ -1112,12 +1004,24 @@
             const ro = ROL === 'cliente' ? 'readonly disabled' : '';
             
             document.getElementById('contenedor-lineas').innerHTML = d.lineas.map((l, i) => `<div class="fila-linea"><div style="font-weight:800; font-size:16px; color:var(--color-primario); font-family:var(--font-display);">${i+1}</div><div><input class="input-celda" style="font-weight:700;" value="${l.eje}" ${ro} onchange="updObj('lineas',${i},'eje',this.value, 'renderizarEstrategia')"></div><div><input class="input-celda" value="${l.plano}" ${ro} onchange="updObj('lineas',${i},'plano',this.value, 'renderizarEstrategia')"></div><div><input type="number" class="input-celda" style="font-weight:700;" value="${l.pct}" ${ro} onchange="updObj('lineas',${i},'pct',Number(this.value), 'renderizarEstrategia')"></div><div style="height:8px;background:rgba(196,133,90,0.12);border-radius:100px; overflow:hidden;"><div style="height:100%;width:${l.pct}%;background:var(--color-primario); border-radius:100px; transition:width 0.5s ease;"></div></div><div class="req-agencia"><button class="btn btn-xs btn-peligro-suave" onclick="eliminarObj('lineas',${i}, 'renderizarEstrategia')"><i class="fa-solid fa-trash"></i></button></div></div>`).join('');
-            document.getElementById('tabla-audiovisual').innerHTML = d.audiovisual.map((a,i) => `<tr><td><input class="input-celda" style="font-weight:700;" value="${a.elemento}" ${ro} onchange="updObj('audiovisual',${i},'elemento',this.value, 'renderizarEstrategia')"></td><td><input class="input-celda" value="${a.familia}" ${ro} onchange="updObj('audiovisual',${i},'familia',this.value, 'renderizarEstrategia')"></td><td><input class="input-celda" value="${a.fondo}" ${ro} onchange="updObj('audiovisual',${i},'fondo',this.value, 'renderizarEstrategia')"></td><td><input class="input-celda" value="${a.encuadre}" ${ro} onchange="updObj('audiovisual',${i},'encuadre',this.value, 'renderizarEstrategia')"></td><td><input class="input-celda" value="${a.comentarios}" ${ro} onchange="updObj('audiovisual',${i},'comentarios',this.value, 'renderizarEstrategia')"></td><td class="req-agencia"><button class="btn btn-xs btn-peligro-suave" onclick="eliminarObj('audiovisual',${i}, 'renderizarEstrategia')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
-            document.getElementById('tabla-target').innerHTML = d.target.map((t,i) => `<tr><td><input class="input-celda" style="font-weight:700;" value="${t.segmento}" ${ro} onchange="updObj('target',${i},'segmento',this.value, 'renderizarEstrategia')"></td><td><input class="input-celda" value="${t.sexo}" ${ro} onchange="updObj('target',${i},'sexo',this.value, 'renderizarEstrategia')"></td><td><input class="input-celda" value="${t.nivel}" ${ro} onchange="updObj('target',${i},'nivel',this.value, 'renderizarEstrategia')"></td><td><input class="input-celda" value="${t.consumo}" ${ro} onchange="updObj('target',${i},'consumo',this.value, 'renderizarEstrategia')"></td><td><input class="input-celda" value="${t.mood}" ${ro} onchange="updObj('target',${i},'mood',this.value, 'renderizarEstrategia')"></td><td class="req-agencia"><button class="btn btn-xs btn-peligro-suave" onclick="eliminarObj('target',${i}, 'renderizarEstrategia')"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+            
+            document.getElementById('tabla-target').innerHTML = d.target.map((t,i) => {
+                let optSexo = DB.desplegables.sexo.map(s => `<option ${s===t.sexo?'selected':''}>${s}</option>`).join('');
+                let optNivel = DB.desplegables.nivel.map(n => `<option ${n===t.nivel?'selected':''}>${n}</option>`).join('');
+                
+                return `<tr>
+                    <td><input class="input-celda" style="font-weight:700;" value="${t.segmento}" ${ro} onchange="updObj('target',${i},'segmento',this.value, 'renderizarEstrategia')"></td>
+                    <td>${ROL==='agencia' ? `<select class="select-celda" onchange="updObj('target',${i},'sexo',this.value, 'renderizarEstrategia')">${optSexo}</select>` : t.sexo}</td>
+                    <td>${ROL==='agencia' ? `<select class="select-celda" onchange="updObj('target',${i},'nivel',this.value, 'renderizarEstrategia')">${optNivel}</select>` : t.nivel}</td>
+                    <td><input class="input-celda" value="${t.ubicacion}" ${ro} onchange="updObj('target',${i},'ubicacion',this.value, 'renderizarEstrategia')"></td>
+                    <td><input class="input-celda" value="${t.mood}" ${ro} onchange="updObj('target',${i},'mood',this.value, 'renderizarEstrategia')"></td>
+                    <td class="req-agencia"><button class="btn btn-xs btn-peligro-suave" onclick="eliminarObj('target',${i}, 'renderizarEstrategia')"><i class="fa-solid fa-trash"></i></button></td>
+                </tr>`;
+            }).join('');
         }
 
         /* ==========================================================================
-           MODULO: ADMINISTRACION Y GESTION CLIENTES
+           ADMINISTRACION
            ========================================================================== */
         function renderizarGestionAdministracion() {
             document.getElementById('contenedor-clientes').innerHTML = DB.sucursales.map((s, i) => {
@@ -1171,7 +1075,7 @@
                 briefing: { reglas: [], manychat: [], kpis_obj: [] },
                 presupuesto: [], facturas: [], kanban: [], dam: [], offline: [],
                 mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })),
-                lineas: [], audiovisual: [], target: []
+                lineas: [], target: []
             };
             guardarBD(); construirSelector(); document.getElementById('selector-sucursal').value = id; cambiarSucursal();
             setTimeout(() => document.getElementById('area-scroll').scrollTop = 9999, 100);
@@ -1186,7 +1090,7 @@
         }
 
         /* ==========================================================================
-           MODIFICADORES DE DATOS Y UX
+           MODIFICADORES
            ========================================================================== */
         function updObj(lista, idx, campo, val, renderFnName) { DB.datos[SUC_ACTIVA][lista][idx][campo] = val; guardarBD(); if(renderFnName && window[renderFnName]) window[renderFnName](); else renderizarPantallas(); }
         function updMes(pIdx, mIdx, campo, val) { DB.datos[SUC_ACTIVA].presupuesto[pIdx].montos_mes[mIdx][campo] = Number(val); guardarBD(); renderizarPresupuesto(); renderizarDashboardWrapper(); }
@@ -1197,11 +1101,10 @@
             if(lista === 'presupuesto') n = {categoria:"Nueva", item:"Ítem", montos_mes:Array.from({length: 12}, () => ({directa: 0, intercambio: 0}))};
             if(lista === 'facturas') n = {folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente"};
             if(lista === 'kanban') n = {id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", tags:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas"};
-            if(lista === 'dam') n = {id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, historial:[{autor:"Agencia", fecha:new Date().toLocaleDateString(), accion:"Carga", nota:"V1"}]};
+            if(lista === 'dam') n = {id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, url:"", historial:[{autor:"Agencia", fecha:new Date().toLocaleDateString(), accion:"Carga", nota:"V1"}]};
             if(lista === 'offline') n = {tactica:"Nueva Táctica", impacto:"Definir KPI", estado:"Planeado"};
             if(lista === 'lineas') n = {eje:"Nuevo", plano:"", pct:0};
-            if(lista === 'audiovisual') n = {elemento:"", familia:"", fondo:"", encuadre:"", comentarios:""};
-            if(lista === 'target') n = {segmento:"", sexo:"", nivel:"", consumo:"", mood:""};
+            if(lista === 'target') n = {segmento:"Nuevo Target", sexo:"Ambos", nivel:"A/B", ubicacion:"", mood:""};
             if(lista === 'proveedores') { DB.proveedores.push({nombre:"Nuevo", categoria:"", contacto:"", forma_pago:""}); guardarBD(); renderizarPantallas(); return; }
 
             DB.datos[SUC_ACTIVA][lista].push(n);
@@ -1215,7 +1118,7 @@
             else renderizarEstrategia();
         }
 
-        /* Drag & Drop Kanban */
+        /* Drag & Drop */
         function iniciarArrastre(ev, id) { ev.dataTransfer.setData("text", id); }
         function permitirSoltar(ev) { ev.preventDefault(); }
         function soltar(ev, estado) {
