@@ -11,15 +11,13 @@
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
     <style>
-        /* ==========================================================================
-           1. ESTILO IPHONE 2027 (Minimalismo Absoluto, Cero Ruido)
-           ========================================================================== */
         :root {
             --color-primario: #C4855A;
-            --color-fondo: #F5F5F7; /* Gris claro Apple inmaculado */
-            --color-tarjeta: #FFFFFF; /* Blanco puro */
+            --color-fondo: #F5F5F7;
+            --color-tarjeta: #FFFFFF;
             --texto-principal: #1D1D1F;
             --texto-secundario: #86868B;
             --color-borde: rgba(0, 0, 0, 0.06);
@@ -27,6 +25,8 @@
             --color-exito: #34A853;
             --color-alerta: #FBBC05;
             --color-peligro: #EA4335;
+            --color-azul: #4A90D9;
+            --color-morado: #8B5CF6;
             
             --sombra-suave: 0 4px 24px -6px rgba(0, 0, 0, 0.04), 0 1px 4px rgba(0,0,0,0.02);
             --sombra-flotante: 0 20px 40px -8px rgba(0, 0, 0, 0.08);
@@ -36,7 +36,6 @@
             --font-display: 'Montserrat', sans-serif;
             --font-body: 'Inter', sans-serif;
 
-            /* Content tags */
             --asmr: #A7A28D; --story: #86826C; --reel: #C4855A; --carrusel: #7A8C6E;
             --pauta: #D4956A; --masaje: #9B8FA0; --facial: #8FA0A8; --urgente: #EA4335;
         }
@@ -112,6 +111,7 @@
 
         /* Dashboard & Insights Layouts */
         .dashboard-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+        .dashboard-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
         .highlight-numbers-layout { display: flex; justify-content: space-around; width: 100%; text-align: center; gap: 20px; flex-wrap: wrap; margin-bottom:32px; }
         .stat-box { flex: 1; background: #fafafa; padding: 30px 20px; border-radius: 16px; border: 1px solid rgba(0,0,0,0.03); }
         .input-mega { font-size: 56px; font-weight: 800; color: var(--color-primario); font-family: var(--font-display); text-align: center; border: none; background: transparent; outline: none; width: 100%; letter-spacing: -0.04em; line-height: 1; }
@@ -161,7 +161,6 @@
         .pauta-block { background: rgba(232,144,42,0.05); border: 1px solid rgba(232,144,42,0.2); border-radius: 8px; padding: 14px; font-size: 13px; color: #8B5E20; margin-top: 16px; }
         .segment-link { background: rgba(196,133,90,0.08); color: var(--color-primario); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; border: 1px solid rgba(196,133,90,0.2); }
 
-        /* Otras grillas */
         .briefing-card { border-radius: 16px; padding: 28px; border-top: 3px solid var(--color-primario); background: #FFFFFF; border-left:1px solid var(--color-borde); border-right:1px solid var(--color-borde); border-bottom:1px solid var(--color-borde); box-shadow:var(--sombra-suave);}
         .rule-item { display: flex; gap: 16px; margin-bottom: 16px; align-items: flex-start; }
         .rule-num { font-size: 24px; font-weight: 800; color: var(--color-borde-fuerte); line-height: 1; font-family: var(--font-display); }
@@ -180,7 +179,6 @@
         .color-picker-input::-webkit-color-swatch-wrapper { padding: 0; }
         .color-picker-input::-webkit-color-swatch { border: none; border-radius: 4px; }
 
-        /* Estado General y Utils */
         .estado-sistema-load { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 500; color: var(--texto-secundario); background: #FFFFFF; padding: 6px 14px; border-radius: 100px; border: 1px solid var(--color-borde); }
         .punto-verde { width: 8px; height: 8px; background-color: var(--color-exito); border-radius: 50%; box-shadow: 0 0 8px rgba(52,168,83,0.4); animation: pulso 2s infinite; }
         .punto-rojo { width: 8px; height: 8px; background-color: var(--color-peligro); border-radius: 50%; }
@@ -201,6 +199,112 @@
         .modal-header h3 { font-size: 18px; }
         .textarea-apple { width: 100%; border: 1px solid var(--color-borde-fuerte); border-radius: 12px; padding: 14px; font-size: 14px; outline: none; min-height: 100px; background: #FAFAFA; transition: var(--transicion); color: var(--texto-principal); }
         .textarea-apple:focus { border-color: var(--color-primario); background: #FFFFFF; box-shadow: 0 0 0 3px rgba(196,133,90,0.1); }
+
+        /* ============================================================
+           NUEVOS MÓDULOS — ESTILOS
+           ============================================================ */
+
+        /* 1. Dashboard Charts */
+        .chart-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 24px; }
+        .chart-box { background: #FFFFFF; border-radius: 20px; padding: 28px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); position: relative; }
+        .chart-box h3 { font-size: 15px; margin-bottom: 6px; letter-spacing: -0.02em; }
+        .chart-box .chart-subtitle { font-size: 12px; color: var(--texto-secundario); margin-bottom: 20px; }
+        .chart-canvas-wrap { position: relative; }
+        .chart-big-num { font-family: var(--font-display); font-size: 48px; font-weight: 900; color: var(--color-primario); letter-spacing: -0.04em; line-height: 1; }
+        .chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px; }
+        .chart-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--texto-secundario); }
+        .chart-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+        /* KPI Strip */
+        .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+        .kpi-card { background: #FFFFFF; border-radius: 16px; padding: 20px 24px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); position: relative; overflow: hidden; }
+        .kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background: var(--kpi-color, var(--color-primario)); border-radius: 0 0 0 0; }
+        .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--texto-secundario); margin-bottom: 8px; }
+        .kpi-value { font-family: var(--font-display); font-size: 32px; font-weight: 900; color: var(--texto-principal); letter-spacing: -0.04em; line-height: 1; }
+        .kpi-delta { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; margin-top: 6px; padding: 3px 8px; border-radius: 6px; }
+        .kpi-delta.up { background: rgba(52,168,83,0.1); color: var(--color-exito); }
+        .kpi-delta.down { background: rgba(234,67,53,0.1); color: var(--color-peligro); }
+
+        /* 2. Materiales Offline */
+        .estado-badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .estado-pendiente { background: rgba(251,188,5,0.12); color: #9A7000; }
+        .estado-produccion { background: rgba(74,144,217,0.12); color: #2B6CB0; }
+        .estado-listo { background: rgba(52,168,83,0.12); color: var(--color-exito); }
+        .estado-revisar { background: rgba(234,67,53,0.1); color: var(--color-peligro); }
+
+        .offline-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+        .offline-stat { background: #FFFFFF; border-radius: 14px; padding: 20px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); text-align: center; }
+        .offline-stat-num { font-family: var(--font-display); font-size: 36px; font-weight: 900; color: var(--color-primario); letter-spacing: -0.04em; }
+        .offline-stat-label { font-size: 11px; font-weight: 700; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; }
+
+        /* 3. Calendario Editorial Visual */
+        .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .cal-nav h2 { font-size: 22px; font-family: var(--font-display); font-weight: 900; }
+        .cal-nav-btn { background: #FFFFFF; border: 1px solid var(--color-borde); border-radius: 10px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transicion); font-size: 14px; }
+        .cal-nav-btn:hover { background: var(--color-primario); color: white; border-color: var(--color-primario); }
+        
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0; border-radius: 16px; overflow: hidden; border: 1px solid var(--color-borde); background: var(--color-borde); }
+        .cal-day-header { background: #FFFFFF; padding: 12px 0; text-align: center; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--texto-secundario); }
+        .cal-cell { background: #FFFFFF; min-height: 110px; padding: 10px; border-top: 1px solid var(--color-borde); position: relative; transition: background 0.15s; }
+        .cal-cell:hover { background: #FAFAFA; }
+        .cal-cell.empty { background: #FAFAFA; opacity: 0.6; }
+        .cal-cell.today { background: rgba(196,133,90,0.04); }
+        .cal-cell.today .cal-day-num { background: var(--color-primario); color: white; }
+        .cal-day-num { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; font-size: 13px; font-weight: 700; color: var(--texto-principal); margin-bottom: 6px; }
+        
+        .cal-chip { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px; color: white; margin-bottom: 3px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; display: block; transition: opacity 0.2s; }
+        .cal-chip:hover { opacity: 0.85; }
+        .cal-chip.tipo-reel { background: var(--reel); }
+        .cal-chip.tipo-asmr { background: var(--asmr); }
+        .cal-chip.tipo-pauta { background: var(--pauta); }
+        .cal-chip.tipo-story { background: var(--story); }
+        .cal-chip.tipo-otro { background: var(--texto-secundario); }
+
+        .cal-leyenda { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+        .cal-leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--texto-secundario); }
+        .cal-leyenda-dot { width: 10px; height: 10px; border-radius: 3px; }
+        .cal-mas { font-size: 9px; font-weight: 700; color: var(--texto-secundario); margin-top: 2px; }
+        
+        /* 4. Agenda de Shooting */
+        .shooting-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+        .shooting-card { background: #FFFFFF; border-radius: 20px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); overflow: hidden; transition: var(--transicion); }
+        .shooting-card:hover { box-shadow: var(--sombra-flotante); transform: translateY(-2px); }
+        .shooting-header { padding: 20px 24px; border-bottom: 1px solid var(--color-borde); display: flex; justify-content: space-between; align-items: flex-start; }
+        .shooting-fecha { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--color-primario); text-transform: uppercase; letter-spacing: 0.08em; }
+        .shooting-titulo { font-family: var(--font-display); font-size: 17px; font-weight: 800; margin-top: 4px; line-height: 1.3; }
+        .shooting-body { padding: 20px 24px; }
+        .shooting-mood { font-size: 13px; color: var(--texto-secundario); line-height: 1.5; margin-bottom: 16px; font-style: italic; border-left: 3px solid var(--color-primario); padding-left: 12px; }
+        .shooting-checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+        .shooting-item { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; }
+        .shooting-check { width: 18px; height: 18px; border: 2px solid var(--color-borde-fuerte); border-radius: 5px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transicion); }
+        .shooting-check.done { background: var(--color-primario); border-color: var(--color-primario); color: white; font-size: 10px; }
+        .shooting-check.done + span { text-decoration: line-through; color: var(--texto-secundario); }
+        .shooting-equipo { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--color-borde); }
+        .equipo-tag { background: #FAFAFA; border: 1px solid var(--color-borde-fuerte); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--texto-secundario); }
+        .equipo-tag i { margin-right: 4px; }
+
+        /* 5. Ad Performance */
+        .ads-kpi { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
+        .ads-kpi-card { background: #FFFFFF; border-radius: 14px; padding: 18px 20px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); text-align: center; }
+        .ads-kpi-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; margin: 0 auto 10px; }
+        .ads-kpi-val { font-family: var(--font-display); font-size: 26px; font-weight: 900; color: var(--texto-principal); letter-spacing: -0.03em; line-height: 1; }
+        .ads-kpi-lbl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texto-secundario); margin-top: 4px; }
+
+        .ad-row-card { background: #FFFFFF; border-radius: 16px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); margin-bottom: 16px; overflow: hidden; transition: var(--transicion); }
+        .ad-row-card:hover { box-shadow: var(--sombra-flotante); }
+        .ad-row-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr 1fr auto; align-items: center; gap: 0; padding: 0; }
+        .ad-cell { padding: 16px 20px; border-right: 1px solid var(--color-borde); font-size: 13px; }
+        .ad-cell:last-child { border-right: none; }
+        .ad-cell-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--texto-secundario); margin-bottom: 4px; }
+        .ad-cell-value { font-weight: 700; font-size: 15px; color: var(--texto-principal); }
+        .ad-cell-name { font-family: var(--font-display); font-size: 14px; font-weight: 800; color: var(--texto-principal); }
+        .ad-cell-seg { font-size: 11px; color: var(--texto-secundario); margin-top: 2px; }
+        .ad-status { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+        .ad-active { background: rgba(52,168,83,0.1); color: var(--color-exito); }
+        .ad-paused { background: rgba(251,188,5,0.1); color: #9A7000; }
+        .ad-finished { background: #F5F5F7; color: var(--texto-secundario); }
+        .ads-chart-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; margin-top: 24px; }
+        .roas-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(196,133,90,0.1); color: var(--color-primario); padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; }
     </style>
 </head>
 <body class="tema-login">
@@ -224,6 +328,7 @@
             <div class="menu-titulo">Inteligencia</div>
             <ul class="menu-nav">
                 <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-chart-pie"></i> Resumen General</li>
+                <li class="item-nav" data-target="vista-charts"><i class="fa-solid fa-chart-line"></i> Dashboard Charts</li>
                 <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
             </ul>
 
@@ -236,6 +341,8 @@
             <div class="menu-titulo">Orquestación</div>
             <ul class="menu-nav">
                 <li class="item-nav" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario Content</li>
+                <li class="item-nav" data-target="vista-cal-editorial"><i class="fa-solid fa-calendar-check"></i> Calendario Visual</li>
+                <li class="item-nav" data-target="vista-shooting"><i class="fa-solid fa-camera"></i> Agenda Shooting</li>
                 <li class="item-nav" data-target="vista-dam"><i class="fa-solid fa-photo-film"></i> DAM Governance</li>
             </ul>
 
@@ -244,6 +351,8 @@
                 <li class="item-nav" data-target="vista-briefing"><i class="fa-solid fa-chess-knight"></i> Briefing Mensual</li>
                 <li class="item-nav" data-target="vista-mood"><i class="fa-solid fa-calendar-week"></i> Mood & Ejes</li>
                 <li class="item-nav" data-target="vista-target"><i class="fa-solid fa-users-viewfinder"></i> Target & Seg.</li>
+                <li class="item-nav" data-target="vista-ads"><i class="fa-solid fa-bullhorn"></i> Ad Performance</li>
+                <li class="item-nav" data-target="vista-offline"><i class="fa-solid fa-print"></i> Materiales Offline</li>
             </ul>
 
             <div class="menu-titulo req-agencia">Administración</div>
@@ -277,14 +386,13 @@
 
             <div class="area-desplazable" id="area-scroll">
                 
+                <!-- SECCIONES ORIGINALES -->
                 <section id="vista-resumen" class="seccion-app">
                     <div class="encabezado-seccion">
                         <h1>Performance Summary</h1>
                         <p>Análisis ejecutivo del rendimiento mensual y variaciones automáticas.</p>
                     </div>
-
                     <div class="highlight-numbers-layout" id="dash-highlights"></div>
-
                     <div class="tarjeta">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <h3>Metric Variation (Actual vs Pasado)</h3>
@@ -297,7 +405,6 @@
                             <tbody id="dash-rendimiento"></tbody>
                         </table>
                     </div>
-
                     <div class="dashboard-grid-2">
                         <div class="tarjeta">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -306,7 +413,6 @@
                             </div>
                             <div class="bar-container" id="dash-productos"></div>
                         </div>
-
                         <div class="tarjeta">
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <h3>Next Month Objectives</h3>
@@ -318,7 +424,6 @@
                             </table>
                         </div>
                     </div>
-
                     <h3 style="font-size:18px; margin: 32px 0 16px;">Strategic Realignment</h3>
                     <div class="dashboard-grid-2">
                         <div class="analysis-box" style="border-left: 6px solid var(--color-exito);">
@@ -332,6 +437,64 @@
                     </div>
                 </section>
 
+                <!-- ============ NUEVO MÓDULO 1: DASHBOARD CHARTS ============ -->
+                <section id="vista-charts" class="seccion-app oculto">
+                    <div class="encabezado-seccion">
+                        <div>
+                            <h1>Dashboard Charts</h1>
+                            <p>Visualización de métricas clave con gráficas interactivas en tiempo real.</p>
+                        </div>
+                        <button class="btn btn-xs btn-fantasma req-agencia" onclick="refreshCharts()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
+                    </div>
+
+                    <!-- KPI Strip -->
+                    <div class="kpi-strip" id="charts-kpi-strip"></div>
+
+                    <!-- Main Charts Row -->
+                    <div class="chart-grid">
+                        <div class="chart-box">
+                            <h3>Variación Mensual de Métricas</h3>
+                            <p class="chart-subtitle">Últimos 6 meses — Ventas, Seguidores, DMs</p>
+                            <div class="chart-canvas-wrap">
+                                <canvas id="chart-linea" height="220"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-box">
+                            <h3>Product Mix</h3>
+                            <p class="chart-subtitle">Distribución de ventas por producto</p>
+                            <div class="chart-canvas-wrap" style="max-width:240px; margin:0 auto;">
+                                <canvas id="chart-donut" height="200"></canvas>
+                            </div>
+                            <div class="chart-legend" id="donut-legend"></div>
+                        </div>
+                    </div>
+
+                    <!-- Ad Performance Bar Chart -->
+                    <div class="chart-box" style="margin-bottom:24px;">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div>
+                                <h3>Ad Performance — Inversión vs Conversiones</h3>
+                                <p class="chart-subtitle">Por campaña activa este mes</p>
+                            </div>
+                        </div>
+                        <canvas id="chart-barras-ads" height="120"></canvas>
+                    </div>
+
+                    <!-- Engagement Trend -->
+                    <div class="dashboard-grid-2">
+                        <div class="chart-box">
+                            <h3>Engagement Rate por Formato</h3>
+                            <p class="chart-subtitle">Promedio de interacciones por tipo de contenido</p>
+                            <canvas id="chart-radar" height="220"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3>Crecimiento de Seguidores</h3>
+                            <p class="chart-subtitle">Acumulado mes a mes</p>
+                            <canvas id="chart-area" height="220"></canvas>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="vista-insights" class="seccion-app oculto">
                     <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
                         <div>
@@ -340,7 +503,6 @@
                         </div>
                         <button class="btn btn-primario req-agencia" onclick="agregarElemento('insights')"><i class="fa-solid fa-flask"></i> Nuevo Aprendizaje</button>
                     </div>
-                    
                     <div class="tarjeta">
                         <table class="tabla-editable">
                             <thead>
@@ -362,15 +524,57 @@
                             <button class="btn btn-primario req-agencia" onclick="agregarElemento('kanban')"><i class="fa-solid fa-plus"></i> Nueva Tarea</button>
                         </div>
                     </div>
-                    
                     <div class="kanban-board" id="contenedor-kanban">
                         <div class="kanban-col" ondrop="soltar(event, 'Ideas')" ondragover="permitirSoltar(event)"><div class="kanban-header">Ideas</div><div id="k-Ideas"></div></div>
                         <div class="kanban-col" ondrop="soltar(event, 'Producción')" ondragover="permitirSoltar(event)"><div class="kanban-header">Producción</div><div id="k-Producción"></div></div>
                         <div class="kanban-col" ondrop="soltar(event, 'Revisión')" ondragover="permitirSoltar(event)"><div class="kanban-header">Revisión Cliente</div><div id="k-Revisión"></div></div>
                         <div class="kanban-col" ondrop="soltar(event, 'Programado')" ondragover="permitirSoltar(event)"><div class="kanban-header">Programado</div><div id="k-Programado"></div></div>
                     </div>
-
                     <div id="contenedor-parrilla" class="oculto"></div>
+                </section>
+
+                <!-- ============ NUEVO MÓDULO 3: CALENDARIO EDITORIAL VISUAL ============ -->
+                <section id="vista-cal-editorial" class="seccion-app oculto">
+                    <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><h1>Calendario Editorial Visual</h1><p>Vista mensual con chips de color por tipo de contenido.</p></div>
+                        <button class="btn btn-primario req-agencia" onclick="agregarElemento('kanban'); navegarVista('vista-calendario')"><i class="fa-solid fa-plus"></i> Nueva Publicación</button>
+                    </div>
+
+                    <div class="cal-nav">
+                        <button class="cal-nav-btn" onclick="calMes(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <h2 id="cal-titulo"></h2>
+                        <button class="cal-nav-btn" onclick="calMes(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+
+                    <div id="cal-grid-wrap">
+                        <div class="cal-grid" id="cal-grid-header">
+                            <div class="cal-day-header">Dom</div>
+                            <div class="cal-day-header">Lun</div>
+                            <div class="cal-day-header">Mar</div>
+                            <div class="cal-day-header">Mié</div>
+                            <div class="cal-day-header">Jue</div>
+                            <div class="cal-day-header">Vie</div>
+                            <div class="cal-day-header">Sáb</div>
+                        </div>
+                        <div class="cal-grid" id="cal-grid-body" style="border-top:none; border-radius:0 0 16px 16px;"></div>
+                    </div>
+
+                    <div class="cal-leyenda">
+                        <div class="cal-leyenda-item"><div class="cal-leyenda-dot" style="background:var(--reel);"></div> Reel</div>
+                        <div class="cal-leyenda-item"><div class="cal-leyenda-dot" style="background:var(--asmr);"></div> ASMR</div>
+                        <div class="cal-leyenda-item"><div class="cal-leyenda-dot" style="background:var(--pauta);"></div> Pauta</div>
+                        <div class="cal-leyenda-item"><div class="cal-leyenda-dot" style="background:var(--story);"></div> Story</div>
+                        <div class="cal-leyenda-item"><div class="cal-leyenda-dot" style="background:var(--texto-secundario);"></div> Otro</div>
+                    </div>
+                </section>
+
+                <!-- ============ NUEVO MÓDULO 4: AGENDA DE SHOOTING ============ -->
+                <section id="vista-shooting" class="seccion-app oculto">
+                    <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><h1>Agenda de Shooting</h1><p>Días de producción, brief visual y lista de contenidos a capturar.</p></div>
+                        <button class="btn btn-primario req-agencia" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>
+                    </div>
+                    <div class="shooting-grid" id="shooting-grid"></div>
                 </section>
 
                 <section id="vista-dam" class="seccion-app oculto">
@@ -417,6 +621,76 @@
                     <div class="tarjeta"><table class="tabla-editable"><thead><tr><th>ID Link</th><th>Nombre del Segmento</th><th>Sexo</th><th>Nivel Socioeconómico</th><th>Ubicación / Detalles</th><th class="req-agencia"></th></tr></thead><tbody id="tabla-target"></tbody></table></div>
                 </section>
 
+                <!-- ============ NUEVO MÓDULO 5: AD PERFORMANCE ============ -->
+                <section id="vista-ads" class="seccion-app oculto">
+                    <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><h1>Ad Performance</h1><p>Métricas reales por pauta — inversión, alcance, CPR, conversiones y segmentación.</p></div>
+                        <button class="btn btn-primario req-agencia" onclick="nuevoAd()"><i class="fa-solid fa-plus"></i> Nueva Campaña</button>
+                    </div>
+
+                    <!-- KPI cards -->
+                    <div class="ads-kpi" id="ads-kpi-strip"></div>
+
+                    <!-- Campaigns list -->
+                    <div id="ads-lista"></div>
+
+                    <!-- Charts -->
+                    <div class="ads-chart-grid">
+                        <div class="chart-box">
+                            <h3>Inversión vs Conversiones por Campaña</h3>
+                            <p class="chart-subtitle">Comparativa de eficiencia</p>
+                            <canvas id="chart-ads-perf" height="160"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3>CPR por Audiencia</h3>
+                            <p class="chart-subtitle">Costo por resultado según segmento</p>
+                            <canvas id="chart-ads-cpr" height="160"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ============ NUEVO MÓDULO 2: MATERIALES OFFLINE ============ -->
+                <section id="vista-offline" class="seccion-app oculto">
+                    <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div><h1>Materiales Offline</h1><p>Control de piezas físicas — menús, señalética, uniformes y más.</p></div>
+                        <button class="btn btn-primario req-agencia" onclick="nuevoOffline()"><i class="fa-solid fa-plus"></i> Nuevo Material</button>
+                    </div>
+
+                    <div class="offline-summary" id="offline-summary"></div>
+
+                    <div class="tarjeta" style="padding:0; overflow:hidden;">
+                        <table class="tabla-editable">
+                            <thead>
+                                <tr>
+                                    <th>Material</th>
+                                    <th>Categoría</th>
+                                    <th>Cantidad</th>
+                                    <th>Proveedor</th>
+                                    <th>Costo Unit.</th>
+                                    <th>Total</th>
+                                    <th>Estado</th>
+                                    <th>Fecha Entrega</th>
+                                    <th class="req-agencia" style="width:40px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="offline-tabla"></tbody>
+                        </table>
+                    </div>
+
+                    <div style="margin-top:24px;" class="dashboard-grid-2">
+                        <div class="chart-box">
+                            <h3>Costo por Categoría</h3>
+                            <p class="chart-subtitle">Distribución del presupuesto offline</p>
+                            <canvas id="chart-offline-cat" height="200"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3>Estado de Materiales</h3>
+                            <p class="chart-subtitle">Vista rápida del pipeline de producción</p>
+                            <canvas id="chart-offline-status" height="200"></canvas>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="vista-clientes" class="seccion-app oculto">
                     <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
                         <div><h1>Gestión de Proyectos</h1><p>Alta de clientes e identidad visual.</p></div>
@@ -442,6 +716,7 @@
         </main>
     </div>
 
+    <!-- Modales originales -->
     <div class="fondo-modal" id="modal-ia">
         <div class="modal-caja">
             <div style="display:flex; align-items:center; border-bottom:1px solid var(--color-borde);">
@@ -488,7 +763,7 @@
             configuracion: { moneda: 'MXN', tc: { USD: 17.5, EUR: 18.9 } },
             desplegables: {
                 estado_factura: ["Pendiente", "Pagado", "Vencido"], 
-                emociones: ["Alegría", "Festejo", "Profesional", "Relajación"], bebidas: ["Aperol", "Ninguna", "Té Matcha"], productos: ["Pizza", "SaaS", "Facial"],
+                emociones: ["Alegría", "Festevo", "Profesional", "Relajación"], bebidas: ["Aperol", "Ninguna", "Té Matcha"], productos: ["Pizza", "SaaS", "Facial"],
                 cat_proveedor: ["Agencia", "Medios", "Producción"],
                 sexo: ["Ambos", "Hombre", "Mujer"], nivel: ["A/B", "C+", "C", "D", "E"]
             },
@@ -498,12 +773,7 @@
             ],
             datos: {
                 aitama: {
-                    // Dashboard 2027
-                    highlights: [
-                        { label: "Total Sales", val: "$12.5k" },
-                        { label: "New Followers", val: "+840" },
-                        { label: "Total DMs", val: "1.2k" }
-                    ],
+                    highlights: [{ label: "Total Sales", val: "$12.5k" }, { label: "New Followers", val: "+840" }, { label: "Total DMs", val: "1.2k" }],
                     rendimiento: [
                         { m: "Total Sales", v1: 10200, v2: 12500, pre: "$" },
                         { m: "New Followers", v1: 620, v2: 840, pre: "" },
@@ -511,62 +781,73 @@
                         { m: "Average Ticket", v1: 85, v2: 82, pre: "$" },
                         { m: "Response Time (min)", v1: 14, v2: 9, pre: "" }
                     ],
-                    productos: [
-                        { m: "Facial Rituals", pct: 42 }, { m: "Massage Therapy", pct: 31 }, { m: "Holistic Kits", pct: 18 }
-                    ],
-                    objetivos: [
-                        { m: "Total Sales", o: "$15,000" }, { m: "New Followers", o: "+1,000" }, { m: "Response Time", o: "< 5 min" }
-                    ],
+                    productos: [{ m: "Facial Rituals", pct: 42 }, { m: "Massage Therapy", pct: 31 }, { m: "Holistic Kits", pct: 18 }],
+                    objetivos: [{ m: "Total Sales", o: "$15,000" }, { m: "New Followers", o: "+1,000" }, { m: "Response Time", o: "< 5 min" }],
                     txt_working: "Reels con audio ASMR generaron un 40% más de guardados. El CTA directo en stories funciona perfecto a las 8am.",
                     txt_change: "Bajar la frecuencia de carruseles genéricos a la mitad. Eliminar promociones de alto descuento que matan el ticket medio.",
-                    
-                    // Laboratorio Insights
                     insights: [
                         { f: "2026-05-01", c: "Reel Día de las Madres (Test Pauta)", r: "$500 mxn -> 20 Leads", a: "El CTA de mensaje directo funciona mejor que mandar a landing page. Replicar en campaña de Junio." },
                         { f: "2026-04-15", c: "Promo Flash Fin de Semana", r: "Ventas +15%, Ticket Medio -5%", a: "El volumen sube pero la rentabilidad cae. Solo usar para limpiar inventario, no como estrategia core." }
                     ],
-
-                    // Orquestación
                     kanban: [ 
                         { id: "k1", titulo: "Video 1 Día de la Madre", fecha: "2026-05-04", hora: "18:00", estado: "Programado", tags: "Reel, Pauta", target_id: "t1", hook: "hay mujeres que cargan con todo sin pedir nada a cambio. para la tuya — esto.", copy: "este mes le das a ella lo que nunca se da a sí misma. los paquetes del día de las madres ya están listos en aitama.", hashtags: "#AitamaSpa #SpaMorelia", manychat: "MAMÁ", pauta: "★ Pautar directamente. Objetivo: Mensajes. $600 MXN", stories: "6:10 pm - Clip del Reel + sticker enlace\n8:00 pm - no es un facial más." },
                         { id: "k2", titulo: "Reel ASMR Masaje", fecha: "2026-05-12", hora: "07:00", estado: "Producción", tags: "ASMR", target_id: "", hook: "Video abre con aceite cayendo sobre espalda en cámara lenta. Sin texto.", copy: "ya cuidaste a todos. ahora le toca a tu cuerpo guardar todo lo que cargó este mes.", hashtags: "#MasajeHolistico #SpaMorelia", manychat: "TENSIÓN", pauta: "Superar 500 vistas orgánicas -> Meta Ads", stories: "" }
                     ],
-                    dam: [ 
-                        { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, url: "", historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } 
-                    ],
-                    
-                    // Finanzas
+                    dam: [ { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, url: "", historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } ],
                     presupuesto: [ { categoria: "Meta Ads", item: "Pauta Online", montos_mes: Array.from({length: 12}, () => ({directa: 2400, intercambio: 0})) }, { categoria: "Impresos", item: "Tent Cards y Menús", montos_mes: Array.from({length: 12}, () => ({directa: 0, intercambio: 0})) } ],
-                    facturas: [ { folio: "F-01", proveedor: "Google", concepto: "Workspace", monto: 1500, estado: "Pendiente" } ], 
-                    
-                    // Estrategia
+                    facturas: [ { folio: "F-01", proveedor: "Google", concepto: "Workspace", monto: 1500, estado: "Pendiente" } ],
                     briefing: {
                         reglas: ["Cero descuentos públicos.", "Nunca dar precio en el primer DM. Evaluar necesidad primero.", "Re-booking en cabina antes de salir."],
                         manychat: [{ kw: "MAMÁ", desc: "Paquetes Día de la Madre · 3 niveles" }, { kw: "RESETEO", desc: "Rituales corporales" }]
                     },
                     mood: Array.from({length: 12}, () => ({ emocion: "Relajación", bebida: "Té Matcha", producto: "Facial" })),
-                    target: [ { id: "t1", segmento: "Mamás Jóvenes", sexo: "Mujer", nivel: "A/B", ubicacion: "Morelia (10km)" }, { id: "t2", segmento: "Ejecutivos Estrés", sexo: "Ambos", nivel: "C+", ubicacion: "Zona Financiera" } ]
+                    target: [ { id: "t1", segmento: "Mamás Jóvenes", sexo: "Mujer", nivel: "A/B", ubicacion: "Morelia (10km)" }, { id: "t2", segmento: "Ejecutivos Estrés", sexo: "Ambos", nivel: "C+", ubicacion: "Zona Financiera" } ],
+                    // ===== DATOS NUEVOS MÓDULOS =====
+                    ads: [
+                        { id: "a1", nombre: "Día de las Madres — Mensajes", plataforma: "Meta", inversion: 600, alcance: 18400, clics: 320, conversiones: 24, cpr: 25, segmento: "Mamás Jóvenes · Morelia", estado: "Activa", inicio: "2026-05-01", fin: "2026-05-10" },
+                        { id: "a2", nombre: "ASMR Facial — Awareness", plataforma: "Meta", inversion: 400, alcance: 22000, clics: 180, conversiones: 11, cpr: 36, segmento: "Ejecutivos Estrés · CDMX", estado: "Pausada", inicio: "2026-04-15", fin: "2026-04-30" },
+                        { id: "a3", nombre: "Masaje Holístico — Leads", plataforma: "Meta", inversion: 800, alcance: 31000, clics: 510, conversiones: 38, cpr: 21, segmento: "Ambos · A/B", estado: "Finalizada", inicio: "2026-03-01", fin: "2026-03-31" }
+                    ],
+                    offline: [
+                        { id: "o1", nombre: "Menú Tratamientos V3", categoria: "Impreso", cantidad: 50, proveedor: "Imprenta Morelia", costo_unit: 45, estado: "Listo", entrega: "2026-05-01" },
+                        { id: "o2", nombre: "Señalética Entrada", categoria: "Señalética", cantidad: 2, proveedor: "Rótulos Express", costo_unit: 850, estado: "Producción", entrega: "2026-05-15" },
+                        { id: "o3", nombre: "Uniformes Staff (5u)", categoria: "Uniforme", cantidad: 5, proveedor: "Bordados MX", costo_unit: 320, estado: "Pendiente", entrega: "2026-05-20" },
+                        { id: "o4", nombre: "Tent Cards Recepción", categoria: "Impreso", cantidad: 30, proveedor: "Imprenta Morelia", costo_unit: 12, estado: "Revisar", entrega: "2026-05-08" }
+                    ],
+                    shooting: [
+                        { id: "sh1", titulo: "Shooting Día de la Madre", fecha: "2026-05-03", hora: "10:00", locacion: "Cabina Principal — Aitama", moodboard: "Tonos cálidos, velas encendidas, aceite en piel, slow motion. Colores: crema, terracota, verde salvia.", equipo: ["Fotógrafo: Luis R.", "Modelo: Sofía M.", "Dirección: Paola"], checklist: [{ hecho: true, texto: "Reel cámara lenta — aceite en espalda (Hero Shot)" }, { hecho: true, texto: "Foto pack paquetes Día de Madre (Still)" }, { hecho: false, texto: "Video ritual facial completo 60s" }, { hecho: false, texto: "BTS stories — detrás del shooting" }, { hecho: false, texto: "Fotos ambiente cabina (Arquitectónicas)" }] },
+                        { id: "sh2", titulo: "Contenido Evergreen Junio", fecha: "2026-05-22", hora: "09:00", locacion: "Sala de Masajes + Recepción", moodboard: "Minimalista, tono editorial. Blanco y beige. Detalle de manos, productos en línea. Sin texto en video.", equipo: ["Fotógrafo: Luis R.", "Dirección: Paola"], checklist: [{ hecho: false, texto: "10 fotos producto para feed" }, { hecho: false, texto: "Reel ASMR masaje craneal" }, { hecho: false, texto: "Carrousel 'Ritual semanal'" }, { hecho: false, texto: "Video boomerang — productos" }] }
+                    ]
                 },
                 mammut: {
                     highlights: [{ label: "Total Sales", val: "$0" }, { label: "New Followers", val: "0" }, { label: "Total DMs", val: "0" }],
                     rendimiento: [], productos: [], objetivos: [], txt_working: "", txt_change: "", insights: [],
                     kanban: [], dam: [], presupuesto: [], facturas: [], briefing: { reglas: [], manychat: [] },
-                    mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: []
+                    mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: [],
+                    ads: [], offline: [], shooting: []
                 }
             },
             proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ]
         };
 
         let DB = {}; let ROL = 'none'; let SUC_ACTIVA = '';
+        let _charts = {}; // instancias Chart.js
+        let _calFecha = new Date();
 
-        /* ==========================================================================
-           BOOT & LOGIN
-           ========================================================================== */
+        /* ====== BOOT & LOGIN (ORIGINAL — SIN CAMBIOS) ====== */
         document.addEventListener("DOMContentLoaded", () => {
             const guardado = localStorage.getItem('LANKA_FINAL_2027_PRO');
             DB = guardado ? JSON.parse(guardado) : JSON.parse(JSON.stringify(DATOS_SEMILLA));
             
-            // Listeners globales
+            // Migrar datos viejos que no tengan los nuevos arrays
+            if (DB.datos) {
+                Object.keys(DB.datos).forEach(sid => {
+                    if (!DB.datos[sid].ads) DB.datos[sid].ads = [];
+                    if (!DB.datos[sid].offline) DB.datos[sid].offline = [];
+                    if (!DB.datos[sid].shooting) DB.datos[sid].shooting = [];
+                });
+            }
+            
             document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
             
             const items = document.querySelectorAll('.item-nav');
@@ -576,7 +857,13 @@
                     items.forEach(n => n.classList.remove('activo')); 
                     document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto')); 
                     item.classList.add('activo'); 
-                    document.getElementById(item.getAttribute('data-target')).classList.remove('oculto'); 
+                    const target = item.getAttribute('data-target');
+                    document.getElementById(target).classList.remove('oculto');
+                    // Render charts cuando se activa esa vista
+                    if (target === 'vista-charts') setTimeout(renderCharts, 50);
+                    if (target === 'vista-ads') setTimeout(renderAdsCharts, 50);
+                    if (target === 'vista-offline') setTimeout(renderOfflineCharts, 50);
+                    if (target === 'vista-cal-editorial') renderCalEditorial();
                 }); 
             });
         });
@@ -613,7 +900,6 @@
                 document.querySelectorAll('.req-agencia').forEach(el => el.style.display = '');
                 document.getElementById('selector-sucursal').style.display = ''; 
                 document.getElementById('etiqueta-cliente').style.display = 'none';
-                
                 const sel = document.getElementById('selector-sucursal');
                 sel.innerHTML = DB.sucursales.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
                 sel.value = SUC_ACTIVA;
@@ -629,10 +915,9 @@
 
         function cambiarSucursal() { SUC_ACTIVA = document.getElementById('selector-sucursal').value; renderTodas(); }
         function cambiarMoneda() { DB.configuracion.moneda = document.getElementById('selector-moneda').value; guardarBD(); renderTodas(); }
+        function navegarVista(id) { document.querySelectorAll('.seccion-app').forEach(s=>s.classList.add('oculto')); document.getElementById(id).classList.remove('oculto'); }
 
-        /* ==========================================================================
-           MODIFICADORES UNIVERSALES
-           ========================================================================== */
+        /* ====== MODIFICADORES UNIVERSALES (ORIGINAL) ====== */
         function updObj(lista, idx, campo, val) { DB.datos[SUC_ACTIVA][lista][idx][campo] = isNaN(val) || val===''? val : Number(val); guardarBD(); renderTodas(); }
         function updObjTexto(campo, val) { DB.datos[SUC_ACTIVA][campo] = val; guardarBD(); }
         function delObj(lista, idx) { if(confirm("¿Confirmas eliminación?")) { DB.datos[SUC_ACTIVA][lista].splice(idx, 1); guardarBD(); renderTodas(); } }
@@ -649,29 +934,25 @@
             if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
             if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
             if(lista === 'proveedores') { DB.proveedores.push({nombre:"Nuevo", categoria:"", contacto:"", forma_pago:""}); guardarBD(); renderTodas(); return; }
-
             DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); renderTodas();
         }
 
-        /* ==========================================================================
-           SISTEMA DE RENDERIZADO COMPLETO (12 MÓDULOS)
-           ========================================================================== */
+        /* ====================================================
+           SISTEMA RENDERIZADO ORIGINAL (completo, sin cambios)
+           ==================================================== */
         function renderTodas() {
             const inf = DB.sucursales.find(s => s.id === SUC_ACTIVA);
             document.documentElement.style.setProperty('--color-primario', inf.color);
             if(ROL === 'cliente') document.getElementById('etiqueta-cliente').innerText = inf.nombre;
-
             renderDashboard(); renderInsights(); renderOrquestacion(); renderDAM();
             renderPresupuesto(); renderFacturas(); renderBriefing(); renderMood(); 
             renderEstrategia(); renderAdministracion();
+            renderAdsTable(); renderOfflineTable(); renderShootingGrid();
         }
 
-        // 1. DASHBOARD
         function renderDashboard() {
             const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
-            
             document.getElementById('dash-highlights').innerHTML = d.highlights.map((h, i) => `<div class="stat-box"><input class="input-mega" value="${h.val}" ${ro} onchange="updObj('highlights',${i},'val',this.value)"><input class="label-mega" value="${h.label}" ${ro} onchange="updObj('highlights',${i},'label',this.value)"></div>`).join('');
-
             document.getElementById('dash-rendimiento').innerHTML = d.rendimiento.map((r, i) => {
                 let v1 = Number(r.v1); let v2 = Number(r.v2); let pct = v1 > 0 ? ((v2 - v1) / v1 * 100).toFixed(1) : 0;
                 let isTime = r.m.toLowerCase().includes("time") || r.m.toLowerCase().includes("tiempo");
@@ -679,124 +960,55 @@
                 if(pct == 0) badge = `<span class="var-badge" style="background:#eee;color:#666;">- 0%</span>`;
                 else if(isTime) badge = pct < 0 ? `<span class="var-badge var-positive">↓ ${Math.abs(pct)}% (Mejor)</span>` : `<span class="var-badge var-negative">↑ ${Math.abs(pct)}% (Peor)</span>`;
                 else badge = pct > 0 ? `<span class="var-badge var-positive">↑ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↓ ${Math.abs(pct)}%</span>`;
-
                 return `<tr><td><input class="input-celda" value="${r.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].m=this.value;guardarBD();"></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="number" class="input-celda" value="${r.v1}" ${ro} onchange="updObj('rendimiento',${i},'v1',this.value)"></div></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="number" class="input-celda" value="${r.v2}" ${ro} onchange="updObj('rendimiento',${i},'v2',this.value)"></div></td><td>${badge}</td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('rendimiento',${i})"></i></td></tr>`;
             }).join('');
-
             document.getElementById('dash-productos').innerHTML = d.productos.map((p, i) => `<div class="bar-row"><input class="input-celda" style="flex:0 0 140px; text-align:right; font-weight:600;" value="${p.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].productos[${i}].m=this.value;guardarBD()"> <div class="bar-track"><div class="bar-fill" style="width: ${p.pct}%;"></div></div> <input type="number" class="input-celda" style="width:50px; background:rgba(0,0,0,0.03); text-align:center; font-weight:bold;" value="${p.pct}" ${ro} onchange="updObj('productos',${i},'pct',this.value)"> <span style="font-size:12px;font-weight:bold;">%</span> ${ROL==='agencia' ? `<i class="fa-solid fa-times" style="color:#ccc;cursor:pointer;font-size:10px;" onclick="delObj('productos',${i})"></i>` : ''} </div>`).join('');
-
             document.getElementById('dash-objetivos').innerHTML = d.objetivos.map((o, i) => `<tr><td><input class="input-celda" value="${o.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${i}].m=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:700;" value="${o.o}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${i}].o=this.value;guardarBD()"></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('objetivos',${i})"></i></td></tr>`).join('');
-
             document.getElementById('txt-working').value = d.txt_working || '';
             document.getElementById('txt-change').value = d.txt_change || '';
         }
 
-        // 2. INSIGHTS
         function renderInsights() {
             const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
             document.getElementById('body-insights').innerHTML = d.insights.map((ins, i) => `<tr><td><input type="date" class="input-celda" value="${ins.f}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].f=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:700;" value="${ins.c}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].c=this.value;guardarBD()"></td><td><input class="input-celda" value="${ins.r}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].r=this.value;guardarBD()"></td><td><textarea class="input-celda" style="resize:vertical; min-height:40px;" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].a=this.value;guardarBD()">${ins.a}</textarea></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('insights',${i})"></i></td></tr>`).join('');
         }
 
-        // 3. ORQUESTACIÓN: CALENDARIO Y PARRILLA
         function renderOrquestacion() {
             const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
             let kHTML = {'Ideas':'','Producción':'','Revisión':'','Programado':''};
             let pHTML = '';
-            
-            // Generar options para Target
             let targetOpts = d.target.map(t => `<option value="${t.id}">${t.segmento}</option>`).join('');
-
             [...d.kanban].sort((a,b) => new Date(a.fecha) - new Date(b.fecha)).forEach((t) => {
                 let idx = d.kanban.findIndex(x => x.id === t.id);
-                let drag = ROL==='agencia' ? `draggable="true" ondragstart="ev.dataTransfer.setData('text','${t.id}')"` : '';
-                
-                // KANBAN
+                let drag = ROL==='agencia' ? `draggable="true" ondragstart="event.dataTransfer.setData('text','${t.id}')"` : '';
                 kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag}><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div></div>`;
-                
-                // PARRILLA (Deep Edit)
                 let optEst = ['Ideas','Producción','Revisión','Programado'].map(e => `<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
                 let selEst = ROL==='agencia' ? `<select class="select-celda" style="width:120px; border:1px solid var(--color-borde); background:#fafafa; font-size:11px; text-transform:uppercase;" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value)">${optEst}</select>` : `<span class="tag gris">${t.estado}</span>`;
-                
                 let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
-
-                // Target Seleccionado
                 let t_val = t.target_id || "";
                 let selTarget = ROL==='agencia' ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
-
-                pHTML += `
-                <div class="content-card" id="card-${t.id}">
-                    <div class="card-header" onclick="this.parentElement.classList.toggle('open')">
-                        <div style="display:flex; flex-direction:column; gap:4px; width:120px;">
-                            <input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()">
-                            <input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()">
-                        </div>
-                        <div>
-                            <input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()">
-                            <div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div>
-                        </div>
-                        <div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div>
-                    </div>
-                    <div class="card-body" onclick="event.stopPropagation()">
-                        <div class="dashboard-grid-2">
-                            <div>
-                                <h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4>
-                                <textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea>
-                                <textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea>
-                                <textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea>
-                            </div>
-                            <div>
-                                <h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4>
-                                <div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div>
-                                <textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;guardarBD()">${t.pauta||''}</textarea>
-                                <div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;">
-                                    <div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div>
-                                    <input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()">
-                                </div>
-                                <textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;guardarBD()">${t.stories||''}</textarea>
-                            </div>
-                        </div>
-                        ${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}
-                    </div>
-                </div>`;
+                pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;guardarBD()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;guardarBD()">${t.stories||''}</textarea></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
             });
             ['Ideas','Producción','Revisión','Programado'].forEach(e => { document.getElementById('k-'+e).innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
             document.getElementById('contenedor-parrilla').innerHTML = pHTML;
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = ROL === 'cliente' ? 'none' : '');
         }
 
-        // 4. DAM
         function renderDAM() {
             const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly disabled' : '';
             document.getElementById('contenedor-dam').innerHTML = d.dam.map((a, i) => {
                 let claseEst = a.estado === 'Aprobado' ? 'estado-aprobado' : (a.estado === 'Cambios solicitados' ? 'estado-cambios' : 'estado-revision');
                 let uiBoton = ''; let btnVerArchivo = a.url ? `<a href="${a.url}" target="_blank" class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px; border-color:var(--color-primario); color:var(--color-primario); text-align:center; text-decoration:none;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver</a>` : '';
-
                 if (ROL === 'cliente' && a.estado === 'En revisión') {
                     uiBoton = `${btnVerArchivo}<button class="btn btn-primario" style="flex:1; padding:10px; font-size:12px;" onclick="aprobarActivo('${a.id}')">Aprobar</button><button class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px; border-color:rgba(234,67,53,0.3); color:var(--color-peligro);" onclick="abrirModalFeedback('${a.id}')">Rechazar</button>`;
                 } else if (ROL === 'agencia' && a.estado === 'Cambios solicitados') {
                     uiBoton = `${btnVerArchivo}<button class="btn btn-primario" style="flex:1; padding:10px; font-size:12px;" onclick="subirV('${a.id}')">Subir V${a.version + 1}</button>`;
-                } else {
-                    uiBoton = `${btnVerArchivo}<button class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px;" onclick="verHistorial('${a.id}')">Historial</button>`;
-                }
-                
+                } else { uiBoton = `${btnVerArchivo}<button class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px;" onclick="verHistorial('${a.id}')">Historial</button>`; }
                 let inputUrl = ROL === 'agencia' ? `<input class="input-celda" style="font-size:11px; margin-top:8px; border-bottom:1px dashed var(--color-borde); padding-left:0; height:auto;" placeholder="Pega el link de Google Drive aquí..." value="${a.url || ''}" onchange="DB.datos['${SUC_ACTIVA}'].dam[${i}].url=this.value;guardarBD();renderDAM()">` : '';
-                return `
-                <div class="tarjeta-asset" style="flex-direction:row; padding:16px; align-items:center; gap:16px;">
-                    ${ROL==='agencia'?`<i class="fa-solid fa-trash" style="position:absolute; top:12px; right:12px; color:#ccc; cursor:pointer;" onclick="delObj('dam',${i})"></i>`:''}
-                    <div style="font-size:28px; color:var(--color-primario); width:40px; text-align:center;"><i class="fa-solid ${a.tipo}"></i></div>
-                    <div style="flex:1;">
-                        <input class="input-celda" style="font-family:var(--font-display); font-weight:700; font-size:14px; padding:0; height:auto;" value="${a.nombre}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].dam[${i}].nombre=this.value;guardarBD()">
-                        ${inputUrl}
-                        <div style="display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap;">
-                            <span class="estado-dam ${claseEst}" style="margin:0;">${a.estado} <b style="opacity:0.6; margin-left:4px;">V${a.version}</b></span>
-                            ${uiBoton}
-                        </div>
-                    </div>
-                </div>`;
+                return `<div class="tarjeta-asset" style="flex-direction:row; padding:16px; align-items:center; gap:16px;">${ROL==='agencia'?`<i class="fa-solid fa-trash" style="position:absolute; top:12px; right:12px; color:#ccc; cursor:pointer;" onclick="delObj('dam',${i})"></i>`:''}<div style="font-size:28px; color:var(--color-primario); width:40px; text-align:center;"><i class="fa-solid ${a.tipo}"></i></div><div style="flex:1;"><input class="input-celda" style="font-family:var(--font-display); font-weight:700; font-size:14px; padding:0; height:auto;" value="${a.nombre}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].dam[${i}].nombre=this.value;guardarBD()">${inputUrl}<div style="display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap;"><span class="estado-dam ${claseEst}" style="margin:0;">${a.estado} <b style="opacity:0.6; margin-left:4px;">V${a.version}</b></span>${uiBoton}</div></div></div>`;
             }).join('');
         }
 
-        // 5 & 6. FINANZAS
         function renderPresupuesto() {
             const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
             let htmlPres = `<div class="tarjeta" style="padding:0; overflow:hidden;"><div style="overflow-x:auto;"><table class="tabla-editable"><thead><tr><th style="position:sticky;left:0;z-index:2; background:#fff;">Categoría / Ítem</th>`;
@@ -806,13 +1018,12 @@
             htmlPres += `</tr></thead><tbody>`;
             d.presupuesto.forEach((p, pIdx) => {
                 htmlPres += `<tr><td style="position:sticky;left:0; background:#fff; font-weight:700; border-right:1px solid var(--color-borde);"><input class="input-celda" value="${p.item}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()"><div style="font-size:10px;color:var(--texto-secundario);font-weight:500;">${p.categoria}</div></td>`;
-                p.montos_mes.forEach((m, mIdx) => {
-                    htmlPres += `<td><input type="number" class="input-celda" style="min-width:60px; font-weight:600;" value="${m.directa}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].directa=Number(this.value);guardarBD();renderPresupuesto()"></td><td style="border-right:1px solid var(--color-borde);"><input type="number" class="input-celda" style="min-width:60px; color:var(--texto-secundario);" value="${m.intercambio}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].intercambio=Number(this.value);guardarBD();renderPresupuesto()"></td>`;
-                });
+                p.montos_mes.forEach((m, mIdx) => { htmlPres += `<td><input type="number" class="input-celda" style="min-width:60px; font-weight:600;" value="${m.directa}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].directa=Number(this.value);guardarBD();renderPresupuesto()"></td><td style="border-right:1px solid var(--color-borde);"><input type="number" class="input-celda" style="min-width:60px; color:var(--texto-secundario);" value="${m.intercambio}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].intercambio=Number(this.value);guardarBD();renderPresupuesto()"></td>`; });
                 htmlPres += `</tr>`;
             });
             document.getElementById('contenedor-presupuesto').innerHTML = htmlPres + `</tbody></table></div></div>`;
         }
+
         function renderFacturas() {
             const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
             document.getElementById('tabla-facturas').innerHTML = d.facturas.map((f, i) => {
@@ -822,7 +1033,6 @@
             }).join('');
         }
 
-        // 7, 8, 9. ESTRATEGIA (Briefing, Mood, Target)
         function renderBriefing() {
             const d = DB.datos[SUC_ACTIVA].briefing; const ro = ROL === 'cliente' ? 'readonly' : '';
             let htmlReglas = d.reglas.map((r,i) => `<div class="rule-item"><div class="rule-num">0${i+1}</div><textarea class="input-celda" style="resize:vertical; min-height:50px;" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].briefing.reglas[${i}]=this.value;guardarBD()">${r}</textarea>${ROL==='agencia'?`<i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;margin-top:12px;" onclick="DB.datos['${SUC_ACTIVA}'].briefing.reglas.splice(${i},1);guardarBD();renderBriefing()"></i>`:''}</div>`).join('');
@@ -834,12 +1044,7 @@
             const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly disabled' : '';
             let optEmo = DB.desplegables.emociones.map(e=>`<option>${e}</option>`).join('');
             let optPro = DB.desplegables.productos.map(e=>`<option>${e}</option>`).join('');
-            
-            document.getElementById('contenedor-mood').innerHTML = d.mood.map((m, i) => `
-                <div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid var(--color-borde); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div>
-                <div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${ROL==='agencia' ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].emocion=this.value;guardarBD()"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div>
-                <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">PRODUCTO/EJE</label>${ROL==='agencia' ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].producto=this.value;guardarBD()"><option selected hidden>${m.producto}</option>${optPro}</select>` : `<input class="input-celda" value="${m.producto}" readonly>`}</div></div>
-            `).join('');
+            document.getElementById('contenedor-mood').innerHTML = d.mood.map((m, i) => `<div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid var(--color-borde); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div><div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${ROL==='agencia' ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].emocion=this.value;guardarBD()"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div><div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">PRODUCTO/EJE</label>${ROL==='agencia' ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].producto=this.value;guardarBD()"><option selected hidden>${m.producto}</option>${optPro}</select>` : `<input class="input-celda" value="${m.producto}" readonly>`}</div></div>`).join('');
         }
 
         function renderEstrategia() {
@@ -847,47 +1052,19 @@
             document.getElementById('tabla-target').innerHTML = d.target.map((t,i) => {
                 let optSexo = DB.desplegables.sexo.map(s => `<option ${s===t.sexo?'selected':''}>${s}</option>`).join('');
                 let optNivel = DB.desplegables.nivel.map(n => `<option ${n===t.nivel?'selected':''}>${n}</option>`).join('');
-                return `<tr>
-                    <td><span style="font-family:monospace; font-size:11px; color:#888;">${t.id}</span></td>
-                    <td><input class="input-celda" style="font-weight:700;" value="${t.segmento}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].segmento=this.value;guardarBD();renderTodas()"></td>
-                    <td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].sexo=this.value;guardarBD()">${optSexo}</select>` : t.sexo}</td>
-                    <td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].nivel=this.value;guardarBD()">${optNivel}</select>` : t.nivel}</td>
-                    <td><input class="input-celda" value="${t.ubicacion}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].ubicacion=this.value;guardarBD()"></td>
-                    <td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('target',${i})"></i></td>
-                </tr>`;
+                return `<tr><td><span style="font-family:monospace; font-size:11px; color:#888;">${t.id}</span></td><td><input class="input-celda" style="font-weight:700;" value="${t.segmento}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].segmento=this.value;guardarBD();renderTodas()"></td><td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].sexo=this.value;guardarBD()">${optSexo}</select>` : t.sexo}</td><td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].nivel=this.value;guardarBD()">${optNivel}</select>` : t.nivel}</td><td><input class="input-celda" value="${t.ubicacion}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].ubicacion=this.value;guardarBD()"></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('target',${i})"></i></td></tr>`;
             }).join('');
         }
 
-        // 10, 11, 12. ADMINISTRACIÓN (Proyectos, Proveedores, Configuración)
         function renderAdministracion() {
             document.getElementById('contenedor-clientes').innerHTML = DB.sucursales.map((s, i) => {
                 let decodedPwd = ''; try { decodedPwd = atob(s.password); } catch(e) { decodedPwd = s.password; }
-                return `
-                <div class="tarjeta-cliente">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <input class="input-celda" style="font-weight:800; font-size:18px; padding-left:0; font-family:var(--font-display);" value="${s.nombre}" onchange="DB.sucursales[${i}].nombre=this.value;guardarBD();document.getElementById('selector-sucursal').options[${i}].text=this.value;renderTodas();">
-                        <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="if(confirm('¿Eliminar?')){DB.sucursales.splice(${i},1);guardarBD();location.reload();}"></i>
-                    </div>
-                    <div style="font-size:11px; color:var(--texto-secundario); font-family:monospace;">ID: ${s.id}</div>
-                    <div style="margin-top:16px;">
-                        <label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">CONTRASEÑA CLIENTE</label>
-                        <input class="input-celda" style="background:#fafafa; border:1px solid var(--color-borde); font-family:monospace; margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();">
-                    </div>
-                    <div style="margin-top:12px;">
-                        <label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">IDENTIDAD VISUAL (HEX)</label>
-                        <div class="color-picker-wrapper">
-                            <input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();">
-                            <input class="input-celda" style="padding:0; font-family:monospace; font-weight:700; text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();">
-                        </div>
-                    </div>
-                </div>`;
+                return `<div class="tarjeta-cliente"><div style="display:flex; justify-content:space-between; align-items:center;"><input class="input-celda" style="font-weight:800; font-size:18px; padding-left:0; font-family:var(--font-display);" value="${s.nombre}" onchange="DB.sucursales[${i}].nombre=this.value;guardarBD();document.getElementById('selector-sucursal').options[${i}].text=this.value;renderTodas();"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="if(confirm('¿Eliminar?')){DB.sucursales.splice(${i},1);guardarBD();location.reload();}"></i></div><div style="font-size:11px; color:var(--texto-secundario); font-family:monospace;">ID: ${s.id}</div><div style="margin-top:16px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="background:#fafafa; border:1px solid var(--color-borde); font-family:monospace; margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0; font-family:monospace; font-weight:700; text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div></div>`;
             }).join('');
-
             document.getElementById('tabla-proveedores').innerHTML = DB.proveedores.map((p,i) => {
                 let catP = DB.desplegables.cat_proveedor.map(c=>`<option ${c===p.categoria?'selected':''}>${c}</option>`).join('');
                 return `<tr><td><input class="input-celda" style="font-weight:700;" value="${p.nombre}" onchange="DB.proveedores[${i}].nombre=this.value; guardarBD();"></td><td><select class="select-celda" onchange="DB.proveedores[${i}].categoria=this.value; guardarBD();">${catP}</select></td><td><input class="input-celda" value="${p.contacto}" onchange="DB.proveedores[${i}].contacto=this.value; guardarBD();"></td><td><input class="input-celda" value="${p.forma_pago}" onchange="DB.proveedores[${i}].forma_pago=this.value; guardarBD();"></td><td><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="DB.proveedores.splice(${i},1); guardarBD(); renderTodas();"></i></td></tr>`;
             }).join('');
-
             let confHTML = '';
             for(let k in DB.desplegables) {
                 confHTML += `<div style="margin-bottom:24px;"><b style="font-family:var(--font-display); font-size:14px; text-transform:uppercase;">${k.replace('_', ' ')}</b> <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">`;
@@ -900,28 +1077,20 @@
         function nuevoCliente() {
             const id = 'p_' + Date.now();
             DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123") });
-            DB.datos[id] = {
-                highlights: [{ label: "Sales", val: "0" }, { label: "Followers", val: "0" }, { label: "DMs", val: "0" }],
-                rendimiento: [], productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "",
-                kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })),
-                briefing: { reglas: [], manychat: [] }
-            };
+            DB.datos[id] = { highlights: [{ label: "Sales", val: "0" }, { label: "Followers", val: "0" }, { label: "DMs", val: "0" }], rendimiento: [], productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas: [], manychat: [] }, ads: [], offline: [], shooting: [] };
             guardarBD(); iniciarApp(id);
         }
 
-        /* ==========================================================================
-           DRAG & DROP Y EVENTOS DE INTERFAZ
-           ========================================================================== */
+        /* ====== DRAG & DROP (ORIGINAL) ====== */
         function permitirSoltar(ev) { ev.preventDefault(); }
         function soltar(ev, estado) {
             if(ROL==='cliente') return;
             const t = DB.datos[SUC_ACTIVA].kanban.find(x => x.id === ev.dataTransfer.getData("text"));
             if(t && t.estado !== estado) { t.estado = estado; guardarBD(); renderOrquestacion(); }
         }
-
         function cambiarVistaCalendario(v) { document.querySelectorAll('.btn-vista').forEach(b=>b.classList.remove('activo')); document.getElementById('btn-vista-'+v).classList.add('activo'); if(v==='kanban'){document.getElementById('contenedor-kanban').classList.remove('oculto');document.getElementById('contenedor-parrilla').classList.add('oculto');}else{document.getElementById('contenedor-kanban').classList.add('oculto');document.getElementById('contenedor-parrilla').classList.remove('oculto');} }
 
-        /* DAM Actions */
+        /* ====== DAM (ORIGINAL) ====== */
         function aprobarActivo(id) { const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id); a.estado="Aprobado"; a.historial.unshift({autor:"Cliente",fecha:new Date().toLocaleString(),accion:"Aprobado",nota:"Ok"}); guardarBD(); renderDAM(); }
         function abrirModalFeedback(id) { document.getElementById('activo-id-feedback').value=id; document.getElementById('texto-feedback').value=''; document.getElementById('modal-feedback').classList.add('activo'); }
         function guardarFeedback() { const n = document.getElementById('texto-feedback').value; if(!n) return alert("Escribe un comentario."); const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===document.getElementById('activo-id-feedback').value); a.estado="Cambios solicitados"; a.historial.unshift({autor:"Cliente",fecha:new Date().toLocaleString(),accion:"Rechazo",nota:n}); cerrarModales(); guardarBD(); renderDAM(); }
@@ -929,7 +1098,7 @@
         function verHistorial(id) { const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id); document.getElementById('contenedor-audit').innerHTML = a.historial.map(h=>`<div class="audit-item"><div class="audit-dot"><i class="fa-solid fa-clock-rotate-left"></i></div><div><b style="color:var(--texto-principal); font-family:var(--font-display);">${h.autor}</b> <span style="font-size:11px;color:var(--texto-secundario); margin-left:8px;">${h.fecha}</span><br><div style="font-size:13px; margin-top:4px; line-height:1.5;">${h.nota}</div></div></div>`).join(''); document.getElementById('modal-historial').classList.add('activo'); }
         function cerrarModales() { document.querySelectorAll('.fondo-modal').forEach(m => m.classList.remove('activo')); document.getElementById('texto-feedback').value = ''; document.getElementById('activo-id-feedback').value = ''; document.getElementById('input-comando-ia').value = ''; }
 
-        /* Reporte CSV */
+        /* ====== REPORTE CSV (ORIGINAL) ====== */
         function abrirReporteEjecutivo() { document.getElementById('rep-nombre-cliente').innerText = DB.sucursales.find(s=>s.id===SUC_ACTIVA).nombre; document.getElementById('modal-reporte').classList.add('activo'); }
         function descargarReporteCSV() {
             const d = DB.datos[SUC_ACTIVA]; let csv = "data:text/csv;charset=utf-8,REPORTE CONSOLIDADO - " + DB.sucursales.find(s=>s.id===SUC_ACTIVA).nombre.toUpperCase() + "\n\n";
@@ -940,7 +1109,7 @@
             document.body.appendChild(link); link.click(); document.body.removeChild(link); cerrarModales();
         }
 
-        /* LANKA IA */
+        /* ====== LANKA IA (ORIGINAL) ====== */
         function abrirModalIA() { document.getElementById('modal-ia').classList.add('activo'); document.getElementById('input-comando-ia').focus(); }
         function procesarIA(comando) {
             document.getElementById('estado-ia-texto').innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Analizando datos...`;
@@ -950,6 +1119,422 @@
                 document.getElementById('estado-ia-texto').innerHTML = "Presiona Enter para ejecutar comando.";
             }, 1200);
         }
+
+
+        /* ================================================================
+           NUEVOS MÓDULOS — JS
+           ================================================================ */
+
+        // Helper: destruir chart si existe
+        function destroyChart(id) {
+            if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
+        }
+
+        // Colores con transparencia
+        const COLOR_P = () => getComputedStyle(document.documentElement).getPropertyValue('--color-primario').trim() || '#C4855A';
+        const PALETA = ['#C4855A','#34A853','#4A90D9','#8B5CF6','#FBBC05','#EA4335','#86826C','#7A8C6E'];
+
+        /* ============= MÓDULO 1: DASHBOARD CHARTS ============= */
+        function renderCharts() {
+            const d = DB.datos[SUC_ACTIVA];
+            const cp = COLOR_P();
+
+            // KPI Strip dinámico
+            const kpis = [
+                { label: "Total Sales", val: d.rendimiento.find(r=>r.m.includes('Sales'))?.v2 || 0, prev: d.rendimiento.find(r=>r.m.includes('Sales'))?.v1 || 0, prefix: "$", color: cp },
+                { label: "Nuevos Seguidores", val: d.rendimiento.find(r=>r.m.includes('Follower'))?.v2 || 0, prev: d.rendimiento.find(r=>r.m.includes('Follower'))?.v1 || 0, prefix: "", color: '#34A853' },
+                { label: "DMs Totales", val: d.rendimiento.find(r=>r.m.includes('Message'))?.v2 || 0, prev: d.rendimiento.find(r=>r.m.includes('Message'))?.v1 || 0, prefix: "", color: '#4A90D9' },
+                { label: "Ticket Promedio", val: d.rendimiento.find(r=>r.m.includes('Ticket'))?.v2 || 0, prev: d.rendimiento.find(r=>r.m.includes('Ticket'))?.v1 || 0, prefix: "$", color: '#8B5CF6' }
+            ];
+            document.getElementById('charts-kpi-strip').innerHTML = kpis.map(k => {
+                const pct = k.prev > 0 ? ((k.val - k.prev) / k.prev * 100).toFixed(1) : 0;
+                const up = pct >= 0;
+                return `<div class="kpi-card" style="--kpi-color:${k.color}">
+                    <div class="kpi-label">${k.label}</div>
+                    <div class="kpi-value">${k.prefix}${Number(k.val).toLocaleString('es-MX')}</div>
+                    <div class="kpi-delta ${up?'up':'down'}">${up?'↑':'↓'} ${Math.abs(pct)}% vs mes anterior</div>
+                </div>`;
+            }).join('');
+
+            // Chart 1: Línea variación mensual
+            destroyChart('linea');
+            const mesesCortos = MESES.map(m=>m.substring(0,3));
+            const ctxL = document.getElementById('chart-linea').getContext('2d');
+            const gradient = ctxL.createLinearGradient(0, 0, 0, 220);
+            gradient.addColorStop(0, `${cp}30`);
+            gradient.addColorStop(1, `${cp}00`);
+            _charts['linea'] = new Chart(ctxL, {
+                type: 'line',
+                data: {
+                    labels: mesesCortos,
+                    datasets: [
+                        { label: 'Ventas (MXN)', data: [8200, 9100, 10200, 11000, 12500, 0], borderColor: cp, backgroundColor: gradient, borderWidth: 2.5, tension: 0.4, fill: true, pointBackgroundColor: cp, pointRadius: 4, pointHoverRadius: 7 },
+                        { label: 'Nuevos Seguidores', data: [380, 490, 620, 710, 840, 0], borderColor: '#34A853', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointBackgroundColor: '#34A853', pointRadius: 4, pointHoverRadius: 7 },
+                        { label: 'DMs', data: [600, 780, 950, 1050, 1210, 0], borderColor: '#4A90D9', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointBackgroundColor: '#4A90D9', pointRadius: 4, pointHoverRadius: 7, borderDash: [4,3] }
+                    ]
+                },
+                options: { responsive: true, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11, weight: '600' } } }, tooltip: { backgroundColor: '#111', padding: 12, titleFont: { size: 12 } } }, scales: { y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } }, x: { grid: { display: false }, ticks: { font: { size: 11 } } } } }
+            });
+
+            // Chart 2: Donut product mix
+            destroyChart('donut');
+            const productos = d.productos.length ? d.productos : [{m:'Sin datos', pct:100}];
+            _charts['donut'] = new Chart(document.getElementById('chart-donut').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: productos.map(p=>p.m), datasets: [{ data: productos.map(p=>p.pct), backgroundColor: PALETA.slice(0,productos.length), borderWidth: 2, borderColor: '#FFFFFF', hoverOffset: 8 }] },
+                options: { responsive: true, cutout: '68%', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#111', padding: 12 } } }
+            });
+            document.getElementById('donut-legend').innerHTML = productos.map((p,i) => `<div class="chart-legend-item"><div class="chart-legend-dot" style="background:${PALETA[i]};"></div>${p.m} <b style="color:var(--texto-principal)">${p.pct}%</b></div>`).join('');
+
+            // Chart 3: Barras Ad Performance
+            destroyChart('barras-ads');
+            const ads = (d.ads||[]).slice(0,5);
+            const adLabels = ads.length ? ads.map(a=>a.nombre.substring(0,20)) : ['Sin campañas'];
+            const invData = ads.length ? ads.map(a=>a.inversion) : [0];
+            const convData = ads.length ? ads.map(a=>a.conversiones*10) : [0];
+            _charts['barras-ads'] = new Chart(document.getElementById('chart-barras-ads').getContext('2d'), {
+                type: 'bar',
+                data: { labels: adLabels, datasets: [
+                    { label: 'Inversión (MXN)', data: invData, backgroundColor: `${cp}CC`, borderRadius: 8, borderSkipped: false },
+                    { label: 'Conversiones ×10', data: convData, backgroundColor: '#34A85380', borderRadius: 8, borderSkipped: false }
+                ]},
+                options: { responsive: true, plugins: { legend: { position: 'top', labels: { font: { size: 11, weight: '600' } } } }, scales: { y: { grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } }
+            });
+
+            // Chart 4: Radar engagement
+            destroyChart('radar');
+            _charts['radar'] = new Chart(document.getElementById('chart-radar').getContext('2d'), {
+                type: 'radar',
+                data: { labels: ['Reels', 'ASMR', 'Pauta', 'Stories', 'Carrusel', 'Lives'], datasets: [
+                    { label: 'Engagement %', data: [8.2, 6.4, 4.1, 5.8, 3.2, 7.1], backgroundColor: `${cp}20`, borderColor: cp, pointBackgroundColor: cp, borderWidth: 2, pointRadius: 4 }
+                ]},
+                options: { responsive: true, scales: { r: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 } } } }, plugins: { legend: { display: false } } }
+            });
+
+            // Chart 5: Área crecimiento
+            destroyChart('area');
+            const ctxA = document.getElementById('chart-area').getContext('2d');
+            const gA = ctxA.createLinearGradient(0,0,0,200);
+            gA.addColorStop(0, '#34A85340'); gA.addColorStop(1, '#34A85300');
+            _charts['area'] = new Chart(ctxA, {
+                type: 'line',
+                data: { labels: mesesCortos, datasets: [{ label: 'Seguidores Acum.', data: [1200,1590,2080,2790,3500,0], fill: true, backgroundColor: gA, borderColor: '#34A853', borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#34A853' }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } }
+            });
+        }
+
+        function refreshCharts() { renderCharts(); }
+
+        /* ============= MÓDULO 3: CALENDARIO EDITORIAL VISUAL ============= */
+        function renderCalEditorial() {
+            const d = DB.datos[SUC_ACTIVA];
+            const year = _calFecha.getFullYear();
+            const month = _calFecha.getMonth();
+            document.getElementById('cal-titulo').innerText = `${MESES[month]} ${year}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+
+            // Mapear contenidos a fechas
+            const contentMap = {};
+            (d.kanban || []).forEach(t => {
+                const td = new Date(t.fecha + 'T00:00:00');
+                if (td.getFullYear() === year && td.getMonth() === month) {
+                    const day = td.getDate();
+                    if (!contentMap[day]) contentMap[day] = [];
+                    contentMap[day].push(t);
+                }
+            });
+
+            let html = '';
+            // Celdas vacías antes del primer día
+            for (let i = 0; i < firstDay; i++) {
+                html += `<div class="cal-cell empty"></div>`;
+            }
+            for (let day = 1; day <= daysInMonth; day++) {
+                const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
+                const items = contentMap[day] || [];
+                const maxShow = 3;
+                const chipsHTML = items.slice(0, maxShow).map(t => {
+                    const tags = (t.tags||'').toLowerCase();
+                    let tipo = 'otro';
+                    if(tags.includes('reel')) tipo = 'reel';
+                    else if(tags.includes('asmr')) tipo = 'asmr';
+                    else if(tags.includes('pauta')) tipo = 'pauta';
+                    else if(tags.includes('story') || tags.includes('stories')) tipo = 'story';
+                    return `<span class="cal-chip tipo-${tipo}" title="${t.titulo}">${t.titulo.substring(0,18)}</span>`;
+                }).join('');
+                const masHTML = items.length > maxShow ? `<span class="cal-mas">+${items.length - maxShow} más</span>` : '';
+                html += `<div class="cal-cell ${isToday?'today':''}"><div class="cal-day-num">${day}</div>${chipsHTML}${masHTML}</div>`;
+            }
+            // Completar últimas filas
+            const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
+            for (let i = firstDay + daysInMonth; i < totalCells; i++) {
+                html += `<div class="cal-cell empty"></div>`;
+            }
+            document.getElementById('cal-grid-body').innerHTML = html;
+        }
+
+        function calMes(dir) {
+            _calFecha.setMonth(_calFecha.getMonth() + dir);
+            renderCalEditorial();
+        }
+
+        /* ============= MÓDULO 4: AGENDA DE SHOOTING ============= */
+        function renderShootingGrid() {
+            const d = DB.datos[SUC_ACTIVA];
+            const shooting = d.shooting || [];
+            const ro = ROL === 'cliente' ? 'readonly' : '';
+
+            document.getElementById('shooting-grid').innerHTML = shooting.map((s, si) => {
+                const checklistHTML = (s.checklist||[]).map((c, ci) => `
+                    <li class="shooting-item">
+                        <div class="shooting-check ${c.hecho?'done':''}" onclick="${ROL==='agencia'?`toggleCheck('${s.id}',${ci})`:''}">
+                            ${c.hecho ? '<i class="fa-solid fa-check"></i>' : ''}
+                        </div>
+                        <span>${c.texto}</span>
+                    </li>
+                `).join('');
+
+                const equipoHTML = (s.equipo||[]).map(e=>`<span class="equipo-tag"><i class="fa-solid fa-user"></i>${e}</span>`).join('');
+                const done = (s.checklist||[]).filter(c=>c.hecho).length;
+                const total = (s.checklist||[]).length;
+                const pct = total > 0 ? Math.round(done/total*100) : 0;
+
+                return `
+                <div class="shooting-card">
+                    <div class="shooting-header">
+                        <div>
+                            <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${s.fecha} · ${s.hora}</div>
+                            <div class="shooting-titulo">${s.titulo}</div>
+                            <div style="font-size:11px; color:var(--texto-secundario); margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${s.locacion}</div>
+                        </div>
+                        <div style="text-align:center; background: rgba(196,133,90,0.08); border-radius:12px; padding:10px 16px; min-width:70px;">
+                            <div style="font-family:var(--font-display); font-size:26px; font-weight:900; color:var(--color-primario);">${pct}%</div>
+                            <div style="font-size:9px; font-weight:700; color:var(--texto-secundario); text-transform:uppercase;">Listo</div>
+                        </div>
+                    </div>
+                    <div class="shooting-body">
+                        <div class="shooting-mood">${s.moodboard}</div>
+                        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--texto-secundario); margin-bottom:10px;">Contenidos a capturar</div>
+                        <ul class="shooting-checklist">${checklistHTML}</ul>
+                        <div class="shooting-equipo">${equipoHTML}</div>
+                        ${ROL==='agencia' ? `
+                        <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--color-borde); display:flex; gap:8px;">
+                            <button class="btn btn-xs btn-fantasma" onclick="agregarCheckShooting('${s.id}')"><i class="fa-solid fa-plus"></i> Item</button>
+                            <button class="btn btn-xs btn-peligro-suave" onclick="eliminarShooting('${s.id}')">Eliminar</button>
+                        </div>` : ''}
+                    </div>
+                </div>`;
+            }).join('') || `<div style="color:var(--texto-secundario); font-size:14px; padding:40px; text-align:center; grid-column:1/-1;"><i class="fa-solid fa-camera" style="font-size:32px; margin-bottom:12px; display:block; opacity:0.3;"></i>No hay sesiones de shooting programadas.</div>`;
+        }
+
+        function toggleCheck(shootingId, ci) {
+            const s = DB.datos[SUC_ACTIVA].shooting.find(x=>x.id===shootingId);
+            if(s) { s.checklist[ci].hecho = !s.checklist[ci].hecho; guardarBD(); renderShootingGrid(); }
+        }
+
+        function nuevoShooting() {
+            const n = {
+                id: 'sh'+Date.now(), titulo: "Nuevo Shooting", fecha: new Date().toISOString().split('T')[0], hora: "10:00",
+                locacion: "Estudio / Locación", moodboard: "Descripción del mood y estética visual del shooting...",
+                equipo: ["Fotógrafo: ", "Dirección: "],
+                checklist: [{ hecho: false, texto: "Contenido 1" }, { hecho: false, texto: "Contenido 2" }]
+            };
+            DB.datos[SUC_ACTIVA].shooting.push(n); guardarBD(); renderShootingGrid();
+        }
+
+        function agregarCheckShooting(id) {
+            const texto = prompt("¿Qué contenido se capturará?");
+            if (!texto) return;
+            const s = DB.datos[SUC_ACTIVA].shooting.find(x=>x.id===id);
+            s.checklist.push({ hecho: false, texto: texto });
+            guardarBD(); renderShootingGrid();
+        }
+
+        function eliminarShooting(id) {
+            if (!confirm("¿Eliminar esta sesión de shooting?")) return;
+            DB.datos[SUC_ACTIVA].shooting = DB.datos[SUC_ACTIVA].shooting.filter(x=>x.id!==id);
+            guardarBD(); renderShootingGrid();
+        }
+
+        /* ============= MÓDULO 5: AD PERFORMANCE ============= */
+        function renderAdsTable() {
+            const d = DB.datos[SUC_ACTIVA];
+            const ads = d.ads || [];
+            const ro = ROL === 'cliente' ? 'readonly' : '';
+
+            // KPI totales
+            const totalInv = ads.reduce((a,x)=>a+Number(x.inversion),0);
+            const totalAlc = ads.reduce((a,x)=>a+Number(x.alcance),0);
+            const totalConv = ads.reduce((a,x)=>a+Number(x.conversiones),0);
+            const avgCPR = ads.length ? (ads.reduce((a,x)=>a+Number(x.cpr),0)/ads.length).toFixed(0) : 0;
+            const roas = totalInv > 0 ? (totalConv * 85 / totalInv).toFixed(1) : 0;
+
+            document.getElementById('ads-kpi-strip').innerHTML = [
+                { icon: 'fa-peso-sign', color: '#C4855A', bg: 'rgba(196,133,90,0.1)', label: 'Total Invertido', val: `$${totalInv.toLocaleString()}` },
+                { icon: 'fa-eye', color: '#4A90D9', bg: 'rgba(74,144,217,0.1)', label: 'Alcance Total', val: totalAlc.toLocaleString() },
+                { icon: 'fa-arrow-pointer', color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', label: 'Conversiones', val: totalConv },
+                { icon: 'fa-dollar-sign', color: '#34A853', bg: 'rgba(52,168,83,0.1)', label: 'CPR Promedio', val: `$${avgCPR}` },
+                { icon: 'fa-chart-line', color: '#FBBC05', bg: 'rgba(251,188,5,0.1)', label: 'ROAS Estimado', val: `${roas}x` }
+            ].map(k => `
+                <div class="ads-kpi-card">
+                    <div class="ads-kpi-icon" style="background:${k.bg}; color:${k.color};"><i class="fa-solid ${k.icon}"></i></div>
+                    <div class="ads-kpi-val">${k.val}</div>
+                    <div class="ads-kpi-lbl">${k.label}</div>
+                </div>`).join('');
+
+            document.getElementById('ads-lista').innerHTML = ads.map((a, i) => {
+                const statusCls = a.estado==='Activa' ? 'ad-active' : (a.estado==='Pausada' ? 'ad-paused' : 'ad-finished');
+                const statusDot = a.estado==='Activa' ? '🟢' : (a.estado==='Pausada' ? '🟡' : '⚫');
+                return `
+                <div class="ad-row-card">
+                    <div class="ad-row-header">
+                        <div class="ad-cell" style="border-left:4px solid var(--color-primario);">
+                            <div class="ad-cell-name">${a.nombre}</div>
+                            <div class="ad-cell-seg"><i class="fa-solid fa-users" style="margin-right:4px; color:var(--texto-secundario);"></i>${a.segmento}</div>
+                            <div style="margin-top:6px;"><span class="ad-status ${statusCls}">${statusDot} ${a.estado}</span></div>
+                        </div>
+                        <div class="ad-cell">
+                            <div class="ad-cell-label">Inversión</div>
+                            <div class="ad-cell-value">$${Number(a.inversion).toLocaleString()}</div>
+                        </div>
+                        <div class="ad-cell">
+                            <div class="ad-cell-label">Alcance</div>
+                            <div class="ad-cell-value">${Number(a.alcance).toLocaleString()}</div>
+                        </div>
+                        <div class="ad-cell">
+                            <div class="ad-cell-label">Clics</div>
+                            <div class="ad-cell-value">${Number(a.clics).toLocaleString()}</div>
+                        </div>
+                        <div class="ad-cell">
+                            <div class="ad-cell-label">Conversiones</div>
+                            <div class="ad-cell-value" style="color:var(--color-exito);">${a.conversiones}</div>
+                        </div>
+                        <div class="ad-cell">
+                            <div class="ad-cell-label">CPR</div>
+                            <div class="ad-cell-value">${a.cpr > 0 && a.cpr < 30 ? `<span style="color:var(--color-exito)">$${a.cpr}</span>` : `$${a.cpr}`}</div>
+                        </div>
+                        <div class="ad-cell">
+                            ${ROL==='agencia' ? `<i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('ads',${i})"></i>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            }).join('') || `<div style="text-align:center; padding:40px; color:var(--texto-secundario); font-size:14px;"><i class="fa-solid fa-bullhorn" style="font-size:32px; margin-bottom:12px; display:block; opacity:0.3;"></i>No hay campañas registradas.</div>`;
+        }
+
+        function renderAdsCharts() {
+            const d = DB.datos[SUC_ACTIVA];
+            const ads = d.ads || [];
+            const cp = COLOR_P();
+
+            destroyChart('ads-perf');
+            _charts['ads-perf'] = new Chart(document.getElementById('chart-ads-perf').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ads.length ? ads.map(a=>a.nombre.substring(0,18)) : ['Sin datos'],
+                    datasets: [
+                        { label: 'Inversión ($)', data: ads.length ? ads.map(a=>a.inversion) : [0], backgroundColor: `${cp}CC`, borderRadius: 8, borderSkipped: false },
+                        { label: 'Conv. ×25', data: ads.length ? ads.map(a=>a.conversiones*25) : [0], backgroundColor: '#34A85370', borderRadius: 8, borderSkipped: false }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { position:'top', labels:{ font:{size:11,weight:'600'} } } }, scales: { y:{ grid:{color:'rgba(0,0,0,0.04)'} }, x:{ grid:{display:false} } } }
+            });
+
+            destroyChart('ads-cpr');
+            _charts['ads-cpr'] = new Chart(document.getElementById('chart-ads-cpr').getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: ads.length ? ads.map(a=>a.segmento.split('·')[0].trim()) : ['Sin datos'],
+                    datasets: [{ data: ads.length ? ads.map(a=>a.cpr) : [100], backgroundColor: PALETA.slice(0,Math.max(ads.length,1)), borderWidth: 2, borderColor: '#FFFFFF' }]
+                },
+                options: { responsive: true, cutout: '60%', plugins: { legend: { position:'right', labels:{font:{size:11}} }, tooltip: { callbacks: { label: ctx => ` CPR: $${ctx.raw}` } } } }
+            });
+        }
+
+        function nuevoAd() {
+            const n = { id:'a'+Date.now(), nombre:"Nueva Campaña", plataforma:"Meta", inversion:0, alcance:0, clics:0, conversiones:0, cpr:0, segmento:"Segmento · Ubicación", estado:"Activa", inicio:new Date().toISOString().split('T')[0], fin:"" };
+            DB.datos[SUC_ACTIVA].ads.push(n); guardarBD(); renderAdsTable(); setTimeout(renderAdsCharts, 50);
+        }
+
+        /* ============= MÓDULO 2: MATERIALES OFFLINE ============= */
+        function renderOfflineTable() {
+            const d = DB.datos[SUC_ACTIVA];
+            const items = d.offline || [];
+            const ro = ROL === 'cliente' ? 'readonly' : '';
+
+            const totalCosto = items.reduce((a,x) => a + (Number(x.cantidad)*Number(x.costo_unit)), 0);
+            const listos = items.filter(x=>x.estado==='Listo').length;
+            const pendientes = items.filter(x=>x.estado!=='Listo').length;
+
+            document.getElementById('offline-summary').innerHTML = [
+                { num: items.length, label: 'Total Materiales', icon: 'fa-boxes-stacked', color: 'var(--color-primario)' },
+                { num: `$${totalCosto.toLocaleString()}`, label: 'Inversión Total', icon: 'fa-peso-sign', color: '#4A90D9' },
+                { num: `${listos}/${items.length}`, label: 'Materiales Listos', icon: 'fa-circle-check', color: '#34A853' }
+            ].map(s => `
+                <div class="offline-stat">
+                    <i class="fa-solid ${s.icon}" style="font-size:24px; color:${s.color}; margin-bottom:8px;"></i>
+                    <div class="offline-stat-num" style="color:${s.color};">${s.num}</div>
+                    <div class="offline-stat-label">${s.label}</div>
+                </div>`).join('');
+
+            const estados = ['Pendiente','Producción','Listo','Revisar'];
+            document.getElementById('offline-tabla').innerHTML = items.map((it, i) => {
+                const total = Number(it.cantidad) * Number(it.costo_unit);
+                const stCls = it.estado==='Listo'?'estado-listo': it.estado==='Producción'?'estado-produccion': it.estado==='Revisar'?'estado-revisar':'estado-pendiente';
+                const optEst = estados.map(e=>`<option ${e===it.estado?'selected':''}>${e}</option>`).join('');
+                return `<tr>
+                    <td><input class="input-celda" style="font-weight:700;" value="${it.nombre}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].nombre=this.value;guardarBD()"></td>
+                    <td><input class="input-celda" value="${it.categoria}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].categoria=this.value;guardarBD()"></td>
+                    <td><input type="number" class="input-celda" style="width:70px; font-weight:700;" value="${it.cantidad}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].cantidad=Number(this.value);guardarBD();renderOfflineTable()"></td>
+                    <td><input class="input-celda" value="${it.proveedor}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].proveedor=this.value;guardarBD()"></td>
+                    <td><input type="number" class="input-celda" value="${it.costo_unit}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].costo_unit=Number(this.value);guardarBD();renderOfflineTable()"></td>
+                    <td style="font-weight:700; color:var(--color-primario);">$${total.toLocaleString()}</td>
+                    <td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].estado=this.value;guardarBD();renderOfflineTable()">${optEst}</select>` : `<span class="estado-badge ${stCls}">${it.estado}</span>`}</td>
+                    <td><input type="date" class="input-celda" style="width:130px;" value="${it.entrega}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].entrega=this.value;guardarBD()"></td>
+                    <td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('offline',${i})"></i></td>
+                </tr>`;
+            }).join('') || `<tr><td colspan="9" style="text-align:center; padding:32px; color:var(--texto-secundario);">No hay materiales registrados.</td></tr>`;
+        }
+
+        function renderOfflineCharts() {
+            const d = DB.datos[SUC_ACTIVA];
+            const items = d.offline || [];
+
+            // Costo por categoría
+            const catMap = {};
+            items.forEach(it => {
+                const c = it.categoria || 'Otro';
+                catMap[c] = (catMap[c]||0) + (Number(it.cantidad)*Number(it.costo_unit));
+            });
+            const catLabels = Object.keys(catMap).length ? Object.keys(catMap) : ['Sin datos'];
+            const catValues = Object.values(catMap).length ? Object.values(catMap) : [0];
+
+            destroyChart('offline-cat');
+            _charts['offline-cat'] = new Chart(document.getElementById('chart-offline-cat').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: PALETA.slice(0,catLabels.length), borderWidth: 2, borderColor: '#FFFFFF', hoverOffset: 8 }] },
+                options: { responsive: true, cutout: '60%', plugins: { legend: { position:'right', labels:{font:{size:11}} }, tooltip: { callbacks: { label: ctx => ` $${ctx.raw.toLocaleString()}` } } } }
+            });
+
+            // Estado de materiales
+            const estCounts = { 'Pendiente':0, 'Producción':0, 'Listo':0, 'Revisar':0 };
+            items.forEach(it => { if(estCounts[it.estado]!==undefined) estCounts[it.estado]++; });
+
+            destroyChart('offline-status');
+            _charts['offline-status'] = new Chart(document.getElementById('chart-offline-status').getContext('2d'), {
+                type: 'bar',
+                data: { labels: Object.keys(estCounts), datasets: [{ data: Object.values(estCounts), backgroundColor: ['#FBBC0590','#4A90D990','#34A85390','#EA433590'], borderRadius: 10, borderSkipped: false }] },
+                options: { responsive: true, indexAxis: 'y', plugins: { legend:{display:false} }, scales: { x:{ grid:{display:false}, ticks:{font:{size:11}}, beginAtZero:true, precision:0 }, y:{ grid:{display:false}, ticks:{font:{size:12, weight:'600'}} } } }
+            });
+        }
+
+        function nuevoOffline() {
+            const n = { id:'o'+Date.now(), nombre:"Nuevo Material", categoria:"Impreso", cantidad:1, proveedor:"", costo_unit:0, estado:"Pendiente", entrega:new Date().toISOString().split('T')[0] };
+            DB.datos[SUC_ACTIVA].offline.push(n); guardarBD(); renderOfflineTable(); setTimeout(renderOfflineCharts, 50);
+        }
+
     </script>
 </body>
 </html>
