@@ -177,9 +177,13 @@ app.get('/api/proyectos/:id/campanas', requireApiKey, async (req, res) => {
 });
 
 // ── INICIAR ───────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 LANKA API corriendo en http://localhost:${PORT}`);
-  console.log(`   Orígenes permitidos: ${origenesPermitidos.join(', ') || 'todos (⚠️ configura ORIGENES_PERMITIDOS)'}`);
-  console.log(`   Meta App ID: ${META_APP_ID ? '✅ configurado' : '❌ falta META_APP_ID en .env'}`);
-});
+// Para Vercel (serverless) — exporta la app
+module.exports = app;
+
+// Para desarrollo local — solo escucha si NO estamos en Vercel
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 LANKA API corriendo en http://localhost:${PORT}`);
+  });
+}
