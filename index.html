@@ -587,6 +587,20 @@
     /* Toggle btn theme-aware */
     [data-theme="dark"] #btn-tema { color: rgba(240,237,232,0.7) !important; border-color: rgba(255,255,255,0.14) !important; background: rgba(255,255,255,0.06) !important; }
     [data-theme="dark"] #btn-tema:hover { color: #F0EDE8 !important; box-shadow: 0 0 16px rgba(196,133,90,0.3) !important; }
+
+    /* ================================================================
+       SPRINT 2 — ROLES Y TAREAS
+       ================================================================ */
+    .badge-equipo { background: rgba(74,144,217,0.1); color: #4A90D9; }
+    .req-equipo { display: none; }
+    .mis-tareas-card { background: #FFFFFF; border-radius: 16px; padding: 20px 24px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); display: flex; align-items: center; gap: 20px; transition: var(--transicion); }
+    .mis-tareas-card:hover { box-shadow: var(--sombra-flotante); transform: translateY(-1px); }
+    .mis-tareas-fecha { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--color-borde); padding-right: 20px; min-width: 90px; }
+    .mis-tareas-dia-val { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--color-primario); letter-spacing: -0.04em; line-height: 1; }
+    .mis-tareas-hora { font-size: 11px; font-weight: 700; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+    [data-theme="dark"] .mis-tareas-card { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 4px 28px rgba(0,0,0,0.4) !important; }
+    [data-theme="dark"] .mis-tareas-fecha { border-right-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="light"] .mis-tareas-card { background: rgba(255,255,255,0.72) !important; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.9) !important; }
 </style>
 ```
 
@@ -610,8 +624,8 @@
         <div class="marca">LANKA</div>
         <div id="badge-rol" class="badge-rol"></div>
 
-        <div class="menu-titulo">Inteligencia</div>
-        <ul class="menu-nav">
+        <div class="menu-titulo req-no-equipo">Inteligencia</div>
+        <ul class="menu-nav req-no-equipo">
             <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-chart-pie"></i> Resumen General</li>
             <li class="item-nav" data-target="vista-charts"><i class="fa-solid fa-chart-line"></i> Dashboard Charts</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
@@ -625,20 +639,25 @@
 
         <div class="menu-titulo">Orquestación</div>
         <ul class="menu-nav">
-            <li class="item-nav" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario Content</li>
-            <li class="item-nav" data-target="vista-cal-editorial"><i class="fa-solid fa-calendar-check"></i> Calendario Visual</li>
+            <li class="item-nav req-no-equipo" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario Content</li>
+            <li class="item-nav req-no-equipo" data-target="vista-cal-editorial"><i class="fa-solid fa-calendar-check"></i> Calendario Visual</li>
             <li class="item-nav" data-target="vista-shooting"><i class="fa-solid fa-camera"></i> Agenda Shooting</li>
             <li class="item-nav" data-target="vista-dam"><i class="fa-solid fa-photo-film"></i> DAM Governance</li>
-            <li class="item-nav" data-target="vista-stories"><i class="fa-solid fa-film"></i> Stories</li>
+            <li class="item-nav req-no-equipo" data-target="vista-stories"><i class="fa-solid fa-film"></i> Stories</li>
         </ul>
 
-        <div class="menu-titulo">Estrategia Operativa</div>
-        <ul class="menu-nav">
+        <div class="menu-titulo req-no-equipo">Estrategia Operativa</div>
+        <ul class="menu-nav req-no-equipo">
             <li class="item-nav" data-target="vista-briefing"><i class="fa-solid fa-chess-knight"></i> Briefing Mensual</li>
             <li class="item-nav" data-target="vista-mood"><i class="fa-solid fa-calendar-week"></i> Mood & Ejes</li>
             <li class="item-nav" data-target="vista-target"><i class="fa-solid fa-users-viewfinder"></i> Target & Seg.</li>
             <li class="item-nav" data-target="vista-ads"><i class="fa-solid fa-bullhorn"></i> Ad Performance</li>
             <li class="item-nav" data-target="vista-offline"><i class="fa-solid fa-print"></i> Materiales Offline</li>
+        </ul>
+
+        <div class="menu-titulo req-equipo">Mi Trabajo</div>
+        <ul class="menu-nav req-equipo">
+            <li class="item-nav" data-target="vista-mis-tareas"><i class="fa-solid fa-list-check"></i> Mis Tareas</li>
         </ul>
 
         <div class="menu-titulo req-agencia">Administración</div>
@@ -860,7 +879,10 @@
             <section id="vista-shooting" class="seccion-app oculto">
                 <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
                     <div><h1>Agenda de Shooting</h1><p>Días de producción, brief visual y lista de contenidos a capturar.</p></div>
-                    <button class="btn btn-primario req-agencia" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-fantasma req-agencia" onclick="generarShootingDesdeParrilla()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar desde Parrilla</button>
+                        <button class="btn btn-primario req-agencia" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>
+                    </div>
                 </div>
                 <div class="shooting-grid" id="shooting-grid"></div>
             </section>
@@ -871,6 +893,17 @@
                     <button class="btn btn-primario req-agencia" onclick="agregarElemento('dam')"><i class="fa-solid fa-upload"></i> Nuevo Asset</button>
                 </div>
                 <div class="cuadricula-dam" id="contenedor-dam"></div>
+            </section>
+
+            <!-- ============ MÓDULO: MIS TAREAS (EQUIPO) ============ -->
+            <section id="vista-mis-tareas" class="seccion-app oculto">
+                <div class="encabezado-seccion">
+                    <div>
+                        <h1>Mis Tareas</h1>
+                        <p id="mis-tareas-subtitulo">Publicaciones asignadas — tus contenidos a producir.</p>
+                    </div>
+                </div>
+                <div id="mis-tareas-lista" style="display:flex; flex-direction:column; gap:14px;"></div>
             </section>
 
             <!-- ============ MÓDULO: STORIES INDEPENDIENTES ============ -->
@@ -1167,8 +1200,15 @@ document.addEventListener('DOMContentLoaded', function() {
             sexo: ["Ambos", "Hombre", "Mujer"], nivel: ["A/B", "C+", "C", "D", "E"]
         },
         sucursales: [
-            { id: "aitama", nombre: "Aitama Wellness", color: "#C4855A", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Aitama26") },
-            { id: "mammut", nombre: "Mammut Pizza", color: "#EA4335", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26") }
+            { id: "aitama", nombre: "Aitama Wellness", color: "#C4855A", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Aitama26"),
+              equipo_miembros: [
+                { nombre: "Ángeles Fernández", rol: "Fotógrafa", password: btoa("angeles26") },
+                { nombre: "Dulce", rol: "Asistente", password: btoa("dulce26") },
+                { nombre: "Sergio", rol: "Videógrafo", password: btoa("sergio26") },
+                { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
+              ]
+            },
+            { id: "mammut", nombre: "Mammut Pizza", color: "#EA4335", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"), equipo_miembros: [] }
         ],
         datos: {
             aitama: {
@@ -1189,8 +1229,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     { f: "2026-04-15", c: "Promo Flash Fin de Semana", r: "Ventas +15%, Ticket Medio -5%", a: "El volumen sube pero la rentabilidad cae. Solo usar para limpiar inventario, no como estrategia core." }
                 ],
                 kanban: [ 
-                    { id: "k1", titulo: "Video 1 Día de la Madre", fecha: "2026-05-04", hora: "18:00", estado: "Programado", tags: "Reel, Pauta", target_id: "t1", hook: "hay mujeres que cargan con todo sin pedir nada a cambio. para la tuya — esto.", copy: "este mes le das a ella lo que nunca se da a sí misma. los paquetes del día de las madres ya están listos en aitama.", hashtags: "#AitamaSpa #SpaMorelia", manychat: "MAMÁ", pauta: "★ Pautar directamente. Objetivo: Mensajes. $600 MXN", stories: "6:10 pm - Clip del Reel + sticker enlace\n8:00 pm - no es un facial más." },
-                    { id: "k2", titulo: "Reel ASMR Masaje", fecha: "2026-05-12", hora: "07:00", estado: "Producción", tags: "ASMR", target_id: "", hook: "Video abre con aceite cayendo sobre espalda en cámara lenta. Sin texto.", copy: "ya cuidaste a todos. ahora le toca a tu cuerpo guardar todo lo que cargó este mes.", hashtags: "#MasajeHolistico #SpaMorelia", manychat: "TENSIÓN", pauta: "Superar 500 vistas orgánicas -> Meta Ads", stories: "" }
+                    { id: "k1", titulo: "Video 1 Día de la Madre", fecha: "2026-05-04", hora: "18:00", estado: "Programado", tags: "Reel, Pauta", target_id: "t1", hook: "hay mujeres que cargan con todo sin pedir nada a cambio. para la tuya — esto.", copy: "este mes le das a ella lo que nunca se da a sí misma. los paquetes del día de las madres ya están listos en aitama.", hashtags: "#AitamaSpa #SpaMorelia", manychat: "MAMÁ", pauta: "★ Pautar directamente. Objetivo: Mensajes. $600 MXN", stories: "6:10 pm - Clip del Reel + sticker enlace\n8:00 pm - no es un facial más.", asignado_a: "Sergio" },
+                    { id: "k2", titulo: "Reel ASMR Masaje", fecha: "2026-05-12", hora: "07:00", estado: "Producción", tags: "ASMR", target_id: "", hook: "Video abre con aceite cayendo sobre espalda en cámara lenta. Sin texto.", copy: "ya cuidaste a todos. ahora le toca a tu cuerpo guardar todo lo que cargó este mes.", hashtags: "#MasajeHolistico #SpaMorelia", manychat: "TENSIÓN", pauta: "Superar 500 vistas orgánicas -> Meta Ads", stories: "", asignado_a: "Ángeles Fernández" }
                 ],
                 dam: [ { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, url: "", historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } ],
                 presupuesto: [ { categoria: "Meta Ads", item: "Pauta Online", montos_mes: Array.from({length: 12}, () => ({directa: 2400, intercambio: 0})) }, { categoria: "Impresos", item: "Tent Cards y Menús", montos_mes: Array.from({length: 12}, () => ({directa: 0, intercambio: 0})) } ],
@@ -1233,7 +1273,7 @@ document.addEventListener('DOMContentLoaded', function() {
         proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ]
     };
 
-    let DB = {}; let ROL = 'none'; let SUC_ACTIVA = '';
+    let DB = {}; let ROL = 'none'; let SUC_ACTIVA = ''; let USUARIO_EQUIPO = '';
     let _charts = {}; // instancias Chart.js
     let _calFecha = new Date();
 
@@ -1243,12 +1283,20 @@ document.addEventListener('DOMContentLoaded', function() {
         DB = guardado ? JSON.parse(guardado) : JSON.parse(JSON.stringify(DATOS_SEMILLA));
         
         // Migrar datos viejos que no tengan los nuevos arrays
+        if (DB.sucursales) {
+            DB.sucursales.forEach(suc => {
+                if (!suc.equipo_miembros) suc.equipo_miembros = [];
+            });
+        }
         if (DB.datos) {
             Object.keys(DB.datos).forEach(sid => {
                 if (!DB.datos[sid].ads) DB.datos[sid].ads = [];
                 if (!DB.datos[sid].offline) DB.datos[sid].offline = [];
                 if (!DB.datos[sid].shooting) DB.datos[sid].shooting = [];
                 if (!DB.datos[sid].stories_ind) DB.datos[sid].stories_ind = [];
+                if (DB.datos[sid].kanban) {
+                    DB.datos[sid].kanban.forEach(k => { if (k.asignado_a === undefined) k.asignado_a = ''; });
+                }
             });
         }
         
@@ -1283,12 +1331,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function ejecutarLogin(e) {
         e.preventDefault(); const pwd = document.getElementById('input-password').value;
-        if(btoa(pwd) === btoa('Lanka2026')) { ROL = 'agencia'; iniciarApp(DB.sucursales[0].id); } 
-        else {
-            let s = DB.sucursales.find(x => x.password === btoa(pwd));
-            if(s) { ROL = 'cliente'; iniciarApp(s.id); } 
-            else { document.getElementById('error-login').style.opacity = 1; setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000); }
+        if(btoa(pwd) === btoa('Lanka2026')) { ROL = 'agencia'; iniciarApp(DB.sucursales[0].id); return; }
+        // Check equipo members across all projects
+        for (let suc of DB.sucursales) {
+            const miembro = (suc.equipo_miembros || []).find(m => m.password === btoa(pwd));
+            if (miembro) { ROL = 'equipo'; USUARIO_EQUIPO = miembro.nombre; iniciarApp(suc.id); return; }
         }
+        let s = DB.sucursales.find(x => x.password === btoa(pwd));
+        if(s) { ROL = 'cliente'; iniciarApp(s.id); }
+        else { document.getElementById('error-login').style.opacity = 1; setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000); }
     }
 
     function cerrarSesion() { location.reload(); }
@@ -1298,20 +1349,38 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.classList.remove('tema-login');
         document.getElementById('pantalla-login').classList.add('oculto');
         document.getElementById('pantalla-app').classList.remove('oculto');
-        
+
         if(ROL === 'agencia') {
             document.getElementById('badge-rol').className = 'badge-rol badge-agencia';
             document.getElementById('badge-rol').innerText = 'Agencia (Editor)';
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = '');
-            document.getElementById('selector-sucursal').style.display = ''; 
+            document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = '');
+            document.querySelectorAll('.req-equipo').forEach(el => el.style.display = 'none');
+            document.getElementById('selector-sucursal').style.display = '';
             document.getElementById('etiqueta-cliente').style.display = 'none';
             const sel = document.getElementById('selector-sucursal');
             sel.innerHTML = DB.sucursales.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
             sel.value = SUC_ACTIVA;
+        } else if (ROL === 'equipo') {
+            document.getElementById('badge-rol').className = 'badge-rol badge-equipo';
+            document.getElementById('badge-rol').innerText = USUARIO_EQUIPO + ' · Equipo';
+            document.querySelectorAll('.req-agencia').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.req-equipo').forEach(el => el.style.display = '');
+            document.getElementById('selector-sucursal').style.display = 'none';
+            document.getElementById('etiqueta-cliente').style.display = 'block';
+            // Navigate to Mis Tareas by default
+            document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto'));
+            document.getElementById('vista-mis-tareas').classList.remove('oculto');
+            document.querySelectorAll('.item-nav').forEach(n => n.classList.remove('activo'));
+            const miTareasNav = document.querySelector('[data-target="vista-mis-tareas"]');
+            if (miTareasNav) miTareasNav.classList.add('activo');
         } else {
             document.getElementById('badge-rol').className = 'badge-rol badge-cliente';
             document.getElementById('badge-rol').innerText = 'Cliente (Lector)';
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = '');
+            document.querySelectorAll('.req-equipo').forEach(el => el.style.display = 'none');
             document.getElementById('selector-sucursal').style.display = 'none';
             document.getElementById('etiqueta-cliente').style.display = 'block';
         }
@@ -1333,7 +1402,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'productos') n = { m: "Producto", pct: 0 };
         if(lista === 'objetivos') n = { m: "Meta", o: "0" };
         if(lista === 'insights') n = { f: new Date().toISOString().split('T')[0], c: "Experimento", r: "Resultado...", a: "Aprendizaje..." };
-        if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas" };
+        if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"" };
         if(lista === 'dam') n = { id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, url:"", historial:[{autor:ROL, fecha:new Date().toLocaleDateString(), accion:"Creado", nota:"V1"}] };
         if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", montos_mes:Array.from({length: 12}, () => ({directa: 0, intercambio: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
@@ -1348,11 +1417,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderTodas() {
         const inf = DB.sucursales.find(s => s.id === SUC_ACTIVA);
         document.documentElement.style.setProperty('--color-primario', inf.color);
-        if(ROL === 'cliente') document.getElementById('etiqueta-cliente').innerText = inf.nombre;
+        if(ROL === 'cliente' || ROL === 'equipo') document.getElementById('etiqueta-cliente').innerText = inf.nombre;
         renderDashboard(); renderInsights(); renderOrquestacion(); renderDAM();
         renderPresupuesto(); renderFacturas(); renderBriefing(); renderMood(); 
         renderEstrategia(); renderAdministracion();
-        renderAdsTable(); renderOfflineTable(); renderShootingGrid(); renderStories();
+        renderAdsTable(); renderOfflineTable(); renderShootingGrid(); renderStories(); renderMisTareas();
     }
 
     function renderDashboard() {
@@ -1386,13 +1455,18 @@ document.addEventListener('DOMContentLoaded', function() {
         [...d.kanban].sort((a,b) => new Date(a.fecha) - new Date(b.fecha)).forEach((t) => {
             let idx = d.kanban.findIndex(x => x.id === t.id);
             let drag = ROL==='agencia' ? `draggable="true" ondragstart="event.dataTransfer.setData('text','${t.id}')"` : '';
-            kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag}><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div></div>`;
+            kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag}><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div>${asignadoChip}</div>`;
             let optEst = ['Ideas','Producción','Revisión','Programado'].map(e => `<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
             let selEst = ROL==='agencia' ? `<select class="select-celda" style="width:120px; border:1px solid var(--color-borde); background:#fafafa; font-size:11px; text-transform:uppercase;" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value)">${optEst}</select>` : `<span class="tag gris">${t.estado}</span>`;
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
             let t_val = t.target_id || "";
             let selTarget = ROL==='agencia' ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
-            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;guardarBD()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;guardarBD()">${t.stories||''}</textarea></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
+            const suc_info = DB.sucursales.find(s => s.id === SUC_ACTIVA);
+            const miembros_suc = suc_info ? (suc_info.equipo_miembros || []) : [];
+            const asignadoOpts = `<option value="">Sin asignar</option>` + miembros_suc.map(m => `<option value="${m.nombre}" ${t.asignado_a===m.nombre?'selected':''}>${m.nombre}</option>`).join('');
+            const asignadoSel = ROL === 'agencia' ? `<select class="select-celda" style="width:160px; border:1px solid var(--color-borde); background:#fafafa; font-size:12px; border-radius:8px;" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].asignado_a=this.value;guardarBD()">${asignadoOpts}</select>` : `<span style="font-size:12px; color:var(--texto-secundario);">${t.asignado_a || 'Sin asignar'}</span>`;
+            const asignadoChip = t.asignado_a ? `<div style="margin-top:6px;"><span style="background:rgba(74,144,217,0.1); color:#4A90D9; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;"><i class="fa-solid fa-user-tie" style="margin-right:4px;"></i>${t.asignado_a}</span></div>` : '';
+            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;guardarBD()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;guardarBD()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
         });
         ['Ideas','Producción','Revisión','Programado'].forEach(e => { document.getElementById('k-'+e).innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
@@ -1464,7 +1538,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderAdministracion() {
         document.getElementById('contenedor-clientes').innerHTML = DB.sucursales.map((s, i) => {
             let decodedPwd = ''; try { decodedPwd = atob(s.password); } catch(e) { decodedPwd = s.password; }
-            return `<div class="tarjeta-cliente"><div style="display:flex; justify-content:space-between; align-items:center;"><input class="input-celda" style="font-weight:800; font-size:18px; padding-left:0; font-family:var(--font-display);" value="${s.nombre}" onchange="DB.sucursales[${i}].nombre=this.value;guardarBD();document.getElementById('selector-sucursal').options[${i}].text=this.value;renderTodas();"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="if(confirm('¿Eliminar?')){DB.sucursales.splice(${i},1);guardarBD();location.reload();}"></i></div><div style="font-size:11px; color:var(--texto-secundario); font-family:monospace;">ID: ${s.id}</div><div style="margin-top:16px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="background:#fafafa; border:1px solid var(--color-borde); font-family:monospace; margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0; font-family:monospace; font-weight:700; text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div></div>`;
+            const miembros = s.equipo_miembros || [];
+            const miembrosRows = miembros.map((m, mi) => {
+                let mpwd = ''; try { mpwd = atob(m.password); } catch(e) { mpwd = m.password; }
+                return `<div style="display:grid; grid-template-columns:1fr 90px 90px 20px; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--color-borde);"><input class="input-celda" style="font-weight:700; font-size:13px; padding:4px 0;" value="${m.nombre}" onchange="DB.sucursales[${i}].equipo_miembros[${mi}].nombre=this.value;guardarBD()"><input class="input-celda" style="font-size:12px; color:var(--texto-secundario); padding:4px 0;" value="${m.rol}" onchange="DB.sucursales[${i}].equipo_miembros[${mi}].rol=this.value;guardarBD()"><input class="input-celda" style="font-size:12px; font-family:monospace; padding:4px 0;" value="${mpwd}" onchange="DB.sucursales[${i}].equipo_miembros[${mi}].password=btoa(this.value);guardarBD()"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;" onclick="DB.sucursales[${i}].equipo_miembros.splice(${mi},1);guardarBD();renderAdministracion()"></i></div>`;
+            }).join('');
+            const equipoSection = `<div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--color-borde);"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">EQUIPO <span style="background:rgba(74,144,217,0.1); color:#4A90D9; padding:2px 6px; border-radius:4px; margin-left:4px;">${miembros.length}</span></label><button class="btn btn-xs btn-fantasma" onclick="DB.sucursales[${i}].equipo_miembros.push({nombre:'Nuevo Miembro',rol:'Asistente',password:btoa('clave26')});guardarBD();renderAdministracion()" style="font-size:11px;"><i class="fa-solid fa-user-plus"></i> Añadir</button></div>${miembros.length ? `<div style="display:grid; grid-template-columns:1fr 90px 90px 20px; gap:8px; margin-bottom:4px; font-size:10px; font-weight:700; color:var(--texto-secundario); text-transform:uppercase; letter-spacing:0.05em;"><span>Nombre</span><span>Rol</span><span>Clave</span><span></span></div>${miembrosRows}` : `<div style="font-size:12px; color:var(--texto-secundario); font-style:italic; padding:8px 0;">Sin miembros asignados.</div>`}</div>`;
+            return `<div class="tarjeta-cliente"><div style="display:flex; justify-content:space-between; align-items:center;"><input class="input-celda" style="font-weight:800; font-size:18px; padding-left:0; font-family:var(--font-display);" value="${s.nombre}" onchange="DB.sucursales[${i}].nombre=this.value;guardarBD();document.getElementById('selector-sucursal').options[${i}].text=this.value;renderTodas();"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="if(confirm('¿Eliminar?')){DB.sucursales.splice(${i},1);guardarBD();location.reload();}"></i></div><div style="font-size:11px; color:var(--texto-secundario); font-family:monospace;">ID: ${s.id}</div><div style="margin-top:16px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="background:#fafafa; border:1px solid var(--color-borde); font-family:monospace; margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0; font-family:monospace; font-weight:700; text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>${equipoSection}</div>`;
         }).join('');
         document.getElementById('tabla-proveedores').innerHTML = DB.proveedores.map((p,i) => {
             let catP = DB.desplegables.cat_proveedor.map(c=>`<option ${c===p.categoria?'selected':''}>${c}</option>`).join('');
@@ -1481,7 +1561,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function nuevoCliente() {
         const id = 'p_' + Date.now();
-        DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123") });
+        DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123"), equipo_miembros: [] });
         DB.datos[id] = { highlights: [{ label: "Sales", val: "0" }, { label: "Followers", val: "0" }, { label: "DMs", val: "0" }], rendimiento: [], productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas: [], manychat: [] }, ads: [], offline: [], shooting: [], stories_ind: [] };
         guardarBD(); iniciarApp(id);
     }
@@ -2051,6 +2131,90 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm('¿Eliminar esta story?')) return;
         DB.datos[SUC_ACTIVA].stories_ind = DB.datos[SUC_ACTIVA].stories_ind.filter(x => x.id !== id);
         guardarBD(); renderStories();
+    }
+
+    /* ================================================================
+       SPRINT 2 — NUEVAS FUNCIONES
+       ================================================================ */
+
+    function renderMisTareas() {
+        const el = document.getElementById('mis-tareas-lista');
+        if (!el) return;
+        if (ROL !== 'equipo') { el.innerHTML = ''; return; }
+        const kanban = DB.datos[SUC_ACTIVA].kanban || [];
+        const mis = kanban.filter(t => t.asignado_a === USUARIO_EQUIPO);
+        if (!mis.length) {
+            el.innerHTML = `<div style="text-align:center; padding:72px 40px; color:var(--texto-secundario); background:#FFFFFF; border-radius:20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave);"><i class="fa-solid fa-list-check" style="font-size:44px; opacity:0.18; display:block; margin-bottom:20px; color:var(--color-primario);"></i><p style="font-size:15px; font-weight:600; color:var(--texto-principal); margin-bottom:8px;">Sin tareas asignadas</p><p style="font-size:13px;">Aquí aparecerán las publicaciones que te asignen.</p></div>`;
+            return;
+        }
+        const estadoCls = { 'Ideas': 'estado-pendiente', 'Producción': 'estado-produccion', 'Revisión': 'estado-revisar', 'Programado': 'estado-listo' };
+        el.innerHTML = [...mis].sort((a, b) => new Date(a.fecha+'T'+(a.hora||'00:00')) - new Date(b.fecha+'T'+(b.hora||'00:00'))).map(t => {
+            const cls = estadoCls[t.estado] || 'estado-pendiente';
+            const tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let c = 'gris'; if(l.includes('reel')) c='reel'; if(l.includes('asmr')) c='asmr'; if(l.includes('pauta')) c='pauta'; return `<span class="tag ${c}">${tag.trim()}</span>`; }).join('') : '';
+            return `<div class="mis-tareas-card">
+                <div class="mis-tareas-fecha">
+                    <div class="mis-tareas-hora">${t.fecha}</div>
+                    <div class="mis-tareas-dia-val">${t.hora || '—'}</div>
+                </div>
+                <div style="flex:1; min-width:0;">
+                    <div style="font-family:var(--font-display); font-size:16px; font-weight:800; margin-bottom:6px; line-height:1.3; color:var(--texto-principal);">${t.titulo}</div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">${tagsH}</div>
+                    ${t.copy ? `<div style="font-size:13px; color:var(--texto-secundario); line-height:1.5; font-style:italic; border-left:3px solid var(--color-borde-fuerte); padding-left:10px;">${t.copy.substring(0,120)}${t.copy.length>120?'…':''}</div>` : ''}
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0;">
+                    <span class="estado-badge ${cls}">${t.estado}</span>
+                    ${t.estado !== 'Programado' ? `<button class="btn btn-xs btn-primario" onclick="completarTarea('${t.id}')"><i class="fa-solid fa-check"></i> Completar</button>` : `<span style="font-size:11px; color:var(--color-exito); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Listo</span>`}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function completarTarea(id) {
+        const t = DB.datos[SUC_ACTIVA].kanban.find(x => x.id === id);
+        if (t) { t.estado = 'Programado'; guardarBD(); renderMisTareas(); }
+    }
+
+    function generarShootingDesdeParrilla() {
+        const kanban = DB.datos[SUC_ACTIVA].kanban || [];
+        const videoTags = kanban.filter(t => {
+            const tags = (t.tags || '').toLowerCase();
+            return tags.includes('reel') || tags.includes('asmr') || tags.includes('video');
+        });
+        if (!videoTags.length) { alert('No hay posts con tags Reel, ASMR o Video en la parrilla.'); return; }
+
+        const byDate = {};
+        videoTags.forEach(t => {
+            const d = t.fecha || 'Sin fecha';
+            if (!byDate[d]) byDate[d] = [];
+            byDate[d].push(t);
+        });
+
+        let created = 0, updated = 0;
+        Object.entries(byDate).sort().forEach(([fecha, posts]) => {
+            const existente = DB.datos[SUC_ACTIVA].shooting.find(s => s.fecha === fecha);
+            if (existente) {
+                posts.forEach(p => {
+                    const yaExiste = existente.checklist.some(c => c.texto === p.titulo);
+                    if (!yaExiste) existente.checklist.push({ hecho: false, texto: p.titulo });
+                });
+                updated++;
+            } else {
+                DB.datos[SUC_ACTIVA].shooting.push({
+                    id: 'sh' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                    titulo: 'Shooting ' + fecha,
+                    fecha: fecha, hora: '10:00', locacion: 'Por definir',
+                    moodboard: posts.map(p => p.titulo).join(' · '),
+                    equipo: [],
+                    checklist: posts.map(p => ({ hecho: false, texto: p.titulo }))
+                });
+                created++;
+            }
+        });
+        guardarBD(); renderShootingGrid();
+        const msg = `${created} sesión${created !== 1 ? 'es' : ''} creada${created !== 1 ? 's' : ''}, ${updated} actualizada${updated !== 1 ? 's' : ''}.`;
+        const s = document.getElementById('status-save');
+        s.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
+        s.style.opacity = 1; setTimeout(() => { s.style.opacity = 0; setTimeout(() => { s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado'; }, 300); }, 3000);
     }
 
     /* ================================================================
