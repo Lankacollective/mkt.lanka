@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LANKA - Plataforma de Marketing Global</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ==========================================================================
+           Variables CSS - Sistema Apple
+           ========================================================================== */
+        :root {
+            --color-primario: #007AFF;
+            --color-fondo: #F9FAFB;
+            --color-tarjeta: #FFFFFF;
+            --texto-principal: #111827;
+            --texto-secundario: #6B7280;
+            --color-borde: rgba(0, 0, 0, 0.05);
+            --color-borde-fuerte: #E5E7EB;
+            --color-exito: #34C759;
+            --color-alerta: #FF9500;
+            --color-peligro: #FF3B30;
+            
+            --sombra-suave: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            --sombra-flotante: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            --radio-esquina: 16px;
+            --transicion: all 0.2s ease-out;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: var(--color-fondo); color: var(--texto-principal); display: flex; height: 100vh; overflow: hidden; }
+        .oculto { display: none !important; }
+        h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; }
+
+        /* ==========================================================================
+           Navegación y Shell
+           ========================================================================== */
+        nav { width: 260px; background-color: var(--color-tarjeta); border-right: 1px solid var(--color-borde-fuerte); display: flex; flex-direction: column; padding: 24px 16px; z-index: 10; overflow-y: auto; }
+        .marca { font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 12px; margin-bottom: 24px; padding: 0 16px; }
+        .marca i { color: var(--color-primario); }
+        
+        /* Simulación de Roles */
+        .contenedor-rol { background: var(--color-fondo); padding: 12px; border-radius: 12px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 500; }
+        .interruptor { position: relative; display: inline-block; width: 44px; height: 24px; }
+        .interruptor input { opacity: 0; width: 0; height: 0; }
+        .deslizador { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .deslizador:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        input:checked + .deslizador { background-color: var(--color-primario); }
+        input:checked + .deslizador:before { transform: translateX(20px); }
+
+        .menu-titulo { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--texto-secundario); margin: 16px 0 8px 16px; font-weight: 600; }
+        .menu-nav { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+        .item-nav { padding: 10px 16px; border-radius: 10px; color: var(--texto-secundario); cursor: pointer; display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 500; transition: var(--transicion); }
+        .item-nav:hover { background-color: var(--color-fondo); color: var(--texto-principal); }
+        .item-nav.activo { background-color: rgba(0, 122, 255, 0.1); color: var(--color-primario); font-weight: 600; }
+
+        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+        /* Barra Superior */
+        .barra-superior { padding: 16px 40px; border-bottom: 1px solid var(--color-borde-fuerte); background-color: var(--color-tarjeta); display: flex; align-items: center; justify-content: space-between; z-index: 5; }
+        .controles-superiores { display: flex; align-items: center; gap: 16px; }
+        select.estilo-apple { appearance: none; background-color: var(--color-fondo); border: 1px solid var(--color-borde-fuerte); padding: 8px 32px 8px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--texto-principal); cursor: pointer; outline: none; background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23111827%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E"); background-repeat: no-repeat; background-position: right 12px top 50%; background-size: 10px auto; }
+        
+        .grupo-botones-derecha { display: flex; gap: 12px; }
+        .boton-exportar { background-color: var(--color-fondo); border: 1px solid var(--color-borde-fuerte); color: var(--texto-principal); padding: 10px 16px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: var(--transicion); }
+        .boton-exportar:hover { background-color: #E5E7EB; }
+        
+        .boton-ia { background: linear-gradient(135deg, #007AFF, #5856D6); color: white; border: none; padding: 10px 20px; border-radius: 100px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: var(--sombra-suave); transition: var(--transicion); }
+        .boton-ia:hover { transform: translateY(-1px); box-shadow: 0 6px 12px rgba(0, 122, 255, 0.3); }
+
+        .area-desplazable { flex: 1; overflow-y: auto; padding: 40px; }
+        .encabezado-seccion { margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .encabezado-seccion h1 { font-size: 28px; }
+        .encabezado-seccion p { color: var(--texto-secundario); margin-top: 4px; font-size: 14px; }
+
+        /* ==========================================================================
+           Componentes Reutilizables y Gráficos
+           ========================================================================== */
+        .tarjeta { background-color: var(--color-tarjeta); border-radius: var(--radio-esquina); box-shadow: var(--sombra-suave); padding: 24px; margin-bottom: 24px; overflow-x: auto; }
+        
+        .vista-dividida { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px; }
+        
+        /* Gráfico Circular SVG */
+        .contenedor-grafico { display: flex; justify-content: center; align-items: center; position: relative; height: 220px; }
+        .circulo-fondo { fill: none; stroke: var(--color-fondo); stroke-width: 16; }
+        .circulo-progreso { fill: none; stroke: var(--color-primario); stroke-width: 16; stroke-linecap: round; transition: stroke-dashoffset 1s ease-out; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .texto-grafico { position: absolute; text-align: center; }
+        .texto-grafico-porcentaje { font-size: 32px; font-weight: 700; color: var(--texto-principal); line-height: 1; }
+        .texto-grafico-etiqueta { font-size: 12px; color: var(--texto-secundario); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+
+        /* KPIs */
+        .cuadricula-kpi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+        .tarjeta-kpi { display: flex; flex-direction: column; gap: 8px; background: var(--color-fondo); padding: 20px; border-radius: 12px; }
+        .kpi-titulo { color: var(--texto-secundario); font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-valor { font-size: 28px; font-weight: 700; }
+
+        /* Tablas Editables */
+        .tabla-editable { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .tabla-editable th { text-align: left; padding: 12px 16px; color: var(--texto-secundario); font-weight: 500; font-size: 13px; border-bottom: 1px solid var(--color-borde-fuerte); white-space: nowrap; }
+        .tabla-editable td { padding: 8px 16px; border-bottom: 1px solid var(--color-fondo); vertical-align: middle; }
+        .input-celda { width: 100%; min-width: 120px; border: 1px solid transparent; background: transparent; padding: 8px; border-radius: 6px; font-size: 14px; color: var(--texto-principal); transition: var(--transicion); outline: none; }
+        .input-celda:not([readonly]):hover { background: var(--color-fondo); border-color: var(--color-borde-fuerte); }
+        .input-celda:focus { background: #fff; border-color: var(--color-primario); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1); }
+        .input-celda[readonly] { color: var(--texto-secundario); cursor: default; }
+
+        /* Modal IA */
+        .fondo-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.4); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: flex-start; padding-top: 15vh; z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .fondo-modal.activo { opacity: 1; pointer-events: all; }
+        .modal-ia { background: var(--color-tarjeta); width: 100%; max-width: 600px; border-radius: 16px; box-shadow: var(--sombra-flotante); overflow: hidden; transform: translateY(-20px); transition: var(--transicion); }
+        .fondo-modal.activo .modal-ia { transform: translateY(0); }
+        .input-ia-contenedor { display: flex; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--color-borde-fuerte); }
+        .input-ia-contenedor i { font-size: 20px; color: var(--color-primario); margin-right: 16px; }
+        .input-ia-contenedor input { flex: 1; border: none; font-size: 20px; outline: none; color: var(--texto-principal); background: transparent; }
+
+        /* Misceláneos */
+        .boton-accion { background: var(--color-fondo); color: var(--texto-principal); border: none; padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: var(--transicion); }
+        .boton-accion:hover { background: #E5E7EB; }
+        .pildora-estado { display: inline-block; padding: 4px 10px; border-radius: 100px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .estado-pagado { background-color: #E2F5EA; color: var(--color-exito); }
+        .estado-pendiente { background-color: #FFF4E5; color: var(--color-alerta); }
+        .estado-vencido { background-color: #FEE2E2; color: var(--color-peligro); }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="marca"><i class="fa-solid fa-layer-group"></i> LANKA</div>
+        
+        <div class="contenedor-rol">
+            <span>Modo Edición</span>
+            <label class="interruptor">
+                <input type="checkbox" id="toggle-rol" onchange="alternarRol()">
+                <span class="deslizador"></span>
+            </label>
+        </div>
+
+        <div class="menu-titulo">Resumen</div>
+        <ul class="menu-nav">
+            <li class="item-nav activo" data-target="vista-tablero"><i class="fa-solid fa-chart-pie"></i> Tablero General</li>
+        </ul>
+
+        <div class="menu-titulo">Planificación</div>
+        <ul class="menu-nav">
+            <li class="item-nav" data-target="vista-presupuesto"><i class="fa-solid fa-wallet"></i> Presupuesto</li>
+            <li class="item-nav" data-target="vista-facturas"><i class="fa-solid fa-file-invoice-dollar"></i> Facturación</li>
+        </ul>
+
+        <div class="menu-titulo">Estrategia</div>
+        <ul class="menu-nav">
+            <li class="item-nav" data-target="vista-target"><i class="fa-solid fa-users-viewfinder"></i> Target</li>
+            <li class="item-nav" data-target="vista-audiovisual"><i class="fa-solid fa-camera-retro"></i> Guía Audiovisual</li>
+        </ul>
+    </nav>
+
+    <main>
+        <header class="barra-superior">
+            <div class="controles-superiores">
+                <select id="selector-proyecto" class="estilo-apple" onchange="cambiarProyecto()">
+                    <option value="aitama">Proyecto Aitama</option>
+                    <option value="mammut">Proyecto Mammut</option>
+                </select>
+                <select id="selector-moneda" class="estilo-apple" onchange="cambiarMoneda()">
+                    <option value="MXN">MXN $</option>
+                    <option value="USD">USD $</option>
+                </select>
+            </div>
+            <div class="grupo-botones-derecha">
+                <button class="boton-exportar" onclick="exportarCSV()">
+                    <i class="fa-solid fa-download"></i> Exportar Datos
+                </button>
+                <button class="boton-ia" onclick="abrirModalIA()">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> LANKA IA
+                </button>
+            </div>
+        </header>
+
+        <div class="area-desplazable">
+            <section id="vista-tablero" class="seccion-app">
+                <div class="encabezado-seccion"><div><h1>Resumen Ejecutivo</h1><p>Visión analítica y ejecución del presupuesto en tiempo real.</p></div></div>
+                
+                <div class="vista-dividida">
+                    <div class="tarjeta">
+                        <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--texto-secundario);">Ejecución de Presupuesto (Gastado vs Total)</h3>
+                        <div class="contenedor-grafico" id="grafico-presupuesto">
+                            <svg width="200" height="200" viewBox="0 0 200 200">
+                                <circle class="circulo-fondo" cx="100" cy="100" r="80"></circle>
+                                <circle class="circulo-progreso" id="svg-progreso" cx="100" cy="100" r="80" stroke-dasharray="502" stroke-dashoffset="502"></circle>
+                            </svg>
+                            <div class="texto-grafico">
+                                <div class="texto-grafico-porcentaje" id="grafico-porcentaje">0%</div>
+                                <div class="texto-grafico-etiqueta">Ejecutado</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tarjeta">
+                        <h3 style="margin-bottom: 16px; font-size: 16px; color: var(--texto-secundario);">Métricas Clave de Rendimiento</h3>
+                        <div class="cuadricula-kpi" id="contenedor-kpi"></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="vista-presupuesto" class="seccion-app oculto">
+                <div class="encabezado-seccion">
+                    <div><h1>Planificación de Inversión</h1></div>
+                    <button class="boton-accion oculto-lector" onclick="agregarElemento('presupuesto')"><i class="fa-solid fa-plus"></i> Añadir Ítem</button>
+                </div>
+                <div class="tarjeta">
+                    <table class="tabla-editable">
+                        <thead><tr><th>Categoría</th><th>Ítem</th><th>Monto</th><th>Intercambio</th></tr></thead>
+                        <tbody id="tabla-presupuesto"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="vista-facturas" class="seccion-app oculto">
+                <div class="encabezado-seccion">
+                    <div><h1>Facturación</h1></div>
+                    <button class="boton-accion oculto-lector" onclick="agregarElemento('facturas')"><i class="fa-solid fa-plus"></i> Nueva Factura</button>
+                </div>
+                <div class="tarjeta">
+                    <table class="tabla-editable">
+                        <thead><tr><th>Folio</th><th>Proveedor</th><th>Concepto</th><th>Monto</th><th>Estado</th></tr></thead>
+                        <tbody id="tabla-facturas"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="vista-target" class="seccion-app oculto">
+                <div class="encabezado-seccion">
+                    <div><h1>Target / Audiencia</h1></div>
+                    <button class="boton-accion oculto-lector" onclick="agregarElemento('target')"><i class="fa-solid fa-plus"></i> Nuevo Segmento</button>
+                </div>
+                <div class="tarjeta">
+                    <table class="tabla-editable">
+                        <thead><tr><th>Segmento</th><th>Sexo</th><th>Nivel Socio</th><th>Consumo</th><th>Mood</th></tr></thead>
+                        <tbody id="tabla-target"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="vista-audiovisual" class="seccion-app oculto">
+                <div class="encabezado-seccion">
+                    <div><h1>Guía Audiovisual</h1></div>
+                    <button class="boton-accion oculto-lector" onclick="agregarElemento('audiovisual')"><i class="fa-solid fa-plus"></i> Añadir Elemento</button>
+                </div>
+                <div class="tarjeta">
+                    <table class="tabla-editable">
+                        <thead><tr><th>Elemento</th><th>Familia</th><th>Fondo</th><th>Encuadre</th><th>Comentarios</th></tr></thead>
+                        <tbody id="tabla-audiovisual"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <div class="fondo-modal" id="modal-ia-fondo">
+        <div class="modal-ia">
+            <div class="input-ia-contenedor">
+                <i class="fa-solid fa-bolt"></i>
+                <input type="text" id="input-comando-ia" placeholder="Ej: Añade una factura de $500 para Meta Ads..." autocomplete="off">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /* ==========================================================================
+           Núcleo de Datos y Persistencia
+           ========================================================================== */
+        const DATOS_SEMILLA = {
+            configuracion: { moneda: 'USD' },
+            proyectos: {
+                aitama: {
+                    kpis: [ { titulo: "Seguidores", valor: "104K", icono: "fa-users" }, { titulo: "Interacciones", valor: "4.2%", icono: "fa-heart" } ],
+                    presupuesto: [ { categoria: "Ads", item: "Google Ads", monto: 4500, intercambio: 0 }, { categoria: "Producción", item: "Fotos", monto: 1200, intercambio: 0 } ],
+                    facturas: [ { folio: "F-001", proveedor: "Meta Platforms", concepto: "Pauta Marzo", monto: 2000, estado: "Pagado" }, { folio: "F-002", proveedor: "Productora", concepto: "Anticipo", monto: 600, estado: "Pagado" } ],
+                    target: [ { segmento: "Jóvenes", sexo: "Mixto", nivel: "A/B", consumo: "En sucursal", mood: "Festivo" } ],
+                    audiovisual: [ { elemento: "Tiramisu", familia: "Postre", fondo: "Café", encuadre: "Cenital", comentarios: "Sin flores" } ]
+                },
+                mammut: {
+                    kpis: [ { titulo: "Seguidores", valor: "12K", icono: "fa-users" }, { titulo: "Ventas", valor: "8.9%", icono: "fa-arrow-trend-up" } ],
+                    presupuesto: [ { categoria: "PR", item: "Influencers", monto: 3000, intercambio: 500 } ],
+                    facturas: [ { folio: "F-101", proveedor: "Agencia", concepto: "Iguales", monto: 500, estado: "Pendiente" } ],
+                    target: [], audiovisual: []
+                }
+            }
+        };
+
+        const TASAS = { USD: 1, MXN: 17.5 };
+        const SIMBOLOS = { USD: '$', MXN: '$' };
+
+        let estadoApp = {};
+        let proyActual = 'aitama';
+        let modoEditor = false;
+
+        document.addEventListener("DOMContentLoaded", () => {
+            inicializarDatos();
+            configurarNavegacion();
+            document.getElementById('modal-ia-fondo').addEventListener('click', (e) => {
+                if(e.target === document.getElementById('modal-ia-fondo')) document.getElementById('modal-ia-fondo').classList.remove('activo');
+            });
+        });
+
+        function inicializarDatos() {
+            const guardado = localStorage.getItem('LANKA_PRO_DB');
+            if (guardado) estadoApp = JSON.parse(guardado);
+            else { estadoApp = JSON.parse(JSON.stringify(DATOS_SEMILLA)); guardarDatos(); }
+            document.getElementById('selector-moneda').value = estadoApp.configuracion.moneda;
+            renderizarTodo();
+        }
+
+        function guardarDatos() { localStorage.setItem('LANKA_PRO_DB', JSON.stringify(estadoApp)); }
+
+        function alternarRol() { modoEditor = document.getElementById('toggle-rol').checked; renderizarTodo(); }
+        function cambiarProyecto() { proyActual = document.getElementById('selector-proyecto').value; renderizarTodo(); }
+        function cambiarMoneda() { estadoApp.configuracion.moneda = document.getElementById('selector-moneda').value; guardarDatos(); renderizarTodo(); }
+
+        function configurarNavegacion() {
+            const items = document.querySelectorAll('.item-nav');
+            items.forEach(item => {
+                item.addEventListener('click', () => {
+                    items.forEach(n => n.classList.remove('activo'));
+                    document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto'));
+                    item.classList.add('activo');
+                    document.getElementById(item.getAttribute('data-target')).classList.remove('oculto');
+                });
+            });
+        }
+
+        function actualizarDato(coleccion, indice, campo, valor) {
+            estadoApp.proyectos[proyActual][coleccion][indice][campo] = valor;
+            guardarDatos();
+            renderizarTodo(); 
+        }
+
+        function agregarElemento(tipo) {
+            const arr = estadoApp.proyectos[proyActual][tipo];
+            if(tipo === 'presupuesto') arr.push({ categoria: "", item: "", monto: 0, intercambio: 0 });
+            if(tipo === 'facturas') arr.push({ folio: "", proveedor: "", concepto: "", monto: 0, estado: "Pendiente" });
+            if(tipo === 'target') arr.push({ segmento: "", sexo: "", nivel: "", consumo: "", mood: "" });
+            if(tipo === 'audiovisual') arr.push({ elemento: "", familia: "", fondo: "", encuadre: "", comentarios: "" });
+            guardarDatos(); renderizarTodo();
+        }
+
+        function formatearMoneda(valorBaseUSD) {
+            const moneda = estadoApp.configuracion.moneda;
+            const convertido = valorBaseUSD * TASAS[moneda];
+            return `${SIMBOLOS[moneda]}${convertido.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+        }
+
+        /* ==========================================================================
+           Motor de Exportación (Generador CSV)
+           ========================================================================== */
+        function exportarCSV() {
+            const datos = estadoApp.proyectos[proyActual];
+            let csvContent = "data:text/csv;charset=utf-8,";
+            
+            // Sección Presupuesto
+            csvContent += "=== PRESUPUESTO ===\nCategoría,Ítem,Monto,Intercambio\n";
+            datos.presupuesto.forEach(p => { csvContent += `"${p.categoria}","${p.item}",${p.monto},${p.intercambio}\n`; });
+            
+            // Sección Facturas
+            csvContent += "\n=== FACTURAS ===\nFolio,Proveedor,Concepto,Monto,Estado\n";
+            datos.facturas.forEach(f => { csvContent += `"${f.folio}","${f.proveedor}","${f.concepto}",${f.monto},"${f.estado}"\n`; });
+
+            // Sección Target
+            csvContent += "\n=== TARGET ===\nSegmento,Sexo,Nivel Socioeconómico,Consumo,Mood\n";
+            datos.target.forEach(t => { csvContent += `"${t.segmento}","${t.sexo}","${t.nivel}","${t.consumo}","${t.mood}"\n`; });
+
+            const encodeURI = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodeURI);
+            link.setAttribute("download", `LANKA_Exportacion_${proyActual}_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        /* ==========================================================================
+           Renderizado y Motor de Gráficos SVG
+           ========================================================================== */
+        function renderizarTodo() {
+            document.querySelectorAll('.oculto-lector').forEach(el => el.style.display = modoEditor ? 'inline-block' : 'none');
+            const d = estadoApp.proyectos[proyActual];
+            const ro = modoEditor ? '' : 'readonly';
+
+            // Cálculos para Gráfico SVG Dinámico
+            let presupuestoTotal = 0;
+            let facturadoPagado = 0;
+            d.presupuesto.forEach(p => presupuestoTotal += p.monto);
+            d.facturas.forEach(f => { if(f.estado === 'Pagado') facturadoPagado += f.monto; });
+
+            let porcentajeEjecutado = presupuestoTotal > 0 ? Math.round((facturadoPagado / presupuestoTotal) * 100) : 0;
+            if(porcentajeEjecutado > 100) porcentajeEjecutado = 100;
+
+            // Actualizar Gráfico Circular (Longitud total del círculo es ~502 basado en radio 80)
+            const circunferencia = 2 * Math.PI * 80;
+            const offset = circunferencia - (porcentajeEjecutado / 100) * circunferencia;
+            document.getElementById('svg-progreso').style.strokeDashoffset = offset;
+            document.getElementById('grafico-porcentaje').innerText = `${porcentajeEjecutado}%`;
+
+            // Renderizado KPIs extra
+            const kpisDinamicos = [...d.kpis];
+            kpisDinamicos.push({ titulo: "Presupuesto Asignado", valor: formatearMoneda(presupuestoTotal), icono: "fa-wallet" });
+            kpisDinamicos.push({ titulo: "Gasto Ejecutado", valor: formatearMoneda(facturadoPagado), icono: "fa-money-bill-transfer" });
+
+            document.getElementById('contenedor-kpi').innerHTML = kpisDinamicos.map(k => `
+                <div class="tarjeta-kpi"><div class="kpi-titulo"><i class="fa-solid ${k.icono}" style="color:var(--color-primario);"></i> ${k.titulo}</div><div class="kpi-valor">${k.valor}</div></div>
+            `).join('');
+
+            // Presupuesto
+            document.getElementById('tabla-presupuesto').innerHTML = d.presupuesto.map((p, i) => `<tr>
+                <td><input class="input-celda" value="${p.categoria}" ${ro} onchange="actualizarDato('presupuesto', ${i}, 'categoria', this.value)"></td>
+                <td><input class="input-celda" value="${p.item}" ${ro} onchange="actualizarDato('presupuesto', ${i}, 'item', this.value)"></td>
+                <td><input type="number" class="input-celda" value="${p.monto}" ${ro} onchange="actualizarDato('presupuesto', ${i}, 'monto', Number(this.value))"></td>
+                <td><input type="number" class="input-celda" value="${p.intercambio}" ${ro} onchange="actualizarDato('presupuesto', ${i}, 'intercambio', Number(this.value))"></td>
+            </tr>`).join('');
+
+            // Facturas
+            document.getElementById('tabla-facturas').innerHTML = d.facturas.map((f, i) => {
+                let claseEstado = f.estado === 'Pagado' ? 'estado-pagado' : (f.estado === 'Vencido' ? 'estado-vencido' : 'estado-pendiente');
+                return `<tr>
+                    <td><input class="input-celda" style="width:80px;" value="${f.folio}" ${ro} onchange="actualizarDato('facturas', ${i}, 'folio', this.value)"></td>
+                    <td><input class="input-celda" value="${f.proveedor}" ${ro} onchange="actualizarDato('facturas', ${i}, 'proveedor', this.value)"></td>
+                    <td><input class="input-celda" value="${f.concepto}" ${ro} onchange="actualizarDato('facturas', ${i}, 'concepto', this.value)"></td>
+                    <td><input type="number" class="input-celda" value="${f.monto}" ${ro} onchange="actualizarDato('facturas', ${i}, 'monto', Number(this.value))"></td>
+                    <td>
+                        ${modoEditor ? 
+                        `<select class="input-celda" onchange="actualizarDato('facturas', ${i}, 'estado', this.value)">
+                            <option value="Pendiente" ${f.estado==='Pendiente'?'selected':''}>Pendiente</option>
+                            <option value="Pagado" ${f.estado==='Pagado'?'selected':''}>Pagado</option>
+                            <option value="Vencido" ${f.estado==='Vencido'?'selected':''}>Vencido</option>
+                        </select>` 
+                        : `<span class="pildora-estado ${claseEstado}">${f.estado}</span>`}
+                    </td>
+                </tr>`;
+            }).join('');
+
+            // Target
+            document.getElementById('tabla-target').innerHTML = d.target.map((t, i) => `<tr>
+                <td><input class="input-celda" value="${t.segmento}" ${ro} onchange="actualizarDato('target', ${i}, 'segmento', this.value)"></td>
+                <td><input class="input-celda" value="${t.sexo}" ${ro} onchange="actualizarDato('target', ${i}, 'sexo', this.value)"></td>
+                <td><input class="input-celda" value="${t.nivel}" ${ro} onchange="actualizarDato('target', ${i}, 'nivel', this.value)"></td>
+                <td><input class="input-celda" value="${t.consumo}" ${ro} onchange="actualizarDato('target', ${i}, 'consumo', this.value)"></td>
+                <td><input class="input-celda" value="${t.mood}" ${ro} onchange="actualizarDato('target', ${i}, 'mood', this.value)"></td>
+            </tr>`).join('');
+
+            // Audiovisual
+            document.getElementById('tabla-audiovisual').innerHTML = d.audiovisual.map((a, i) => `<tr>
+                <td><input class="input-celda" value="${a.elemento}" ${ro} onchange="actualizarDato('audiovisual', ${i}, 'elemento', this.value)"></td>
+                <td><input class="input-celda" value="${a.familia}" ${ro} onchange="actualizarDato('audiovisual', ${i}, 'familia', this.value)"></td>
+                <td><input class="input-celda" value="${a.fondo}" ${ro} onchange="actualizarDato('audiovisual', ${i}, 'fondo', this.value)"></td>
+                <td><input class="input-celda" value="${a.encuadre}" ${ro} onchange="actualizarDato('audiovisual', ${i}, 'encuadre', this.value)"></td>
+                <td><input class="input-celda" value="${a.comentarios}" ${ro} onchange="actualizarDato('audiovisual', ${i}, 'comentarios', this.value)"></td>
+            </tr>`).join('');
+        }
+
+        function abrirModalIA() { document.getElementById('modal-ia-fondo').classList.add('activo'); document.getElementById('input-comando-ia').focus(); }
+    </script>
+</body>
+</html>
