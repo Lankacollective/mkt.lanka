@@ -1719,9 +1719,11 @@ document.addEventListener('DOMContentLoaded', function() {
     let _briefingTab = 'reglas';
     let _mcExpanded  = new Set();
     let _pptoVista = 'anual';
-    let _pptoMes = new Date().getMonth(); // keep for compat
-    let _pptoDesde = new Date().getMonth();
-    let _pptoHasta = new Date().getMonth();
+    let _pptoMes   = new Date().getMonth(); // keep for compat
+    // Date strings YYYY-MM-DD — default: este mes
+    const _pptoHoy = new Date();
+    let _pptoDesde = new Date(_pptoHoy.getFullYear(), _pptoHoy.getMonth(), 1).toISOString().split('T')[0];
+    let _pptoHasta = new Date(_pptoHoy.getFullYear(), _pptoHoy.getMonth()+1, 0).toISOString().split('T')[0];
     let _charts = {}; // instancias Chart.js
     let _calFecha = new Date();
 
@@ -2141,63 +2143,101 @@ document.addEventListener('DOMContentLoaded', function() {
         return h + `</tbody></table></div></div>`;
     }
 
+    // Helpers fecha
+    function _pptoFmtES(dateStr) {
+        if (!dateStr) return '';
+        const [y,m,d] = dateStr.split('-');
+        return `${d}/${m}/${y}`;
+    }
+    function _pptoFirstDay(year, month) { // month 0-11
+        return new Date(year, month, 1).toISOString().split('T')[0];
+    }
+    function _pptoLastDay(year, month) {
+        return new Date(year, month+1, 0).toISOString().split('T')[0];
+    }
+
     function _pptoSetRango(desde, hasta) {
         _pptoDesde = desde; _pptoHasta = hasta; renderPresupuesto();
     }
 
     function _pptoSetAtajo(tipo) {
-        const m = new Date().getMonth();
-        if (tipo==='mes')       { _pptoSetRango(m, m); }
-        else if (tipo==='ant')  { const a=Math.max(0,m-1); _pptoSetRango(a,a); }
-        else if (tipo==='3m')   { _pptoSetRango(Math.max(0,m-2), m); }
-        else if (tipo==='anio') { _pptoSetRango(0, 11); }
+        const hoy = new Date();
+        const y = hoy.getFullYear();
+        const m = hoy.getMonth();
+        if      (tipo==='mes')  { _pptoSetRango(_pptoFirstDay(y,m),   _pptoLastDay(y,m)); }
+        else if (tipo==='ant')  { _pptoSetRango(_pptoFirstDay(y,m-1), _pptoLastDay(y,m-1)); }
+        else if (tipo==='3m')   { _pptoSetRango(_pptoFirstDay(y,m-2), _pptoLastDay(y,m)); }
+        else if (tipo==='anio') { _pptoSetRango(`${y}-01-01`,          `${y}-12-31`); }
     }
 
     function _renderPptoMensual(pres, ro) {
-        const mesActual = new Date().getMonth();
-        // Atajo activo
+        const hoy = new Date();
+        const y   = hoy.getFullYear();
+        const m   = hoy.getMonth();
+
+        // Detectar atajo activo
         const esAtajo = (t) => {
-            const m = mesActual;
-            if (t==='mes')  return _pptoDesde===m && _pptoHasta===m;
-            if (t==='ant')  return _pptoDesde===Math.max(0,m-1) && _pptoHasta===Math.max(0,m-1);
-            if (t==='3m')   return _pptoDesde===Math.max(0,m-2) && _pptoHasta===m;
-            if (t==='anio') return _pptoDesde===0 && _pptoHasta===11;
+            if (t==='mes')  return _pptoDesde===_pptoFirstDay(y,m)   && _pptoHasta===_pptoLastDay(y,m);
+            if (t==='ant')  return _pptoDesde===_pptoFirstDay(y,m-1) && _pptoHasta===_pptoLastDay(y,m-1);
+            if (t==='3m')   return _pptoDesde===_pptoFirstDay(y,m-2) && _pptoHasta===_pptoLastDay(y,m);
+            if (t==='anio') return _pptoDesde===`${y}-01-01`          && _pptoHasta===`${y}-12-31`;
             return false;
         };
-        const pill = (t, lbl) => `<button class="ppto-pill ${esAtajo(t)?'activo':''}" onclick="_pptoSetAtajo('${t}')">${lbl}</button>`;
+        const pill = (t, lbl) =>
+            `<button class="ppto-pill ${esAtajo(t)?'activo':''}" onclick="_pptoSetAtajo('${t}')">${lbl}</button>`;
 
-        const mesOpts = (sel, name) => MESES.map((m,i)=>`<option value="${i}" ${i===sel?'selected':''}>${m}</option>`).join('');
-        const desdeName = MESES[_pptoDesde]||'';
-        const hastaName = MESES[_pptoHasta]||'';
-
-        // Months in range (inclusive)
+        // Calcular meses en rango (índices 0-11 dentro del año del budget)
+        const dDesde = new Date(_pptoDesde + 'T00:00:00');
+        const dHasta = new Date(_pptoHasta + 'T00:00:00');
         const meses_rango = [];
-        for (let i = _pptoDesde; i <= _pptoHasta; i++) meses_rango.push(i);
+        for (let i = 0; i <= 11; i++) {
+            const inicioMes = new Date(y, i, 1);
+            const finMes    = new Date(y, i+1, 0);
+            if (inicioMes <= dHasta && finMes >= dDesde) meses_rango.push(i);
+        }
 
-        // KPI totals for the range
-        let totalInvR=0, totalColR=0;
+        // Totales KPI
+        let totalInvR = 0, totalColR = 0;
         pres.forEach(p => {
             meses_rango.forEach(mi => {
-                const m = p.montos_mes[mi]||{};
-                totalInvR += m.inversion||0;
-                totalColR += m.colaboracion||0;
+                const mm = p.montos_mes[mi] || {};
+                totalInvR += mm.inversion||0;
+                totalColR += mm.colaboracion||0;
             });
         });
-        const label_rango = _pptoDesde===_pptoHasta ? desdeName : `${desdeName} – ${hastaName}`;
+        const label_rango = meses_rango.length === 1
+            ? MESES[meses_rango[0]]
+            : `${MESES[meses_rango[0]]||''} – ${MESES[meses_rango[meses_rango.length-1]]||''}`;
 
         let h = `
         <div style="margin-bottom:20px;">
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
                 ${pill('mes','Este mes')}${pill('ant','Mes anterior')}${pill('3m','Últimos 3 meses')}${pill('anio','Este año')}
             </div>
-            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Desde</label>
-                <select class="select-moneda" style="padding:6px 24px 6px 10px;" onchange="_pptoDesde=Number(this.value);if(_pptoDesde>_pptoHasta)_pptoHasta=_pptoDesde;renderPresupuesto()">${mesOpts(_pptoDesde)}</select>
-                <label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Hasta</label>
-                <select class="select-moneda" style="padding:6px 24px 6px 10px;" onchange="_pptoHasta=Number(this.value);if(_pptoHasta<_pptoDesde)_pptoDesde=_pptoHasta;renderPresupuesto()">${mesOpts(_pptoHasta)}</select>
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Desde</label>
+                    <input type="date" class="input-celda" style="border:1px solid var(--color-borde);font-weight:600;padding:8px 12px;border-radius:10px;min-width:150px;"
+                        value="${_pptoDesde}"
+                        onchange="_pptoDesde=this.value;if(_pptoDesde>_pptoHasta)_pptoHasta=_pptoDesde;renderPresupuesto()">
+                </div>
+                <i class="fa-solid fa-arrow-right" style="color:var(--texto-secundario);font-size:12px;margin-top:14px;"></i>
+                <div style="display:flex;flex-direction:column;gap:4px;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Hasta</label>
+                    <input type="date" class="input-celda" style="border:1px solid var(--color-borde);font-weight:600;padding:8px 12px;border-radius:10px;min-width:150px;"
+                        value="${_pptoHasta}"
+                        onchange="_pptoHasta=this.value;if(_pptoHasta<_pptoDesde)_pptoDesde=_pptoHasta;renderPresupuesto()">
+                </div>
+                ${meses_rango.length ? `<span style="font-size:12px;color:var(--texto-secundario);margin-top:14px;">${meses_rango.length} mes${meses_rango.length!==1?'es':''}</span>` : ''}
             </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+        </div>`;
+
+        if (!meses_rango.length) {
+            return h + `<div style="text-align:center;padding:40px;color:var(--texto-secundario);font-size:14px;"><i class="fa-solid fa-calendar-xmark" style="font-size:32px;margin-bottom:12px;display:block;opacity:0.3;"></i>Sin meses en el rango seleccionado.</div>`;
+        }
+
+        h += `
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
             <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR)}</div><div class="ppto-kpi-lbl">Inversión — ${label_rango}</div></div>
             <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalColR)}</div><div class="ppto-kpi-lbl">Colaboración — ${label_rango}</div></div>
             <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR+totalColR)}</div><div class="ppto-kpi-lbl">Total periodo</div></div>
@@ -2208,7 +2248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         meses_rango.forEach(mi => {
             h += `<th colspan="2" style="text-align:center;border-left:1px solid var(--color-borde);white-space:nowrap;">${MESES[mi].substring(0,3)}</th>`;
         });
-        h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;">Total periodo</th>
+        h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;">Total</th>
             ${!ro?'<th></th>':''}</tr>
             <tr><th class="ppto-sticky-col" style="position:sticky;left:0;z-index:2;"></th><th></th>`;
         meses_rango.forEach(() => {
@@ -2216,32 +2256,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         h += `<th></th>${!ro?'<th></th>':''}</tr></thead><tbody>`;
 
-        let totInvCol = Array(meses_rango.length).fill(0), totColCol = Array(meses_rango.length).fill(0);
+        let totInvCol = Array(meses_rango.length).fill(0);
+        let totColCol = Array(meses_rango.length).fill(0);
         pres.forEach((p, pIdx) => {
             let rowTotal = 0;
-            h += `<tr><td style="position:sticky;left:0;z-index:1;" class="ppto-sticky-col">
-                <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
-                <div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${p.categoria}</div></td>
+            h += `<tr>
+                <td style="position:sticky;left:0;z-index:1;" class="ppto-sticky-col">
+                    <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;"
+                        onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
+                    <div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${p.categoria}</div>
+                </td>
                 <td><span style="font-size:11px;font-weight:600;color:var(--texto-secundario);">${p.tipo||'—'}</span></td>`;
             meses_rango.forEach((mi, ci) => {
-                const m = p.montos_mes[mi] || {inversion:0,colaboracion:0};
-                rowTotal += (m.inversion||0) + (m.colaboracion||0);
-                totInvCol[ci] += m.inversion||0;
-                totColCol[ci] += m.colaboracion||0;
-                h += `<td style="border-left:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="font-weight:600;text-align:right;" value="${m.inversion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>
-                      <td style="border-right:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
+                const mm = p.montos_mes[mi] || {inversion:0,colaboracion:0};
+                rowTotal    += (mm.inversion||0) + (mm.colaboracion||0);
+                totInvCol[ci] += mm.inversion||0;
+                totColCol[ci] += mm.colaboracion||0;
+                h += `<td style="border-left:1px solid var(--color-borde);">
+                          <input type="text" inputmode="numeric" class="input-celda" style="font-weight:600;text-align:right;" value="${mm.inversion||0}" ${ro}
+                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()">
+                      </td>
+                      <td style="border-right:1px solid var(--color-borde);">
+                          <input type="text" inputmode="numeric" class="input-celda" style="color:var(--texto-secundario);text-align:right;" value="${mm.colaboracion||0}" ${ro}
+                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()">
+                      </td>`;
             });
             h += `<td style="border-left:2px solid var(--color-borde-fuerte);font-weight:700;text-align:right;white-space:nowrap;">${formatDinero(rowTotal)}</td>
                   ${!ro?`<td style="width:32px;text-align:center;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`:''}</tr>`;
         });
-        // Totals row
-        h += `<tr style="background:rgba(0,0,0,0.02);font-weight:700;border-top:2px solid var(--color-borde-fuerte);">
-            <td class="ppto-sticky-col" style="position:sticky;left:0;font-weight:700;">Total</td><td></td>`;
+
+        // Fila totales
+        h += `<tr style="background:rgba(0,0,0,0.025);border-top:2px solid var(--color-borde-fuerte);">
+            <td class="ppto-sticky-col" style="position:sticky;left:0;font-weight:800;">Total</td><td></td>`;
         let grandTotal = 0;
-        meses_rango.forEach((_,ci) => {
-            const t = totInvCol[ci]+totColCol[ci];
+        meses_rango.forEach((_, ci) => {
+            const t = totInvCol[ci] + totColCol[ci];
             grandTotal += t;
-            h += `<td style="text-align:right;color:var(--color-primario);font-weight:700;border-left:1px solid var(--color-borde);">${formatDinero(totInvCol[ci])}</td>
+            h += `<td style="text-align:right;font-weight:700;color:var(--color-primario);border-left:1px solid var(--color-borde);">${formatDinero(totInvCol[ci])}</td>
                   <td style="text-align:right;color:var(--texto-secundario);border-right:1px solid var(--color-borde);">${formatDinero(totColCol[ci])}</td>`;
         });
         h += `<td style="border-left:2px solid var(--color-borde-fuerte);font-weight:800;text-align:right;color:var(--color-primario);white-space:nowrap;">${formatDinero(grandTotal)}</td>
