@@ -2010,7 +2010,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderDashboard() {
         const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
-        document.getElementById('dash-highlights').innerHTML = d.highlights.map((h, i) => `<div class="stat-box"><input class="input-mega" value="${h.val}" ${ro} onchange="updObj('highlights',${i},'val',this.value)"><input class="label-mega" value="${h.label}" ${ro} onchange="updObj('highlights',${i},'label',this.value)"></div>`).join('');
+        // Highlights derivados de rendimiento (primeras 4 métricas, solo lectura)
+        const rend = d.rendimiento || [];
+        document.getElementById('dash-highlights').innerHTML = rend.length
+            ? rend.slice(0,4).map(r => {
+                const v2 = Number(r.v2) || 0;
+                const v1 = Number(r.v1) || 0;
+                const pct = v1 > 0 ? ((v2-v1)/v1*100).toFixed(1) : null;
+                const display = r.pre === '$' ? formatDinero(v2) : (r.pre||'') + v2.toLocaleString('es-MX');
+                const badge = pct !== null
+                    ? `<span class="var-badge ${pct>=0?'var-positive':'var-negative'}" style="margin-top:8px;display:inline-flex;">${pct>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`
+                    : '';
+                return `<div class="stat-box">
+                    <div class="input-mega" style="cursor:default;">${display}</div>
+                    <div class="label-mega">${r.m}</div>
+                    ${badge}
+                </div>`;
+            }).join('')
+            : `<div style="padding:24px;color:var(--texto-secundario);font-size:14px;">Añade métricas en la tabla de abajo para ver los indicadores aquí.</div>`;
         document.getElementById('dash-rendimiento').innerHTML = d.rendimiento.map((r, i) => {
             let v1 = Number(r.v1); let v2 = Number(r.v2); let pct = v1 > 0 ? ((v2 - v1) / v1 * 100).toFixed(1) : 0;
             let isTime = r.m.toLowerCase().includes("time") || r.m.toLowerCase().includes("tiempo");
