@@ -304,7 +304,7 @@
     .ad-status { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; }
     .ad-active { background: rgba(52,168,83,0.1); color: var(--color-exito); }
     .ad-paused { background: rgba(251,188,5,0.1); color: #9A7000; }
-    .ad-finished { background: #F5F5F7; color: var(--texto-secundario); }
+    .ad-finished { background: rgba(234,67,53,0.1); color: var(--color-peligro); }
     .ads-chart-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; margin-top: 24px; }
     .roas-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(196,133,90,0.1); color: var(--color-primario); padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 700; }
 
@@ -601,6 +601,177 @@
     [data-theme="dark"] .mis-tareas-card { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 4px 28px rgba(0,0,0,0.4) !important; }
     [data-theme="dark"] .mis-tareas-fecha { border-right-color: rgba(255,255,255,0.08) !important; }
     [data-theme="light"] .mis-tareas-card { background: rgba(255,255,255,0.72) !important; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.9) !important; }
+
+    /* ============================================================
+       SPRINT 3 — USUARIOS, ROLES, PERMISOS, AUDITORÍA
+       ============================================================ */
+    .toggle { position:relative; display:inline-block; width:36px; height:20px; flex-shrink:0; }
+    .toggle input { opacity:0; width:0; height:0; position:absolute; }
+    .toggle-slider { position:absolute; cursor:pointer; inset:0; background:#ddd; border-radius:20px; transition:.25s; }
+    .toggle-slider:before { content:''; position:absolute; height:14px; width:14px; left:3px; bottom:3px; background:white; border-radius:50%; transition:.25s; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+    .toggle input:checked + .toggle-slider { background:var(--color-primario); }
+    .toggle input:checked + .toggle-slider:before { transform:translateX(16px); }
+    .toggle input:disabled + .toggle-slider { opacity:.45; cursor:default; }
+
+    .usuario-card { background:#FFFFFF; border-radius:16px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); overflow:hidden; transition:var(--transicion); margin-bottom:14px; }
+    .usuario-card:hover { box-shadow:var(--sombra-flotante); }
+    .usuario-card-header { padding:18px 24px; display:flex; align-items:center; gap:14px; cursor:pointer; user-select:none; }
+    .usuario-avatar { width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; font-weight:800; font-family:var(--font-display); color:white; flex-shrink:0; letter-spacing:-0.02em; }
+    .usuario-card-body { display:none; border-top:1px solid var(--color-borde); padding:24px; background:#FAFAFA; }
+    .usuario-card.expandido .usuario-card-body { display:block; animation:fadeUp .2s ease; }
+    .usuario-card.expandido .usuario-chevron { transform:rotate(180deg); }
+    .badge-estado-activo { background:rgba(52,168,83,0.1); color:var(--color-exito); }
+    .badge-estado-suspendido { background:rgba(234,67,53,0.1); color:var(--color-peligro); }
+
+    .pwd-field-wrap { position:relative; display:flex; align-items:center; }
+    .pwd-field-wrap .input-celda { padding-right:36px; }
+    .pwd-toggle-eye { position:absolute; right:10px; color:var(--texto-secundario); cursor:pointer; font-size:13px; transition:color .2s; }
+    .pwd-toggle-eye:hover { color:var(--color-primario); }
+
+    .permisos-grid-wrap { overflow-x:auto; }
+    .permisos-grid { border-collapse:collapse; font-size:12px; width:100%; }
+    .permisos-grid th { padding:10px 14px; text-align:center; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-secundario); border-bottom:1px solid var(--color-borde-fuerte); white-space:nowrap; background:#fff; }
+    .permisos-grid th:first-child { text-align:left; min-width:180px; }
+    .permisos-grid td { padding:9px 14px; text-align:center; border-bottom:1px solid var(--color-borde); }
+    .permisos-grid td:first-child { text-align:left; font-weight:500; font-size:13px; }
+    .permisos-grid tr:hover td { background:rgba(0,0,0,.012); }
+    .permisos-grupo td { padding:12px 14px 4px !important; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--texto-secundario); background:rgba(0,0,0,.02) !important; border-top:2px solid var(--color-borde) !important; }
+
+    .tabs-header { display:flex; gap:0; border-bottom:2px solid var(--color-borde); margin-bottom:28px; }
+    .tab-btn { padding:11px 22px; font-size:13px; font-weight:600; color:var(--texto-secundario); cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-2px; transition:var(--transicion); }
+    .tab-btn:hover { color:var(--texto-principal); }
+    .tab-btn.activo { color:var(--color-primario); border-bottom-color:var(--color-primario); }
+    .tab-content { display:none; }
+    .tab-content.activo { display:block; animation:fadeUp .2s ease; }
+
+    .banner-simulacion { background:rgba(251,188,5,.1); border-bottom:2px solid rgba(251,188,5,.5); padding:10px 44px; display:flex; align-items:center; justify-content:space-between; font-size:13px; font-weight:600; color:#7A5F00; flex-shrink:0; }
+
+    .audit-stat-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:14px; margin-bottom:20px; }
+    .audit-stat-card { background:#FFFFFF; border-radius:14px; padding:18px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); text-align:center; }
+    .audit-stat-num { font-family:var(--font-display); font-size:34px; font-weight:900; color:var(--color-primario); letter-spacing:-0.04em; line-height:1.1; }
+    .audit-stat-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-secundario); margin-top:4px; }
+
+    /* ── SPRINT 4 — DARK MODE FIXES & PRESUPUESTO ── */
+    /* User cards dark */
+    [data-theme="dark"] .usuario-card { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="dark"] .usuario-card-body { background: rgba(255,255,255,0.02) !important; border-top-color: rgba(255,255,255,0.08) !important; }
+    /* Permisos grid dark */
+    [data-theme="dark"] .permisos-grid th { background: rgba(255,255,255,0.04) !important; color: rgba(240,237,232,0.45) !important; border-bottom-color: rgba(255,255,255,0.1) !important; }
+    [data-theme="dark"] .permisos-grid td { border-bottom-color: rgba(255,255,255,0.05) !important; color: #F0EDE8; }
+    [data-theme="dark"] .permisos-grid tr:hover td { background: rgba(255,255,255,0.03) !important; }
+    [data-theme="dark"] .permisos-grupo td { background: rgba(255,255,255,0.02) !important; border-top-color: rgba(255,255,255,0.1) !important; }
+    /* Audit stat cards dark */
+    [data-theme="dark"] .audit-stat-card { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.08) !important; }
+    /* Tabs dark */
+    [data-theme="dark"] .tabs-header { border-bottom-color: rgba(255,255,255,0.1) !important; }
+    [data-theme="dark"] .tab-btn { color: rgba(240,237,232,0.4) !important; }
+    [data-theme="dark"] .tab-btn:hover { color: #F0EDE8 !important; }
+    [data-theme="dark"] .tab-btn.activo { color: var(--color-primario) !important; }
+    /* Presupuesto KPI strip */
+    .ppto-kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    .ppto-kpi-card { background:#FFFFFF; border-radius:18px; padding:22px 24px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); }
+    .ppto-kpi-val { font-family:var(--font-display); font-size:26px; font-weight:900; color:var(--color-primario); letter-spacing:-0.04em; line-height:1.1; margin-bottom:4px; }
+    .ppto-kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-secundario); }
+    [data-theme="dark"] .ppto-kpi-card { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="light"] .ppto-kpi-card { background: rgba(255,255,255,0.72) !important; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border: 1px solid rgba(255,255,255,0.9) !important; }
+    /* Presupuesto view switcher */
+    .ppto-view-btns { display:flex; gap:0; border-bottom:2px solid var(--color-borde); margin-bottom:24px; }
+    .ppto-view-btn { padding:10px 20px; font-size:13px; font-weight:600; color:var(--texto-secundario); cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-2px; transition:var(--transicion); }
+    .ppto-view-btn:hover { color:var(--texto-principal); }
+    .ppto-view-btn.activo { color:var(--color-primario); border-bottom-color:var(--color-primario); }
+    [data-theme="dark"] .ppto-view-btn { color: rgba(240,237,232,0.4) !important; }
+    [data-theme="dark"] .ppto-view-btn:hover { color: #F0EDE8 !important; }
+    [data-theme="dark"] .ppto-view-btn.activo { color: var(--color-primario) !important; }
+    [data-theme="dark"] .ppto-view-btns { border-bottom-color: rgba(255,255,255,0.1) !important; }
+    /* Sticky column dark/light */
+    .ppto-sticky-col { background: #fff; }
+    [data-theme="dark"] .ppto-sticky-col { background: #111114 !important; }
+    [data-theme="light"] .ppto-sticky-col { background: #F5F0EA !important; }
+
+    /* ================================================================
+       FIXES VARIOS — SPRINT 5
+       ================================================================ */
+
+    /* Quitar flechas/spinners de inputs numéricos */
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* Nombres sin truncar en cards y tablas de usuarios */
+    .usuario-card-header { flex-wrap: nowrap; }
+    .tabla-editable td { white-space: normal; overflow-wrap: break-word; }
+
+    /* Dark mode: toggle off-state */
+    [data-theme="dark"] .toggle-slider { background: rgba(255,255,255,0.18) !important; }
+    [data-theme="dark"] .toggle-slider:before { background: rgba(240,237,232,0.9) !important; }
+
+    /* Dark mode: ad-finished en rojo también en dark */
+    [data-theme="dark"] .ad-finished { background: rgba(234,67,53,0.15) !important; color: #FF6B6B !important; }
+
+    /* ================================================================
+       NAV COLAPSABLE
+       ================================================================ */
+    nav { transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1), padding 0.3s cubic-bezier(0.25,0.8,0.25,1); flex-shrink: 0; }
+    main { transition: flex 0.3s cubic-bezier(0.25,0.8,0.25,1); }
+
+    .nav-toggle-btn {
+        display: flex; align-items: center; justify-content: flex-end;
+        background: transparent; border: none; color: var(--texto-secundario);
+        cursor: pointer; border-radius: 8px; font-size: 13px;
+        transition: var(--transicion); padding: 6px 10px; width: 100%;
+        margin-bottom: 6px; flex-shrink: 0;
+    }
+    .nav-toggle-btn:hover { background: rgba(0,0,0,0.04); color: var(--color-primario); }
+    [data-theme="dark"] .nav-toggle-btn:hover { background: rgba(255,255,255,0.06) !important; }
+
+    nav.nav-colapsada { width: 64px !important; padding: 20px 0 !important; overflow: visible !important; }
+    nav.nav-colapsada .marca { display: none !important; }
+    nav.nav-colapsada #badge-rol { display: none !important; }
+    nav.nav-colapsada .menu-titulo { display: none !important; }
+    nav.nav-colapsada .nav-toggle-btn { justify-content: center; padding: 8px; }
+    nav.nav-colapsada .item-nav { justify-content: center !important; padding: 12px 0 !important; border-left: none !important; }
+    nav.nav-colapsada .item-nav .nav-label { display: none !important; }
+    nav.nav-colapsada .item-nav i { font-size: 16px !important; width: auto !important; }
+    nav.nav-colapsada > div:last-child { padding: 12px 0 0; justify-content: center; display: flex; border-top: 1px solid var(--color-borde); }
+    nav.nav-colapsada > div:last-child > .item-nav { padding: 12px 0 !important; width: 100%; }
+    nav.nav-colapsada > div:last-child > .item-nav .nav-label { display: none !important; }
+
+    /* Tooltip flotante del nav colapsado */
+    #nav-tooltip {
+        position: fixed; z-index: 9000;
+        background: #111; color: #fff;
+        padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+        white-space: nowrap; pointer-events: none; opacity: 0;
+        transition: opacity 0.15s ease; transform: translateY(-50%);
+        box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    #nav-tooltip.visible { opacity: 1; }
+
+    /* Botón hamburguesa — solo móvil */
+    .btn-hamburguesa {
+        display: none; position: fixed; top: 12px; left: 12px; z-index: 200;
+        width: 40px; height: 40px; align-items: center; justify-content: center;
+        background: var(--color-tarjeta); border: 1px solid var(--color-borde);
+        border-radius: 10px; cursor: pointer; font-size: 15px; color: var(--texto-principal);
+        box-shadow: var(--sombra-suave);
+    }
+    .nav-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 140; }
+    .nav-overlay.activo { display: block; }
+
+    @media (max-width: 768px) {
+        nav {
+            position: fixed !important; height: 100vh !important;
+            left: -280px; width: 260px !important;
+            transition: left 0.3s cubic-bezier(0.25,0.8,0.25,1) !important;
+            z-index: 150; overflow-y: auto !important;
+        }
+        nav.mobile-abierta { left: 0 !important; }
+        nav.nav-colapsada { left: -280px !important; width: 260px !important; overflow-y: auto !important; }
+        .btn-hamburguesa { display: flex; }
+        main { width: 100%; }
+        .barra-superior { padding: 14px 16px 14px 64px !important; }
+        .area-desplazable { padding: 24px 20px !important; }
+    }
 </style>
 ```
 
@@ -619,10 +790,14 @@
     </form>
 </div>
 
+<button class="btn-hamburguesa" id="btn-hamburguesa" onclick="toggleNavMobile()" title="Menú"><i class="fa-solid fa-bars"></i></button>
+<div class="nav-overlay" id="nav-overlay" onclick="cerrarNavMobile()"></div>
+
 <div id="pantalla-app" class="oculto">
     <nav>
+        <button class="nav-toggle-btn" id="nav-toggle-btn" onclick="toggleNavCollapse()" title="Colapsar menú"><i class="fa-solid fa-chevron-left"></i></button>
         <div class="marca">LANKA</div>
-        <div id="badge-rol" class="badge-rol"></div>
+        <div id="badge-rol" class="badge-rol" onclick="cerrarSesion()" title="Cerrar sesión" style="cursor:pointer; position:relative;" onmouseenter="this.style.opacity='0.75'" onmouseleave="this.style.opacity='1'"></div>
 
         <div class="menu-titulo req-no-equipo">Inteligencia</div>
         <ul class="menu-nav req-no-equipo">
@@ -665,6 +840,9 @@
             <li class="item-nav" data-target="vista-clientes"><i class="fa-solid fa-users-gear"></i> Proyectos</li>
             <li class="item-nav" data-target="vista-proveedores"><i class="fa-solid fa-address-book"></i> Proveedores</li>
             <li class="item-nav" data-target="vista-config"><i class="fa-solid fa-gear"></i> Configuración</li>
+            <li class="item-nav" data-target="vista-usuarios" onclick="irA('vista-usuarios');renderUsuarios()"><i class="fa-solid fa-id-card"></i> Usuarios</li>
+            <li class="item-nav" data-target="vista-control-accesos" onclick="irA('vista-control-accesos');renderControlAccesos()"><i class="fa-solid fa-shield-halved"></i> Control de Accesos</li>
+            <li class="item-nav" data-target="vista-auditoria" onclick="irA('vista-auditoria');renderAuditoria()"><i class="fa-solid fa-magnifying-glass-chart"></i> Auditoría</li>
         </ul>
 
         <div style="margin-top: auto; padding-top: 24px; border-top: 1px solid var(--color-borde);">
@@ -686,9 +864,19 @@
                 </select>
                 <button class="btn btn-fantasma btn-xs req-agencia" onclick="abrirReporteEjecutivo()"><i class="fa-solid fa-file-csv"></i> Exportar</button>
                 <button class="btn-ia req-agencia" onclick="abrirModalIA()"><i class="fa-solid fa-wand-magic-sparkles"></i> LANKA IA</button>
+                <div id="ver-como-wrap" class="oculto" style="display:flex; align-items:center; gap:6px;">
+                    <select id="ver-como-select" class="select-moneda" style="font-size:11px; padding:6px 24px 6px 10px;" onchange="if(this.value) simularVista(this.value); else salirVistaSimulada()">
+                        <option value="">👁 Ver como...</option>
+                    </select>
+                </div>
                 <button id="btn-tema" onclick="toggleTema()" title="Cambiar tema" style="background:rgba(0,0,0,0.04); border:1px solid var(--color-borde-fuerte); border-radius:9px; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; color:var(--texto-secundario); font-size:14px; flex-shrink:0; transition:var(--transicion);"><i id="icon-tema" class="fa-solid fa-moon"></i></button>
             </div>
         </header>
+
+        <div id="banner-simulacion" class="banner-simulacion oculto">
+            <span><i class="fa-solid fa-eye" style="margin-right:8px;"></i>Modo vista: <strong id="banner-simulacion-rol">—</strong> — los cambios no se guardan en esta vista</span>
+            <button class="btn btn-xs" onclick="salirVistaSimulada()" style="background:rgba(251,188,5,.25); border:1px solid rgba(251,188,5,.5); color:#7A5F00; padding:6px 14px; border-radius:8px; font-weight:700; cursor:pointer;"><i class="fa-solid fa-arrow-left" style="margin-right:6px;"></i>Salir de vista simulada</button>
+        </div>
 
         <div class="area-desplazable" id="area-scroll">
             
@@ -1045,6 +1233,61 @@
                 <div class="tarjeta" id="contenedor-config"></div>
             </section>
 
+            <!-- ============ SPRINT 3: USUARIOS ============ -->
+            <section id="vista-usuarios" class="seccion-app oculto">
+                <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><h1>Usuarios</h1><p>Gestión de accesos, roles y credenciales del equipo.</p></div>
+                    <button class="btn btn-primario" onclick="nuevoUsuario()"><i class="fa-solid fa-user-plus"></i> Nuevo Usuario</button>
+                </div>
+                <div id="usuarios-lista"></div>
+            </section>
+
+            <!-- ============ SPRINT 3: CONTROL DE ACCESOS ============ -->
+            <section id="vista-control-accesos" class="seccion-app oculto">
+                <div class="encabezado-seccion">
+                    <div><h1>Control de Accesos</h1><p>Roles del sistema, permisos por módulo y ubicaciones.</p></div>
+                </div>
+                <div class="tarjeta">
+                    <div class="tabs-header">
+                        <button class="tab-btn activo" id="tab-btn-roles" onclick="activarTabAccesos('roles')"><i class="fa-solid fa-user-tag" style="margin-right:6px;"></i>Roles</button>
+                        <button class="tab-btn" id="tab-btn-permisos" onclick="activarTabAccesos('permisos')"><i class="fa-solid fa-table-cells" style="margin-right:6px;"></i>Permisos</button>
+                        <button class="tab-btn" id="tab-btn-ubicaciones" onclick="activarTabAccesos('ubicaciones')"><i class="fa-solid fa-location-dot" style="margin-right:6px;"></i>Ubicaciones</button>
+                    </div>
+                    <div class="tab-content activo" id="tab-roles"></div>
+                    <div class="tab-content" id="tab-permisos"></div>
+                    <div class="tab-content" id="tab-ubicaciones"></div>
+                </div>
+            </section>
+
+            <!-- ============ SPRINT 3: AUDITORÍA ============ -->
+            <section id="vista-auditoria" class="seccion-app oculto">
+                <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div><h1>Auditoría</h1><p>Reportes cruzados de contenido, producción, pauta, ventas y sistema.</p></div>
+                    <button class="btn btn-fantasma btn-xs" onclick="exportarAuditoriaCSV()"><i class="fa-solid fa-file-csv"></i> Exportar CSV</button>
+                </div>
+                <div class="tarjeta" style="margin-bottom:24px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:20px;">
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:var(--texto-secundario); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:8px;">Desde</label>
+                            <input type="date" id="audit-desde" class="textarea-apple" style="min-height:auto; padding:10px 14px;">
+                        </div>
+                        <div>
+                            <label style="font-size:11px; font-weight:700; color:var(--texto-secundario); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:8px;">Hasta</label>
+                            <input type="date" id="audit-hasta" class="textarea-apple" style="min-height:auto; padding:10px 14px;">
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px;">
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; cursor:pointer;"><input type="checkbox" id="audit-contenido" checked> <i class="fa-solid fa-calendar-check" style="color:var(--color-primario);"></i> Contenido</label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; cursor:pointer;"><input type="checkbox" id="audit-produccion" checked> <i class="fa-solid fa-camera" style="color:#4A90D9;"></i> Producción</label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; cursor:pointer;"><input type="checkbox" id="audit-pauta" checked> <i class="fa-solid fa-bullhorn" style="color:#8B5CF6;"></i> Pauta</label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; cursor:pointer;"><input type="checkbox" id="audit-ventas" checked> <i class="fa-solid fa-chart-line" style="color:#34A853;"></i> Ventas y Métricas</label>
+                        <label style="display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; cursor:pointer;"><input type="checkbox" id="audit-sistema" checked> <i class="fa-solid fa-shield-halved" style="color:#E8A96A;"></i> Sistema</label>
+                    </div>
+                    <button class="btn btn-primario" onclick="generarReporteAuditoria()"><i class="fa-solid fa-bolt"></i> Generar Reporte</button>
+                </div>
+                <div id="auditoria-resultado"></div>
+            </section>
+
         </div>
     </main>
 </div>
@@ -1179,6 +1422,25 @@ function toggleTema() {
     var icon = document.getElementById('icon-tema');
     if (icon) icon.className = nuevo === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     setTimeout(function() { html.classList.remove('tema-transitioning'); }, 450);
+    aplicarGradiente();
+}
+
+function _safeHex(hex) { return (hex && /^#[0-9A-Fa-f]{6}/.test(hex)) ? hex : '#C4855A'; }
+function generarGradienteDark(colorHex) {
+    var h = _safeHex(colorHex);
+    document.body.style.backgroundImage = 'radial-gradient(ellipse at 20% 20%, ' + h + '15 0%, #0D0D0D 55%, #0A0A12 100%)';
+}
+function generarGradienteLight(colorHex) {
+    var h = _safeHex(colorHex);
+    document.body.style.backgroundImage = 'radial-gradient(ellipse at 30% 20%, ' + h + '12 0%, #F5F0EA 60%, #EDE8E0 100%)';
+}
+function aplicarGradiente() {
+    if (typeof SUC_ACTIVA === 'undefined' || !SUC_ACTIVA || typeof DB === 'undefined' || !DB.sucursales) return;
+    var suc = DB.sucursales.find(function(s){ return s.id === SUC_ACTIVA; });
+    if (!suc) return;
+    var tema = document.documentElement.getAttribute('data-theme') || 'light';
+    if (tema === 'dark') generarGradienteDark(suc.color);
+    else generarGradienteLight(suc.color);
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -1233,7 +1495,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     { id: "k2", titulo: "Reel ASMR Masaje", fecha: "2026-05-12", hora: "07:00", estado: "Producción", tags: "ASMR", target_id: "", hook: "Video abre con aceite cayendo sobre espalda en cámara lenta. Sin texto.", copy: "ya cuidaste a todos. ahora le toca a tu cuerpo guardar todo lo que cargó este mes.", hashtags: "#MasajeHolistico #SpaMorelia", manychat: "TENSIÓN", pauta: "Superar 500 vistas orgánicas -> Meta Ads", stories: "", asignado_a: "Ángeles Fernández" }
                 ],
                 dam: [ { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, url: "", historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } ],
-                presupuesto: [ { categoria: "Meta Ads", item: "Pauta Online", montos_mes: Array.from({length: 12}, () => ({directa: 2400, intercambio: 0})) }, { categoria: "Impresos", item: "Tent Cards y Menús", montos_mes: Array.from({length: 12}, () => ({directa: 0, intercambio: 0})) } ],
+                presupuesto: [ { categoria: "Meta Ads", item: "Pauta Online", tipo: "Digital", montos_mes: Array.from({length: 12}, () => ({inversion: 2400, colaboracion: 0})) }, { categoria: "Impresos", item: "Tent Cards y Menús", tipo: "Offline", montos_mes: Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0})) } ],
                 facturas: [ { folio: "F-01", proveedor: "Google", concepto: "Workspace", monto: 1500, estado: "Pendiente" } ],
                 briefing: {
                     reglas: ["Cero descuentos públicos.", "Nunca dar precio en el primer DM. Evaluar necesidad primero.", "Re-booking en cabina antes de salir."],
@@ -1270,10 +1532,52 @@ document.addEventListener('DOMContentLoaded', function() {
                 ads: [], offline: [], shooting: [], stories_ind: []
             }
         },
-        proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ]
+        proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ],
+        roles_sistema: [
+            { id: "owner",       nombre: "Owner",            color: "#C4855A", editable: false },
+            { id: "direccion",   nombre: "Dirección",        color: "#4A90D9", editable: true  },
+            { id: "coordinador", nombre: "Coordinador",      color: "#8B5CF6", editable: true  },
+            { id: "equipo",      nombre: "Equipo Operativo", color: "#34A853", editable: true  },
+            { id: "lanka_team",  nombre: "Lanka Team",       color: "#E8A96A", editable: true  }
+        ],
+        permisos: {
+            performance:     { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
+            charts:          { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
+            insights:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
+            presupuesto:     { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
+            facturas:        { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
+            calendario:      { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
+            cal_editorial:   { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
+            shooting:        { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:true  },
+            dam:             { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:true  },
+            briefing:        { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
+            mood:            { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
+            target:          { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
+            ads:             { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
+            offline:         { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
+            proyectos:       { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
+            proveedores:     { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
+            config:          { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
+            control_accesos: { owner:true, lanka_team:false, direccion:false, coordinador:false, equipo:false },
+            auditoria:       { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
+            stories:         { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
+            mis_tareas:      { owner:false,lanka_team:false, direccion:false, coordinador:true,  equipo:true  },
+            usuarios:        { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false }
+        },
+        usuarios: [
+            { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      puesto:"Socio Director",  password:btoa("Lanka2026"),  rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",            estado:"activo" },
+            { id:"u_angeles", nombre:"Ángeles Fernández", username:"angeles.fernandez",  puesto:"Fotógrafa",       password:btoa("angeles26"),  rol_id:"direccion",   proyectos:["aitama"],          ubicacion:"Morelia - Aitama", estado:"activo" },
+            { id:"u_dulce",   nombre:"Dulce",             username:"dulce",              puesto:"Asistente",       password:btoa("dulce26"),    rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama", estado:"activo" },
+            { id:"u_sergio",  nombre:"Sergio",            username:"sergio",             puesto:"Videógrafo",      password:btoa("sergio26"),   rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama", estado:"activo" },
+            { id:"u_mathias", nombre:"Mathias",           username:"mathias",            puesto:"Lanka Team",      password:btoa("lankateam26"),rol_id:"lanka_team",  proyectos:["aitama","mammut"], ubicacion:"Todas",            estado:"activo" }
+        ],
+        ubicaciones: ["Morelia - Aitama", "Morelia - Mammut Centro", "Mammut Chapultepec", "Todas"]
     };
 
     let DB = {}; let ROL = 'none'; let SUC_ACTIVA = ''; let USUARIO_EQUIPO = '';
+    let USUARIO_ACTIVO = null; let ROL_SIMULADO = null;
+    let _adsExpanded = new Set();
+    let _pptoVista = 'anual'; let _pptoMes = new Date().getMonth();
     let _charts = {}; // instancias Chart.js
     let _calFecha = new Date();
 
@@ -1283,10 +1587,26 @@ document.addEventListener('DOMContentLoaded', function() {
         DB = guardado ? JSON.parse(guardado) : JSON.parse(JSON.stringify(DATOS_SEMILLA));
         
         // Migrar datos viejos que no tengan los nuevos arrays
+        const _aitamaDefaults = [
+            { nombre: "Ángeles Fernández", rol: "Fotógrafa", password: btoa("angeles26") },
+            { nombre: "Dulce", rol: "Asistente", password: btoa("dulce26") },
+            { nombre: "Sergio", rol: "Videógrafo", password: btoa("sergio26") },
+            { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
+        ];
         if (DB.sucursales) {
             DB.sucursales.forEach(suc => {
                 if (!suc.equipo_miembros) suc.equipo_miembros = [];
+                if (suc.id === 'aitama') {
+                    // Merge: add any missing default member or fill in missing passwords
+                    _aitamaDefaults.forEach(dm => {
+                        const ex = suc.equipo_miembros.find(m => m.nombre === dm.nombre);
+                        if (!ex) { suc.equipo_miembros.push(dm); }
+                        else if (!ex.password) { ex.password = dm.password; }
+                    });
+                }
             });
+            // Persist migration so next load has correct data
+            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
         if (DB.datos) {
             Object.keys(DB.datos).forEach(sid => {
@@ -1299,7 +1619,40 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         }
-        
+        // Sprint 3 migration — add new system tables if missing
+        let _s3migrated = false;
+        if (!DB.roles_sistema) { DB.roles_sistema = JSON.parse(JSON.stringify(DATOS_SEMILLA.roles_sistema)); _s3migrated = true; }
+        if (!DB.permisos)      { DB.permisos      = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos));      _s3migrated = true; }
+        if (!DB.ubicaciones)   { DB.ubicaciones   = JSON.parse(JSON.stringify(DATOS_SEMILLA.ubicaciones));   _s3migrated = true; }
+        if (!DB.usuarios) {
+            DB.usuarios = JSON.parse(JSON.stringify(DATOS_SEMILLA.usuarios));
+            _s3migrated = true;
+        } else {
+            // Ensure existing users have puesto field
+            DB.usuarios.forEach(u => { if (u.puesto === undefined) u.puesto = ''; });
+            // Add Mathias if missing
+            if (!DB.usuarios.find(u => u.id === 'u_mathias')) {
+                DB.usuarios.push({ id:"u_mathias", nombre:"Mathias", username:"mathias", puesto:"Lanka Team", password:btoa("lankateam26"), rol_id:"lanka_team", proyectos:["aitama","mammut"], ubicacion:"Todas", estado:"activo" });
+                _s3migrated = true;
+            }
+        }
+        if (_s3migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+
+        // Sprint 4 migration — presupuesto: {directa,intercambio} → {inversion,colaboracion}
+        if (DB.datos) {
+            let _s4migrated = false;
+            Object.keys(DB.datos).forEach(sid => {
+                (DB.datos[sid].presupuesto || []).forEach(p => {
+                    if (p.montos_mes && p.montos_mes.length && p.montos_mes[0].directa !== undefined) {
+                        p.montos_mes = p.montos_mes.map(m => ({ inversion: m.directa || 0, colaboracion: m.intercambio || 0 }));
+                        _s4migrated = true;
+                    }
+                    if (p.tipo === undefined) { p.tipo = 'Digital'; _s4migrated = true; }
+                });
+            });
+            if (_s4migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
         
         const items = document.querySelectorAll('.item-nav');
@@ -1330,15 +1683,26 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function ejecutarLogin(e) {
-        e.preventDefault(); const pwd = document.getElementById('input-password').value;
-        if(btoa(pwd) === btoa('Lanka2026')) { ROL = 'agencia'; iniciarApp(DB.sucursales[0].id); return; }
-        // Check equipo members across all projects
+        e.preventDefault();
+        const pwd = document.getElementById('input-password').value;
+        // 1. Try DB.usuarios (Sprint 3 system)
+        const usuario = (DB.usuarios || []).find(u => u.password === btoa(pwd) && u.estado === 'activo');
+        if (usuario) {
+            USUARIO_ACTIVO = usuario; USUARIO_EQUIPO = usuario.nombre; ROL_SIMULADO = null;
+            ROL = (usuario.rol_id === 'equipo' || usuario.rol_id === 'coordinador') ? 'equipo' : 'agencia';
+            const primerProyecto = (usuario.proyectos && usuario.proyectos.length) ? usuario.proyectos[0] : DB.sucursales[0].id;
+            iniciarApp(primerProyecto);
+            return;
+        }
+        // 2. Fallback: legacy passwords
+        USUARIO_ACTIVO = null; ROL_SIMULADO = null;
+        if (btoa(pwd) === btoa('Lanka2026')) { ROL = 'agencia'; iniciarApp(DB.sucursales[0].id); return; }
         for (let suc of DB.sucursales) {
             const miembro = (suc.equipo_miembros || []).find(m => m.password === btoa(pwd));
             if (miembro) { ROL = 'equipo'; USUARIO_EQUIPO = miembro.nombre; iniciarApp(suc.id); return; }
         }
         let s = DB.sucursales.find(x => x.password === btoa(pwd));
-        if(s) { ROL = 'cliente'; iniciarApp(s.id); }
+        if (s) { ROL = 'cliente'; iniciarApp(s.id); }
         else { document.getElementById('error-login').style.opacity = 1; setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000); }
     }
 
@@ -1384,10 +1748,15 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('selector-sucursal').style.display = 'none';
             document.getElementById('etiqueta-cliente').style.display = 'block';
         }
+        // Sprint 3: apply dynamic permissions when user is logged via new system
+        if (USUARIO_ACTIVO && DB.permisos) aplicarPermisos(USUARIO_ACTIVO.rol_id);
+        aplicarGradiente();
         renderTodas();
+        // Nav colapsable: init only once
+        if (!document.getElementById('nav-tooltip')) initNavCollapse();
     }
 
-    function cambiarSucursal() { SUC_ACTIVA = document.getElementById('selector-sucursal').value; renderTodas(); }
+    function cambiarSucursal() { SUC_ACTIVA = document.getElementById('selector-sucursal').value; aplicarGradiente(); renderTodas(); }
     function cambiarMoneda() { DB.configuracion.moneda = document.getElementById('selector-moneda').value; guardarBD(); renderTodas(); }
     function navegarVista(id) { document.querySelectorAll('.seccion-app').forEach(s=>s.classList.add('oculto')); document.getElementById(id).classList.remove('oculto'); }
 
@@ -1404,7 +1773,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'insights') n = { f: new Date().toISOString().split('T')[0], c: "Experimento", r: "Resultado...", a: "Aprendizaje..." };
         if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"" };
         if(lista === 'dam') n = { id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, url:"", historial:[{autor:ROL, fecha:new Date().toLocaleDateString(), accion:"Creado", nota:"V1"}] };
-        if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", montos_mes:Array.from({length: 12}, () => ({directa: 0, intercambio: 0})) };
+        if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
         if(lista === 'proveedores') { DB.proveedores.push({nombre:"Nuevo", categoria:"", contacto:"", forma_pago:""}); guardarBD(); renderTodas(); return; }
@@ -1455,17 +1824,17 @@ document.addEventListener('DOMContentLoaded', function() {
         [...d.kanban].sort((a,b) => new Date(a.fecha) - new Date(b.fecha)).forEach((t) => {
             let idx = d.kanban.findIndex(x => x.id === t.id);
             let drag = ROL==='agencia' ? `draggable="true" ondragstart="event.dataTransfer.setData('text','${t.id}')"` : '';
+            const suc_info = DB.sucursales.find(s => s.id === SUC_ACTIVA);
+            const miembros_suc = suc_info ? (suc_info.equipo_miembros || []) : [];
+            const asignadoOpts = `<option value="">Sin asignar</option>` + miembros_suc.map(m => `<option value="${m.nombre}" ${t.asignado_a===m.nombre?'selected':''}>${m.nombre}</option>`).join('');
+            const asignadoSel = ROL === 'agencia' ? `<select class="select-celda" style="width:160px; border:1px solid var(--color-borde); background:#fafafa; font-size:12px; border-radius:8px;" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].asignado_a=this.value;guardarBD()">${asignadoOpts}</select>` : `<span style="font-size:12px; color:var(--texto-secundario);">${t.asignado_a || 'Sin asignar'}</span>`;
+            const asignadoChip = t.asignado_a ? `<div style="margin-top:6px;"><span style="background:rgba(74,144,217,0.1); color:#4A90D9; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;"><i class="fa-solid fa-user-tie" style="margin-right:4px;"></i>${t.asignado_a}</span></div>` : '';
             kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag}><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div>${asignadoChip}</div>`;
             let optEst = ['Ideas','Producción','Revisión','Programado'].map(e => `<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
             let selEst = ROL==='agencia' ? `<select class="select-celda" style="width:120px; border:1px solid var(--color-borde); background:#fafafa; font-size:11px; text-transform:uppercase;" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value)">${optEst}</select>` : `<span class="tag gris">${t.estado}</span>`;
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
             let t_val = t.target_id || "";
             let selTarget = ROL==='agencia' ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
-            const suc_info = DB.sucursales.find(s => s.id === SUC_ACTIVA);
-            const miembros_suc = suc_info ? (suc_info.equipo_miembros || []) : [];
-            const asignadoOpts = `<option value="">Sin asignar</option>` + miembros_suc.map(m => `<option value="${m.nombre}" ${t.asignado_a===m.nombre?'selected':''}>${m.nombre}</option>`).join('');
-            const asignadoSel = ROL === 'agencia' ? `<select class="select-celda" style="width:160px; border:1px solid var(--color-borde); background:#fafafa; font-size:12px; border-radius:8px;" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].asignado_a=this.value;guardarBD()">${asignadoOpts}</select>` : `<span style="font-size:12px; color:var(--texto-secundario);">${t.asignado_a || 'Sin asignar'}</span>`;
-            const asignadoChip = t.asignado_a ? `<div style="margin-top:6px;"><span style="background:rgba(74,144,217,0.1); color:#4A90D9; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;"><i class="fa-solid fa-user-tie" style="margin-right:4px;"></i>${t.asignado_a}</span></div>` : '';
             pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;guardarBD()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;guardarBD()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
         });
         ['Ideas','Producción','Revisión','Programado'].forEach(e => { document.getElementById('k-'+e).innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
@@ -1490,17 +1859,88 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderPresupuesto() {
         const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
-        let htmlPres = `<div class="tarjeta" style="padding:0; overflow:hidden;"><div style="overflow-x:auto;"><table class="tabla-editable"><thead><tr><th style="position:sticky;left:0;z-index:2; background:#fff;">Categoría / Ítem</th>`;
-        MESES.forEach(m => htmlPres += `<th colspan="2" style="text-align:center; border-left:1px solid var(--color-borde);">${m.substring(0,3)}</th>`);
-        htmlPres += `</tr><tr><th style="position:sticky;left:0;z-index:2; background:#fff;"></th>`;
-        MESES.forEach(() => htmlPres += `<th style="font-size:10px;text-align:center;">Dir.</th><th style="font-size:10px;text-align:center;">Int.</th>`);
-        htmlPres += `</tr></thead><tbody>`;
-        d.presupuesto.forEach((p, pIdx) => {
-            htmlPres += `<tr><td style="position:sticky;left:0; background:#fff; font-weight:700; border-right:1px solid var(--color-borde);"><input class="input-celda" value="${p.item}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()"><div style="font-size:10px;color:var(--texto-secundario);font-weight:500;">${p.categoria}</div></td>`;
-            p.montos_mes.forEach((m, mIdx) => { htmlPres += `<td><input type="number" class="input-celda" style="min-width:60px; font-weight:600;" value="${m.directa}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].directa=Number(this.value);guardarBD();renderPresupuesto()"></td><td style="border-right:1px solid var(--color-borde);"><input type="number" class="input-celda" style="min-width:60px; color:var(--texto-secundario);" value="${m.intercambio}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].intercambio=Number(this.value);guardarBD();renderPresupuesto()"></td>`; });
-            htmlPres += `</tr>`;
+        const pres = d.presupuesto || [];
+        let totalInv = 0, totalCol = 0;
+        pres.forEach(p => p.montos_mes.forEach(m => { totalInv += m.inversion||0; totalCol += m.colaboracion||0; }));
+        const totalComb = totalInv + totalCol;
+        const promMes = totalComb > 0 ? Math.round(totalComb / 12) : 0;
+        const fmt = v => formatDinero(v);
+        let html = `<div class="ppto-kpi-strip">
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(totalInv)}</div><div class="ppto-kpi-lbl">Inversión Anual</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(totalCol)}</div><div class="ppto-kpi-lbl">Colaboración Anual</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(totalComb)}</div><div class="ppto-kpi-lbl">Total Combinado</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(promMes)}</div><div class="ppto-kpi-lbl">Promedio Mensual</div></div>
+        </div>
+        <div class="ppto-view-btns">
+            <button class="ppto-view-btn ${_pptoVista==='anual'?'activo':''}" onclick="cambiarVistaPpto('anual')"><i class="fa-solid fa-table" style="margin-right:6px;"></i>Tabla Anual</button>
+            <button class="ppto-view-btn ${_pptoVista==='mensual'?'activo':''}" onclick="cambiarVistaPpto('mensual')"><i class="fa-solid fa-calendar-days" style="margin-right:6px;"></i>Vista Mensual</button>
+        </div>`;
+        html += _pptoVista === 'anual' ? _renderPptoAnual(pres, ro) : _renderPptoMensual(pres, ro);
+        document.getElementById('contenedor-presupuesto').innerHTML = html;
+    }
+
+    function cambiarVistaPpto(v) { _pptoVista = v; renderPresupuesto(); }
+
+    function _renderPptoAnual(pres, ro) {
+        let h = `<div class="tarjeta" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table class="tabla-editable"><thead>
+            <tr><th style="position:sticky;left:0;z-index:2;" class="ppto-sticky-col">Ítem</th>`;
+        MESES.forEach(m => h += `<th colspan="2" style="text-align:center;border-left:1px solid var(--color-borde);white-space:nowrap;">${m.substring(0,3)}</th>`);
+        h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;">Total</th></tr>
+            <tr><th style="position:sticky;left:0;z-index:2;" class="ppto-sticky-col"></th>`;
+        MESES.forEach(() => h += `<th style="font-size:10px;text-align:center;color:var(--color-primario);opacity:.8;">Inv.</th><th style="font-size:10px;text-align:center;color:var(--texto-secundario);">Col.</th>`);
+        h += `<th></th></tr></thead><tbody>`;
+        pres.forEach((p, pIdx) => {
+            const rowTotal = p.montos_mes.reduce((s,m) => s+(m.inversion||0)+(m.colaboracion||0), 0);
+            const tipoSel = ro ? '' : `<select class="select-celda" style="font-size:10px;padding:2px 6px;margin-top:3px;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].tipo=this.value;guardarBD()"><option ${p.tipo==='Digital'?'selected':''}>Digital</option><option ${p.tipo==='Offline'?'selected':''}>Offline</option><option ${p.tipo==='Producción'?'selected':''}>Producción</option></select>`;
+            h += `<tr><td style="position:sticky;left:0;font-weight:700;border-right:1px solid var(--color-borde);" class="ppto-sticky-col">
+                <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
+                <div style="display:flex;gap:6px;align-items:center;margin-top:3px;"><span style="font-size:10px;color:var(--texto-secundario);">${p.categoria}</span>${tipoSel}</div>
+            </td>`;
+            p.montos_mes.forEach((m, mIdx) => {
+                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:56px;font-weight:600;text-align:right;" value="${m.inversion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
+                h += `<td style="border-right:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="min-width:56px;color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
+            });
+            h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:700;white-space:nowrap;font-size:13px;">${formatDinero(rowTotal)}</td>`;
+            if (!ro) h += `<td style="width:32px;text-align:center;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`;
+            h += `</tr>`;
         });
-        document.getElementById('contenedor-presupuesto').innerHTML = htmlPres + `</tbody></table></div></div>`;
+        return h + `</tbody></table></div></div>`;
+    }
+
+    function _renderPptoMensual(pres, ro) {
+        const mesNombre = MESES[_pptoMes];
+        let mesInv = 0, mesCol = 0;
+        pres.forEach(p => { mesInv += p.montos_mes[_pptoMes]?.inversion||0; mesCol += p.montos_mes[_pptoMes]?.colaboracion||0; });
+        let h = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+            <button class="btn btn-fantasma btn-xs" onclick="_pptoMes=Math.max(0,_pptoMes-1);renderPresupuesto()"><i class="fa-solid fa-chevron-left"></i></button>
+            <span style="font-family:var(--font-display);font-size:18px;font-weight:800;letter-spacing:-0.03em;min-width:130px;text-align:center;">${mesNombre}</span>
+            <button class="btn btn-fantasma btn-xs" onclick="_pptoMes=Math.min(11,_pptoMes+1);renderPresupuesto()"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(mesInv)}</div><div class="ppto-kpi-lbl">Inversión ${mesNombre}</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(mesCol)}</div><div class="ppto-kpi-lbl">Colaboración ${mesNombre}</div></div>
+        </div>
+        <div class="tarjeta" style="padding:0;overflow:hidden;"><table class="tabla-editable"><thead><tr>
+            <th style="text-align:left;">Ítem</th><th>Tipo</th>
+            <th style="color:var(--color-primario);">Inversión</th>
+            <th style="color:var(--texto-secundario);">Colaboración</th>
+            <th>Total Mes</th>
+            ${!ro ? '<th></th>' : ''}
+        </tr></thead><tbody>`;
+        pres.forEach((p, pIdx) => {
+            const m = p.montos_mes[_pptoMes] || {inversion:0,colaboracion:0};
+            const totalMes = (m.inversion||0)+(m.colaboracion||0);
+            h += `<tr>
+                <td><input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
+                    <div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${p.categoria}</div></td>
+                <td><span style="font-size:11px;font-weight:600;color:var(--texto-secundario);">${p.tipo||'—'}</span></td>
+                <td><input type="text" inputmode="numeric" class="input-celda" style="font-weight:700;text-align:right;" value="${m.inversion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${_pptoMes}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>
+                <td><input type="text" inputmode="numeric" class="input-celda" style="color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${_pptoMes}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>
+                <td style="font-weight:700;text-align:right;font-size:13px;white-space:nowrap;">${formatDinero(totalMes)}</td>
+                ${!ro ? `<td style="width:32px;text-align:center;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>` : ''}
+            </tr>`;
+        });
+        return h + `</tbody></table></div>`;
     }
 
     function renderFacturas() {
@@ -1538,13 +1978,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderAdministracion() {
         document.getElementById('contenedor-clientes').innerHTML = DB.sucursales.map((s, i) => {
             let decodedPwd = ''; try { decodedPwd = atob(s.password); } catch(e) { decodedPwd = s.password; }
-            const miembros = s.equipo_miembros || [];
-            const miembrosRows = miembros.map((m, mi) => {
-                let mpwd = ''; try { mpwd = atob(m.password); } catch(e) { mpwd = m.password; }
-                return `<div style="display:grid; grid-template-columns:1fr 90px 90px 20px; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--color-borde);"><input class="input-celda" style="font-weight:700; font-size:13px; padding:4px 0;" value="${m.nombre}" onchange="DB.sucursales[${i}].equipo_miembros[${mi}].nombre=this.value;guardarBD()"><input class="input-celda" style="font-size:12px; color:var(--texto-secundario); padding:4px 0;" value="${m.rol}" onchange="DB.sucursales[${i}].equipo_miembros[${mi}].rol=this.value;guardarBD()"><input class="input-celda" style="font-size:12px; font-family:monospace; padding:4px 0;" value="${mpwd}" onchange="DB.sucursales[${i}].equipo_miembros[${mi}].password=btoa(this.value);guardarBD()"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;" onclick="DB.sucursales[${i}].equipo_miembros.splice(${mi},1);guardarBD();renderAdministracion()"></i></div>`;
-            }).join('');
-            const equipoSection = `<div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--color-borde);"><div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">EQUIPO <span style="background:rgba(74,144,217,0.1); color:#4A90D9; padding:2px 6px; border-radius:4px; margin-left:4px;">${miembros.length}</span></label><button class="btn btn-xs btn-fantasma" onclick="DB.sucursales[${i}].equipo_miembros.push({nombre:'Nuevo Miembro',rol:'Asistente',password:btoa('clave26')});guardarBD();renderAdministracion()" style="font-size:11px;"><i class="fa-solid fa-user-plus"></i> Añadir</button></div>${miembros.length ? `<div style="display:grid; grid-template-columns:1fr 90px 90px 20px; gap:8px; margin-bottom:4px; font-size:10px; font-weight:700; color:var(--texto-secundario); text-transform:uppercase; letter-spacing:0.05em;"><span>Nombre</span><span>Rol</span><span>Clave</span><span></span></div>${miembrosRows}` : `<div style="font-size:12px; color:var(--texto-secundario); font-style:italic; padding:8px 0;">Sin miembros asignados.</div>`}</div>`;
-            return `<div class="tarjeta-cliente"><div style="display:flex; justify-content:space-between; align-items:center;"><input class="input-celda" style="font-weight:800; font-size:18px; padding-left:0; font-family:var(--font-display);" value="${s.nombre}" onchange="DB.sucursales[${i}].nombre=this.value;guardarBD();document.getElementById('selector-sucursal').options[${i}].text=this.value;renderTodas();"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="if(confirm('¿Eliminar?')){DB.sucursales.splice(${i},1);guardarBD();location.reload();}"></i></div><div style="font-size:11px; color:var(--texto-secundario); font-family:monospace;">ID: ${s.id}</div><div style="margin-top:16px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="background:#fafafa; border:1px solid var(--color-borde); font-family:monospace; margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0; font-family:monospace; font-weight:700; text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>${equipoSection}</div>`;
+            const usuariosProyecto = (DB.usuarios||[]).filter(u => (u.proyectos||[]).includes(s.id) && u.estado==='activo');
+            const avatarsHTML = usuariosProyecto.length
+                ? usuariosProyecto.map(u => {
+                    const rolU = (DB.roles_sistema||[]).find(r=>r.id===u.rol_id)||{nombre:u.rol_id,color:'#888'};
+                    const inits = u.nombre.split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase();
+                    return `<div class="usuario-avatar" style="background:${rolU.color};width:34px;height:34px;font-size:11px;cursor:default;flex-shrink:0;" title="${u.nombre} · ${rolU.nombre}">${inits}</div>`;
+                }).join('')
+                : `<span style="font-size:12px;color:var(--texto-secundario);font-style:italic;">Sin usuarios asignados.</span>`;
+            const equipoSection = `<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-borde);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:0.05em;">EQUIPO <span style="background:rgba(74,144,217,0.1);color:#4A90D9;padding:2px 6px;border-radius:4px;margin-left:4px;">${usuariosProyecto.length}</span></label>
+                    <button class="btn btn-xs btn-fantasma" onclick="irA('vista-usuarios');renderUsuarios()" style="font-size:11px;"><i class="fa-solid fa-arrow-right" style="font-size:10px;margin-right:4px;"></i>Gestionar equipo</button>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">${avatarsHTML}</div>
+            </div>`;
+            return `<div class="tarjeta-cliente"><div style="display:flex; justify-content:space-between; align-items:center;"><input class="input-celda" style="font-weight:800; font-size:18px; padding-left:0; font-family:var(--font-display);" value="${s.nombre}" onchange="DB.sucursales[${i}].nombre=this.value;guardarBD();document.getElementById('selector-sucursal').options[${i}].text=this.value;renderTodas();"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="eliminarProyecto(${i})"></i></div><div style="font-size:11px; color:var(--texto-secundario); font-family:monospace;">ID: ${s.id}</div><div style="margin-top:16px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="border:1px solid var(--color-borde); font-family:monospace; margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0; font-family:monospace; font-weight:700; text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>${equipoSection}</div>`;
         }).join('');
         document.getElementById('tabla-proveedores').innerHTML = DB.proveedores.map((p,i) => {
             let catP = DB.desplegables.cat_proveedor.map(c=>`<option ${c===p.categoria?'selected':''}>${c}</option>`).join('');
@@ -1553,10 +2002,29 @@ document.addEventListener('DOMContentLoaded', function() {
         let confHTML = '';
         for(let k in DB.desplegables) {
             confHTML += `<div style="margin-bottom:24px;"><b style="font-family:var(--font-display); font-size:14px; text-transform:uppercase;">${k.replace('_', ' ')}</b> <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">`;
-            DB.desplegables[k].forEach((val, vi) => { confHTML += `<span class="tag gris" style="color:var(--texto-principal); background:#fafafa; border:1px solid var(--color-borde); padding:6px 12px; font-size:12px;">${val} <i class="fa-solid fa-times" style="margin-left:8px; color:#ccc; cursor:pointer;" onclick="DB.desplegables['${k}'].splice(${vi},1); guardarBD(); renderTodas();"></i></span>`; });
+            DB.desplegables[k].forEach((val, vi) => { confHTML += `<span class="tag gris" style="color:var(--texto-principal); background:var(--color-tarjeta); border:1px solid var(--color-borde); padding:6px 12px; font-size:12px;">${val} <i class="fa-solid fa-times" style="margin-left:8px; color:#ccc; cursor:pointer;" onclick="DB.desplegables['${k}'].splice(${vi},1); guardarBD(); renderTodas();"></i></span>`; });
             confHTML += `<button class="btn btn-xs btn-fantasma" onclick="let n = prompt('Nuevo valor:'); if(n) { DB.desplegables['${k}'].push(n); guardarBD(); renderTodas(); }">+ Añadir</button></div></div>`;
         }
         document.getElementById('contenedor-config').innerHTML = confHTML;
+    }
+
+    function eliminarProyecto(i) {
+        if (!confirm('¿Eliminar este proyecto? Esta acción no se puede deshacer.')) return;
+        const eliminadoId = DB.sucursales[i].id;
+        DB.sucursales.splice(i, 1);
+        if (DB.sucursales.length === 0) { guardarBD(); location.reload(); return; }
+        if (SUC_ACTIVA === eliminadoId) SUC_ACTIVA = DB.sucursales[0].id;
+        if (ROL === 'agencia') {
+            const sel = document.getElementById('selector-sucursal');
+            sel.innerHTML = DB.sucursales.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+            sel.value = SUC_ACTIVA;
+        }
+        guardarBD(); renderTodas();
+        document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto'));
+        document.getElementById('vista-clientes').classList.remove('oculto');
+        document.querySelectorAll('.item-nav').forEach(n => n.classList.remove('activo'));
+        const navItem = document.querySelector('[data-target="vista-clientes"]');
+        if (navItem) navItem.classList.add('activo');
     }
 
     function nuevoCliente() {
@@ -1666,7 +2134,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const productos = d.productos.length ? d.productos : [{m:'Sin datos', pct:100}];
         _charts['donut'] = new Chart(document.getElementById('chart-donut').getContext('2d'), {
             type: 'doughnut',
-            data: { labels: productos.map(p=>p.m), datasets: [{ data: productos.map(p=>p.pct), backgroundColor: PALETA.slice(0,productos.length), borderWidth: 2, borderColor: '#FFFFFF', hoverOffset: 8 }] },
+            data: { labels: productos.map(p=>p.m), datasets: [{ data: productos.map(p=>p.pct), backgroundColor: PALETA.slice(0,productos.length), borderWidth: 0, hoverOffset: 6 }] },
             options: { responsive: true, cutout: '68%', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#111', padding: 12 } } }
         });
         document.getElementById('donut-legend').innerHTML = productos.map((p,i) => `<div class="chart-legend-item"><div class="chart-legend-dot" style="background:${PALETA[i]};"></div>${p.m} <b style="color:var(--texto-principal)">${p.pct}%</b></div>`).join('');
@@ -1845,68 +2313,114 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ============= MÓDULO 5: AD PERFORMANCE ============= */
+    function _refreshAdsKpi() {
+        const ads = (DB.datos[SUC_ACTIVA] || {}).ads || [];
+        const totalInv  = ads.reduce((a,x)=>a+Number(x.inversion),0);
+        const totalAlc  = ads.reduce((a,x)=>a+Number(x.alcance),0);
+        const totalConv = ads.reduce((a,x)=>a+Number(x.conversiones),0);
+        const avgCPR    = ads.length ? (ads.reduce((a,x)=>a+Number(x.cpr),0)/ads.length).toFixed(0) : 0;
+        const roas      = totalInv > 0 ? (totalConv*85/totalInv).toFixed(1) : 0;
+        const strip = document.getElementById('ads-kpi-strip');
+        if (!strip) return;
+        strip.innerHTML = [
+            { icon:'fa-peso-sign',   color:'#C4855A', bg:'rgba(196,133,90,0.1)', label:'Total Invertido', val:`$${totalInv.toLocaleString()}` },
+            { icon:'fa-eye',         color:'#4A90D9', bg:'rgba(74,144,217,0.1)', label:'Alcance Total',   val:totalAlc.toLocaleString() },
+            { icon:'fa-arrow-pointer',color:'#8B5CF6',bg:'rgba(139,92,246,0.1)', label:'Conversiones',    val:totalConv },
+            { icon:'fa-dollar-sign', color:'#34A853', bg:'rgba(52,168,83,0.1)',  label:'CPR Promedio',    val:`$${avgCPR}` },
+            { icon:'fa-chart-line',  color:'#FBBC05', bg:'rgba(251,188,5,0.1)',  label:'ROAS Estimado',   val:`${roas}x` }
+        ].map(k=>`<div class="ads-kpi-card"><div class="ads-kpi-icon" style="background:${k.bg};color:${k.color};"><i class="fa-solid ${k.icon}"></i></div><div class="ads-kpi-val">${k.val}</div><div class="ads-kpi-lbl">${k.label}</div></div>`).join('');
+    }
+
     function renderAdsTable() {
         const d = DB.datos[SUC_ACTIVA];
         const ads = d.ads || [];
-        const ro = ROL === 'cliente' ? 'readonly' : '';
+        const canEdit = ROL !== 'cliente';
+        const lbl = t => `<label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">${t}</label>`;
+        const inp = (v, campo, i, type) => `<input class="input-celda" type="${type||'text'}" inputmode="${['number','inversion','alcance','clics','conversiones','cpr'].includes(type)?'numeric':'text'}" value="${v}" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'${campo}',this.value)">`;
 
-        // KPI totales
-        const totalInv = ads.reduce((a,x)=>a+Number(x.inversion),0);
-        const totalAlc = ads.reduce((a,x)=>a+Number(x.alcance),0);
-        const totalConv = ads.reduce((a,x)=>a+Number(x.conversiones),0);
-        const avgCPR = ads.length ? (ads.reduce((a,x)=>a+Number(x.cpr),0)/ads.length).toFixed(0) : 0;
-        const roas = totalInv > 0 ? (totalConv * 85 / totalInv).toFixed(1) : 0;
-
-        document.getElementById('ads-kpi-strip').innerHTML = [
-            { icon: 'fa-peso-sign', color: '#C4855A', bg: 'rgba(196,133,90,0.1)', label: 'Total Invertido', val: `$${totalInv.toLocaleString()}` },
-            { icon: 'fa-eye', color: '#4A90D9', bg: 'rgba(74,144,217,0.1)', label: 'Alcance Total', val: totalAlc.toLocaleString() },
-            { icon: 'fa-arrow-pointer', color: '#8B5CF6', bg: 'rgba(139,92,246,0.1)', label: 'Conversiones', val: totalConv },
-            { icon: 'fa-dollar-sign', color: '#34A853', bg: 'rgba(52,168,83,0.1)', label: 'CPR Promedio', val: `$${avgCPR}` },
-            { icon: 'fa-chart-line', color: '#FBBC05', bg: 'rgba(251,188,5,0.1)', label: 'ROAS Estimado', val: `${roas}x` }
-        ].map(k => `
-            <div class="ads-kpi-card">
-                <div class="ads-kpi-icon" style="background:${k.bg}; color:${k.color};"><i class="fa-solid ${k.icon}"></i></div>
-                <div class="ads-kpi-val">${k.val}</div>
-                <div class="ads-kpi-lbl">${k.label}</div>
-            </div>`).join('');
+        _refreshAdsKpi();
 
         document.getElementById('ads-lista').innerHTML = ads.map((a, i) => {
             const statusCls = a.estado==='Activa' ? 'ad-active' : (a.estado==='Pausada' ? 'ad-paused' : 'ad-finished');
             const statusDot = a.estado==='Activa' ? '🟢' : (a.estado==='Pausada' ? '🟡' : '⚫');
+            const isOpen    = _adsExpanded.has(i);
+            const editPanel = canEdit ? `
+            <div id="ad-edit-${i}" style="display:${isOpen?'block':'none'};border-top:1px solid var(--color-borde);padding:20px 24px;background:var(--color-tarjeta);animation:fadeUp .15s ease;">
+                <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div>${lbl('Nombre campaña')}${inp(a.nombre,'nombre',i)}</div>
+                    <div>${lbl('Plataforma')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'plataforma',this.value)"><option ${a.plataforma==='Meta'?'selected':''}>Meta</option><option ${a.plataforma==='Google'?'selected':''}>Google</option><option ${a.plataforma==='TikTok'?'selected':''}>TikTok</option><option ${!['Meta','Google','TikTok'].includes(a.plataforma)?'selected':''}>Otro</option></select></div>
+                    <div>${lbl('Estado')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'estado',this.value)"><option ${a.estado==='Activa'?'selected':''}>Activa</option><option ${a.estado==='Pausada'?'selected':''}>Pausada</option><option ${a.estado==='Finalizada'?'selected':''}>Finalizada</option></select></div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;">
+                    <div>${lbl('Inversión $')}${inp(a.inversion,'inversion',i,'number')}</div>
+                    <div>${lbl('Alcance')}${inp(a.alcance,'alcance',i,'number')}</div>
+                    <div>${lbl('Clics')}${inp(a.clics,'clics',i,'number')}</div>
+                    <div>${lbl('Conversiones')}${inp(a.conversiones,'conversiones',i,'number')}</div>
+                    <div>${lbl('CPR $')}${inp(a.cpr,'cpr',i,'number')}</div>
+                </div>
+                <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;align-items:end;">
+                    <div>${lbl('Segmento / Audiencia')}${inp(a.segmento,'segmento',i)}</div>
+                    <div>${lbl('Fecha inicio')}${inp(a.inicio||'','inicio',i,'date')}</div>
+                    <div>${lbl('Fecha fin')}${inp(a.fin||'','fin',i,'date')}</div>
+                </div>
+                <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--color-borde);display:flex;justify-content:flex-end;">
+                    <button class="btn btn-xs btn-peligro-suave" onclick="delObj('ads',${i})"><i class="fa-solid fa-trash"></i> Eliminar campaña</button>
+                </div>
+            </div>` : '';
             return `
-            <div class="ad-row-card">
-                <div class="ad-row-header">
+            <div class="ad-row-card" id="ad-card-${i}">
+                <div class="ad-row-header" ${canEdit?`style="cursor:pointer;" onclick="toggleExpandirAd(${i})"`:''}  >
                     <div class="ad-cell" style="border-left:4px solid var(--color-primario);">
                         <div class="ad-cell-name">${a.nombre}</div>
-                        <div class="ad-cell-seg"><i class="fa-solid fa-users" style="margin-right:4px; color:var(--texto-secundario);"></i>${a.segmento}</div>
+                        <div class="ad-cell-seg"><i class="fa-solid fa-users" style="margin-right:4px;color:var(--texto-secundario);"></i>${a.segmento}</div>
                         <div style="margin-top:6px;"><span class="ad-status ${statusCls}">${statusDot} ${a.estado}</span></div>
                     </div>
-                    <div class="ad-cell">
-                        <div class="ad-cell-label">Inversión</div>
-                        <div class="ad-cell-value">$${Number(a.inversion).toLocaleString()}</div>
-                    </div>
-                    <div class="ad-cell">
-                        <div class="ad-cell-label">Alcance</div>
-                        <div class="ad-cell-value">${Number(a.alcance).toLocaleString()}</div>
-                    </div>
-                    <div class="ad-cell">
-                        <div class="ad-cell-label">Clics</div>
-                        <div class="ad-cell-value">${Number(a.clics).toLocaleString()}</div>
-                    </div>
-                    <div class="ad-cell">
-                        <div class="ad-cell-label">Conversiones</div>
-                        <div class="ad-cell-value" style="color:var(--color-exito);">${a.conversiones}</div>
-                    </div>
-                    <div class="ad-cell">
-                        <div class="ad-cell-label">CPR</div>
-                        <div class="ad-cell-value">${a.cpr > 0 && a.cpr < 30 ? `<span style="color:var(--color-exito)">$${a.cpr}</span>` : `$${a.cpr}`}</div>
-                    </div>
-                    <div class="ad-cell">
-                        ${ROL==='agencia' ? `<i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('ads',${i})"></i>` : ''}
+                    <div class="ad-cell"><div class="ad-cell-label">Inversión</div><div class="ad-cell-value">$${Number(a.inversion).toLocaleString()}</div></div>
+                    <div class="ad-cell"><div class="ad-cell-label">Alcance</div><div class="ad-cell-value">${Number(a.alcance).toLocaleString()}</div></div>
+                    <div class="ad-cell"><div class="ad-cell-label">Clics</div><div class="ad-cell-value">${Number(a.clics).toLocaleString()}</div></div>
+                    <div class="ad-cell"><div class="ad-cell-label">Conversiones</div><div class="ad-cell-value" style="color:var(--color-exito);">${a.conversiones}</div></div>
+                    <div class="ad-cell"><div class="ad-cell-label">CPR</div><div class="ad-cell-value">${a.cpr>0&&a.cpr<30?`<span style="color:var(--color-exito)">$${a.cpr}</span>`:`$${a.cpr}`}</div></div>
+                    <div class="ad-cell" style="text-align:center;">
+                        ${canEdit ? `<i id="ad-chevron-${i}" class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);font-size:11px;transition:transform .2s;${isOpen?'transform:rotate(180deg)':''}"></i>` : ''}
                     </div>
                 </div>
+                ${editPanel}
             </div>`;
-        }).join('') || `<div style="text-align:center; padding:40px; color:var(--texto-secundario); font-size:14px;"><i class="fa-solid fa-bullhorn" style="font-size:32px; margin-bottom:12px; display:block; opacity:0.3;"></i>No hay campañas registradas.</div>`;
+        }).join('') || `<div style="text-align:center;padding:40px;color:var(--texto-secundario);font-size:14px;"><i class="fa-solid fa-bullhorn" style="font-size:32px;margin-bottom:12px;display:block;opacity:0.3;"></i>No hay campañas registradas.<br><button class="btn btn-primario" style="margin-top:16px;" onclick="nuevoAd()"><i class="fa-solid fa-plus"></i> Nueva Campaña</button></div>`;
+    }
+
+    function toggleExpandirAd(i) {
+        if (_adsExpanded.has(i)) _adsExpanded.delete(i); else _adsExpanded.add(i);
+        const panel   = document.getElementById('ad-edit-'+i);
+        const chevron = document.getElementById('ad-chevron-'+i);
+        if (panel)   panel.style.display   = _adsExpanded.has(i) ? 'block' : 'none';
+        if (chevron) chevron.style.transform = _adsExpanded.has(i) ? 'rotate(180deg)' : '';
+    }
+
+    function actualizarAd(i, campo, valor) {
+        const a = (DB.datos[SUC_ACTIVA].ads||[])[i];
+        if (!a) return;
+        a[campo] = ['inversion','alcance','clics','conversiones','cpr'].includes(campo) ? (Number(valor)||0) : valor;
+        guardarBD();
+        _refreshAdsKpi();
+        setTimeout(renderAdsCharts, 80);
+        // Update header card display without full re-render
+        const card = document.getElementById('ad-card-'+i);
+        if (card) {
+            const statusCls = a.estado==='Activa' ? 'ad-active' : (a.estado==='Pausada' ? 'ad-paused' : 'ad-finished');
+            const statusDot = a.estado==='Activa' ? '🟢' : (a.estado==='Pausada' ? '🟡' : '🔴');
+            const nameEl = card.querySelector('.ad-cell-name');
+            const segEl  = card.querySelector('.ad-cell-seg');
+            const stEl   = card.querySelector('.ad-status');
+            if (nameEl && campo==='nombre') nameEl.textContent = a.nombre;
+            if (segEl  && campo==='segmento') segEl.innerHTML = `<i class="fa-solid fa-users" style="margin-right:4px;color:var(--texto-secundario);"></i>${a.segmento}`;
+            if (stEl   && campo==='estado') { stEl.className = 'ad-status '+statusCls; stEl.textContent = statusDot+' '+a.estado; }
+            const cells = card.querySelectorAll('.ad-cell-value');
+            if (cells[0] && campo==='inversion') cells[0].textContent = '$'+Number(a.inversion).toLocaleString();
+            if (cells[1] && campo==='alcance')   cells[1].textContent = Number(a.alcance).toLocaleString();
+            if (cells[2] && campo==='clics')     cells[2].textContent = Number(a.clics).toLocaleString();
+            if (cells[3] && campo==='conversiones') cells[3].textContent = a.conversiones;
+        }
     }
 
     function renderAdsCharts() {
@@ -1932,7 +2446,7 @@ document.addEventListener('DOMContentLoaded', function() {
             type: 'doughnut',
             data: {
                 labels: ads.length ? ads.map(a=>a.segmento.split('·')[0].trim()) : ['Sin datos'],
-                datasets: [{ data: ads.length ? ads.map(a=>a.cpr) : [100], backgroundColor: PALETA.slice(0,Math.max(ads.length,1)), borderWidth: 2, borderColor: '#FFFFFF' }]
+                datasets: [{ data: ads.length ? ads.map(a=>a.cpr) : [100], backgroundColor: PALETA.slice(0,Math.max(ads.length,1)), borderWidth: 0 }]
             },
             options: { responsive: true, cutout: '60%', plugins: { legend: { position:'right', labels:{font:{size:11}} }, tooltip: { callbacks: { label: ctx => ` CPR: $${ctx.raw}` } } } }
         });
@@ -1972,9 +2486,9 @@ document.addEventListener('DOMContentLoaded', function() {
             return `<tr>
                 <td><input class="input-celda" style="font-weight:700;" value="${it.nombre}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].nombre=this.value;guardarBD()"></td>
                 <td><input class="input-celda" value="${it.categoria}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].categoria=this.value;guardarBD()"></td>
-                <td><input type="number" class="input-celda" style="width:70px; font-weight:700;" value="${it.cantidad}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].cantidad=Number(this.value);guardarBD();renderOfflineTable()"></td>
+                <td><input type="text" inputmode="numeric" class="input-celda" style="width:70px; font-weight:700;" value="${it.cantidad}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].cantidad=Number(this.value)||0;guardarBD();renderOfflineTable()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></td>
                 <td><input class="input-celda" value="${it.proveedor}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].proveedor=this.value;guardarBD()"></td>
-                <td><input type="number" class="input-celda" value="${it.costo_unit}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].costo_unit=Number(this.value);guardarBD();renderOfflineTable()"></td>
+                <td><input type="text" inputmode="numeric" class="input-celda" value="${it.costo_unit}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].costo_unit=Number(this.value)||0;guardarBD();renderOfflineTable()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></td>
                 <td style="font-weight:700; color:var(--color-primario);">$${total.toLocaleString()}</td>
                 <td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].estado=this.value;guardarBD();renderOfflineTable()">${optEst}</select>` : `<span class="estado-badge ${stCls}">${it.estado}</span>`}</td>
                 <td><input type="date" class="input-celda" style="width:130px;" value="${it.entrega}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].entrega=this.value;guardarBD()"></td>
@@ -1999,8 +2513,8 @@ document.addEventListener('DOMContentLoaded', function() {
         destroyChart('offline-cat');
         _charts['offline-cat'] = new Chart(document.getElementById('chart-offline-cat').getContext('2d'), {
             type: 'doughnut',
-            data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: PALETA.slice(0,catLabels.length), borderWidth: 2, borderColor: '#FFFFFF', hoverOffset: 8 }] },
-            options: { responsive: true, cutout: '60%', plugins: { legend: { position:'right', labels:{font:{size:11}} }, tooltip: { callbacks: { label: ctx => ` $${ctx.raw.toLocaleString()}` } } } }
+            data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: PALETA.slice(0,catLabels.length), borderWidth: 0, hoverOffset: 6 }] },
+            options: { responsive: true, cutout: '65%', plugins: { legend: { position:'right', labels:{font:{size:11}, padding:16, usePointStyle:true } }, tooltip: { callbacks: { label: ctx => ` $${ctx.raw.toLocaleString()}` } } } }
         });
 
         // Estado de materiales
@@ -2218,6 +2732,543 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ================================================================
+       SPRINT 3 — USUARIOS, ROLES, PERMISOS, AUDITORÍA
+       ================================================================ */
+
+    const _MODULO_VISTA_MAP = {
+        performance:'vista-resumen', charts:'vista-charts', insights:'vista-insights',
+        presupuesto:'vista-presupuesto', facturas:'vista-facturas',
+        calendario:'vista-calendario', cal_editorial:'vista-cal-editorial',
+        shooting:'vista-shooting', dam:'vista-dam',
+        briefing:'vista-briefing', mood:'vista-mood', target:'vista-target',
+        ads:'vista-ads', offline:'vista-offline',
+        proyectos:'vista-clientes', proveedores:'vista-proveedores', config:'vista-config',
+        control_accesos:'vista-control-accesos', auditoria:'vista-auditoria',
+        stories:'vista-stories', mis_tareas:'vista-mis-tareas', usuarios:'vista-usuarios'
+    };
+
+    function irA(target) {
+        document.querySelectorAll('.item-nav').forEach(n => n.classList.remove('activo'));
+        document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto'));
+        const nav = document.querySelector(`[data-target="${target}"]`);
+        if (nav) nav.classList.add('activo');
+        const sec = document.getElementById(target);
+        if (sec) sec.classList.remove('oculto');
+    }
+
+    function generarPassword(len) {
+        len = len || 8;
+        const c = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+        let p = ''; for (let i = 0; i < len; i++) p += c.charAt(Math.floor(Math.random()*c.length));
+        return p;
+    }
+
+    function generarUsername(nombre) {
+        const clean = nombre.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9\s]/g,'');
+        const partes = clean.split(/\s+/).filter(Boolean);
+        return partes.length >= 2 ? partes[0]+'.'+partes[partes.length-1] : (partes[0]||'usuario');
+    }
+
+    function togglePwd(id) { const el = document.getElementById(id); if(el) el.type = el.type==='password'?'text':'password'; }
+
+    // ---- Permissions ----
+
+    function aplicarPermisos(rol_id) {
+        if (!DB.permisos || !DB.roles_sistema) return;
+        // Apply nav visibility based on module permissions
+        document.querySelectorAll('.item-nav[data-target]').forEach(item => {
+            const target = item.getAttribute('data-target');
+            const mod = Object.keys(_MODULO_VISTA_MAP).find(k => _MODULO_VISTA_MAP[k] === target);
+            if (!mod) return;
+            const perms = DB.permisos[mod];
+            item.style.display = (perms && perms[rol_id]) ? '' : 'none';
+        });
+        // Show Mi Trabajo section header if role has mis_tareas access
+        const hasMisTareas = !!(DB.permisos.mis_tareas && DB.permisos.mis_tareas[rol_id]);
+        document.querySelectorAll('.req-equipo').forEach(el => { el.style.display = hasMisTareas ? '' : 'none'; });
+        // Update role badge
+        const rol = (DB.roles_sistema||[]).find(r => r.id === rol_id);
+        if (rol && USUARIO_ACTIVO) {
+            const badge = document.getElementById('badge-rol');
+            badge.style.background = rol.color+'20';
+            badge.style.color = rol.color;
+            badge.innerText = USUARIO_ACTIVO.nombre + ' · ' + rol.nombre;
+        }
+        // Ver como dropdown — visible only for owner (not simulating)
+        const vcw = document.getElementById('ver-como-wrap');
+        if (vcw) {
+            const isRealOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+            if (isRealOwner) {
+                vcw.classList.remove('oculto');
+                const sel = document.getElementById('ver-como-select');
+                if (sel) sel.innerHTML = '<option value="">👁 Ver como...</option>' +
+                    (DB.roles_sistema||[]).filter(r => r.id !== 'owner').map(r => `<option value="${r.id}">${r.nombre}</option>`).join('');
+            } else {
+                vcw.classList.add('oculto');
+            }
+        }
+        // Project selector scope for non-owner/lanka_team
+        if (USUARIO_ACTIVO) {
+            const canSeeAll = rol_id === 'owner' || rol_id === 'lanka_team';
+            const sel = document.getElementById('selector-sucursal');
+            const lbl = document.getElementById('etiqueta-cliente');
+            if (canSeeAll) {
+                sel.innerHTML = DB.sucursales.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+                sel.style.display = ''; lbl.style.display = 'none';
+                sel.value = SUC_ACTIVA;
+            } else if (USUARIO_ACTIVO.proyectos && USUARIO_ACTIVO.proyectos.length) {
+                const userSucs = DB.sucursales.filter(s => USUARIO_ACTIVO.proyectos.includes(s.id));
+                if (userSucs.length > 1) {
+                    sel.innerHTML = userSucs.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+                    sel.style.display = ''; lbl.style.display = 'none';
+                    if (!userSucs.find(s => s.id === SUC_ACTIVA)) { SUC_ACTIVA = userSucs[0].id; sel.value = SUC_ACTIVA; }
+                } else {
+                    sel.style.display = 'none'; lbl.style.display = 'block';
+                }
+            }
+        }
+    }
+
+    function simularVista(rol_id) {
+        if (!rol_id) return;
+        ROL_SIMULADO = rol_id;
+        const rol = (DB.roles_sistema||[]).find(r => r.id === rol_id);
+        document.getElementById('banner-simulacion').classList.remove('oculto');
+        document.getElementById('banner-simulacion-rol').innerText = rol ? rol.nombre : rol_id;
+        // Re-apply from scratch: show all items first then restrict
+        document.querySelectorAll('.item-nav[data-target]').forEach(el => el.style.display = '');
+        document.querySelectorAll('.req-equipo').forEach(el => el.style.display = '');
+        aplicarPermisos(rol_id);
+    }
+
+    function salirVistaSimulada() {
+        ROL_SIMULADO = null;
+        document.getElementById('banner-simulacion').classList.add('oculto');
+        const sel = document.getElementById('ver-como-select'); if (sel) sel.value = '';
+        // Re-apply from scratch with actual user role
+        document.querySelectorAll('.item-nav[data-target]').forEach(el => el.style.display = '');
+        document.querySelectorAll('.req-equipo').forEach(el => el.style.display = '');
+        if (USUARIO_ACTIVO) aplicarPermisos(USUARIO_ACTIVO.rol_id);
+        // Navigate to first visible section
+        const firstVisible = document.querySelector('.item-nav[data-target]:not([style*="none"])');
+        if (firstVisible) firstVisible.click();
+    }
+
+    // ---- User Management ----
+
+    function renderUsuarios() {
+        const el = document.getElementById('usuarios-lista');
+        if (!el) return;
+        const usuarios = DB.usuarios || [];
+        if (!usuarios.length) { el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--texto-secundario);">No hay usuarios configurados.</div>'; return; }
+        el.innerHTML = usuarios.map(u => {
+            const rol = (DB.roles_sistema||[]).find(r => r.id === u.rol_id) || { nombre: u.rol_id, color:'#888' };
+            const initials = u.nombre.split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase() || '?';
+            let pwd = ''; try { pwd = atob(u.password); } catch(e) {}
+            const rolesOpts = (DB.roles_sistema||[]).map(r => `<option value="${r.id}" ${r.id===u.rol_id?'selected':''}>${r.nombre}</option>`).join('');
+            const ubicOpts  = (DB.ubicaciones||[]).map(ub => `<option value="${ub}" ${ub===u.ubicacion?'selected':''}>${ub}</option>`).join('');
+            const proyOpts  = (DB.sucursales||[]).map(p => `<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;padding:6px 12px;border:1px solid var(--color-borde);border-radius:8px;background:var(--color-tarjeta);"><input type="checkbox" id="u-proy-${u.id}-${p.id}" ${(u.proyectos||[]).includes(p.id)?'checked':''}> ${p.nombre}</label>`).join('');
+            return `<div class="usuario-card" id="u-card-${u.id}">
+                <div class="usuario-card-header" onclick="toggleExpandirUsuario('${u.id}')">
+                    <div class="usuario-avatar" style="background:${rol.color}">${initials}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-family:var(--font-display);font-size:15px;font-weight:800;color:var(--texto-principal);">${u.nombre}</div>
+                        <div style="font-size:12px;color:var(--texto-secundario);font-family:monospace;margin-top:1px;">@${u.username}${u.puesto?` · <em style="font-family:var(--font-body)">${u.puesto}</em>`:''}</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                        <span class="estado-badge" style="background:${rol.color}20;color:${rol.color};">${rol.nombre}</span>
+                        <span class="estado-badge ${u.estado==='activo'?'badge-estado-activo':'badge-estado-suspendido'}">${u.estado==='activo'?'Activo':'Suspendido'}</span>
+                        <i class="fa-solid fa-chevron-down usuario-chevron" style="font-size:11px;color:var(--texto-secundario);transition:var(--transicion);"></i>
+                    </div>
+                </div>
+                <div class="usuario-card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+                        <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Nombre completo</label><input class="input-celda" id="u-nombre-${u.id}" value="${u.nombre}" style="border:1px solid var(--color-borde);"></div>
+                        <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Username</label><input class="input-celda" id="u-username-${u.id}" value="${u.username}" style="border:1px solid var(--color-borde);font-family:monospace;"></div>
+                        <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Puesto real</label><input class="input-celda" id="u-puesto-${u.id}" value="${u.puesto||''}" placeholder="Fotógrafa, Cosmetóloga..." style="border:1px solid var(--color-borde);"></div>
+                        <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Rol del sistema</label><select class="select-celda" id="u-rol-${u.id}" style="border:1px solid var(--color-borde);">${rolesOpts}</select></div>
+                        <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Contraseña</label>
+                            <div class="pwd-field-wrap"><input class="input-celda" id="u-pwd-${u.id}" type="password" value="${pwd}" style="border:1px solid var(--color-borde);font-family:monospace;"><i class="fa-solid fa-eye pwd-toggle-eye" onclick="togglePwd('u-pwd-${u.id}')"></i></div>
+                            <button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="resetPasswordUsuario('${u.id}')"><i class="fa-solid fa-rotate"></i> Resetear password</button>
+                        </div>
+                        <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Ubicación</label><select class="select-celda" id="u-ubicacion-${u.id}" style="border:1px solid var(--color-borde);">${ubicOpts}</select></div>
+                    </div>
+                    <div style="margin-bottom:18px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:10px;">Proyectos asignados</label><div style="display:flex;gap:10px;flex-wrap:wrap;">${proyOpts}</div></div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--color-borde);">
+                        <button class="btn btn-primario btn-xs" onclick="guardarUsuario('${u.id}')"><i class="fa-solid fa-check"></i> Guardar</button>
+                        <button class="btn btn-fantasma btn-xs" onclick="copiarCredenciales('${u.id}')"><i class="fa-solid fa-copy"></i> Copiar credenciales</button>
+                        <button class="btn btn-fantasma btn-xs" onclick="limpiarCamposUsuario('${u.id}')"><i class="fa-solid fa-eraser"></i> Limpiar</button>
+                        <button class="btn btn-xs ${u.estado==='activo'?'btn-peligro-suave':'btn-fantasma'}" style="margin-left:auto;" onclick="suspenderUsuario('${u.id}')"><i class="fa-solid fa-${u.estado==='activo'?'ban':'circle-check'}"></i> ${u.estado==='activo'?'Suspender':'Activar'}</button>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function toggleExpandirUsuario(id) {
+        const card = document.getElementById('u-card-'+id);
+        if (card) card.classList.toggle('expandido');
+    }
+
+    function nuevoUsuario() {
+        const nombre = prompt('Nombre completo del nuevo usuario:');
+        if (!nombre || !nombre.trim()) return;
+        const id = 'u_' + Date.now();
+        const username = generarUsername(nombre.trim());
+        const pwd = generarPassword();
+        if (!DB.usuarios) DB.usuarios = [];
+        DB.usuarios.push({ id, nombre: nombre.trim(), username, puesto:'', password:btoa(pwd), rol_id:'equipo', proyectos:[], ubicacion:'Todas', estado:'activo' });
+        guardarBD(); renderUsuarios();
+        alert(`Usuario creado.\nUsername: ${username}\nPassword temporal: ${pwd}\n\nGuarda estas credenciales.`);
+    }
+
+    function guardarUsuario(id) {
+        const u = (DB.usuarios||[]).find(u => u.id === id);
+        if (!u) return;
+        u.nombre   = document.getElementById('u-nombre-'+id)?.value.trim() || u.nombre;
+        u.username = document.getElementById('u-username-'+id)?.value.trim() || u.username;
+        u.puesto   = document.getElementById('u-puesto-'+id)?.value.trim() || '';
+        u.rol_id   = document.getElementById('u-rol-'+id)?.value || u.rol_id;
+        const newPwd = document.getElementById('u-pwd-'+id)?.value;
+        if (newPwd) u.password = btoa(newPwd);
+        u.ubicacion = document.getElementById('u-ubicacion-'+id)?.value || u.ubicacion;
+        const proyectos = [];
+        (DB.sucursales||[]).forEach(p => { const cb = document.getElementById('u-proy-'+id+'-'+p.id); if (cb && cb.checked) proyectos.push(p.id); });
+        u.proyectos = proyectos;
+        guardarBD(); renderUsuarios();
+        const s = document.getElementById('status-save');
+        s.innerHTML = `<i class="fa-solid fa-check"></i> ${u.nombre} guardado`;
+        s.style.opacity = 1; setTimeout(() => { s.style.opacity = 0; setTimeout(() => { s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado'; }, 300); }, 2000);
+    }
+
+    function copiarCredenciales(id) {
+        const u = (DB.usuarios||[]).find(u => u.id === id);
+        if (!u) return;
+        let pwd = ''; try { pwd = atob(u.password); } catch(e) {}
+        const proyectos = (u.proyectos||[]).map(pid => (DB.sucursales.find(s=>s.id===pid)||{nombre:pid}).nombre).join(', ') || '—';
+        const texto = `Usuario: ${u.username}\nPassword: ${pwd}\nProyecto: ${proyectos}\nUbicación: ${u.ubicacion||'—'}`;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(texto).then(() => alert('Credenciales copiadas al portapapeles.'));
+        } else {
+            const ta = document.createElement('textarea'); ta.value = texto;
+            document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+            document.body.removeChild(ta); alert('Credenciales copiadas.');
+        }
+    }
+
+    function resetPasswordUsuario(id) {
+        if (!confirm('¿Generar una nueva contraseña automática para este usuario?')) return;
+        const u = (DB.usuarios||[]).find(u => u.id === id);
+        if (!u) return;
+        const newPwd = generarPassword();
+        u.password = btoa(newPwd);
+        guardarBD();
+        const input = document.getElementById('u-pwd-'+id);
+        if (input) { input.value = newPwd; input.type = 'text'; }
+        alert(`Nueva contraseña generada:\n${newPwd}\n\nGuárdala ahora — no podrás verla de nuevo.`);
+    }
+
+    function suspenderUsuario(id) {
+        const u = (DB.usuarios||[]).find(u => u.id === id);
+        if (!u) return;
+        const newEstado = u.estado === 'activo' ? 'suspendido' : 'activo';
+        if (!confirm(`¿${newEstado === 'suspendido' ? 'Suspender' : 'Activar'} a ${u.nombre}?`)) return;
+        u.estado = newEstado; guardarBD(); renderUsuarios();
+    }
+
+    function limpiarCamposUsuario(id) {
+        const u = (DB.usuarios||[]).find(u => u.id === id);
+        if (!u) return;
+        const n = document.getElementById('u-nombre-'+id); if(n) n.value = u.nombre;
+        const un = document.getElementById('u-username-'+id); if(un) un.value = u.username;
+        const pt = document.getElementById('u-puesto-'+id); if(pt) pt.value = u.puesto||'';
+        const pw = document.getElementById('u-pwd-'+id); if(pw) { pw.value=''; pw.type='password'; }
+        const ub = document.getElementById('u-ubicacion-'+id); if(ub) ub.value = u.ubicacion;
+    }
+
+    // ---- Control de Accesos ----
+
+    function renderControlAccesos() { activarTabAccesos('roles'); }
+
+    function activarTabAccesos(tab) {
+        ['roles','permisos','ubicaciones'].forEach(t => {
+            document.getElementById('tab-btn-'+t).classList.toggle('activo', t===tab);
+            document.getElementById('tab-'+t).classList.toggle('activo', t===tab);
+        });
+        if (tab==='roles') renderTabRoles();
+        else if (tab==='permisos') renderTabPermisos();
+        else renderTabUbicaciones();
+    }
+
+    function renderTabRoles() {
+        const el = document.getElementById('tab-roles'); if (!el) return;
+        const roles = DB.roles_sistema || [];
+        const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+        el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <p style="font-size:14px;color:var(--texto-secundario);">Niveles de acceso disponibles en el sistema.</p>
+            ${isOwner?`<button class="btn btn-primario btn-xs" onclick="crearRol()"><i class="fa-solid fa-plus"></i> Nuevo Rol</button>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+        ${roles.map(r => `<div style="display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--color-tarjeta);border-radius:12px;border:1px solid var(--color-borde);box-shadow:var(--sombra-suave);">
+            <div style="width:14px;height:14px;border-radius:50%;background:${r.color};flex-shrink:0;"></div>
+            ${isOwner && r.editable
+                ? `<input class="input-celda" value="${r.nombre}" style="flex:1;border:1px solid var(--color-borde);" onchange="actualizarRol('${r.id}','nombre',this.value);renderTabRoles()">
+                   <input type="color" value="${r.color}" onchange="actualizarRol('${r.id}','color',this.value);renderTabRoles()" style="width:28px;height:28px;border:none;border-radius:6px;cursor:pointer;padding:0;background:transparent;overflow:hidden;">
+                   <button class="btn btn-xs btn-peligro-suave" onclick="eliminarRol('${r.id}')"><i class="fa-solid fa-trash"></i></button>`
+                : `<span style="flex:1;font-weight:700;font-size:14px;">${r.nombre}</span><span style="font-size:11px;color:var(--texto-secundario);">${r.editable?'Editable':'Fijo (sistema)'}</span>`}
+        </div>`).join('')}
+        </div>`;
+    }
+
+    function renderTabPermisos() {
+        const el = document.getElementById('tab-permisos'); if (!el) return;
+        const roles = DB.roles_sistema || [];
+        const permisos = DB.permisos || {};
+        const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+        const GRUPOS = [
+            { g:'Inteligencia',  items:[['performance','Resumen General'],['charts','Dashboard Charts'],['insights','Laboratorio Insights']] },
+            { g:'Finanzas',      items:[['presupuesto','Presupuesto'],['facturas','Facturación']] },
+            { g:'Orquestación',  items:[['calendario','Calendario Content'],['cal_editorial','Calendario Visual'],['shooting','Agenda Shooting'],['dam','DAM Governance'],['stories','Stories']] },
+            { g:'Estrategia',    items:[['briefing','Briefing Mensual'],['mood','Mood & Ejes'],['target','Target & Seg.'],['ads','Ad Performance'],['offline','Materiales Offline']] },
+            { g:'Mi Trabajo',    items:[['mis_tareas','Mis Tareas']] },
+            { g:'Administración',items:[['proyectos','Proyectos'],['proveedores','Proveedores'],['config','Configuración'],['usuarios','Usuarios'],['control_accesos','Control de Accesos'],['auditoria','Auditoría']] }
+        ];
+        let h = `<div class="permisos-grid-wrap"><table class="permisos-grid"><thead><tr><th>Módulo</th>`;
+        roles.forEach(r => { h += `<th><span style="background:${r.color}20;color:${r.color};padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap;">${r.nombre}</span></th>`; });
+        h += `</tr></thead><tbody>`;
+        GRUPOS.forEach(({g, items}) => {
+            h += `<tr class="permisos-grupo"><td colspan="${roles.length+1}">${g}</td></tr>`;
+            items.forEach(([mod, nombre]) => {
+                h += `<tr><td>${nombre}</td>`;
+                roles.forEach(r => {
+                    const checked = !!(permisos[mod] && permisos[mod][r.id]);
+                    if (r.id === 'owner') {
+                        h += `<td><i class="fa-solid fa-check" style="color:${r.color};font-size:13px;"></i></td>`;
+                    } else {
+                        h += `<td><label class="toggle"><input type="checkbox" ${checked?'checked':''} ${isOwner?'':'disabled'} onchange="togglePermiso('${mod}','${r.id}',this.checked)"><span class="toggle-slider"></span></label></td>`;
+                    }
+                });
+                h += `</tr>`;
+            });
+        });
+        h += `</tbody></table></div>`;
+        el.innerHTML = h;
+    }
+
+    function renderTabUbicaciones() {
+        const el = document.getElementById('tab-ubicaciones'); if (!el) return;
+        const ubicaciones = DB.ubicaciones || [];
+        const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+        el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <p style="font-size:14px;color:var(--texto-secundario);">Ubicaciones físicas para asignar a usuarios.</p>
+            ${isOwner?`<button class="btn btn-primario btn-xs" onclick="agregarUbicacion()"><i class="fa-solid fa-plus"></i> Nueva Ubicación</button>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;max-width:600px;">
+        ${ubicaciones.map((u,i) => `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--color-tarjeta);border-radius:10px;border:1px solid var(--color-borde);">
+            <i class="fa-solid fa-location-dot" style="color:var(--color-primario);font-size:13px;width:16px;text-align:center;flex-shrink:0;"></i>
+            ${isOwner
+                ? `<input class="input-celda" value="${u}" style="flex:1;" onchange="DB.ubicaciones[${i}]=this.value;guardarBD();">
+                   <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="eliminarUbicacion(${i})"></i>`
+                : `<span style="flex:1;font-size:14px;">${u}</span>`}
+        </div>`).join('')}
+        </div>`;
+    }
+
+    function crearRol() {
+        const nombre = prompt('Nombre del nuevo rol:');
+        if (!nombre || !nombre.trim()) return;
+        const id = 'rol_'+Date.now();
+        const color = '#'+Math.floor(Math.random()*0xCCCCCC+0x333333).toString(16);
+        if (!DB.roles_sistema) DB.roles_sistema = [];
+        DB.roles_sistema.push({ id, nombre:nombre.trim(), color, editable:true });
+        if (DB.permisos) { Object.keys(DB.permisos).forEach(mod => { DB.permisos[mod][id] = false; }); }
+        guardarBD(); renderTabRoles();
+    }
+
+    function eliminarRol(id) {
+        const rol = (DB.roles_sistema||[]).find(r=>r.id===id);
+        if (!rol || !rol.editable) return;
+        if (!confirm(`¿Eliminar el rol "${rol.nombre}"?`)) return;
+        DB.roles_sistema = DB.roles_sistema.filter(r => r.id !== id);
+        if (DB.permisos) { Object.keys(DB.permisos).forEach(mod => { delete DB.permisos[mod][id]; }); }
+        guardarBD(); renderTabRoles();
+    }
+
+    function actualizarRol(id, campo, valor) {
+        const rol = (DB.roles_sistema||[]).find(r=>r.id===id);
+        if (rol) { rol[campo] = valor; guardarBD(); }
+    }
+
+    function togglePermiso(modulo, rol_id, valor) {
+        if (!DB.permisos) DB.permisos = {};
+        if (!DB.permisos[modulo]) DB.permisos[modulo] = {};
+        DB.permisos[modulo][rol_id] = valor; guardarBD();
+        // Apply immediately without reload
+        if (USUARIO_ACTIVO) aplicarPermisos(ROL_SIMULADO || USUARIO_ACTIVO.rol_id);
+    }
+
+    function agregarUbicacion() {
+        const u = prompt('Nueva ubicación:');
+        if (!u || !u.trim()) return;
+        if (!DB.ubicaciones) DB.ubicaciones = [];
+        DB.ubicaciones.push(u.trim()); guardarBD(); renderTabUbicaciones();
+    }
+
+    function eliminarUbicacion(idx) {
+        if (!confirm('¿Eliminar esta ubicación?')) return;
+        (DB.ubicaciones||[]).splice(idx,1); guardarBD(); renderTabUbicaciones();
+    }
+
+    // ---- Auditoría ----
+
+    function renderAuditoria() {
+        const hoy = new Date().toISOString().split('T')[0];
+        const hace30 = new Date(Date.now()-30*24*60*60*1000).toISOString().split('T')[0];
+        const desde = document.getElementById('audit-desde');
+        const hasta = document.getElementById('audit-hasta');
+        if (desde && !desde.value) desde.value = hace30;
+        if (hasta && !hasta.value) hasta.value = hoy;
+        const el = document.getElementById('auditoria-resultado');
+        if (el && !el.innerHTML.trim()) el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--texto-secundario);"><i class="fa-solid fa-chart-bar" style="font-size:40px;opacity:.15;display:block;margin-bottom:16px;"></i>Selecciona un rango y genera el reporte.</div>';
+    }
+
+    function generarReporteAuditoria() {
+        const desde = document.getElementById('audit-desde').value;
+        const hasta  = document.getElementById('audit-hasta').value;
+        const doC = document.getElementById('audit-contenido').checked;
+        const doP = document.getElementById('audit-produccion').checked;
+        const doA = document.getElementById('audit-pauta').checked;
+        const doV = document.getElementById('audit-ventas').checked;
+        const doS = document.getElementById('audit-sistema').checked;
+        const el  = document.getElementById('auditoria-resultado');
+
+        const enRango = f => { if(!f) return true; if(desde && f < desde) return false; if(hasta && f > hasta) return false; return true; };
+
+        const allK=[], allAds=[], allSh=[], allDam=[];
+        (DB.sucursales||[]).forEach(suc => {
+            const d = DB.datos[suc.id]; if (!d) return;
+            (d.kanban||[]).forEach(k => allK.push({...k, suc:suc.nombre}));
+            (d.ads||[]).forEach(a => allAds.push({...a, suc:suc.nombre}));
+            (d.shooting||[]).forEach(s => allSh.push({...s, suc:suc.nombre}));
+            (d.dam||[]).forEach(dm => allDam.push({...dm, suc:suc.nombre}));
+        });
+
+        let html = '';
+        const label10 = (t) => `<label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">${t}</label>`;
+
+        if (doC) {
+            const posts = allK.filter(k => enRango(k.fecha));
+            const byEstado = {};
+            posts.forEach(k => { byEstado[k.estado]=(byEstado[k.estado]||0)+1; });
+            html += `<div class="tarjeta" style="margin-bottom:20px;">
+                <h3 style="margin-bottom:16px;"><i class="fa-solid fa-calendar-check" style="color:var(--color-primario);margin-right:8px;"></i>Contenido</h3>
+                <div class="audit-stat-grid">
+                    <div class="audit-stat-card"><div class="audit-stat-num">${posts.length}</div><div class="audit-stat-lbl">Posts totales</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:var(--color-exito);">${byEstado['Programado']||0}</div><div class="audit-stat-lbl">Programados</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:#4A90D9;">${byEstado['Producción']||0}</div><div class="audit-stat-lbl">En Producción</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:#9A7000;">${byEstado['Ideas']||0}</div><div class="audit-stat-lbl">En Ideas</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:var(--color-peligro);">${byEstado['Revisión']||0}</div><div class="audit-stat-lbl">En Revisión</div></div>
+                </div>
+                ${posts.length ? `<table class="tabla-editable" style="margin-top:14px;"><thead><tr><th>Título</th><th>Fecha</th><th>Estado</th><th>Asignado</th><th>Proyecto</th></tr></thead><tbody>${posts.slice(0,10).map(k=>`<tr><td style="font-weight:600;">${k.titulo}</td><td>${k.fecha}</td><td><span class="estado-badge ${k.estado==='Programado'?'estado-listo':k.estado==='Producción'?'estado-produccion':'estado-pendiente'}">${k.estado}</span></td><td>${k.asignado_a||'—'}</td><td>${k.suc}</td></tr>`).join('')}</tbody></table>${posts.length>10?`<div style="font-size:11px;color:var(--texto-secundario);margin-top:6px;text-align:right;">Mostrando 10 de ${posts.length}</div>`:''}` : '<div style="font-size:13px;color:var(--texto-secundario);font-style:italic;margin-top:8px;">Sin posts en el rango.</div>'}
+            </div>`;
+        }
+
+        if (doP) {
+            const shoots = allSh.filter(s => enRango(s.fecha));
+            let totalCk=0, doneCk=0;
+            shoots.forEach(s => { (s.checklist||[]).forEach(c => { totalCk++; if(c.hecho) doneCk++; }); });
+            const porM = {};
+            allK.filter(k=>enRango(k.fecha)&&k.asignado_a).forEach(k => {
+                if(!porM[k.asignado_a]) porM[k.asignado_a]={total:0,done:0};
+                porM[k.asignado_a].total++;
+                if(k.estado==='Programado') porM[k.asignado_a].done++;
+            });
+            html += `<div class="tarjeta" style="margin-bottom:20px;">
+                <h3 style="margin-bottom:16px;"><i class="fa-solid fa-camera" style="color:#4A90D9;margin-right:8px;"></i>Producción</h3>
+                <div class="audit-stat-grid">
+                    <div class="audit-stat-card"><div class="audit-stat-num">${shoots.length}</div><div class="audit-stat-lbl">Shootings</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num">${totalCk}</div><div class="audit-stat-lbl">Ítems checklist</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:var(--color-exito);">${doneCk}</div><div class="audit-stat-lbl">Completados</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:var(--color-exito);">${allK.filter(k=>enRango(k.fecha)&&k.estado==='Programado').length}</div><div class="audit-stat-lbl">Tareas listas</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:#9A7000;">${allK.filter(k=>enRango(k.fecha)&&k.estado!=='Programado').length}</div><div class="audit-stat-lbl">Pendientes</div></div>
+                </div>
+                ${Object.keys(porM).length?`<table class="tabla-editable" style="margin-top:14px;"><thead><tr><th>Miembro</th><th>Asignadas</th><th>Completadas</th><th>Tasa</th></tr></thead><tbody>${Object.entries(porM).map(([n,d])=>`<tr><td style="font-weight:600;">${n}</td><td>${d.total}</td><td>${d.done}</td><td><span class="var-badge ${d.done/d.total>=.8?'var-positive':'var-negative'}">${Math.round(d.done/d.total*100)}%</span></td></tr>`).join('')}</tbody></table>`:''}
+            </div>`;
+        }
+
+        if (doA) {
+            const ads = allAds.filter(a => enRango(a.inicio));
+            const inv = ads.reduce((s,a)=>s+(a.inversion||0),0);
+            const conv = ads.reduce((s,a)=>s+(a.conversiones||0),0);
+            const cpr = ads.length ? Math.round(inv/Math.max(conv,1)) : 0;
+            html += `<div class="tarjeta" style="margin-bottom:20px;">
+                <h3 style="margin-bottom:16px;"><i class="fa-solid fa-bullhorn" style="color:#8B5CF6;margin-right:8px;"></i>Pauta</h3>
+                <div class="audit-stat-grid">
+                    <div class="audit-stat-card"><div class="audit-stat-num">${ads.length}</div><div class="audit-stat-lbl">Campañas</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num">$${inv.toLocaleString()}</div><div class="audit-stat-lbl">Inversión</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num">${ads.reduce((s,a)=>s+(a.alcance||0),0).toLocaleString()}</div><div class="audit-stat-lbl">Alcance</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num">${conv}</div><div class="audit-stat-lbl">Conversiones</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num">$${cpr}</div><div class="audit-stat-lbl">CPR promedio</div></div>
+                </div>
+                ${ads.length?`<table class="tabla-editable" style="margin-top:14px;"><thead><tr><th>Campaña</th><th>Inversión</th><th>Conv.</th><th>CPR</th><th>Estado</th></tr></thead><tbody>${ads.map(a=>`<tr><td style="font-weight:600;">${a.nombre}</td><td>$${(a.inversion||0).toLocaleString()}</td><td>${a.conversiones||0}</td><td>$${a.cpr||0}</td><td><span class="estado-badge ${a.estado==='Activa'?'estado-listo':a.estado==='Pausada'?'estado-pendiente':'estado-produccion'}">${a.estado}</span></td></tr>`).join('')}</tbody></table>`:'<div style="font-size:13px;color:var(--texto-secundario);font-style:italic;margin-top:8px;">Sin campañas en el rango.</div>'}
+            </div>`;
+        }
+
+        if (doV) {
+            const d = DB.datos[SUC_ACTIVA]; const rend = d ? (d.rendimiento||[]) : [];
+            const nomSuc = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{nombre:''}).nombre;
+            html += `<div class="tarjeta" style="margin-bottom:20px;">
+                <h3 style="margin-bottom:16px;"><i class="fa-solid fa-chart-line" style="color:#34A853;margin-right:8px;"></i>Ventas y Métricas — ${nomSuc}</h3>
+                ${rend.length?`<table class="tabla-editable"><thead><tr><th>Métrica</th><th>Mes Pasado</th><th>Mes Actual</th><th>Variación</th></tr></thead><tbody>${rend.map(r=>{let pct=r.v1>0?((r.v2-r.v1)/r.v1*100).toFixed(1):0;return`<tr><td style="font-weight:600;">${r.m}</td><td>${r.pre}${r.v1}</td><td>${r.pre}${r.v2}</td><td><span class="var-badge ${pct>0?'var-positive':'var-negative'}">${pct>0?'↑':'↓'} ${Math.abs(pct)}%</span></td></tr>`}).join('')}</tbody></table>`:'<div style="font-size:13px;color:var(--texto-secundario);font-style:italic;">Sin métricas disponibles.</div>'}
+            </div>`;
+        }
+
+        if (doS) {
+            const ap = allDam.filter(d=>d.estado==='Aprobado').length;
+            const rev = allDam.filter(d=>d.estado==='En revisión').length;
+            const cam = allDam.filter(d=>d.estado==='Cambios solicitados').length;
+            const usrs = DB.usuarios||[];
+            html += `<div class="tarjeta" style="margin-bottom:20px;">
+                <h3 style="margin-bottom:16px;"><i class="fa-solid fa-shield-halved" style="color:#E8A96A;margin-right:8px;"></i>Sistema</h3>
+                <div class="audit-stat-grid">
+                    <div class="audit-stat-card"><div class="audit-stat-num">${allDam.length}</div><div class="audit-stat-lbl">Assets DAM</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:var(--color-exito);">${ap}</div><div class="audit-stat-lbl">Aprobados</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:#9A7000;">${rev}</div><div class="audit-stat-lbl">En Revisión</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num" style="color:var(--color-peligro);">${cam}</div><div class="audit-stat-lbl">Con cambios</div></div>
+                    <div class="audit-stat-card"><div class="audit-stat-num">${usrs.filter(u=>u.estado==='activo').length}</div><div class="audit-stat-lbl">Usuarios activos</div></div>
+                </div>
+                <table class="tabla-editable" style="margin-top:14px;"><thead><tr><th>Usuario</th><th>Rol</th><th>Puesto</th><th>Proyectos</th><th>Estado</th></tr></thead><tbody>${usrs.map(u=>{const rol=(DB.roles_sistema||[]).find(r=>r.id===u.rol_id)||{nombre:u.rol_id,color:'#888'};const proy=(u.proyectos||[]).map(pid=>(DB.sucursales.find(s=>s.id===pid)||{nombre:pid}).nombre).join(', ');return`<tr><td style="font-weight:600;">${u.nombre}</td><td><span style="background:${rol.color}20;color:${rol.color};padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;">${rol.nombre}</span></td><td>${u.puesto||'—'}</td><td>${proy||'—'}</td><td><span class="estado-badge ${u.estado==='activo'?'badge-estado-activo':'badge-estado-suspendido'}">${u.estado}</span></td></tr>`}).join('')}</tbody></table>
+            </div>`;
+        }
+
+        if (!html) html = '<div style="text-align:center;padding:40px;color:var(--texto-secundario);">Selecciona al menos una categoría.</div>';
+        else html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><h3 style="font-size:15px;">Reporte ${desde||'—'} → ${hasta||'hoy'}</h3></div>` + html;
+        el.innerHTML = html;
+    }
+
+    function exportarAuditoriaCSV() {
+        const desde = document.getElementById('audit-desde')?.value || 'inicio';
+        const hasta  = document.getElementById('audit-hasta')?.value  || 'hoy';
+        let csv = `data:text/csv;charset=utf-8,AUDITORÍA LANKA — ${desde} → ${hasta}\n\n`;
+        csv += 'CONTENIDO\nTítulo,Fecha,Estado,Asignado,Tags,Proyecto\n';
+        (DB.sucursales||[]).forEach(suc => {
+            (DB.datos[suc.id]?.kanban||[]).forEach(k => {
+                csv += `"${k.titulo}","${k.fecha}","${k.estado}","${k.asignado_a||''}","${(k.tags||'').replace(/"/g,'')}","${suc.nombre}"\n`;
+            });
+        });
+        csv += '\nUSUARIOS\nNombre,Username,Rol,Puesto,Proyectos,Estado\n';
+        (DB.usuarios||[]).forEach(u => {
+            const rolNom = ((DB.roles_sistema||[]).find(r=>r.id===u.rol_id)||{nombre:u.rol_id}).nombre;
+            const proy = (u.proyectos||[]).map(pid=>(DB.sucursales.find(s=>s.id===pid)||{nombre:pid}).nombre).join(' | ');
+            csv += `"${u.nombre}","${u.username}","${rolNom}","${u.puesto||''}","${proy}","${u.estado}"\n`;
+        });
+        const link = document.createElement('a');
+        link.setAttribute('href', encodeURI(csv));
+        link.setAttribute('download', `Lanka_Auditoria_${desde}_${hasta}.csv`);
+        document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    /* ================================================================
        IMPORTADOR JSON — CALENDARIO DE CONTENIDO
        ================================================================ */
     function abrirImportarJSON() {
@@ -2268,6 +3319,77 @@ document.addEventListener('DOMContentLoaded', function() {
         s.innerHTML = `<i class="fa-solid fa-check"></i> ${importados} post${importados !== 1 ? 's' : ''} importados`;
         s.style.opacity = 1;
         setTimeout(() => { s.style.opacity = 0; setTimeout(() => { s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado'; }, 300); }, 2800);
+    }
+
+    /* ================================================================
+       NAV COLAPSABLE
+       ================================================================ */
+    function initNavCollapse() {
+        // Wrap text nodes in .nav-label spans and set data-label
+        document.querySelectorAll('.item-nav').forEach(item => {
+            const textNodes = [];
+            item.childNodes.forEach(n => { if (n.nodeType === 3 && n.textContent.trim()) textNodes.push(n); });
+            textNodes.forEach(n => {
+                const span = document.createElement('span');
+                span.className = 'nav-label';
+                span.textContent = n.textContent;
+                n.parentNode.replaceChild(span, n);
+            });
+            item.setAttribute('data-label', item.textContent.trim());
+        });
+
+        // Floating tooltip
+        const tooltip = document.createElement('div');
+        tooltip.id = 'nav-tooltip';
+        document.body.appendChild(tooltip);
+
+        const showTip = (item) => {
+            const nav = document.querySelector('nav');
+            if (!nav || !nav.classList.contains('nav-colapsada')) return;
+            const label = item.getAttribute('data-label');
+            if (!label) return;
+            const rect = item.getBoundingClientRect();
+            tooltip.textContent = label;
+            tooltip.style.top  = (rect.top + rect.height / 2) + 'px';
+            tooltip.style.left = (rect.right + 12) + 'px';
+            tooltip.classList.add('visible');
+        };
+        document.querySelectorAll('.item-nav').forEach(item => {
+            item.addEventListener('mouseenter', () => showTip(item));
+            item.addEventListener('mouseleave', () => tooltip.classList.remove('visible'));
+            item.addEventListener('click', () => { if (window.innerWidth <= 768) cerrarNavMobile(); });
+        });
+
+        // Restore saved state
+        if (localStorage.getItem('nav-colapsada') === '1') {
+            document.querySelector('nav').classList.add('nav-colapsada');
+            const btn = document.getElementById('nav-toggle-btn');
+            if (btn) btn.querySelector('i').className = 'fa-solid fa-bars';
+        }
+    }
+
+    function toggleNavCollapse() {
+        const nav = document.querySelector('nav');
+        const colapsada = nav.classList.toggle('nav-colapsada');
+        localStorage.setItem('nav-colapsada', colapsada ? '1' : '0');
+        const btn = document.getElementById('nav-toggle-btn');
+        if (btn) btn.querySelector('i').className = colapsada ? 'fa-solid fa-bars' : 'fa-solid fa-chevron-left';
+        const tooltip = document.getElementById('nav-tooltip');
+        if (tooltip) tooltip.classList.remove('visible');
+    }
+
+    function toggleNavMobile() {
+        const nav = document.querySelector('nav');
+        const overlay = document.getElementById('nav-overlay');
+        nav.classList.toggle('mobile-abierta');
+        if (overlay) overlay.classList.toggle('activo');
+    }
+
+    function cerrarNavMobile() {
+        const nav = document.querySelector('nav');
+        const overlay = document.getElementById('nav-overlay');
+        nav.classList.remove('mobile-abierta');
+        if (overlay) overlay.classList.remove('activo');
     }
 
 </script>
