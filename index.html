@@ -1804,7 +1804,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    function formatDinero(val) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: DB.configuracion.moneda, maximumFractionDigits:0 }).format(val); }
+    function formatDinero(val) {
+        const moneda = DB.configuracion.moneda || 'MXN';
+        const tc = DB.configuracion.tc || {};
+        let num = Number(val) || 0;
+        // All stored values are in MXN — convert to selected currency
+        if (moneda !== 'MXN' && tc[moneda]) num = num / tc[moneda];
+        return new Intl.NumberFormat('es-MX', { style: 'currency', currency: moneda, maximumFractionDigits: 0 }).format(num);
+    }
     
     function guardarBD() {
         localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
@@ -1814,21 +1821,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function obtenerTipoCambio() {
         const el = document.getElementById('tc-fecha');
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 5000);
         try {
-            const res = await fetch('https://api.exchangerate-api.com/v4/latest/MXN', { signal: AbortSignal.timeout(5000) });
+            const res = await fetch('https://api.exchangerate-api.com/v4/latest/MXN', { signal: ctrl.signal });
+            clearTimeout(timer);
             if (!res.ok) throw new Error('API error');
             const data = await res.json();
-            if (data.rates) {
-                DB.configuracion.tc = { USD: +(1/data.rates.USD).toFixed(4), EUR: +(1/data.rates.EUR).toFixed(4) };
+            // data.rates.USD = cuántos USD vale 1 MXN (ej. 0.057)
+            // Queremos tc.USD = cuántos MXN vale 1 USD (ej. 17.5)
+            if (data.rates && data.rates.USD && data.rates.EUR) {
+                DB.configuracion.tc = {
+                    USD: +(1 / data.rates.USD).toFixed(4),
+                    EUR: +(1 / data.rates.EUR).toFixed(4)
+                };
                 DB.configuracion.tc_fecha = new Date().toISOString();
-                guardarBD();
+                localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
             }
         } catch(e) {
-            // Use cached values silently
+            clearTimeout(timer);
+            // Silently use cached rates from localStorage
         }
         if (el) {
             const f = DB.configuracion.tc_fecha;
-            el.textContent = f ? 'TC: ' + new Date(f).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) : '';
+            const tc = DB.configuracion.tc || {};
+            el.textContent = f
+                ? `1 USD = $${tc.USD||'—'} · ${new Date(f).toLocaleDateString('es-MX',{day:'2-digit',month:'short'})}`
+                : '';
         }
     }
 
