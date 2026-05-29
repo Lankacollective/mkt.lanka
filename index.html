@@ -327,7 +327,7 @@
 
     /* Nav: backdrop blur, marca con separador, accent en ítem activo */
     nav { background: rgba(245,245,247,0.96); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-right: 1px solid rgba(0,0,0,0.05); }
-    .marca { padding-bottom: 18px; border-bottom: 1px solid var(--color-borde); margin-bottom: 6px; }
+    .marca { padding-bottom: 0; border-bottom: none; margin-bottom: 0; }
     .item-nav.activo { border-left: 3px solid var(--color-primario); padding-left: 11px; background: rgba(255,255,255,0.9); }
     .menu-titulo { letter-spacing: 0.07em; font-size: 10px; margin: 20px 0 6px 8px; }
 
@@ -683,6 +683,11 @@
     [data-theme="dark"] .ppto-view-btn:hover { color: #F0EDE8 !important; }
     [data-theme="dark"] .ppto-view-btn.activo { color: var(--color-primario) !important; }
     [data-theme="dark"] .ppto-view-btns { border-bottom-color: rgba(255,255,255,0.1) !important; }
+    /* Presupuesto pills de atajo */
+    .ppto-pill { padding:7px 16px; border-radius:100px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid var(--color-borde-fuerte); background:transparent; color:var(--texto-secundario); transition:var(--transicion); }
+    .ppto-pill:hover { border-color:var(--color-primario); color:var(--color-primario); }
+    .ppto-pill.activo { background:var(--color-primario); border-color:var(--color-primario); color:#fff; }
+    [data-theme="dark"] .ppto-pill:not(.activo) { border-color:rgba(255,255,255,0.15); }
     /* Sticky column dark/light */
     .ppto-sticky-col { background: #fff; }
     [data-theme="dark"] .ppto-sticky-col { background: #111114 !important; }
@@ -784,31 +789,28 @@
     nav { transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1), padding 0.3s cubic-bezier(0.25,0.8,0.25,1); flex-shrink: 0; }
     main { transition: flex 0.3s cubic-bezier(0.25,0.8,0.25,1); }
 
-    /* Nav toggle button — circular, posición absoluta */
-    nav { position: relative; }
-    .marca { margin-top: 20px; }
+    /* Nav head — logo + toggle en mismo row */
+    .nav-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding-bottom: 18px; border-bottom: 1px solid var(--color-borde);
+        margin-bottom: 6px; flex-shrink: 0;
+    }
     .nav-toggle-btn {
-        position: absolute;
-        top: 16px; right: 16px;
-        width: 32px; height: 32px;
-        border-radius: 50%;
+        width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
         background: var(--color-tarjeta);
         border: 1.5px solid var(--color-borde-fuerte);
         color: var(--texto-secundario);
-        cursor: pointer;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 11px;
-        transition: var(--transicion);
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-        z-index: 10; flex-shrink: 0;
+        cursor: pointer; display: flex; align-items: center; justify-content: center;
+        font-size: 11px; transition: var(--transicion);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
     .nav-toggle-btn:hover { background: var(--color-primario); color: white; border-color: var(--color-primario); box-shadow: 0 4px 12px rgba(196,133,90,0.3); }
     [data-theme="dark"] .nav-toggle-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16); }
     [data-theme="dark"] .nav-toggle-btn:hover { background: var(--color-primario) !important; border-color: var(--color-primario) !important; }
 
     nav.nav-colapsada { width: 64px !important; padding: 20px 0 !important; overflow: visible !important; }
-    nav.nav-colapsada .nav-toggle-btn { right: 50%; transform: translateX(50%); top: 16px; }
-    nav.nav-colapsada .marca { display: none !important; }
+    nav.nav-colapsada .nav-head { justify-content: center; padding: 0 0 14px; }
+    nav.nav-colapsada .nav-head .marca { display: none !important; }
     nav.nav-colapsada #badge-rol { display: none !important; }
     nav.nav-colapsada .menu-titulo { display: none !important; }
     nav.nav-colapsada .item-nav { justify-content: center !important; padding: 12px 0 !important; border-left: none !important; }
@@ -877,8 +879,10 @@
 
 <div id="pantalla-app" class="oculto">
     <nav>
-        <button class="nav-toggle-btn" id="nav-toggle-btn" onclick="toggleNavCollapse()" title="Colapsar menú"><i class="fa-solid fa-chevron-left"></i></button>
-        <div class="marca">LANKA</div>
+        <div class="nav-head">
+            <div class="marca">LANKA</div>
+            <button class="nav-toggle-btn" id="nav-toggle-btn" onclick="toggleNavCollapse()" title="Colapsar menú"><i class="fa-solid fa-chevron-left"></i></button>
+        </div>
         <div id="badge-rol" class="badge-rol" onclick="cerrarSesion()" title="Cerrar sesión" style="cursor:pointer; position:relative;" onmouseenter="this.style.opacity='0.75'" onmouseleave="this.style.opacity='1'"></div>
 
         <div class="menu-titulo req-no-equipo">Inteligencia</div>
@@ -1028,11 +1032,27 @@
                 <!-- KPI Strip -->
                 <div class="kpi-strip" id="charts-kpi-strip"></div>
 
+                <!-- Histórico editable -->
+                <div class="chart-box req-agencia" id="historico-editor-wrap" style="margin-bottom:24px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                        <div>
+                            <h3 style="margin-bottom:2px;">Histórico Mensual</h3>
+                            <p class="chart-subtitle">Edita los valores para actualizar todas las gráficas</p>
+                        </div>
+                        <button class="btn btn-xs btn-fantasma" onclick="this.closest('.chart-box').querySelector('#historico-tabla').classList.toggle('oculto');this.querySelector('i').classList.toggle('fa-chevron-down');this.querySelector('i').classList.toggle('fa-chevron-up');"><i class="fa-solid fa-chevron-down"></i></button>
+                    </div>
+                    <div id="historico-tabla" class="oculto">
+                        <div style="overflow-x:auto;">
+                            <table class="tabla-editable" id="tabla-historico-mensual" style="min-width:700px;"></table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Main Charts Row -->
                 <div class="chart-grid">
                     <div class="chart-box">
                         <h3>Variación Mensual de Métricas</h3>
-                        <p class="chart-subtitle">Últimos 6 meses — Ventas, Seguidores, DMs</p>
+                        <p class="chart-subtitle">Últimos 12 meses — Ventas, Seguidores, DMs</p>
                         <div class="chart-canvas-wrap">
                             <canvas id="chart-linea" height="220"></canvas>
                         </div>
@@ -1626,6 +1646,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 stories_ind: [
                     { id: "st1", dia: "2026-05-27", hora: "08:00", tipo: "DM", copy: "¿Tienes tensión acumulada? Este mes lo resolvemos. Escríbenos la palabra TENSIÓN.", cta: "TENSIÓN", post_vinculado: "k2" },
                     { id: "st2", dia: "2026-05-31", hora: "20:00", tipo: "encuesta", copy: "¿Qué necesitas más esta semana?", cta: "Vota aquí", post_vinculado: "" }
+                ],
+                historico_mensual: [
+                    {mes:"Ene",ventas:8200, seguidores:380, dms:600},
+                    {mes:"Feb",ventas:9100, seguidores:490, dms:780},
+                    {mes:"Mar",ventas:10200,seguidores:620, dms:950},
+                    {mes:"Abr",ventas:11000,seguidores:710, dms:1050},
+                    {mes:"May",ventas:12500,seguidores:840, dms:1210},
+                    {mes:"Jun",ventas:0,    seguidores:0,   dms:0},
+                    {mes:"Jul",ventas:0,    seguidores:0,   dms:0},
+                    {mes:"Ago",ventas:0,    seguidores:0,   dms:0},
+                    {mes:"Sep",ventas:0,    seguidores:0,   dms:0},
+                    {mes:"Oct",ventas:0,    seguidores:0,   dms:0},
+                    {mes:"Nov",ventas:0,    seguidores:0,   dms:0},
+                    {mes:"Dic",ventas:0,    seguidores:0,   dms:0}
                 ]
             },
             mammut: {
@@ -1633,7 +1667,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 rendimiento: [], productos: [], objetivos: [], txt_working: "", txt_change: "", insights: [],
                 kanban: [], dam: [], presupuesto: [], facturas: [], briefing: { reglas: [], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } },
                 mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: [],
-                ads: [], offline: [], shooting: [], stories_ind: []
+                ads: [], offline: [], shooting: [], stories_ind: [],
+                historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0}))
             }
         },
         proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ],
@@ -1683,7 +1718,10 @@ document.addEventListener('DOMContentLoaded', function() {
     let _adsExpanded = new Set();
     let _briefingTab = 'reglas';
     let _mcExpanded  = new Set();
-    let _pptoVista = 'anual'; let _pptoMes = new Date().getMonth();
+    let _pptoVista = 'anual';
+    let _pptoMes = new Date().getMonth(); // keep for compat
+    let _pptoDesde = new Date().getMonth();
+    let _pptoHasta = new Date().getMonth();
     let _charts = {}; // instancias Chart.js
     let _calFecha = new Date();
 
@@ -1779,6 +1817,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!b.horarios)                        { b.horarios = { grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} }; _s5migrated = true; }
                 // Migrate rendimiento: add meta field
                 (DB.datos[sid].rendimiento||[]).forEach(r => { if (r.meta === undefined) { r.meta = ''; _s5migrated = true; } });
+                // Migrate: add historico_mensual if missing
+                if (!DB.datos[sid].historico_mensual) {
+                    const _mc = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+                    DB.datos[sid].historico_mensual = Array.from({length:12},(_,i)=>({mes:_mc[i],ventas:0,seguidores:0,dms:0}));
+                    _s5migrated = true;
+                }
             });
             if (_s5migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
@@ -2080,41 +2124,113 @@ document.addEventListener('DOMContentLoaded', function() {
         return h + `</tbody></table></div></div>`;
     }
 
+    function _pptoSetRango(desde, hasta) {
+        _pptoDesde = desde; _pptoHasta = hasta; renderPresupuesto();
+    }
+
+    function _pptoSetAtajo(tipo) {
+        const m = new Date().getMonth();
+        if (tipo==='mes')       { _pptoSetRango(m, m); }
+        else if (tipo==='ant')  { const a=Math.max(0,m-1); _pptoSetRango(a,a); }
+        else if (tipo==='3m')   { _pptoSetRango(Math.max(0,m-2), m); }
+        else if (tipo==='anio') { _pptoSetRango(0, 11); }
+    }
+
     function _renderPptoMensual(pres, ro) {
-        const mesNombre = MESES[_pptoMes];
-        let mesInv = 0, mesCol = 0;
-        pres.forEach(p => { mesInv += p.montos_mes[_pptoMes]?.inversion||0; mesCol += p.montos_mes[_pptoMes]?.colaboracion||0; });
-        const mesOpts = MESES.map((m,idx) => `<option value="${idx}" ${idx===_pptoMes?'selected':''}>${m}</option>`).join('');
-        let h = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
-            <button class="btn btn-fantasma btn-xs" onclick="_pptoMes=Math.max(0,_pptoMes-1);renderPresupuesto()"><i class="fa-solid fa-chevron-left"></i></button>
-            <select class="select-moneda" style="font-size:14px;font-weight:700;font-family:var(--font-display);padding:6px 28px 6px 12px;border-radius:10px;" onchange="_pptoMes=Number(this.value);renderPresupuesto()">${mesOpts}</select>
-            <button class="btn btn-fantasma btn-xs" onclick="_pptoMes=Math.min(11,_pptoMes+1);renderPresupuesto()"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(mesInv)}</div><div class="ppto-kpi-lbl">Inversión ${mesNombre}</div></div>
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(mesCol)}</div><div class="ppto-kpi-lbl">Colaboración ${mesNombre}</div></div>
-        </div>
-        <div class="tarjeta" style="padding:0;overflow:hidden;"><table class="tabla-editable"><thead><tr>
-            <th style="text-align:left;">Ítem</th><th>Tipo</th>
-            <th style="color:var(--color-primario);">Inversión</th>
-            <th style="color:var(--texto-secundario);">Colaboración</th>
-            <th>Total Mes</th>
-            ${!ro ? '<th></th>' : ''}
-        </tr></thead><tbody>`;
-        pres.forEach((p, pIdx) => {
-            const m = p.montos_mes[_pptoMes] || {inversion:0,colaboracion:0};
-            const totalMes = (m.inversion||0)+(m.colaboracion||0);
-            h += `<tr>
-                <td><input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
-                    <div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${p.categoria}</div></td>
-                <td><span style="font-size:11px;font-weight:600;color:var(--texto-secundario);">${p.tipo||'—'}</span></td>
-                <td><input type="text" inputmode="numeric" class="input-celda" style="font-weight:700;text-align:right;" value="${m.inversion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${_pptoMes}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>
-                <td><input type="text" inputmode="numeric" class="input-celda" style="color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${_pptoMes}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>
-                <td style="font-weight:700;text-align:right;font-size:13px;white-space:nowrap;">${formatDinero(totalMes)}</td>
-                ${!ro ? `<td style="width:32px;text-align:center;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>` : ''}
-            </tr>`;
+        const mesActual = new Date().getMonth();
+        // Atajo activo
+        const esAtajo = (t) => {
+            const m = mesActual;
+            if (t==='mes')  return _pptoDesde===m && _pptoHasta===m;
+            if (t==='ant')  return _pptoDesde===Math.max(0,m-1) && _pptoHasta===Math.max(0,m-1);
+            if (t==='3m')   return _pptoDesde===Math.max(0,m-2) && _pptoHasta===m;
+            if (t==='anio') return _pptoDesde===0 && _pptoHasta===11;
+            return false;
+        };
+        const pill = (t, lbl) => `<button class="ppto-pill ${esAtajo(t)?'activo':''}" onclick="_pptoSetAtajo('${t}')">${lbl}</button>`;
+
+        const mesOpts = (sel, name) => MESES.map((m,i)=>`<option value="${i}" ${i===sel?'selected':''}>${m}</option>`).join('');
+        const desdeName = MESES[_pptoDesde]||'';
+        const hastaName = MESES[_pptoHasta]||'';
+
+        // Months in range (inclusive)
+        const meses_rango = [];
+        for (let i = _pptoDesde; i <= _pptoHasta; i++) meses_rango.push(i);
+
+        // KPI totals for the range
+        let totalInvR=0, totalColR=0;
+        pres.forEach(p => {
+            meses_rango.forEach(mi => {
+                const m = p.montos_mes[mi]||{};
+                totalInvR += m.inversion||0;
+                totalColR += m.colaboracion||0;
+            });
         });
-        return h + `</tbody></table></div>`;
+        const label_rango = _pptoDesde===_pptoHasta ? desdeName : `${desdeName} – ${hastaName}`;
+
+        let h = `
+        <div style="margin-bottom:20px;">
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">
+                ${pill('mes','Este mes')}${pill('ant','Mes anterior')}${pill('3m','Últimos 3 meses')}${pill('anio','Este año')}
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Desde</label>
+                <select class="select-moneda" style="padding:6px 24px 6px 10px;" onchange="_pptoDesde=Number(this.value);if(_pptoDesde>_pptoHasta)_pptoHasta=_pptoDesde;renderPresupuesto()">${mesOpts(_pptoDesde)}</select>
+                <label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Hasta</label>
+                <select class="select-moneda" style="padding:6px 24px 6px 10px;" onchange="_pptoHasta=Number(this.value);if(_pptoHasta<_pptoDesde)_pptoDesde=_pptoHasta;renderPresupuesto()">${mesOpts(_pptoHasta)}</select>
+            </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR)}</div><div class="ppto-kpi-lbl">Inversión — ${label_rango}</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalColR)}</div><div class="ppto-kpi-lbl">Colaboración — ${label_rango}</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR+totalColR)}</div><div class="ppto-kpi-lbl">Total periodo</div></div>
+        </div>
+        <div class="tarjeta" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table class="tabla-editable"><thead><tr>
+            <th style="position:sticky;left:0;z-index:2;min-width:160px;" class="ppto-sticky-col">Ítem</th>
+            <th>Tipo</th>`;
+        meses_rango.forEach(mi => {
+            h += `<th colspan="2" style="text-align:center;border-left:1px solid var(--color-borde);white-space:nowrap;">${MESES[mi].substring(0,3)}</th>`;
+        });
+        h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;">Total periodo</th>
+            ${!ro?'<th></th>':''}</tr>
+            <tr><th class="ppto-sticky-col" style="position:sticky;left:0;z-index:2;"></th><th></th>`;
+        meses_rango.forEach(() => {
+            h += `<th style="font-size:10px;text-align:center;color:var(--color-primario);opacity:.8;">Inv.</th><th style="font-size:10px;text-align:center;color:var(--texto-secundario);">Col.</th>`;
+        });
+        h += `<th></th>${!ro?'<th></th>':''}</tr></thead><tbody>`;
+
+        let totInvCol = Array(meses_rango.length).fill(0), totColCol = Array(meses_rango.length).fill(0);
+        pres.forEach((p, pIdx) => {
+            let rowTotal = 0;
+            h += `<tr><td style="position:sticky;left:0;z-index:1;" class="ppto-sticky-col">
+                <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
+                <div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${p.categoria}</div></td>
+                <td><span style="font-size:11px;font-weight:600;color:var(--texto-secundario);">${p.tipo||'—'}</span></td>`;
+            meses_rango.forEach((mi, ci) => {
+                const m = p.montos_mes[mi] || {inversion:0,colaboracion:0};
+                rowTotal += (m.inversion||0) + (m.colaboracion||0);
+                totInvCol[ci] += m.inversion||0;
+                totColCol[ci] += m.colaboracion||0;
+                h += `<td style="border-left:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="font-weight:600;text-align:right;" value="${m.inversion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>
+                      <td style="border-right:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
+            });
+            h += `<td style="border-left:2px solid var(--color-borde-fuerte);font-weight:700;text-align:right;white-space:nowrap;">${formatDinero(rowTotal)}</td>
+                  ${!ro?`<td style="width:32px;text-align:center;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`:''}</tr>`;
+        });
+        // Totals row
+        h += `<tr style="background:rgba(0,0,0,0.02);font-weight:700;border-top:2px solid var(--color-borde-fuerte);">
+            <td class="ppto-sticky-col" style="position:sticky;left:0;font-weight:700;">Total</td><td></td>`;
+        let grandTotal = 0;
+        meses_rango.forEach((_,ci) => {
+            const t = totInvCol[ci]+totColCol[ci];
+            grandTotal += t;
+            h += `<td style="text-align:right;color:var(--color-primario);font-weight:700;border-left:1px solid var(--color-borde);">${formatDinero(totInvCol[ci])}</td>
+                  <td style="text-align:right;color:var(--texto-secundario);border-right:1px solid var(--color-borde);">${formatDinero(totColCol[ci])}</td>`;
+        });
+        h += `<td style="border-left:2px solid var(--color-borde-fuerte);font-weight:800;text-align:right;color:var(--color-primario);white-space:nowrap;">${formatDinero(grandTotal)}</td>
+              ${!ro?'<td></td>':''}</tr>`;
+
+        return h + `</tbody></table></div></div>`;
     }
 
     function renderFacturas() {
@@ -2474,7 +2590,8 @@ document.addEventListener('DOMContentLoaded', function() {
     function nuevoCliente() {
         const id = 'p_' + Date.now();
         DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123"), equipo_miembros: [] });
-        DB.datos[id] = { highlights: [{ label: "Sales", val: "0" }, { label: "Followers", val: "0" }, { label: "DMs", val: "0" }], rendimiento: [], productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [] };
+        const _mesesCortos = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+        DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: [], productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})) };
         guardarBD(); iniciarApp(id);
     }
 
@@ -2532,95 +2649,130 @@ document.addEventListener('DOMContentLoaded', function() {
     const PALETA = ['#C4855A','#34A853','#4A90D9','#8B5CF6','#FBBC05','#EA4335','#86826C','#7A8C6E'];
 
     /* ============= MÓDULO 1: DASHBOARD CHARTS ============= */
+    function _renderHistoricoEditor() {
+        const d = DB.datos[SUC_ACTIVA];
+        const hist = d.historico_mensual || [];
+        const ro = ROL === 'cliente' ? 'readonly' : '';
+        const el = document.getElementById('tabla-historico-mensual');
+        if (!el) return;
+        el.innerHTML = `<thead><tr>
+            <th>Mes</th>
+            <th style="color:var(--color-primario);">Ventas (MXN)</th>
+            <th style="color:#34A853;">Seguidores</th>
+            <th style="color:#4A90D9;">DMs</th>
+        </tr></thead><tbody>` +
+        hist.map((h,i) => `<tr>
+            <td style="font-weight:700;color:var(--texto-secundario);">${h.mes}</td>
+            <td><input type="text" inputmode="numeric" class="input-celda" style="text-align:right;font-weight:600;" value="${h.ventas||0}" ${ro}
+                onchange="DB.datos['${SUC_ACTIVA}'].historico_mensual[${i}].ventas=Number(this.value)||0;guardarBD();renderCharts()"></td>
+            <td><input type="text" inputmode="numeric" class="input-celda" style="text-align:right;" value="${h.seguidores||0}" ${ro}
+                onchange="DB.datos['${SUC_ACTIVA}'].historico_mensual[${i}].seguidores=Number(this.value)||0;guardarBD();renderCharts()"></td>
+            <td><input type="text" inputmode="numeric" class="input-celda" style="text-align:right;" value="${h.dms||0}" ${ro}
+                onchange="DB.datos['${SUC_ACTIVA}'].historico_mensual[${i}].dms=Number(this.value)||0;guardarBD();renderCharts()"></td>
+        </tr>`).join('') + '</tbody>';
+    }
+
     function renderCharts() {
         const d = DB.datos[SUC_ACTIVA];
         const cp = COLOR_P();
+        const hist = d.historico_mensual || Array.from({length:12},(_,i)=>({mes:MESES[i].substring(0,3),ventas:0,seguidores:0,dms:0}));
+        const labels = hist.map(h => h.mes);
+        const ventasData = hist.map(h => h.ventas    || 0);
+        const seguiData  = hist.map(h => h.seguidores|| 0);
+        const dmsData    = hist.map(h => h.dms       || 0);
 
-        // KPI Strip dinámico
-        const kpis = [
-            { label: "Total Sales", val: d.rendimiento.find(r=>r.m.includes('Sales'))?.v2 || 0, prev: d.rendimiento.find(r=>r.m.includes('Sales'))?.v1 || 0, prefix: "$", color: cp },
-            { label: "Nuevos Seguidores", val: d.rendimiento.find(r=>r.m.includes('Follower'))?.v2 || 0, prev: d.rendimiento.find(r=>r.m.includes('Follower'))?.v1 || 0, prefix: "", color: '#34A853' },
-            { label: "DMs Totales", val: d.rendimiento.find(r=>r.m.includes('Message'))?.v2 || 0, prev: d.rendimiento.find(r=>r.m.includes('Message'))?.v1 || 0, prefix: "", color: '#4A90D9' },
-            { label: "Ticket Promedio", val: d.rendimiento.find(r=>r.m.includes('Ticket'))?.v2 || 0, prev: d.rendimiento.find(r=>r.m.includes('Ticket'))?.v1 || 0, prefix: "$", color: '#8B5CF6' }
-        ];
-        document.getElementById('charts-kpi-strip').innerHTML = kpis.map(k => {
-            const pct = k.prev > 0 ? ((k.val - k.prev) / k.prev * 100).toFixed(1) : 0;
+        _renderHistoricoEditor();
+
+        // KPI Strip — lee desde d.rendimiento (primeras 4 métricas)
+        const COLORES_KPI = [cp, '#34A853', '#4A90D9', '#8B5CF6'];
+        const rend = d.rendimiento || [];
+        const kpiData = rend.length
+            ? rend.slice(0,4).map((r,i) => ({ label: r.m, val: Number(r.v2)||0, prev: Number(r.v1)||0, pre: r.pre||'', color: COLORES_KPI[i] || cp }))
+            : [
+                { label: 'Ventas',     val: ventasData.reduce((a,b)=>a+b,0), prev:0, pre:'$', color: cp },
+                { label: 'Seguidores', val: seguiData.reduce((a,b)=>a+b,0),  prev:0, pre:'',  color: '#34A853' },
+                { label: 'DMs',        val: dmsData.reduce((a,b)=>a+b,0),    prev:0, pre:'',  color: '#4A90D9' }
+            ];
+        document.getElementById('charts-kpi-strip').innerHTML = kpiData.map(k => {
+            const pct = k.prev > 0 ? +((k.val - k.prev) / k.prev * 100).toFixed(1) : 0;
             const up = pct >= 0;
+            const displayVal = k.pre === '$' ? formatDinero(k.val) : (k.pre||'') + Number(k.val).toLocaleString('es-MX');
             return `<div class="kpi-card" style="--kpi-color:${k.color}">
                 <div class="kpi-label">${k.label}</div>
-                <div class="kpi-value">${k.prefix}${Number(k.val).toLocaleString('es-MX')}</div>
-                <div class="kpi-delta ${up?'up':'down'}">${up?'↑':'↓'} ${Math.abs(pct)}% vs mes anterior</div>
+                <div class="kpi-value">${displayVal}</div>
+                <div class="kpi-delta ${up?'up':'down'}">${up?'↑':'↓'} ${Math.abs(pct)}% vs anterior</div>
             </div>`;
         }).join('');
 
-        // Chart 1: Línea variación mensual
+        // Chart 1: Línea — desde historico_mensual
         destroyChart('linea');
-        const mesesCortos = MESES.map(m=>m.substring(0,3));
         const ctxL = document.getElementById('chart-linea').getContext('2d');
         const gradient = ctxL.createLinearGradient(0, 0, 0, 220);
-        gradient.addColorStop(0, `${cp}30`);
-        gradient.addColorStop(1, `${cp}00`);
+        gradient.addColorStop(0, `${cp}35`); gradient.addColorStop(1, `${cp}00`);
         _charts['linea'] = new Chart(ctxL, {
             type: 'line',
-            data: {
-                labels: mesesCortos,
+            data: { labels,
                 datasets: [
-                    { label: 'Ventas (MXN)', data: [8200, 9100, 10200, 11000, 12500, 0], borderColor: cp, backgroundColor: gradient, borderWidth: 2.5, tension: 0.4, fill: true, pointBackgroundColor: cp, pointRadius: 4, pointHoverRadius: 7 },
-                    { label: 'Nuevos Seguidores', data: [380, 490, 620, 710, 840, 0], borderColor: '#34A853', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointBackgroundColor: '#34A853', pointRadius: 4, pointHoverRadius: 7 },
-                    { label: 'DMs', data: [600, 780, 950, 1050, 1210, 0], borderColor: '#4A90D9', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointBackgroundColor: '#4A90D9', pointRadius: 4, pointHoverRadius: 7, borderDash: [4,3] }
+                    { label: 'Ventas (MXN)', data: ventasData, borderColor: cp, backgroundColor: gradient, borderWidth: 2.5, tension: 0.4, fill: true, pointBackgroundColor: cp, pointRadius: 3, pointHoverRadius: 6 },
+                    { label: 'Seguidores',   data: seguiData,  borderColor: '#34A853', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointBackgroundColor: '#34A853', pointRadius: 3, pointHoverRadius: 6 },
+                    { label: 'DMs',          data: dmsData,    borderColor: '#4A90D9', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointBackgroundColor: '#4A90D9', pointRadius: 3, pointHoverRadius: 6, borderDash: [4,3] }
                 ]
             },
-            options: { responsive: true, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { boxWidth: 10, font: { size: 11, weight: '600' } } }, tooltip: { backgroundColor: '#111', padding: 12, titleFont: { size: 12 } } }, scales: { y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } }, x: { grid: { display: false }, ticks: { font: { size: 11 } } } } }
+            options: { responsive: true, interaction: { mode:'index', intersect:false }, plugins: { legend: { position:'top', labels:{ boxWidth:10, font:{size:11,weight:'600'} } }, tooltip: { backgroundColor:'#111', padding:12 } }, scales: { y: { grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:11}} }, x: { grid:{display:false}, ticks:{font:{size:11}} } } }
         });
 
-        // Chart 2: Donut product mix
+        // Chart 2: Donut — desde d.productos
         destroyChart('donut');
         const productos = d.productos.length ? d.productos : [{m:'Sin datos', pct:100}];
         _charts['donut'] = new Chart(document.getElementById('chart-donut').getContext('2d'), {
             type: 'doughnut',
             data: { labels: productos.map(p=>p.m), datasets: [{ data: productos.map(p=>p.pct), backgroundColor: PALETA.slice(0,productos.length), borderWidth: 0, hoverOffset: 6 }] },
-            options: { responsive: true, cutout: '68%', plugins: { legend: { display: false }, tooltip: { backgroundColor: '#111', padding: 12 } } }
+            options: { responsive: true, cutout: '68%', plugins: { legend: { display:false }, tooltip: { backgroundColor:'#111', padding:12 } } }
         });
         document.getElementById('donut-legend').innerHTML = productos.map((p,i) => `<div class="chart-legend-item"><div class="chart-legend-dot" style="background:${PALETA[i]};"></div>${p.m} <b style="color:var(--texto-principal)">${p.pct}%</b></div>`).join('');
 
-        // Chart 3: Barras Ad Performance
+        // Chart 3: Barras Ad Performance — desde d.ads
         destroyChart('barras-ads');
-        const ads = (d.ads||[]).slice(0,5);
-        const adLabels = ads.length ? ads.map(a=>a.nombre.substring(0,20)) : ['Sin campañas'];
-        const invData = ads.length ? ads.map(a=>a.inversion) : [0];
-        const convData = ads.length ? ads.map(a=>a.conversiones*10) : [0];
+        const ads = (d.ads||[]).slice(0,6);
         _charts['barras-ads'] = new Chart(document.getElementById('chart-barras-ads').getContext('2d'), {
             type: 'bar',
-            data: { labels: adLabels, datasets: [
-                { label: 'Inversión (MXN)', data: invData, backgroundColor: `${cp}CC`, borderRadius: 8, borderSkipped: false },
-                { label: 'Conversiones ×10', data: convData, backgroundColor: '#34A85380', borderRadius: 8, borderSkipped: false }
-            ]},
-            options: { responsive: true, plugins: { legend: { position: 'top', labels: { font: { size: 11, weight: '600' } } } }, scales: { y: { grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } }
+            data: { labels: ads.length ? ads.map(a=>a.nombre.substring(0,20)) : ['Sin campañas'],
+                datasets: [
+                    { label: 'Inversión',        data: ads.length ? ads.map(a=>a.inversion)      : [0], backgroundColor: `${cp}CC`, borderRadius: 8, borderSkipped: false },
+                    { label: 'Conversiones ×10', data: ads.length ? ads.map(a=>a.conversiones*10) : [0], backgroundColor: '#34A85380', borderRadius: 8, borderSkipped: false }
+                ]},
+            options: { responsive: true, plugins: { legend: { position:'top', labels:{font:{size:11,weight:'600'}} } }, scales: { y: { grid:{color:'rgba(0,0,0,0.04)'} }, x: { grid:{display:false} } } }
         });
 
-        // Chart 4: Radar engagement
+        // Chart 4: Radar — tags del kanban como categorías
         destroyChart('radar');
+        const tagCount = {};
+        (d.kanban||[]).forEach(k => (k.tags||'').split(',').forEach(t => { const tt=t.trim(); if(tt) tagCount[tt]=(tagCount[tt]||0)+1; }));
+        const radarLabels = Object.keys(tagCount).slice(0,6);
+        const radarData   = radarLabels.map(t => tagCount[t]);
         _charts['radar'] = new Chart(document.getElementById('chart-radar').getContext('2d'), {
             type: 'radar',
-            data: { labels: ['Reels', 'ASMR', 'Pauta', 'Stories', 'Carrusel', 'Lives'], datasets: [
-                { label: 'Engagement %', data: [8.2, 6.4, 4.1, 5.8, 3.2, 7.1], backgroundColor: `${cp}20`, borderColor: cp, pointBackgroundColor: cp, borderWidth: 2, pointRadius: 4 }
-            ]},
-            options: { responsive: true, scales: { r: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { font: { size: 10 } } } }, plugins: { legend: { display: false } } }
+            data: { labels: radarLabels.length ? radarLabels : ['Reels','ASMR','Pauta','Stories','Carrusel'],
+                datasets: [{ label: 'Piezas', data: radarData.length ? radarData : [0,0,0,0,0], backgroundColor: `${cp}20`, borderColor: cp, pointBackgroundColor: cp, borderWidth: 2, pointRadius: 4 }] },
+            options: { responsive: true, scales: { r: { beginAtZero:true, grid:{color:'rgba(0,0,0,0.06)'}, ticks:{font:{size:10}} } }, plugins: { legend:{display:false} } }
         });
 
-        // Chart 5: Área crecimiento
+        // Chart 5: Área seguidores acumulado — desde historico_mensual
         destroyChart('area');
         const ctxA = document.getElementById('chart-area').getContext('2d');
         const gA = ctxA.createLinearGradient(0,0,0,200);
-        gA.addColorStop(0, '#34A85340'); gA.addColorStop(1, '#34A85300');
+        gA.addColorStop(0,'#34A85340'); gA.addColorStop(1,'#34A85300');
+        let acum = 0;
+        const acumData = seguiData.map(v => { acum += (v||0); return acum; });
         _charts['area'] = new Chart(ctxA, {
             type: 'line',
-            data: { labels: mesesCortos, datasets: [{ label: 'Seguidores Acum.', data: [1200,1590,2080,2790,3500,0], fill: true, backgroundColor: gA, borderColor: '#34A853', borderWidth: 2.5, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#34A853' }] },
-            options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(0,0,0,0.04)' } }, x: { grid: { display: false } } } }
+            data: { labels, datasets: [{ label: 'Seguidores Acum.', data: acumData, fill: true, backgroundColor: gA, borderColor: '#34A853', borderWidth: 2.5, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#34A853' }] },
+            options: { responsive: true, plugins: { legend:{display:false} }, scales: { y: { grid:{color:'rgba(0,0,0,0.04)'} }, x: { grid:{display:false} } } }
         });
     }
 
     function refreshCharts() { renderCharts(); }
+
 
     /* ============= MÓDULO 3: CALENDARIO EDITORIAL VISUAL ============= */
     function renderCalEditorial() {
