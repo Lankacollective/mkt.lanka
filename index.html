@@ -716,6 +716,24 @@
     .inv-cat-val { font-family:var(--font-display); font-size:20px; font-weight:900; letter-spacing:-0.02em; margin-top:4px; }
     .inv-cat-pct { font-size:10px; font-weight:700; color:var(--texto-secundario); margin-top:2px; }
 
+
+    /* ── EJECUTOR DE KPIs ── */
+    .ejecutor-card { background:var(--color-tarjeta); border-radius:20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); margin-bottom:24px; overflow:hidden; }
+    [data-theme="dark"] .ejecutor-card { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    .ejecutor-header { display:flex; align-items:center; justify-content:space-between; padding:18px 24px; cursor:pointer; user-select:none; }
+    .ejecutor-body { border-top:1px solid var(--color-borde); padding:0 24px 20px; animation:fadeUp .15s ease; }
+    [data-theme="dark"] .ejecutor-body { border-top-color:rgba(255,255,255,0.08)!important; }
+    .ejecutor-body.hidden { display:none; }
+    .ejecutor-input { border:none; background:transparent; padding:6px 8px; border-radius:6px; font-size:13px; font-weight:600; outline:none; color:var(--texto-principal); text-align:right; width:100%; transition:background .15s; }
+    .ejecutor-input:hover:not([readonly]) { background:rgba(0,0,0,.03); }
+    .ejecutor-input:focus { background:var(--color-tarjeta) !important; box-shadow:0 0 0 2px var(--color-primario); border-radius:6px; }
+    [data-theme="dark"] .ejecutor-input { color:#F0EDE8; }
+    [data-theme="dark"] .ejecutor-input:hover:not([readonly]) { background:rgba(255,255,255,.05)!important; }
+    .ejecutor-total-row td { background:rgba(0,0,0,.02); font-weight:800; border-top:2px solid var(--color-borde); }
+    [data-theme="dark"] .ejecutor-total-row td { background:rgba(255,255,255,.03)!important; border-top-color:rgba(255,255,255,.1)!important; }
+    .ejecutor-chevron { font-size:11px; color:var(--texto-secundario); transition:transform .2s; }
+    .ejecutor-chevron.open { transform:rotate(180deg); }
+
     /* ================================================================
        BRIEFING ESTRATÉGICO — SPRINT 5
        ================================================================ */
@@ -910,7 +928,7 @@
 
         <div class="menu-titulo req-no-equipo">Inteligencia</div>
         <ul class="menu-nav req-no-equipo">
-            <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-chart-pie"></i> Resumen General</li>
+            <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-gauge-high"></i> Dashboard</li>
             <li class="item-nav" data-target="vista-charts"><i class="fa-solid fa-chart-line"></i> Métricas y Gráficas</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
         </ul>
@@ -996,10 +1014,12 @@
             <section id="vista-resumen" class="seccion-app">
                 <div class="encabezado-seccion">
                     <div>
-                        <h1>Resumen General</h1>
-                        <p>Análisis ejecutivo del rendimiento mensual y variaciones automáticas. <span id="dash-tipo-badge"></span></p>
+                        <h1>Dashboard</h1>
+                        <p>KPIs acumulados del periodo + métricas del proyecto. <span id="dash-tipo-badge"></span></p>
                     </div>
                 </div>
+                <!-- Ejecutor de KPIs (ingreso semanal) -->
+                <div id="ejecutor-kpis-wrap"></div>
                 <!-- 4 KPI fijos: clientes + CAC -->
                 <div class="dash-kpi-row" id="dash-kpis-clientes"></div>
                 <!-- Desglose inversión desde presupuesto -->
@@ -1729,6 +1749,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     { id: "st1", dia: "2026-05-27", hora: "08:00", tipo: "DM", copy: "¿Tienes tensión acumulada? Este mes lo resolvemos. Escríbenos la palabra TENSIÓN.", cta: "TENSIÓN", post_vinculado: "k2" },
                     { id: "st2", dia: "2026-05-31", hora: "20:00", tipo: "encuesta", copy: "¿Qué necesitas más esta semana?", cta: "Vota aquí", post_vinculado: "" }
                 ],
+                kpi_semanal: [
+                    { id:"s1", semana:"Semana 1", fecha:"2026-05-01", clientes_nuevos:8,  clientes_recurrentes:22, clientes_recuperados:4, ventas:5200, dms:480, ticket_medio:1040 },
+                    { id:"s2", semana:"Semana 2", fecha:"2026-05-08", clientes_nuevos:10, clientes_recurrentes:18, clientes_recuperados:3, ventas:4800, dms:420, ticket_medio:960  },
+                    { id:"s3", semana:"Semana 3", fecha:"2026-05-15", clientes_nuevos:6,  clientes_recurrentes:20, clientes_recuperados:2, ventas:6100, dms:580, ticket_medio:1220 }
+                ],
                 historico_mensual: [
                     {mes:"Ene",ventas:8200, seguidores:380, dms:600},
                     {mes:"Feb",ventas:9100, seguidores:490, dms:780},
@@ -1750,7 +1775,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 kanban: [], dam: [], presupuesto: [], facturas: [], briefing: { reglas: [], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } },
                 mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: [],
                 ads: [], offline: [], shooting: [], stories_ind: [],
-                historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0}))
+                historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0})),
+                kpi_semanal: []
             }
         },
         proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ],
@@ -1936,6 +1962,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 (DB.datos[s.id]?.presupuesto||[]).forEach(p => {
                     if (_tipoMap[p.tipo]) { p.tipo = _tipoMap[p.tipo]; _tipoMigrated = true; }
                 });
+            });
+            // Migrate kpi_semanal
+            DB.sucursales.forEach(s => {
+                const datos = DB.datos[s.id];
+                if (datos && !datos.kpi_semanal) { datos.kpi_semanal = []; _tipoMigrated = true; }
             });
             if (_tipoMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
@@ -2132,9 +2163,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const _tipoLabel = (TIPOS_PROYECTO.find(t=>t.id===_tipo)||{}).label || _tipo;
         const _badgeEl = document.getElementById('dash-tipo-badge');
         if (_badgeEl) _badgeEl.innerHTML = `<span style="background:var(--color-primario);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;vertical-align:middle;letter-spacing:.04em;">${_tipoLabel}</span>`;
-        // ── 4 KPI Cards fijos ──────────────────────────────────────────────
+        // ── Ejecutor de KPIs ───────────────────────────────────────────────
+        renderEjecutorKPIs();
+        // ── 4 KPI Cards (alimentadas desde el Ejecutor) ────────────────────
         _renderDashKPIs(d);
-        // ── Desglose Inversión desde Presupuesto ─────────────────────────────
+        // ── Desglose Inversión desde Presupuesto ────────────────────────────
         _renderDashInversion(d);
         document.getElementById('dash-rendimiento').innerHTML = d.rendimiento.map((r, i) => {
             let v1 = Number(r.v1); let v2 = Number(r.v2); let pct = v1 > 0 ? ((v2 - v1) / v1 * 100).toFixed(1) : 0;
@@ -2153,7 +2186,133 @@ document.addEventListener('DOMContentLoaded', function() {
         if (document.activeElement !== txC) txC.value = d.txt_change || '';
     }
 
-    /* ── Helpers Inversión ──────────────────────────────────────────── */
+    /* ── Ejecutor de KPIs ───────────────────────────────────────────── */
+    let _ejecutorOpen = null; // null = auto-decide per role
+
+    function _canEditKPIs() {
+        if (!USUARIO_ACTIVO) return ROL === 'agencia';
+        return ['owner','lanka_team'].includes(USUARIO_ACTIVO.rol_id) && !ROL_SIMULADO;
+    }
+
+    function _acumularKPIs() {
+        const semanas = DB.datos[SUC_ACTIVA]?.kpi_semanal || [];
+        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, ticket_medio:0 };
+        semanas.forEach(s => {
+            acc.clientes_nuevos      += s.clientes_nuevos      || 0;
+            acc.clientes_recurrentes += s.clientes_recurrentes || 0;
+            acc.clientes_recuperados += s.clientes_recuperados || 0;
+            acc.ventas               += s.ventas               || 0;
+            acc.dms                  += s.dms                  || 0;
+        });
+        const tmSemanas = semanas.filter(s => (s.ticket_medio||0) > 0);
+        acc.ticket_medio = tmSemanas.length ? Math.round(tmSemanas.reduce((a,s)=>a+(s.ticket_medio||0),0)/tmSemanas.length) : 0;
+        return acc;
+    }
+
+    function toggleEjecutor() {
+        _ejecutorOpen = !(_ejecutorOpen ?? _canEditKPIs());
+        renderEjecutorKPIs();
+    }
+
+    function renderEjecutorKPIs() {
+        const el = document.getElementById('ejecutor-kpis-wrap');
+        if (!el) return;
+        const d = DB.datos[SUC_ACTIVA];
+        const semanas = d.kpi_semanal || [];
+        const canEdit = _canEditKPIs();
+        const esRest  = getTipoProyecto(SUC_ACTIVA) === 'restaurante';
+        const isOpen  = _ejecutorOpen !== null ? _ejecutorOpen : canEdit;
+        const acc     = _acumularKPIs();
+        const ro      = canEdit ? '' : 'readonly';
+
+        const thS = s => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}</th>`;
+        const inp = (val, key, idx, pre) => canEdit
+            ? `<input class="ejecutor-input" value="${val||0}" inputmode="numeric"
+                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;guardarBD();_syncKPIsToRendimiento();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);_renderDashInversion(DB.datos['${SUC_ACTIVA}']);">`
+            : `<span style="display:block;text-align:right;padding:6px 8px;font-weight:600;font-size:13px;">${pre||''}${Number(val||0).toLocaleString('es-MX')}</span>`;
+
+        const rows = semanas.map((s, i) => `<tr>
+            <td style="padding:6px 8px;"><input class="ejecutor-input" style="text-align:left;font-weight:700;" value="${s.semana||''}" ${ro}
+                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].semana=this.value;guardarBD();"></td>
+            <td style="padding:6px 8px;"><input type="date" class="ejecutor-input" style="text-align:left;" value="${s.fecha||''}" ${ro}
+                onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;guardarBD();"></td>
+            <td>${inp(s.clientes_nuevos,'clientes_nuevos',i,'')}</td>
+            <td>${inp(s.clientes_recurrentes,'clientes_recurrentes',i,'')}</td>
+            <td>${inp(s.clientes_recuperados,'clientes_recuperados',i,'')}</td>
+            <td>${inp(s.ventas,'ventas',i,'$')}</td>
+            <td>${inp(s.dms,'dms',i,'')}</td>
+            ${esRest ? `<td>${inp(s.ticket_medio,'ticket_medio',i,'$')}</td>` : ''}
+            ${canEdit ? `<td style="padding:6px 4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;"
+                onclick="DB.datos['${SUC_ACTIVA}'].kpi_semanal.splice(${i},1);guardarBD();_syncKPIsToRendimiento();renderEjecutorKPIs();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);"></i></td>` : ''}
+        </tr>`).join('');
+
+        const totRow = `<tr class="ejecutor-total-row">
+            <td colspan="2" style="padding:10px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Total acumulado</td>
+            <td style="text-align:right;padding:10px 8px;color:var(--color-primario);">${acc.clientes_nuevos.toLocaleString('es-MX')}</td>
+            <td style="text-align:right;padding:10px 8px;color:#34A853;">${acc.clientes_recurrentes.toLocaleString('es-MX')}</td>
+            <td style="text-align:right;padding:10px 8px;color:#4A90D9;">${acc.clientes_recuperados.toLocaleString('es-MX')}</td>
+            <td style="text-align:right;padding:10px 8px;color:var(--color-primario);">${formatDinero(acc.ventas)}</td>
+            <td style="text-align:right;padding:10px 8px;">${acc.dms.toLocaleString('es-MX')}</td>
+            ${esRest ? `<td style="text-align:right;padding:10px 8px;">${formatDinero(acc.ticket_medio)}</td>` : ''}
+            ${canEdit ? '<td></td>' : ''}
+        </tr>`;
+
+        const addBtn = canEdit ? `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;" onclick="
+            const n={id:'s'+Date.now(),semana:'Semana '+(DB.datos['${SUC_ACTIVA}'].kpi_semanal.length+1),fecha:new Date().toISOString().split('T')[0],clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0};
+            DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();renderEjecutorKPIs();
+        "><i class="fa-solid fa-plus"></i> Agregar semana</button>` : '';
+
+        el.innerHTML = `<div class="ejecutor-card">
+            <div class="ejecutor-header" onclick="toggleEjecutor()">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <i class="fa-solid fa-table-cells-large" style="color:var(--color-primario);font-size:14px;"></i>
+                    <div>
+                        <div style="font-family:var(--font-display);font-weight:800;font-size:14px;">Ejecutor de KPIs</div>
+                        <div style="font-size:11px;color:var(--texto-secundario);">Ingreso semanal · ${semanas.length} semana${semanas.length!==1?'s':''} registrada${semanas.length!==1?'s':''}</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    ${!canEdit ? '<span style="font-size:10px;font-weight:700;color:var(--texto-secundario);padding:3px 10px;border:1px solid var(--color-borde);border-radius:100px;">Solo lectura</span>' : ''}
+                    <i class="fa-solid fa-chevron-down ejecutor-chevron${isOpen?' open':''}"></i>
+                </div>
+            </div>
+            <div class="ejecutor-body${isOpen?'':' hidden'}">
+                <div style="overflow-x:auto;margin-top:14px;">
+                    <table class="tabla-editable" style="min-width:600px;">
+                        <thead><tr>
+                            ${thS('Semana')}${thS('Fecha')}
+                            ${thS('Nuevos')}${thS('Recurrentes')}${thS('Recuperados')}
+                            ${thS('Ventas')}${thS('DMs')}
+                            ${esRest ? thS('Ticket Medio') : ''}
+                            ${canEdit ? '<th style="width:28px;"></th>' : ''}
+                        </tr></thead>
+                        <tbody>${rows}${totRow}</tbody>
+                    </table>
+                </div>
+                ${addBtn}
+            </div>
+        </div>`;
+    }
+
+    function _syncKPIsToRendimiento() {
+        const d = DB.datos[SUC_ACTIVA];
+        const acc = _acumularKPIs();
+        const SYNC = [
+            { keys:['nuevo'],       campo:'clientes_nuevos'      },
+            { keys:['recurrent'],   campo:'clientes_recurrentes' },
+            { keys:['recuper'],     campo:'clientes_recuperados' },
+            { keys:['venta'],       campo:'ventas'               },
+            { keys:['dm'],          campo:'dms'                  },
+            { keys:['ticket'],      campo:'ticket_medio'         }
+        ];
+        SYNC.forEach(({ keys, campo }) => {
+            const r = (d.rendimiento||[]).find(r => keys.some(k => r.m.toLowerCase().includes(k)));
+            if (r) r.v2 = acc[campo];
+        });
+        guardarBD();
+    }
+
+        /* ── Helpers Inversión ──────────────────────────────────────────── */
     function _inversionPorTipo(d, mes) {
         const result = {};
         INVERSION_CATEGORIAS.forEach(c => { result[c.tipo] = 0; });
@@ -2176,9 +2335,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const inv = _inversionPorTipo(d, mes);
         const invTotal = Object.values(inv).reduce((a,b)=>a+b, 0);
 
-        const mNuevos = _findMetrica(rend, ['nuevo']);
-        const mRecurr = _findMetrica(rend, ['recurrent']);
-        const mRecup  = _findMetrica(rend, ['recuper']);
+        // Accumulated from Ejecutor de KPIs (weekly entries)
+        const kpiAcc = _acumularKPIs();
+        // v1 (previous period) still comes from rendimiento for trend comparison
+        const mNuevos = { v2: kpiAcc.clientes_nuevos,      v1: (_findMetrica(rend,['nuevo'])).v1 };
+        const mRecurr = { v2: kpiAcc.clientes_recurrentes, v1: (_findMetrica(rend,['recurrent'])).v1 };
+        const mRecup  = { v2: kpiAcc.clientes_recuperados, v1: (_findMetrica(rend,['recuper'])).v1 };
         const cac     = mNuevos.v2 > 0 ? Math.round(invTotal / mNuevos.v2) : null;
         const cacPrev = mNuevos.v1 > 0 ? Math.round(invTotal / mNuevos.v1) : null;
 
@@ -2915,7 +3077,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const id = 'p_' + Date.now();
         DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123"), equipo_miembros: [] });
         const _mesesCortos = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-        DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: (PRESETS_METRICAS.wellness||[]).map(p=>({...p})), productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})) };
+        DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: (PRESETS_METRICAS.wellness||[]).map(p=>({...p})), productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})), kpi_semanal: [] };
         guardarBD(); iniciarApp(id);
     }
 
@@ -3946,7 +4108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const permisos = DB.permisos || {};
         const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
         const GRUPOS = [
-            { g:'Inteligencia',  items:[['performance','Resumen General'],['charts','Métricas y Gráficas'],['insights','Laboratorio Insights']] },
+            { g:'Inteligencia',  items:[['performance','Dashboard'],['charts','Métricas y Gráficas'],['insights','Laboratorio Insights']] },
             { g:'Finanzas',      items:[['presupuesto','Presupuesto'],['facturas','Facturación']] },
             { g:'Orquestación',  items:[['calendario','Calendario Content'],['cal_editorial','Calendario Visual'],['shooting','Agenda Shooting'],['dam','Gestión de Activos'],['stories','Stories']] },
             { g:'Estrategia',    items:[['briefing','Briefing Mensual'],['mood','Mood & Ejes'],['target','Target & Seg.'],['ads','Ad Performance'],['offline','Materiales Offline']] },
