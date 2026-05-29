@@ -784,21 +784,33 @@
     nav { transition: width 0.3s cubic-bezier(0.25,0.8,0.25,1), padding 0.3s cubic-bezier(0.25,0.8,0.25,1); flex-shrink: 0; }
     main { transition: flex 0.3s cubic-bezier(0.25,0.8,0.25,1); }
 
+    /* Nav toggle button — circular, posición absoluta */
+    nav { position: relative; }
+    .marca { margin-top: 20px; }
     .nav-toggle-btn {
-        display: flex; align-items: center; justify-content: flex-end;
-        background: transparent; border: none; color: var(--texto-secundario);
-        cursor: pointer; border-radius: 8px; font-size: 13px;
-        transition: var(--transicion); padding: 6px 10px; width: 100%;
-        margin-bottom: 6px; flex-shrink: 0;
+        position: absolute;
+        top: 16px; right: 16px;
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        background: var(--color-tarjeta);
+        border: 1.5px solid var(--color-borde-fuerte);
+        color: var(--texto-secundario);
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px;
+        transition: var(--transicion);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+        z-index: 10; flex-shrink: 0;
     }
-    .nav-toggle-btn:hover { background: rgba(0,0,0,0.04); color: var(--color-primario); }
-    [data-theme="dark"] .nav-toggle-btn:hover { background: rgba(255,255,255,0.06) !important; }
+    .nav-toggle-btn:hover { background: var(--color-primario); color: white; border-color: var(--color-primario); box-shadow: 0 4px 12px rgba(196,133,90,0.3); }
+    [data-theme="dark"] .nav-toggle-btn { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.16); }
+    [data-theme="dark"] .nav-toggle-btn:hover { background: var(--color-primario) !important; border-color: var(--color-primario) !important; }
 
     nav.nav-colapsada { width: 64px !important; padding: 20px 0 !important; overflow: visible !important; }
+    nav.nav-colapsada .nav-toggle-btn { right: 50%; transform: translateX(50%); top: 16px; }
     nav.nav-colapsada .marca { display: none !important; }
     nav.nav-colapsada #badge-rol { display: none !important; }
     nav.nav-colapsada .menu-titulo { display: none !important; }
-    nav.nav-colapsada .nav-toggle-btn { justify-content: center; padding: 8px; }
     nav.nav-colapsada .item-nav { justify-content: center !important; padding: 12px 0 !important; border-left: none !important; }
     nav.nav-colapsada .item-nav .nav-label { display: none !important; }
     nav.nav-colapsada .item-nav i { font-size: 16px !important; width: auto !important; }
@@ -872,7 +884,7 @@
         <div class="menu-titulo req-no-equipo">Inteligencia</div>
         <ul class="menu-nav req-no-equipo">
             <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-chart-pie"></i> Resumen General</li>
-            <li class="item-nav" data-target="vista-charts"><i class="fa-solid fa-chart-line"></i> Dashboard Charts</li>
+            <li class="item-nav" data-target="vista-charts"><i class="fa-solid fa-chart-line"></i> Métricas y Gráficas</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
         </ul>
 
@@ -887,7 +899,7 @@
             <li class="item-nav req-no-equipo" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario Content</li>
             <li class="item-nav req-no-equipo" data-target="vista-cal-editorial"><i class="fa-solid fa-calendar-check"></i> Calendario Visual</li>
             <li class="item-nav" data-target="vista-shooting"><i class="fa-solid fa-camera"></i> Agenda Shooting</li>
-            <li class="item-nav" data-target="vista-dam"><i class="fa-solid fa-photo-film"></i> DAM Governance</li>
+            <li class="item-nav" data-target="vista-dam"><i class="fa-solid fa-photo-film"></i> Gestión de Activos</li>
             <li class="item-nav req-no-equipo" data-target="vista-stories"><i class="fa-solid fa-film"></i> Stories</li>
         </ul>
 
@@ -929,9 +941,12 @@
             
             <div style="display:flex; align-items:center; gap:12px;">
                 <span id="status-save" style="font-size:11px; color:var(--color-exito); font-weight:700; opacity:0; transition:0.3s;"><i class="fa-solid fa-check"></i> Sincronizado</span>
-                <select id="selector-moneda" class="select-apple select-moneda req-agencia" onchange="cambiarMoneda()">
-                    <option value="MXN">MXN</option><option value="USD">USD</option><option value="EUR">EUR</option>
-                </select>
+                <div class="req-agencia" style="display:flex;flex-direction:column;align-items:flex-end;gap:1px;">
+                    <select id="selector-moneda" class="select-apple select-moneda" onchange="cambiarMoneda()">
+                        <option value="MXN">MXN</option><option value="USD">USD</option><option value="EUR">EUR</option>
+                    </select>
+                    <span id="tc-fecha" style="font-size:9px;color:var(--texto-secundario);letter-spacing:0.02em;"></span>
+                </div>
                 <button class="btn btn-fantasma btn-xs req-agencia" onclick="abrirReporteEjecutivo()"><i class="fa-solid fa-file-csv"></i> Exportar</button>
                 <button class="btn-ia req-agencia" onclick="abrirModalIA()"><i class="fa-solid fa-wand-magic-sparkles"></i> LANKA IA</button>
                 <div id="ver-como-wrap" class="oculto" style="display:flex; align-items:center; gap:6px;">
@@ -953,18 +968,18 @@
             <!-- SECCIONES ORIGINALES -->
             <section id="vista-resumen" class="seccion-app">
                 <div class="encabezado-seccion">
-                    <h1>Performance Summary</h1>
+                    <h1>Resumen General</h1>
                     <p>Análisis ejecutivo del rendimiento mensual y variaciones automáticas.</p>
                 </div>
                 <div class="highlight-numbers-layout" id="dash-highlights"></div>
                 <div class="tarjeta">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>Metric Variation (Actual vs Pasado)</h3>
+                        <h3>Variación de Métricas</h3>
                         <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('rendimiento')"><i class="fa-solid fa-plus"></i> Métrica</button>
                     </div>
                     <table class="tabla-editable" style="margin-top:16px;">
                         <thead>
-                            <tr><th>Métrica</th><th>Mes Pasado</th><th>Mes Actual</th><th>Variación</th><th class="req-agencia" style="width:40px;"></th></tr>
+                            <tr><th>Métrica</th><th>Mes Pasado</th><th>Mes Actual</th><th>Variación</th><th>Meta</th><th class="req-agencia" style="width:40px;"></th></tr>
                         </thead>
                         <tbody id="dash-rendimiento"></tbody>
                     </table>
@@ -972,31 +987,30 @@
                 <div class="dashboard-grid-2">
                     <div class="tarjeta">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3>Product Mix Performance</h3>
+                            <h3>Distribución de Pauta</h3>
                             <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('productos')"><i class="fa-solid fa-plus"></i></button>
                         </div>
                         <div class="bar-container" id="dash-productos"></div>
                     </div>
                     <div class="tarjeta">
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3>Next Month Objectives</h3>
+                            <h3>Objetivos del Mes</h3>
                             <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('objetivos')"><i class="fa-solid fa-plus"></i></button>
                         </div>
                         <table class="tabla-editable" style="margin-top:16px;">
-                            <thead><tr><th>Goal Metric</th><th>Target Value</th><th class="req-agencia" style="width:40px;"></th></tr></thead>
+                            <thead><tr><th>Métrica</th><th>Meta del mes</th><th class="req-agencia" style="width:40px;"></th></tr></thead>
                             <tbody id="dash-objetivos"></tbody>
                         </table>
                     </div>
                 </div>
-                <h3 style="font-size:18px; margin: 32px 0 16px;">Strategic Realignment</h3>
-                <div class="dashboard-grid-2">
+                <div class="dashboard-grid-2" style="margin-top:24px;">
                     <div class="analysis-box" style="border-left: 6px solid var(--color-exito);">
-                        <h3 style="color:var(--color-exito);"><i class="fa-regular fa-circle-check"></i> What is Working</h3>
-                        <textarea id="txt-working" placeholder="Ej. Reels con audio ASMR generan 40% más interacciones..." onchange="updObjTexto('txt_working', this.value)"></textarea>
+                        <h3 style="color:var(--color-exito);"><i class="fa-regular fa-circle-check"></i> Qué está funcionando</h3>
+                        <textarea id="txt-working" placeholder="Ej. Reels con audio ASMR generan 40% más interacciones..." oninput="updObjTexto('txt_working', this.value)"></textarea>
                     </div>
                     <div class="analysis-box" style="border-left: 6px solid var(--color-peligro);">
-                        <h3 style="color:var(--color-peligro);"><i class="fa-regular fa-circle-xmark"></i> What to Change</h3>
-                        <textarea id="txt-change" placeholder="Ej. Bajar la frecuencia de carruseles estáticos..." onchange="updObjTexto('txt_change', this.value)"></textarea>
+                        <h3 style="color:var(--color-peligro);"><i class="fa-regular fa-circle-xmark"></i> Qué mejorar</h3>
+                        <textarea id="txt-change" placeholder="Ej. Bajar la frecuencia de carruseles estáticos..." oninput="updObjTexto('txt_change', this.value)"></textarea>
                     </div>
                 </div>
             </section>
@@ -1005,7 +1019,7 @@
             <section id="vista-charts" class="seccion-app oculto">
                 <div class="encabezado-seccion">
                     <div>
-                        <h1>Dashboard Charts</h1>
+                        <h1>Métricas y Gráficas</h1>
                         <p>Visualización de métricas clave con gráficas interactivas en tiempo real.</p>
                     </div>
                     <button class="btn btn-xs btn-fantasma req-agencia" onclick="refreshCharts()"><i class="fa-solid fa-rotate"></i> Actualizar</button>
@@ -1024,7 +1038,7 @@
                         </div>
                     </div>
                     <div class="chart-box">
-                        <h3>Product Mix</h3>
+                        <h3>Mix de Productos</h3>
                         <p class="chart-subtitle">Distribución de ventas por producto</p>
                         <div class="chart-canvas-wrap" style="max-width:240px; margin:0 auto;">
                             <canvas id="chart-donut" height="200"></canvas>
@@ -1147,7 +1161,7 @@
 
             <section id="vista-dam" class="seccion-app oculto">
                 <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><h1>Governance DAM</h1><p>Aprobación de activos creativos con control de versiones.</p></div>
+                    <div><h1>Gestión de Activos</h1><p>Aprobación de activos creativos con control de versiones.</p></div>
                     <button class="btn btn-primario req-agencia" onclick="agregarElemento('dam')"><i class="fa-solid fa-upload"></i> Nuevo Asset</button>
                 </div>
                 <div class="cuadricula-dam" id="contenedor-dam"></div>
@@ -1525,7 +1539,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
     
     const DATOS_SEMILLA = {
-        configuracion: { moneda: 'MXN', tc: { USD: 17.5, EUR: 18.9 } },
+        configuracion: { moneda: 'MXN', tc: { USD: 17.5, EUR: 18.9 }, tc_fecha: null },
         desplegables: {
             estado_factura: ["Pendiente", "Pagado", "Vencido"], 
             emociones: ["Alegría", "Festevo", "Profesional", "Relajación"], bebidas: ["Aperol", "Ninguna", "Té Matcha"], productos: ["Pizza", "SaaS", "Facial"],
@@ -1763,6 +1777,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (b.cofepris === undefined)           { b.cofepris = false;         _s5migrated = true; }
                 if (b.cofepris_notas === undefined)     { b.cofepris_notas = '';      _s5migrated = true; }
                 if (!b.horarios)                        { b.horarios = { grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} }; _s5migrated = true; }
+                // Migrate rendimiento: add meta field
+                (DB.datos[sid].rendimiento||[]).forEach(r => { if (r.meta === undefined) { r.meta = ''; _s5migrated = true; } });
             });
             if (_s5migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
@@ -1790,10 +1806,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function formatDinero(val) { return new Intl.NumberFormat('es-MX', { style: 'currency', currency: DB.configuracion.moneda, maximumFractionDigits:0 }).format(val); }
     
-    function guardarBD() { 
-        localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB)); 
+    function guardarBD() {
+        localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         const s = document.getElementById('status-save');
         s.style.opacity = 1; setTimeout(() => s.style.opacity = 0, 1500);
+    }
+
+    async function obtenerTipoCambio() {
+        const el = document.getElementById('tc-fecha');
+        try {
+            const res = await fetch('https://api.exchangerate-api.com/v4/latest/MXN', { signal: AbortSignal.timeout(5000) });
+            if (!res.ok) throw new Error('API error');
+            const data = await res.json();
+            if (data.rates) {
+                DB.configuracion.tc = { USD: +(1/data.rates.USD).toFixed(4), EUR: +(1/data.rates.EUR).toFixed(4) };
+                DB.configuracion.tc_fecha = new Date().toISOString();
+                guardarBD();
+            }
+        } catch(e) {
+            // Use cached values silently
+        }
+        if (el) {
+            const f = DB.configuracion.tc_fecha;
+            el.textContent = f ? 'TC: ' + new Date(f).toLocaleDateString('es-MX', {day:'2-digit',month:'short'}) : '';
+        }
     }
 
     function ejecutarLogin(e) {
@@ -1868,6 +1904,8 @@ document.addEventListener('DOMContentLoaded', function() {
         renderTodas();
         // Nav colapsable: init only once
         if (!document.getElementById('nav-tooltip')) initNavCollapse();
+        // Exchange rate (non-blocking)
+        obtenerTipoCambio();
     }
 
     function cambiarSucursal() { SUC_ACTIVA = document.getElementById('selector-sucursal').value; _adsExpanded = new Set(); _mcExpanded = new Set(); aplicarGradiente(); renderTodas(); }
@@ -1881,7 +1919,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function agregarElemento(lista) {
         let n = {};
-        if(lista === 'rendimiento') n = { m: "Nueva Métrica", v1: 0, v2: 0, pre: "" };
+        if(lista === 'rendimiento') n = { m: "Nueva Métrica", v1: 0, v2: 0, pre: "", meta: "" };
         if(lista === 'productos') n = { m: "Producto", pct: 0 };
         if(lista === 'objetivos') n = { m: "Meta", o: "0" };
         if(lista === 'insights') n = { f: new Date().toISOString().split('T')[0], c: "Experimento", r: "Resultado...", a: "Aprendizaje..." };
@@ -1917,12 +1955,14 @@ document.addEventListener('DOMContentLoaded', function() {
             if(pct == 0) badge = `<span class="var-badge" style="background:#eee;color:#666;">- 0%</span>`;
             else if(isTime) badge = pct < 0 ? `<span class="var-badge var-positive">↓ ${Math.abs(pct)}% (Mejor)</span>` : `<span class="var-badge var-negative">↑ ${Math.abs(pct)}% (Peor)</span>`;
             else badge = pct > 0 ? `<span class="var-badge var-positive">↑ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↓ ${Math.abs(pct)}%</span>`;
-            return `<tr><td><input class="input-celda" value="${r.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].m=this.value;guardarBD();"></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="number" class="input-celda" value="${r.v1}" ${ro} onchange="updObj('rendimiento',${i},'v1',this.value)"></div></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="number" class="input-celda" value="${r.v2}" ${ro} onchange="updObj('rendimiento',${i},'v2',this.value)"></div></td><td>${badge}</td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('rendimiento',${i})"></i></td></tr>`;
+            return `<tr><td><input class="input-celda" value="${r.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].m=this.value;guardarBD();"></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="text" inputmode="numeric" class="input-celda" value="${r.v1}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].v1=isNaN(this.value)||this.value===''?this.value:Number(this.value);guardarBD();renderDashboard()"></div></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="text" inputmode="numeric" class="input-celda" value="${r.v2}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].v2=isNaN(this.value)||this.value===''?this.value:Number(this.value);guardarBD();renderDashboard()"></div></td><td>${badge}</td><td><input class="input-celda" style="color:var(--color-azul);font-weight:600;" placeholder="—" value="${r.meta||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].meta=this.value;guardarBD()"></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('rendimiento',${i})"></i></td></tr>`;
         }).join('');
         document.getElementById('dash-productos').innerHTML = d.productos.map((p, i) => `<div class="bar-row"><input class="input-celda" style="flex:0 0 140px; text-align:right; font-weight:600;" value="${p.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].productos[${i}].m=this.value;guardarBD()"> <div class="bar-track"><div class="bar-fill" style="width: ${p.pct}%;"></div></div> <input type="number" class="input-celda" style="width:50px; background:rgba(0,0,0,0.03); text-align:center; font-weight:bold;" value="${p.pct}" ${ro} onchange="updObj('productos',${i},'pct',this.value)"> <span style="font-size:12px;font-weight:bold;">%</span> ${ROL==='agencia' ? `<i class="fa-solid fa-times" style="color:#ccc;cursor:pointer;font-size:10px;" onclick="delObj('productos',${i})"></i>` : ''} </div>`).join('');
         document.getElementById('dash-objetivos').innerHTML = d.objetivos.map((o, i) => `<tr><td><input class="input-celda" value="${o.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${i}].m=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:700;" value="${o.o}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${i}].o=this.value;guardarBD()"></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('objetivos',${i})"></i></td></tr>`).join('');
-        document.getElementById('txt-working').value = d.txt_working || '';
-        document.getElementById('txt-change').value = d.txt_change || '';
+        const txW = document.getElementById('txt-working');
+        const txC = document.getElementById('txt-change');
+        if (document.activeElement !== txW) txW.value = d.txt_working || '';
+        if (document.activeElement !== txC) txC.value = d.txt_change || '';
     }
 
     function renderInsights() {
@@ -2025,9 +2065,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const mesNombre = MESES[_pptoMes];
         let mesInv = 0, mesCol = 0;
         pres.forEach(p => { mesInv += p.montos_mes[_pptoMes]?.inversion||0; mesCol += p.montos_mes[_pptoMes]?.colaboracion||0; });
-        let h = `<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+        const mesOpts = MESES.map((m,idx) => `<option value="${idx}" ${idx===_pptoMes?'selected':''}>${m}</option>`).join('');
+        let h = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
             <button class="btn btn-fantasma btn-xs" onclick="_pptoMes=Math.max(0,_pptoMes-1);renderPresupuesto()"><i class="fa-solid fa-chevron-left"></i></button>
-            <span style="font-family:var(--font-display);font-size:18px;font-weight:800;letter-spacing:-0.03em;min-width:130px;text-align:center;">${mesNombre}</span>
+            <select class="select-moneda" style="font-size:14px;font-weight:700;font-family:var(--font-display);padding:6px 28px 6px 12px;border-radius:10px;" onchange="_pptoMes=Number(this.value);renderPresupuesto()">${mesOpts}</select>
             <button class="btn btn-fantasma btn-xs" onclick="_pptoMes=Math.min(11,_pptoMes+1);renderPresupuesto()"><i class="fa-solid fa-chevron-right"></i></button>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
@@ -2441,7 +2482,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const d = DB.datos[SUC_ACTIVA]; let csv = "data:text/csv;charset=utf-8,REPORTE CONSOLIDADO - " + DB.sucursales.find(s=>s.id===SUC_ACTIVA).nombre.toUpperCase() + "\n\n";
         csv += "METRICAS GLOBALES\n"; d.rendimiento.forEach(r => csv += `${r.m},${r.v1},${r.v2}\n`);
         csv += "\nINSIGHTS DE EXPERIMENTOS\n"; d.insights.forEach(i => csv += `${i.c},${i.r},"${i.a}"\n`);
-        csv += "\nOBSERVACIONES ESTRATEGICAS\n"; csv += `"What is working: ${d.txt_working}"\n`; csv += `"What to change: ${d.txt_change}"\n`;
+        csv += "\nOBSERVACIONES ESTRATÉGICAS\n"; csv += `"Qué está funcionando: ${d.txt_working}"\n`; csv += `"Qué mejorar: ${d.txt_change}"\n`;
         const uri = encodeURI(csv); const link = document.createElement("a"); link.setAttribute("href", uri); link.setAttribute("download", `Lanka_Reporte_${SUC_ACTIVA}.csv`);
         document.body.appendChild(link); link.click(); document.body.removeChild(link); cerrarModales();
     }
@@ -3410,9 +3451,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const permisos = DB.permisos || {};
         const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
         const GRUPOS = [
-            { g:'Inteligencia',  items:[['performance','Resumen General'],['charts','Dashboard Charts'],['insights','Laboratorio Insights']] },
+            { g:'Inteligencia',  items:[['performance','Resumen General'],['charts','Métricas y Gráficas'],['insights','Laboratorio Insights']] },
             { g:'Finanzas',      items:[['presupuesto','Presupuesto'],['facturas','Facturación']] },
-            { g:'Orquestación',  items:[['calendario','Calendario Content'],['cal_editorial','Calendario Visual'],['shooting','Agenda Shooting'],['dam','DAM Governance'],['stories','Stories']] },
+            { g:'Orquestación',  items:[['calendario','Calendario Content'],['cal_editorial','Calendario Visual'],['shooting','Agenda Shooting'],['dam','Gestión de Activos'],['stories','Stories']] },
             { g:'Estrategia',    items:[['briefing','Briefing Mensual'],['mood','Mood & Ejes'],['target','Target & Seg.'],['ads','Ad Performance'],['offline','Materiales Offline']] },
             { g:'Mi Trabajo',    items:[['mis_tareas','Mis Tareas']] },
             { g:'Administración',items:[['proyectos','Proyectos'],['proveedores','Proveedores'],['config','Configuración'],['usuarios','Usuarios'],['control_accesos','Control de Accesos'],['auditoria','Auditoría']] }
@@ -3748,7 +3789,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (localStorage.getItem('nav-colapsada') === '1') {
             document.querySelector('nav').classList.add('nav-colapsada');
             const btn = document.getElementById('nav-toggle-btn');
-            if (btn) btn.querySelector('i').className = 'fa-solid fa-bars';
+            if (btn) btn.querySelector('i').className = 'fa-solid fa-chevron-right';
         }
     }
 
@@ -3757,7 +3798,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const colapsada = nav.classList.toggle('nav-colapsada');
         localStorage.setItem('nav-colapsada', colapsada ? '1' : '0');
         const btn = document.getElementById('nav-toggle-btn');
-        if (btn) btn.querySelector('i').className = colapsada ? 'fa-solid fa-bars' : 'fa-solid fa-chevron-left';
+        if (btn) btn.querySelector('i').className = colapsada ? 'fa-solid fa-chevron-right' : 'fa-solid fa-chevron-left';
         const tooltip = document.getElementById('nav-tooltip');
         if (tooltip) tooltip.classList.remove('visible');
     }
