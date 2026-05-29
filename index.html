@@ -972,8 +972,10 @@
             <!-- SECCIONES ORIGINALES -->
             <section id="vista-resumen" class="seccion-app">
                 <div class="encabezado-seccion">
-                    <h1>Resumen General</h1>
-                    <p>Análisis ejecutivo del rendimiento mensual y variaciones automáticas.</p>
+                    <div>
+                        <h1>Resumen General</h1>
+                        <p>Análisis ejecutivo del rendimiento mensual y variaciones automáticas. <span id="dash-tipo-badge"></span></p>
+                    </div>
                 </div>
                 <div class="highlight-numbers-layout" id="dash-highlights"></div>
                 <div class="tarjeta">
@@ -1557,6 +1559,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
     const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+
+    const TIPOS_PROYECTO = [
+        { id: "wellness",    label: "Wellness / Spa" },
+        { id: "restaurante", label: "Restaurante / Food" },
+        { id: "otro",        label: "Otro (genérico)" }
+    ];
+
+    const PRESETS_METRICAS = {
+        wellness: [
+            { m: "Clientes nuevos",          v1:0, v2:0, pre:"",  meta:"" },
+            { m: "Clientes recurrentes",     v1:0, v2:0, pre:"",  meta:"" },
+            { m: "Clientes recuperados",     v1:0, v2:0, pre:"",  meta:"" },
+            { m: "Ventas",                   v1:0, v2:0, pre:"$", meta:"" },
+            { m: "CAC",                      v1:0, v2:0, pre:"$", meta:"" },
+            { m: "DMs generados",            v1:0, v2:0, pre:"",  meta:"" },
+            { m: "Inversión en pauta",       v1:0, v2:0, pre:"$", meta:"" },
+            { m: "% Cumplimiento parrilla",  v1:0, v2:0, pre:"",  meta:"" }
+        ],
+        restaurante: [
+            { m: "Clientes nuevos",          v1:0, v2:0, pre:"",  meta:"" },
+            { m: "Clientes recurrentes",     v1:0, v2:0, pre:"",  meta:"" },
+            { m: "Clientes recuperados",     v1:0, v2:0, pre:"",  meta:"" },
+            { m: "Ventas",                   v1:0, v2:0, pre:"$", meta:"" },
+            { m: "CAC",                      v1:0, v2:0, pre:"$", meta:"" },
+            { m: "Ticket medio",             v1:0, v2:0, pre:"$", meta:"" },
+            { m: "Cobertura de contenido",   v1:0, v2:0, pre:"",  meta:"" },
+            { m: "Inversión total",          v1:0, v2:0, pre:"$", meta:"" }
+        ],
+        otro: [
+            { m: "Métrica 1",  v1:0, v2:0, pre:"", meta:"" },
+            { m: "Métrica 2",  v1:0, v2:0, pre:"", meta:"" },
+            { m: "Métrica 3",  v1:0, v2:0, pre:"", meta:"" },
+            { m: "Métrica 4",  v1:0, v2:0, pre:"", meta:"" }
+        ]
+    };
     
     const DATOS_SEMILLA = {
         configuracion: { moneda: 'MXN', tc: { USD: 17.5, EUR: 18.9 }, tc_fecha: null },
@@ -1567,7 +1604,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sexo: ["Ambos", "Hombre", "Mujer"], nivel: ["A/B", "C+", "C", "D", "E"]
         },
         sucursales: [
-            { id: "aitama", nombre: "Aitama Wellness", color: "#C4855A", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Aitama26"),
+            { id: "aitama", nombre: "Aitama Wellness", color: "#C4855A", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Aitama26"),
               equipo_miembros: [
                 { nombre: "Ángeles Fernández", rol: "Fotógrafa", password: btoa("angeles26") },
                 { nombre: "Dulce", rol: "Asistente", password: btoa("dulce26") },
@@ -1575,20 +1612,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
               ]
             },
-            { id: "mammut", nombre: "Mammut Pizza", color: "#EA4335", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"), equipo_miembros: [] }
+            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"), equipo_miembros: [] }
         ],
         datos: {
             aitama: {
                 highlights: [{ label: "Total Sales", val: "$12.5k" }, { label: "New Followers", val: "+840" }, { label: "Total DMs", val: "1.2k" }],
                 rendimiento: [
-                    { m: "Total Sales", v1: 10200, v2: 12500, pre: "$" },
-                    { m: "New Followers", v1: 620, v2: 840, pre: "" },
-                    { m: "Direct Messages", v1: 950, v2: 1210, pre: "" },
-                    { m: "Average Ticket", v1: 85, v2: 82, pre: "$" },
-                    { m: "Response Time (min)", v1: 14, v2: 9, pre: "" }
+                    { m: "Clientes nuevos",          v1:18,    v2:24,    pre:"",  meta:"30"    },
+                    { m: "Clientes recurrentes",     v1:42,    v2:48,    pre:"",  meta:"50"    },
+                    { m: "Clientes recuperados",     v1:6,     v2:9,     pre:"",  meta:"10"    },
+                    { m: "Ventas",                   v1:10200, v2:12500, pre:"$", meta:"15000" },
+                    { m: "CAC",                      v1:95,    v2:85,    pre:"$", meta:"80"    },
+                    { m: "DMs generados",            v1:950,   v2:1210,  pre:"",  meta:"1500"  },
+                    { m: "Inversión en pauta",       v1:1800,  v2:2400,  pre:"$", meta:"2400"  },
+                    { m: "% Cumplimiento parrilla",  v1:72,    v2:85,    pre:"",  meta:"90"    }
                 ],
-                productos: [{ m: "Facial Rituals", pct: 42 }, { m: "Massage Therapy", pct: 31 }, { m: "Holistic Kits", pct: 18 }],
-                objetivos: [{ m: "Total Sales", o: "$15,000" }, { m: "New Followers", o: "+1,000" }, { m: "Response Time", o: "< 5 min" }],
+                productos: [{ m: "Facial Rituales", pct: 42 }, { m: "Masajes", pct: 31 }, { m: "Kits Holísticos", pct: 18 }],
+                objetivos: [{ m: "Ventas", o: "$15,000" }, { m: "Clientes nuevos", o: "30" }, { m: "Parrilla", o: "90%" }],
                 txt_working: "Reels con audio ASMR generaron un 40% más de guardados. El CTA directo en stories funciona perfecto a las 8am.",
                 txt_change: "Bajar la frecuencia de carruseles genéricos a la mitad. Eliminar promociones de alto descuento que matan el ticket medio.",
                 insights: [
@@ -1820,6 +1860,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Migrate rendimiento: add meta field
                 (DB.datos[sid].rendimiento||[]).forEach(r => { if (r.meta === undefined) { r.meta = ''; _s5migrated = true; } });
                 // Migrate: add historico_mensual if missing
+
                 if (!DB.datos[sid].historico_mensual) {
                     const _mc = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
                     DB.datos[sid].historico_mensual = Array.from({length:12},(_,i)=>({mes:_mc[i],ventas:0,seguidores:0,dms:0}));
@@ -1827,6 +1868,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
             if (_s5migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
+        // Sprint 5 — migrate tipo to sucursales and apply presets
+        if (DB.sucursales) {
+            let _tipoMigrated = false;
+            DB.sucursales.forEach(s => {
+                if (!s.tipo) {
+                    const n = (s.nombre||'').toLowerCase();
+                    s.tipo = (n.includes('wellness')||n.includes('spa')||n.includes('aitama')) ? 'wellness'
+                           : (n.includes('pizza')||n.includes('rest')||n.includes('bar')||n.includes('mammut')) ? 'restaurante'
+                           : 'wellness';
+                    _tipoMigrated = true;
+                }
+                // Apply preset to projects with empty rendimiento
+                const datos = DB.datos[s.id];
+                if (datos && (!datos.rendimiento || datos.rendimiento.length === 0)) {
+                    datos.rendimiento = (PRESETS_METRICAS[s.tipo] || PRESETS_METRICAS.wellness).map(p => ({...p}));
+                    _tipoMigrated = true;
+                }
+            });
+            if (_tipoMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
@@ -2012,6 +2074,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderDashboard() {
         const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
+        // Auto-apply preset if project has no metrics yet
+        if (!d.rendimiento || d.rendimiento.length === 0) {
+            aplicarPresetMetricas(SUC_ACTIVA, getTipoProyecto(SUC_ACTIVA), false);
+        }
+        // Show project type badge
+        const _tipo = getTipoProyecto(SUC_ACTIVA);
+        const _tipoLabel = (TIPOS_PROYECTO.find(t=>t.id===_tipo)||{}).label || _tipo;
+        const _badgeEl = document.getElementById('dash-tipo-badge');
+        if (_badgeEl) _badgeEl.innerHTML = `<span style="background:var(--color-primario);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;vertical-align:middle;letter-spacing:.04em;">${_tipoLabel}</span>`;
         // Highlights derivados de rendimiento (primeras 4 métricas, solo lectura)
         const rend = d.rendimiento || [];
         document.getElementById('dash-highlights').innerHTML = rend.length
@@ -2045,6 +2116,40 @@ document.addEventListener('DOMContentLoaded', function() {
         const txC = document.getElementById('txt-change');
         if (document.activeElement !== txW) txW.value = d.txt_working || '';
         if (document.activeElement !== txC) txC.value = d.txt_change || '';
+    }
+
+    function getTipoProyecto(sucId) {
+        return (DB.sucursales.find(s => s.id === sucId) || {}).tipo || 'wellness';
+    }
+
+    function aplicarPresetMetricas(sucId, tipo, forzar) {
+        const datos = DB.datos[sucId];
+        if (!datos) return;
+        const preset = PRESETS_METRICAS[tipo] || PRESETS_METRICAS.wellness;
+        // Preserve existing values where metric names match
+        datos.rendimiento = preset.map(p => {
+            const exist = (datos.rendimiento||[]).find(r => r.m === p.m);
+            return exist ? { ...p, v1: exist.v1, v2: exist.v2, meta: exist.meta||'' } : { ...p };
+        });
+        guardarBD();
+    }
+
+    function cambiarTipoProyecto(idx, tipo) {
+        DB.sucursales[idx].tipo = tipo;
+        guardarBD();
+        const sucId = DB.sucursales[idx].id;
+        const datos = DB.datos[sucId];
+        const tieneData = datos && datos.rendimiento && datos.rendimiento.length > 0;
+        if (tieneData) {
+            if (confirm('¿Aplicar las métricas predefinidas para este tipo de proyecto?\nSe conservarán los valores donde los nombres coincidan.')) {
+                aplicarPresetMetricas(sucId, tipo, true);
+            }
+        } else {
+            aplicarPresetMetricas(sucId, tipo, true);
+        }
+        renderAdministracion();
+        // Re-render dashboard if this is the active project
+        if (sucId === SUC_ACTIVA) renderDashboard();
     }
 
     function renderInsights() {
@@ -2621,7 +2726,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">${avatarsHTML}</div>
             </div>`;
-            return `<div class="tarjeta-cliente"><div style="display:flex; justify-content:space-between; align-items:center;"><input class="input-celda" style="font-weight:800; font-size:18px; padding-left:0; font-family:var(--font-display);" value="${s.nombre}" onchange="DB.sucursales[${i}].nombre=this.value;guardarBD();document.getElementById('selector-sucursal').options[${i}].text=this.value;renderTodas();"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="eliminarProyecto(${i})"></i></div><div style="font-size:11px; color:var(--texto-secundario); font-family:monospace;">ID: ${s.id}</div><div style="margin-top:16px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="border:1px solid var(--color-borde); font-family:monospace; margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0; font-family:monospace; font-weight:700; text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>${equipoSection}</div>`;
+            const tipoOpts = TIPOS_PROYECTO.map(t => `<option value="${t.id}" ${(s.tipo||'wellness')===t.id?'selected':''}>${t.label}</option>`).join('');
+            const tipoActual = TIPOS_PROYECTO.find(t=>t.id===(s.tipo||'wellness'))||TIPOS_PROYECTO[0];
+            return `<div class="tarjeta-cliente">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <input class="input-celda" style="font-weight:800;font-size:18px;padding-left:0;font-family:var(--font-display);" value="${s.nombre}"
+                        onchange="DB.sucursales[${i}].nombre=this.value;guardarBD();document.getElementById('selector-sucursal').options[${i}].text=this.value;renderTodas();">
+                    <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="eliminarProyecto(${i})"></i>
+                </div>
+                <div style="font-size:11px;color:var(--texto-secundario);font-family:monospace;margin-bottom:14px;">ID: ${s.id}</div>
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:6px;">TIPO DE PROYECTO</label>
+                    <select class="select-celda" style="border:1px solid var(--color-borde);width:100%;border-radius:8px;padding:8px 12px;font-weight:600;" onchange="cambiarTipoProyecto(${i},this.value)">${tipoOpts}</select>
+                    <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Define qué métricas aparecen en el Dashboard.</div>
+                </div>
+                <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="border:1px solid var(--color-borde);font-family:monospace;margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div>
+                <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0;font-family:monospace;font-weight:700;text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>
+                ${equipoSection}
+            </div>`;
         }).join('');
         document.getElementById('tabla-proveedores').innerHTML = DB.proveedores.map((p,i) => {
             let catP = DB.desplegables.cat_proveedor.map(c=>`<option ${c===p.categoria?'selected':''}>${c}</option>`).join('');
@@ -2657,9 +2779,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function nuevoCliente() {
         const id = 'p_' + Date.now();
-        DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123"), equipo_miembros: [] });
+        DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123"), equipo_miembros: [] });
         const _mesesCortos = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-        DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: [], productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})) };
+        DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: (PRESETS_METRICAS.wellness||[]).map(p=>({...p})), productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})) };
         guardarBD(); iniciarApp(id);
     }
 
