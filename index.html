@@ -694,6 +694,29 @@
     [data-theme="light"] .ppto-sticky-col { background: #F5F0EA !important; }
 
     /* ================================================================
+       DASHBOARD KPI ROW + INVERSIÓN DESGLOSE
+       ================================================================ */
+    .dash-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+    .dash-kpi-card { background:var(--color-tarjeta); border-radius:18px; padding:20px 22px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); position:relative; overflow:hidden; }
+    .dash-kpi-card::before { content:''; position:absolute; top:0; left:0; width:4px; height:100%; background:var(--kpi-c,var(--color-primario)); }
+    .dash-kpi-label { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--texto-secundario); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .dash-kpi-val { font-family:var(--font-display); font-size:38px; font-weight:900; color:var(--texto-principal); letter-spacing:-0.04em; line-height:1; }
+    .dash-kpi-sub { font-size:11px; color:var(--texto-secundario); margin-top:8px; }
+    .dash-kpi-formula { font-size:10px; color:var(--texto-secundario); margin-top:6px; font-style:italic; opacity:.8; }
+    [data-theme="dark"] .dash-kpi-card { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+
+    .inv-wrap { background:var(--color-tarjeta); border-radius:20px; padding:24px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); margin-bottom:24px; }
+    [data-theme="dark"] .inv-wrap { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    .inv-bar { height:8px; border-radius:8px; display:flex; gap:2px; margin:14px 0 20px; overflow:hidden; }
+    .inv-bar-seg { height:100%; border-radius:4px; min-width:2px; transition:flex .5s ease; }
+    .inv-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+    .inv-cat { padding:12px 14px; border-radius:12px; border:1px solid var(--color-borde); background:var(--color-fondo); }
+    [data-theme="dark"] .inv-cat { background:rgba(255,255,255,0.03)!important; border-color:rgba(255,255,255,0.06)!important; }
+    .inv-cat-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; gap:5px; }
+    .inv-cat-val { font-family:var(--font-display); font-size:20px; font-weight:900; letter-spacing:-0.02em; margin-top:4px; }
+    .inv-cat-pct { font-size:10px; font-weight:700; color:var(--texto-secundario); margin-top:2px; }
+
+    /* ================================================================
        BRIEFING ESTRATÉGICO — SPRINT 5
        ================================================================ */
 
@@ -977,7 +1000,10 @@
                         <p>Análisis ejecutivo del rendimiento mensual y variaciones automáticas. <span id="dash-tipo-badge"></span></p>
                     </div>
                 </div>
-                <div class="highlight-numbers-layout" id="dash-highlights"></div>
+                <!-- 4 KPI fijos: clientes + CAC -->
+                <div class="dash-kpi-row" id="dash-kpis-clientes"></div>
+                <!-- Desglose inversión desde presupuesto -->
+                <div id="dash-inversion"></div>
                 <div class="tarjeta">
                     <div style="display:flex; justify-content:space-between; align-items:center;">
                         <h3>Variación de Métricas</h3>
@@ -1560,6 +1586,15 @@ document.addEventListener('DOMContentLoaded', function() {
 <script>
     const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
+    const INVERSION_CATEGORIAS = [
+        { id:"pauta_digital",      label:"Pauta Digital",         tipo:"Pauta digital",          color:"#C4855A", icon:"fa-bullhorn" },
+        { id:"materiales_offline", label:"Materiales Offline",    tipo:"Materiales offline",     color:"#4A90D9", icon:"fa-print" },
+        { id:"produccion",         label:"Producción Contenido",  tipo:"Producción de contenido",color:"#8B5CF6", icon:"fa-camera" },
+        { id:"medios_trad",        label:"Medios Tradicionales",  tipo:"Medios tradicionales",   color:"#34A853", icon:"fa-tv" },
+        { id:"infraestructura",    label:"Infraestructura Digital",tipo:"Infraestructura digital",color:"#FBBC05", icon:"fa-server" },
+        { id:"colaboraciones",     label:"Colaboraciones",        tipo:"Colaboraciones",         color:"#EA4335", icon:"fa-handshake" }
+    ];
+
     const TIPOS_PROYECTO = [
         { id: "wellness",    label: "Wellness / Spa" },
         { id: "restaurante", label: "Restaurante / Food" },
@@ -1640,7 +1675,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     { id: "k2", titulo: "Reel ASMR Masaje", fecha: "2026-05-12", hora: "07:00", estado: "Producción", tags: "ASMR", target_id: "", hook: "Video abre con aceite cayendo sobre espalda en cámara lenta. Sin texto.", copy: "ya cuidaste a todos. ahora le toca a tu cuerpo guardar todo lo que cargó este mes.", hashtags: "#MasajeHolistico #SpaMorelia", manychat: "TENSIÓN", pauta: "Superar 500 vistas orgánicas -> Meta Ads", stories: "", asignado_a: "Ángeles Fernández" }
                 ],
                 dam: [ { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, url: "", historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } ],
-                presupuesto: [ { categoria: "Meta Ads", item: "Pauta Online", tipo: "Digital", montos_mes: Array.from({length: 12}, () => ({inversion: 2400, colaboracion: 0})) }, { categoria: "Impresos", item: "Tent Cards y Menús", tipo: "Offline", montos_mes: Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0})) } ],
+                presupuesto: [
+                    { categoria:"Meta Ads",       item:"Pauta Meta/Instagram",  tipo:"Pauta digital",          montos_mes:Array.from({length:12},()=>({inversion:2400,colaboracion:0})) },
+                    { categoria:"Google",          item:"Google Ads",            tipo:"Pauta digital",          montos_mes:Array.from({length:12},()=>({inversion:0,  colaboracion:0})) },
+                    { categoria:"Impresos",        item:"Tent Cards y Menús",    tipo:"Materiales offline",     montos_mes:Array.from({length:12},()=>({inversion:540, colaboracion:0})) },
+                    { categoria:"Producción",      item:"Shooting mensual",      tipo:"Producción de contenido",montos_mes:Array.from({length:12},()=>({inversion:800, colaboracion:0})) },
+                    { categoria:"Herramientas",    item:"Software & Plataformas",tipo:"Infraestructura digital",montos_mes:Array.from({length:12},()=>({inversion:360, colaboracion:0})) },
+                    { categoria:"Colaboraciones",  item:"Influencers / Alianzas",tipo:"Colaboraciones",        montos_mes:Array.from({length:12},()=>({inversion:0,  colaboracion:500})) }
+                ],
                 facturas: [ { folio: "F-01", proveedor: "Google", concepto: "Workspace", monto: 1500, estado: "Pendiente" } ],
                 briefing: {
                     reglas: ["Cero descuentos públicos.", "Nunca dar precio en el primer DM. Evaluar necesidad primero.", "Re-booking en cabina antes de salir."],
@@ -1888,6 +1930,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     _tipoMigrated = true;
                 }
             });
+            // Migrate presupuesto tipos to new INVERSION_CATEGORIAS names
+            const _tipoMap = { 'Digital':'Pauta digital', 'Offline':'Materiales offline', 'Producción':'Producción de contenido' };
+            DB.sucursales.forEach(s => {
+                (DB.datos[s.id]?.presupuesto||[]).forEach(p => {
+                    if (_tipoMap[p.tipo]) { p.tipo = _tipoMap[p.tipo]; _tipoMigrated = true; }
+                });
+            });
             if (_tipoMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
@@ -2052,7 +2101,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'insights') n = { f: new Date().toISOString().split('T')[0], c: "Experimento", r: "Resultado...", a: "Aprendizaje..." };
         if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"" };
         if(lista === 'dam') n = { id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, url:"", historial:[{autor:ROL, fecha:new Date().toLocaleDateString(), accion:"Creado", nota:"V1"}] };
-        if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0})) };
+        if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Pauta digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
         if(lista === 'proveedores') { DB.proveedores.push({nombre:"Nuevo", categoria:"", contacto:"", forma_pago:""}); guardarBD(); renderTodas(); return; }
@@ -2083,24 +2132,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const _tipoLabel = (TIPOS_PROYECTO.find(t=>t.id===_tipo)||{}).label || _tipo;
         const _badgeEl = document.getElementById('dash-tipo-badge');
         if (_badgeEl) _badgeEl.innerHTML = `<span style="background:var(--color-primario);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;vertical-align:middle;letter-spacing:.04em;">${_tipoLabel}</span>`;
-        // Highlights derivados de rendimiento (primeras 4 métricas, solo lectura)
-        const rend = d.rendimiento || [];
-        document.getElementById('dash-highlights').innerHTML = rend.length
-            ? rend.slice(0,4).map(r => {
-                const v2 = Number(r.v2) || 0;
-                const v1 = Number(r.v1) || 0;
-                const pct = v1 > 0 ? ((v2-v1)/v1*100).toFixed(1) : null;
-                const display = r.pre === '$' ? formatDinero(v2) : (r.pre||'') + v2.toLocaleString('es-MX');
-                const badge = pct !== null
-                    ? `<span class="var-badge ${pct>=0?'var-positive':'var-negative'}" style="margin-top:8px;display:inline-flex;">${pct>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`
-                    : '';
-                return `<div class="stat-box">
-                    <div class="input-mega" style="cursor:default;">${display}</div>
-                    <div class="label-mega">${r.m}</div>
-                    ${badge}
-                </div>`;
-            }).join('')
-            : `<div style="padding:24px;color:var(--texto-secundario);font-size:14px;">Añade métricas en la tabla de abajo para ver los indicadores aquí.</div>`;
+        // ── 4 KPI Cards fijos ──────────────────────────────────────────────
+        _renderDashKPIs(d);
+        // ── Desglose Inversión desde Presupuesto ─────────────────────────────
+        _renderDashInversion(d);
         document.getElementById('dash-rendimiento').innerHTML = d.rendimiento.map((r, i) => {
             let v1 = Number(r.v1); let v2 = Number(r.v2); let pct = v1 > 0 ? ((v2 - v1) / v1 * 100).toFixed(1) : 0;
             let isTime = r.m.toLowerCase().includes("time") || r.m.toLowerCase().includes("tiempo");
@@ -2118,7 +2153,105 @@ document.addEventListener('DOMContentLoaded', function() {
         if (document.activeElement !== txC) txC.value = d.txt_change || '';
     }
 
-    function getTipoProyecto(sucId) {
+    /* ── Helpers Inversión ──────────────────────────────────────────── */
+    function _inversionPorTipo(d, mes) {
+        const result = {};
+        INVERSION_CATEGORIAS.forEach(c => { result[c.tipo] = 0; });
+        (d.presupuesto||[]).forEach(p => {
+            const m = p.montos_mes?.[mes] || {};
+            const val = (m.inversion||0) + (m.colaboracion||0);
+            if (result[p.tipo] !== undefined) result[p.tipo] += val;
+        });
+        return result;
+    }
+
+    function _findMetrica(rend, keywords) {
+        const r = (rend||[]).find(r => keywords.some(k => r.m.toLowerCase().includes(k)));
+        return r ? { v1: Number(r.v1)||0, v2: Number(r.v2)||0 } : { v1:0, v2:0 };
+    }
+
+    function _renderDashKPIs(d) {
+        const mes = new Date().getMonth();
+        const rend = d.rendimiento || [];
+        const inv = _inversionPorTipo(d, mes);
+        const invTotal = Object.values(inv).reduce((a,b)=>a+b, 0);
+
+        const mNuevos = _findMetrica(rend, ['nuevo']);
+        const mRecurr = _findMetrica(rend, ['recurrent']);
+        const mRecup  = _findMetrica(rend, ['recuper']);
+        const cac     = mNuevos.v2 > 0 ? Math.round(invTotal / mNuevos.v2) : null;
+        const cacPrev = mNuevos.v1 > 0 ? Math.round(invTotal / mNuevos.v1) : null;
+
+        const kpiCard = (label, icon, color, val, v1, pre, formula) => {
+            const pct = v1 > 0 && val !== null ? +((val-v1)/v1*100).toFixed(1) : null;
+            const delta = pct !== null
+                ? `<span class="var-badge ${pct>=0?'var-positive':'var-negative'}" style="display:inline-flex;">${pct>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`
+                : '';
+            const display = val === null ? `<span style="color:var(--texto-secundario);font-size:18px;">—</span>`
+                          : pre==='$' ? formatDinero(val)
+                          : (pre||'')+Number(val).toLocaleString('es-MX');
+            return `<div class="dash-kpi-card" style="--kpi-c:${color}">
+                <div class="dash-kpi-label"><i class="fa-solid ${icon}"></i> ${label}</div>
+                <div class="dash-kpi-val">${display}</div>
+                <div class="dash-kpi-sub">${delta}${pct!==null?`<span style="margin-left:6px;color:var(--texto-secundario);font-size:11px;">vs anterior</span>`:''}</div>
+                ${formula?`<div class="dash-kpi-formula">${formula}</div>`:''}
+            </div>`;
+        };
+
+        const cacFormula = invTotal > 0 && mNuevos.v2 > 0
+            ? `${formatDinero(invTotal)} ÷ ${mNuevos.v2} clientes`
+            : invTotal === 0 ? 'Sin inversión en Presupuesto este mes' : 'Sin clientes nuevos registrados';
+
+        document.getElementById('dash-kpis-clientes').innerHTML =
+            kpiCard('Clientes nuevos',      'fa-user-plus',        'var(--color-primario)', mNuevos.v2, mNuevos.v1, '',  '') +
+            kpiCard('Clientes recurrentes', 'fa-rotate',           '#34A853',               mRecurr.v2, mRecurr.v1, '',  '') +
+            kpiCard('Clientes recuperados', 'fa-heart-circle-plus','#4A90D9',               mRecup.v2,  mRecup.v1,  '',  '') +
+            kpiCard('CAC Real',             'fa-calculator',       '#8B5CF6',               cac,        cacPrev,    '$', cacFormula);
+    }
+
+    function _renderDashInversion(d) {
+        const mes = new Date().getMonth();
+        const inv = _inversionPorTipo(d, mes);
+        const total = Object.values(inv).reduce((a,b)=>a+b, 0);
+        const mesNombre = MESES[mes];
+        const el = document.getElementById('dash-inversion');
+        if (!el) return;
+
+        if (total === 0) {
+            el.innerHTML = `<div class="inv-wrap" style="text-align:center;color:var(--texto-secundario);padding:28px;">
+                <i class="fa-solid fa-wallet" style="font-size:28px;opacity:.2;display:block;margin-bottom:10px;"></i>
+                Sin inversión registrada en <strong>${mesNombre}</strong>. Ingresa montos en el módulo <strong>Presupuesto</strong>.
+            </div>`;
+            return;
+        }
+
+        const barSegs = INVERSION_CATEGORIAS.map(c => {
+            const pct = total > 0 ? (inv[c.tipo]||0)/total*100 : 0;
+            return pct > 0 ? `<div class="inv-bar-seg" style="flex:${pct.toFixed(2)};background:${c.color};"></div>` : '';
+        }).join('');
+
+        const cats = INVERSION_CATEGORIAS.map(c => {
+            const v = inv[c.tipo]||0;
+            const pct = total > 0 ? (v/total*100).toFixed(1) : '0.0';
+            return `<div class="inv-cat">
+                <div class="inv-cat-label" style="color:${c.color};"><i class="fa-solid ${c.icon}"></i> ${c.label}</div>
+                <div class="inv-cat-val" style="color:${c.color};">${formatDinero(v)}</div>
+                <div class="inv-cat-pct">${pct}% del total</div>
+            </div>`;
+        }).join('');
+
+        el.innerHTML = `<div class="inv-wrap">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
+                <h3 style="font-size:15px;">Inversión Total — ${mesNombre}</h3>
+                <span style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--color-primario);letter-spacing:-0.04em;">${formatDinero(total)}</span>
+            </div>
+            <p style="font-size:12px;color:var(--texto-secundario);margin-bottom:0;">Leída desde Presupuesto · sin doble entrada</p>
+            <div class="inv-bar">${barSegs}</div>
+            <div class="inv-grid">${cats}</div>
+        </div>`;
+    }
+
+        function getTipoProyecto(sucId) {
         return (DB.sucursales.find(s => s.id === sucId) || {}).tipo || 'wellness';
     }
 
@@ -2232,7 +2365,8 @@ document.addEventListener('DOMContentLoaded', function() {
         h += `<th></th></tr></thead><tbody>`;
         pres.forEach((p, pIdx) => {
             const rowTotal = p.montos_mes.reduce((s,m) => s+(m.inversion||0)+(m.colaboracion||0), 0);
-            const tipoSel = ro ? '' : `<select class="select-celda" style="font-size:10px;padding:2px 6px;margin-top:3px;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].tipo=this.value;guardarBD()"><option ${p.tipo==='Digital'?'selected':''}>Digital</option><option ${p.tipo==='Offline'?'selected':''}>Offline</option><option ${p.tipo==='Producción'?'selected':''}>Producción</option></select>`;
+            const _tipoOpts = INVERSION_CATEGORIAS.map(c=>`<option ${p.tipo===c.tipo?'selected':''}>${c.tipo}</option>`).join('');
+            const tipoSel = ro ? '' : `<select class="select-celda" style="font-size:10px;padding:2px 6px;margin-top:3px;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].tipo=this.value;guardarBD()">${_tipoOpts}</select>`;
             h += `<tr><td style="position:sticky;left:0;font-weight:700;border-right:1px solid var(--color-borde);" class="ppto-sticky-col">
                 <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
                 <div style="display:flex;gap:6px;align-items:center;margin-top:3px;"><span style="font-size:10px;color:var(--texto-secundario);">${p.categoria}</span>${tipoSel}</div>
