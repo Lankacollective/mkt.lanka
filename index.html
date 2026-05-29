@@ -689,6 +689,76 @@
     [data-theme="light"] .ppto-sticky-col { background: #F5F0EA !important; }
 
     /* ================================================================
+       BRIEFING ESTRATÉGICO — SPRINT 5
+       ================================================================ */
+
+    /* Pills / tabs selector */
+    .briefing-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+    .briefing-pill {
+        padding: 9px 22px; border-radius: 100px; font-size: 13px; font-weight: 600;
+        cursor: pointer; border: 1.5px solid var(--color-borde-fuerte);
+        background: transparent; color: var(--texto-secundario);
+        transition: var(--transicion); white-space: nowrap;
+    }
+    .briefing-pill:hover { border-color: var(--color-primario); color: var(--color-primario); }
+    .briefing-pill.activo { background: var(--color-primario); border-color: var(--color-primario); color: #fff; box-shadow: 0 4px 14px rgba(196,133,90,0.35); }
+    [data-theme="dark"] .briefing-pill:not(.activo) { border-color: rgba(255,255,255,0.15); }
+
+    /* Tono de voz */
+    .tono-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; margin-bottom: 12px; align-items: center; }
+    .tono-card { border-radius: 12px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+    .tono-correcto { background: rgba(52,168,83,0.07); border: 1px solid rgba(52,168,83,0.18); }
+    .tono-evitar   { background: rgba(234,67,53,0.05);  border: 1px solid rgba(234,67,53,0.15); }
+    .tono-label { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; }
+    .tono-correcto .tono-label { color: var(--color-exito); }
+    .tono-evitar   .tono-label { color: var(--color-peligro); }
+    .tono-input { border: none; background: transparent; resize: none; outline: none; font-size: 14px; line-height: 1.5; color: var(--texto-principal); width: 100%; font-family: var(--font-body); min-height: 44px; }
+    [data-theme="dark"] .tono-correcto { background: rgba(52,168,83,0.08); border-color: rgba(52,168,83,0.2); }
+    [data-theme="dark"] .tono-evitar   { background: rgba(234,67,53,0.07); border-color: rgba(234,67,53,0.18); }
+    [data-theme="dark"] .tono-input    { color: #F0EDE8; }
+
+    /* Tags de palabras */
+    .palabras-wrap { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .ptag { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+    .ptag-roja  { background: rgba(234,67,53,0.1);  color: var(--color-peligro); }
+    .ptag-verde { background: rgba(52,168,83,0.1);  color: var(--color-exito); }
+    .ptag i { cursor: pointer; opacity: 0.5; font-size: 10px; transition: opacity 0.15s; }
+    .ptag i:hover { opacity: 1; }
+
+    /* Manychat cards */
+    .mc-card { background: var(--color-tarjeta); border-radius: 18px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); margin-bottom: 14px; overflow: hidden; transition: var(--transicion); }
+    .mc-card:hover { box-shadow: var(--sombra-flotante); }
+    .mc-card-header { display: flex; align-items: center; gap: 16px; padding: 18px 24px; cursor: pointer; user-select: none; }
+    .mc-keyword { font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.02em; color: var(--color-primario); }
+    .mc-card-body { display: none; border-top: 1px solid var(--color-borde); padding: 22px 24px; background: rgba(0,0,0,0.01); }
+    .mc-card.open .mc-card-body { display: block; animation: fadeUp .15s ease; }
+    [data-theme="dark"] .mc-card-body { background: rgba(255,255,255,0.02); }
+    .mc-char-ok  { font-size: 11px; font-weight: 700; color: var(--texto-secundario); }
+    .mc-char-over { font-size: 11px; font-weight: 700; color: var(--color-peligro); }
+    .mc-badge-obj { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; background: rgba(196,133,90,0.1); color: var(--color-primario); }
+    .mc-badge-activo   { background: rgba(52,168,83,0.1);  color: var(--color-exito); padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .mc-badge-inactivo { background: rgba(0,0,0,0.06);     color: var(--texto-secundario); padding: 3px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    [data-theme="dark"] .mc-badge-inactivo { background: rgba(255,255,255,0.07); }
+
+    /* Horarios grid */
+    .horarios-grid { display: grid; grid-template-columns: 88px repeat(7, 1fr); gap: 6px; margin-bottom: 28px; }
+    .h-header { padding: 8px 4px; text-align: center; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.07em; color: var(--texto-secundario); }
+    .h-franja { display: flex; align-items: center; font-size: 11px; font-weight: 700; color: var(--texto-secundario); padding-right: 8px; }
+    .h-cell { padding: 12px 4px; border-radius: 10px; text-align: center; font-size: 11px; font-weight: 700; cursor: pointer; transition: background 0.15s, color 0.15s; border: 2px solid var(--color-borde); color: var(--texto-secundario); }
+    .h-cell:hover { filter: brightness(0.92); }
+    .h-optimo { background: rgba(52,168,83,0.14); color: var(--color-exito);   border-color: rgba(52,168,83,0.28); }
+    .h-bueno  { background: rgba(251,188,5,0.14);  color: #9A7000;             border-color: rgba(251,188,5,0.3); }
+    .h-evitar { background: rgba(234,67,53,0.08);  color: var(--color-peligro);border-color: rgba(234,67,53,0.18); }
+    [data-theme="dark"] .h-cell  { border-color: rgba(255,255,255,0.08); }
+    [data-theme="dark"] .h-optimo { background: rgba(52,168,83,0.15); }
+    [data-theme="dark"] .h-bueno  { background: rgba(251,188,5,0.12); color: #D4A800; }
+    [data-theme="dark"] .h-evitar { background: rgba(234,67,53,0.12); }
+
+    /* COFEPRIS box */
+    .cofepris-box { background: rgba(251,188,5,0.08); border: 1px solid rgba(251,188,5,0.3); border-radius: 14px; padding: 18px 20px; margin-top: 20px; }
+    [data-theme="dark"] .cofepris-box { background: rgba(251,188,5,0.07); border-color: rgba(251,188,5,0.2); }
+
+    /* ================================================================
        FIXES VARIOS — SPRINT 5
        ================================================================ */
 
@@ -1124,9 +1194,10 @@
 
             <section id="vista-briefing" class="seccion-app oculto">
                 <div class="encabezado-seccion">
-                    <h1>Briefing Estratégico</h1><p>Reglas inquebrantables de la marca y flujos operativos.</p>
+                    <div><h1>Briefing Estratégico</h1><p>Reglas, tono, flujos y horarios de la marca.</p></div>
                 </div>
-                <div class="dashboard-grid-2" id="contenedor-briefing"></div>
+                <div class="briefing-pills" id="briefing-pills"></div>
+                <div id="contenedor-briefing"></div>
             </section>
 
             <section id="vista-mood" class="seccion-app oculto">
@@ -1499,7 +1570,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 facturas: [ { folio: "F-01", proveedor: "Google", concepto: "Workspace", monto: 1500, estado: "Pendiente" } ],
                 briefing: {
                     reglas: ["Cero descuentos públicos.", "Nunca dar precio en el primer DM. Evaluar necesidad primero.", "Re-booking en cabina antes de salir."],
-                    manychat: [{ kw: "MAMÁ", desc: "Paquetes Día de la Madre · 3 niveles" }, { kw: "RESETEO", desc: "Rituales corporales" }]
+                    cofepris: true,
+                    cofepris_notas: "No usar términos como 'cura', 'trata' o 'elimina'. Evitar claims clínicos sin respaldo. Los términos de bienestar general están permitidos.",
+                    tono_ejemplos: [
+                        { correcto: "tu cuerpo acumuló tensión esta semana", evitar: "¡Aprovecha nuestras increíbles promociones!" },
+                        { correcto: "un espacio para soltar lo que cargaste", evitar: "Somos los mejores del mercado" },
+                        { correcto: "¿mañana o tarde?", evitar: "¡No te lo pierdas! ¡Últimos lugares!" }
+                    ],
+                    palabras_prohibidas: ["descuento","promoción","gratis","oferta","¡","nosotros","garantizamos","cura","trata","elimina"],
+                    palabras_clave: ["recuperación","sistema nervioso","tensión","soltar","ritual","protocolo clínico"],
+                    manychat: [
+                        { id:"mc_1", keyword:"TENSIÓN", mensaje:"hola, gracias por escribir. el protocolo de tensión muscular de aitama trabaja el sistema nervioso desde el tejido profundo. ¿quieres que te cuente qué incluye según lo que sientes? ¿mañana o tarde?", objetivo:"Agendar", estado:"Activo", activaciones_mes:0 },
+                        { id:"mc_2", keyword:"UPGRADE", mensaje:"esta semana al reservar tu facial incluimos un masaje de piernas cansadas sin costo. ¿te agendamos? ¿mañana o tarde?", objetivo:"Agendar", estado:"Activo", activaciones_mes:0 },
+                        { id:"mc_3", keyword:"RESET", mensaje:"el body reset es un programa de recuperación real, no una sesión suelta. esta semana tiene precio especial. ¿quieres que te explique qué incluye según lo que tu cuerpo necesita?", objetivo:"Cerrar venta", estado:"Activo", activaciones_mes:0 },
+                        { id:"mc_4", keyword:"MAYO", mensaje:"cerramos mayo el viernes. quedan los últimos lugares con upgrade y precio especial de body reset. ¿ya lo decidiste?", objetivo:"Cerrar venta", estado:"Activo", activaciones_mes:0 },
+                        { id:"mc_5", keyword:"MAMÁ", mensaje:"los paquetes del día de las madres están listos. hay tres opciones según lo que quieras regalarle. ¿te cuento cuál va mejor con ella?", objetivo:"Agendar", estado:"Inactivo", activaciones_mes:0 }
+                    ],
+                    horarios: {
+                        grid: { lun_m:"optimo",lun_t:"bueno",lun_n:"", mar_m:"optimo",mar_t:"bueno",mar_n:"", mie_m:"bueno",mie_t:"optimo",mie_n:"", jue_m:"optimo",jue_t:"bueno",jue_n:"", vie_m:"optimo",vie_t:"optimo",vie_n:"bueno", sab_m:"bueno",sab_t:"evitar",sab_n:"", dom_m:"",dom_t:"evitar",dom_n:"" },
+                        por_formato: { reel:"7:00", story:"20:00", post:"12:00", pauta:"6:00" }
+                    }
                 },
                 mood: Array.from({length: 12}, () => ({ emocion: "Relajación", bebida: "Té Matcha", producto: "Facial" })),
                 target: [ { id: "t1", segmento: "Mamás Jóvenes", sexo: "Mujer", nivel: "A/B", ubicacion: "Morelia (10km)" }, { id: "t2", segmento: "Ejecutivos Estrés", sexo: "Ambos", nivel: "C+", ubicacion: "Zona Financiera" } ],
@@ -1527,7 +1617,7 @@ document.addEventListener('DOMContentLoaded', function() {
             mammut: {
                 highlights: [{ label: "Total Sales", val: "$0" }, { label: "New Followers", val: "0" }, { label: "Total DMs", val: "0" }],
                 rendimiento: [], productos: [], objetivos: [], txt_working: "", txt_change: "", insights: [],
-                kanban: [], dam: [], presupuesto: [], facturas: [], briefing: { reglas: [], manychat: [] },
+                kanban: [], dam: [], presupuesto: [], facturas: [], briefing: { reglas: [], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } },
                 mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: [],
                 ads: [], offline: [], shooting: [], stories_ind: []
             }
@@ -1577,6 +1667,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let DB = {}; let ROL = 'none'; let SUC_ACTIVA = ''; let USUARIO_EQUIPO = '';
     let USUARIO_ACTIVO = null; let ROL_SIMULADO = null;
     let _adsExpanded = new Set();
+    let _briefingTab = 'reglas';
+    let _mcExpanded  = new Set();
     let _pptoVista = 'anual'; let _pptoMes = new Date().getMonth();
     let _charts = {}; // instancias Chart.js
     let _calFecha = new Date();
@@ -1651,6 +1743,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
             if (_s4migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
+        // Sprint 5 migration — briefing expanded structure
+        if (DB.datos) {
+            let _s5migrated = false;
+            Object.keys(DB.datos).forEach(sid => {
+                const b = DB.datos[sid].briefing;
+                if (!b) { DB.datos[sid].briefing = { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }; _s5migrated = true; return; }
+                // Migrate old manychat [{kw, desc}] → new structure
+                if (!Array.isArray(b.manychat)) { b.manychat = []; _s5migrated = true; }
+                else if (b.manychat.length && b.manychat[0].kw !== undefined) {
+                    b.manychat = b.manychat.map((m,mi) => ({ id:'mc_legacy_'+mi, keyword:m.kw||'', mensaje:m.desc||'', objetivo:'Informar', estado:'Activo', activaciones_mes:0 }));
+                    _s5migrated = true;
+                }
+                if (b.tono_ejemplos === undefined)      { b.tono_ejemplos = [];      _s5migrated = true; }
+                if (b.palabras_prohibidas === undefined){ b.palabras_prohibidas = []; _s5migrated = true; }
+                if (b.palabras_clave === undefined)     { b.palabras_clave = [];      _s5migrated = true; }
+                if (b.cofepris === undefined)           { b.cofepris = false;         _s5migrated = true; }
+                if (b.cofepris_notas === undefined)     { b.cofepris_notas = '';      _s5migrated = true; }
+                if (!b.horarios)                        { b.horarios = { grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} }; _s5migrated = true; }
+            });
+            if (_s5migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
@@ -1756,7 +1870,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!document.getElementById('nav-tooltip')) initNavCollapse();
     }
 
-    function cambiarSucursal() { SUC_ACTIVA = document.getElementById('selector-sucursal').value; aplicarGradiente(); renderTodas(); }
+    function cambiarSucursal() { SUC_ACTIVA = document.getElementById('selector-sucursal').value; _adsExpanded = new Set(); _mcExpanded = new Set(); aplicarGradiente(); renderTodas(); }
     function cambiarMoneda() { DB.configuracion.moneda = document.getElementById('selector-moneda').value; guardarBD(); renderTodas(); }
     function navegarVista(id) { document.querySelectorAll('.seccion-app').forEach(s=>s.classList.add('oculto')); document.getElementById(id).classList.remove('oculto'); }
 
@@ -1952,11 +2066,281 @@ document.addEventListener('DOMContentLoaded', function() {
         }).join('');
     }
 
+    /* ================================================================
+       BRIEFING ESTRATÉGICO — MÓDULO COMPLETO
+       ================================================================ */
     function renderBriefing() {
-        const d = DB.datos[SUC_ACTIVA].briefing; const ro = ROL === 'cliente' ? 'readonly' : '';
-        let htmlReglas = d.reglas.map((r,i) => `<div class="rule-item"><div class="rule-num">0${i+1}</div><textarea class="input-celda" style="resize:vertical; min-height:50px;" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].briefing.reglas[${i}]=this.value;guardarBD()">${r}</textarea>${ROL==='agencia'?`<i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;margin-top:12px;" onclick="DB.datos['${SUC_ACTIVA}'].briefing.reglas.splice(${i},1);guardarBD();renderBriefing()"></i>`:''}</div>`).join('');
-        let htmlManychat = d.manychat.map((m,i) => `<div style="background:#111; color:#fff; padding:16px; border-radius:12px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-start;"><div style="flex:1;"><input class="input-celda" style="color:var(--color-primario); font-weight:800; font-size:16px; padding:0; font-family:var(--font-display);" value="${m.kw}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].briefing.manychat[${i}].kw=this.value;guardarBD()"><textarea class="input-celda" style="color:#ccc; padding:0; margin-top:4px; min-height:40px;" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].briefing.manychat[${i}].desc=this.value;guardarBD()">${m.desc}</textarea></div>${ROL==='agencia'?`<i class="fa-solid fa-trash" style="color:#555;cursor:pointer;" onclick="DB.datos['${SUC_ACTIVA}'].briefing.manychat.splice(${i},1);guardarBD();renderBriefing()"></i>`:''}</div>`).join('');
-        document.getElementById('contenedor-briefing').innerHTML = `<div class="briefing-card"><h3>Reglas de Marca</h3><div style="margin-top:16px;">${htmlReglas}</div>${ROL==='agencia'?'<button class="btn btn-xs btn-fantasma" onclick="DB.datos[\''+SUC_ACTIVA+'\'].briefing.reglas.push(\'\');guardarBD();renderBriefing()">+ Añadir Regla</button>':''}</div><div class="briefing-card"><h3>Flujos Manychat</h3><div style="margin-top:16px;">${htmlManychat}</div>${ROL==='agencia'?'<button class="btn btn-xs btn-fantasma" onclick="DB.datos[\''+SUC_ACTIVA+'\'].briefing.manychat.push({kw:\'KEYWORD\', desc:\'\'});guardarBD();renderBriefing()">+ Añadir Flujo</button>':''}</div>`;
+        const cp = getComputedStyle(document.documentElement).getPropertyValue('--color-primario').trim() || '#C4855A';
+        const TABS = [
+            { id:'reglas',   label:'Reglas de Marca' },
+            { id:'tono',     label:'Tono de Voz' },
+            { id:'manychat', label:'Flujos Manychat' },
+            { id:'horarios', label:'Horarios' }
+        ];
+        document.getElementById('briefing-pills').innerHTML = TABS.map(t =>
+            `<button class="briefing-pill ${_briefingTab===t.id?'activo':''}" style="${_briefingTab===t.id?`background:${cp};border-color:${cp};`:''}" onclick="cambiarTabBriefing('${t.id}')">${t.label}</button>`
+        ).join('');
+        const fn = { reglas: renderBriefingReglas, tono: renderBriefingTono, manychat: renderBriefingManychat, horarios: renderBriefingHorarios };
+        if (fn[_briefingTab]) fn[_briefingTab]();
+    }
+
+    function cambiarTabBriefing(tab) {
+        _briefingTab = tab;
+        renderBriefing();
+    }
+
+    // ── TAB 1: REGLAS DE MARCA ──────────────────────────────────────
+    function renderBriefingReglas() {
+        const b = DB.datos[SUC_ACTIVA].briefing;
+        const ro = ROL === 'cliente' ? 'readonly' : '';
+        const canEdit = ROL === 'agencia';
+        const esAitama = SUC_ACTIVA === 'aitama' || (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).nombre.toLowerCase().includes('aitama');
+
+        const reglasHTML = (b.reglas||[]).map((r,i) => `
+            <div class="rule-item" style="align-items:flex-start;">
+                <div class="rule-num">${String(i+1).padStart(2,'0')}</div>
+                <textarea class="input-celda" style="resize:vertical;min-height:52px;flex:1;" ${ro}
+                    onchange="DB.datos['${SUC_ACTIVA}'].briefing.reglas[${i}]=this.value;guardarBD()">${r}</textarea>
+                ${canEdit?`<i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;margin-top:14px;margin-left:8px;" onclick="DB.datos['${SUC_ACTIVA}'].briefing.reglas.splice(${i},1);guardarBD();renderBriefing()"></i>`:''}
+            </div>`).join('');
+
+        const cofeprisHTML = esAitama ? `
+            <div class="cofepris-box">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+                    <i class="fa-solid fa-shield-halved" style="color:#B38600;font-size:16px;"></i>
+                    <span style="font-size:13px;font-weight:700;color:#B38600;">Restricciones COFEPRIS — Sector Salud & Wellness</span>
+                </div>
+                <textarea class="input-celda" style="resize:vertical;min-height:70px;font-size:13px;background:transparent;" ${ro}
+                    onchange="DB.datos['${SUC_ACTIVA}'].briefing.cofepris_notas=this.value;guardarBD()">${b.cofepris_notas||''}</textarea>
+            </div>` : '';
+
+        document.getElementById('contenedor-briefing').innerHTML = `
+            <div class="briefing-card">
+                <div style="margin-bottom:20px;">${reglasHTML}</div>
+                ${canEdit?`<button class="btn btn-xs btn-fantasma" onclick="DB.datos['${SUC_ACTIVA}'].briefing.reglas.push('');guardarBD();renderBriefing()"><i class="fa-solid fa-plus"></i> Añadir Regla</button>`:''}
+                ${cofeprisHTML}
+            </div>`;
+    }
+
+    // ── TAB 2: TONO DE VOZ ─────────────────────────────────────────
+    function renderBriefingTono() {
+        const b = DB.datos[SUC_ACTIVA].briefing;
+        const canEdit = ROL === 'agencia';
+        const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+        const ejemplosHTML = (b.tono_ejemplos||[]).map((e,i) => `
+            <div class="tono-row">
+                <div class="tono-card tono-correcto">
+                    <div class="tono-label"><i class="fa-solid fa-check" style="margin-right:4px;"></i>Correcto</div>
+                    <textarea class="tono-input" ${canEdit?'':'readonly'} placeholder="Ejemplo de tono correcto..."
+                        onchange="DB.datos['${SUC_ACTIVA}'].briefing.tono_ejemplos[${i}].correcto=this.value;guardarBD()">${esc(e.correcto||'')}</textarea>
+                </div>
+                <div class="tono-card tono-evitar">
+                    <div class="tono-label"><i class="fa-solid fa-times" style="margin-right:4px;"></i>Evitar</div>
+                    <textarea class="tono-input" ${canEdit?'':'readonly'} placeholder="Ejemplo a evitar..."
+                        onchange="DB.datos['${SUC_ACTIVA}'].briefing.tono_ejemplos[${i}].evitar=this.value;guardarBD()">${esc(e.evitar||'')}</textarea>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:center;width:28px;">${canEdit?`<i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="DB.datos['${SUC_ACTIVA}'].briefing.tono_ejemplos.splice(${i},1);guardarBD();renderBriefing()"></i>`:''}</div>
+            </div>`
+        ).join('');
+
+        const tagsProhib = (b.palabras_prohibidas||[]).map((p,i) =>
+            `<span class="ptag ptag-roja">${esc(p)}${canEdit?`<i class="fa-solid fa-times" onclick="DB.datos['${SUC_ACTIVA}'].briefing.palabras_prohibidas.splice(${i},1);guardarBD();renderBriefing()"></i>`:''}</span>`
+        ).join('');
+        const tagsClave = (b.palabras_clave||[]).map((p,i) =>
+            `<span class="ptag ptag-verde">${esc(p)}${canEdit?`<i class="fa-solid fa-times" onclick="DB.datos['${SUC_ACTIVA}'].briefing.palabras_clave.splice(${i},1);guardarBD();renderBriefing()"></i>`:''}</span>`
+        ).join('');
+
+        document.getElementById('contenedor-briefing').innerHTML = `
+            <div class="briefing-card" style="max-width:900px;">
+                <h3 style="margin-bottom:20px;">Ejemplos de Tono</h3>
+                ${ejemplosHTML}
+                ${canEdit?`<button class="btn btn-xs btn-fantasma" style="margin-bottom:28px;" onclick="DB.datos['${SUC_ACTIVA}'].briefing.tono_ejemplos.push({correcto:'',evitar:''});guardarBD();renderBriefing()"><i class="fa-solid fa-plus"></i> Añadir par</button>`:''}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:8px;">
+                    <div>
+                        <h4 style="font-size:13px;font-weight:700;color:var(--color-peligro);margin-bottom:14px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-ban"></i> Palabras Prohibidas</h4>
+                        <div class="palabras-wrap" id="palabras-prohib-wrap" style="margin-bottom:12px;">${tagsProhib}</div>
+                        ${canEdit?`<div style="display:flex;gap:8px;margin-top:6px;">
+                            <input id="new-prohib" class="input-celda" style="border:1px solid var(--color-borde);flex:1;" placeholder="Nueva palabra prohibida..." onkeydown="if(event.key==='Enter'){agregarPalabrasBriefing('prohibidas',this.value);this.value='';}">
+                            <button class="btn btn-xs btn-fantasma" onclick="const el=document.getElementById('new-prohib');if(el.value.trim())agregarPalabrasBriefing('prohibidas',el.value);el.value='';"><i class="fa-solid fa-plus"></i></button>
+                        </div>`:''}
+                    </div>
+                    <div>
+                        <h4 style="font-size:13px;font-weight:700;color:var(--color-exito);margin-bottom:14px;display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-star"></i> Palabras Clave de Marca</h4>
+                        <div class="palabras-wrap" id="palabras-clave-wrap" style="margin-bottom:12px;">${tagsClave}</div>
+                        ${canEdit?`<div style="display:flex;gap:8px;margin-top:6px;">
+                            <input id="new-clave" class="input-celda" style="border:1px solid var(--color-borde);flex:1;" placeholder="Nueva palabra clave..." onkeydown="if(event.key==='Enter'){agregarPalabrasBriefing('clave',this.value);this.value='';}">
+                            <button class="btn btn-xs btn-fantasma" onclick="const el=document.getElementById('new-clave');if(el.value.trim())agregarPalabrasBriefing('clave',el.value);el.value='';"><i class="fa-solid fa-plus"></i></button>
+                        </div>`:''}
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    function agregarPalabrasBriefing(tipo, val) {
+        val = val.trim();
+        if (!val) return;
+        const b = DB.datos[SUC_ACTIVA].briefing;
+        if (tipo === 'prohibidas') { if (!b.palabras_prohibidas.includes(val)) b.palabras_prohibidas.push(val); }
+        else { if (!b.palabras_clave.includes(val)) b.palabras_clave.push(val); }
+        guardarBD(); renderBriefing();
+    }
+
+    // ── TAB 3: FLUJOS MANYCHAT ─────────────────────────────────────
+    function renderBriefingManychat() {
+        const b = DB.datos[SUC_ACTIVA].briefing;
+        const canEdit = ROL === 'agencia';
+        const flows = b.manychat || [];
+        const OBJETIVOS = ['Agendar','Informar','Cerrar venta','Fidelizar'];
+        const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+        const flowsHTML = flows.map((f, i) => {
+            const isOpen = _mcExpanded.has(i);
+            const chars  = (f.mensaje||'').length;
+            const charCls = chars > 500 ? 'mc-char-over' : 'mc-char-ok';
+            const objOpts = OBJETIVOS.map(o=>`<option ${o===f.objetivo?'selected':''}>${o}</option>`).join('');
+            const badge   = f.estado==='Activo' ? 'mc-badge-activo' : 'mc-badge-inactivo';
+            return `
+            <div class="mc-card ${isOpen?'open':''}" id="mc-card-${i}">
+                <div class="mc-card-header" onclick="toggleMcCard(${i})">
+                    <div style="flex:1;">
+                        <div class="mc-keyword">${esc(f.keyword||'KEYWORD')}</div>
+                        <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                            <span class="mc-badge-obj">${esc(f.objetivo||'Informar')}</span>
+                            <span class="${badge}">${f.estado||'Activo'}</span>
+                            ${chars>500?`<span style="background:rgba(234,67,53,0.1);color:var(--color-peligro);padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;">⚠ Supera 500 chars</span>`:''}
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;flex-shrink:0;">
+                        <div style="text-align:center;">
+                            <div style="font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--color-primario);">${f.activaciones_mes||0}</div>
+                            <div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--texto-secundario);letter-spacing:0.05em;">activaciones</div>
+                        </div>
+                        <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);font-size:11px;transition:transform .2s;${isOpen?'transform:rotate(180deg)':''}"></i>
+                    </div>
+                </div>
+                ${canEdit ? `<div class="mc-card-body">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:14px;">
+                        <div>
+                            <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Keyword</label>
+                            <input class="input-celda" style="border:1px solid var(--color-borde);font-family:var(--font-display);font-weight:800;font-size:15px;" value="${esc(f.keyword||'')}"
+                                onchange="DB.datos['${SUC_ACTIVA}'].briefing.manychat[${i}].keyword=this.value;guardarBD();renderBriefing()">
+                        </div>
+                        <div>
+                            <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Objetivo</label>
+                            <select class="select-celda" style="border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].briefing.manychat[${i}].objetivo=this.value;guardarBD();renderBriefing()">${objOpts}</select>
+                        </div>
+                        <div>
+                            <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Estado</label>
+                            <select class="select-celda" style="border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].briefing.manychat[${i}].estado=this.value;guardarBD();renderBriefing()">
+                                <option ${f.estado==='Activo'?'selected':''}>Activo</option>
+                                <option ${f.estado==='Inactivo'?'selected':''}>Inactivo</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                            <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Mensaje automático</label>
+                            <span class="${charCls}" id="mc-chars-${i}">${chars}/500</span>
+                        </div>
+                        <textarea class="copy-block" style="min-height:100px;font-size:13px;line-height:1.6;" maxlength="520"
+                            oninput="document.getElementById('mc-chars-${i}').textContent=this.value.length+'/500';document.getElementById('mc-chars-${i}').className=this.value.length>500?'mc-char-over':'mc-char-ok';"
+                            onchange="DB.datos['${SUC_ACTIVA}'].briefing.manychat[${i}].mensaje=this.value;guardarBD()">${esc(f.mensaje||'')}</textarea>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;">
+                        <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Activaciones este mes:</label>
+                        <input type="text" inputmode="numeric" class="input-celda" style="width:64px;border:1px solid var(--color-borde);text-align:center;font-weight:700;" value="${f.activaciones_mes||0}"
+                            onchange="DB.datos['${SUC_ACTIVA}'].briefing.manychat[${i}].activaciones_mes=Number(this.value)||0;guardarBD()">
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:space-between;padding-top:12px;border-top:1px solid var(--color-borde);">
+                        <button class="btn btn-xs btn-fantasma" onclick="navigator.clipboard.writeText(DB.datos['${SUC_ACTIVA}'].briefing.manychat[${i}].mensaje||'').then(()=>{this.textContent='✓ Copiado';setTimeout(()=>this.innerHTML='<i class=\\'fa-regular fa-copy\\'></i> Copiar mensaje',1200)})"><i class="fa-regular fa-copy"></i> Copiar mensaje</button>
+                        <button class="btn btn-xs btn-peligro-suave" onclick="DB.datos['${SUC_ACTIVA}'].briefing.manychat.splice(${i},1);_mcExpanded.delete(${i});guardarBD();renderBriefing()"><i class="fa-solid fa-trash"></i> Eliminar</button>
+                    </div>
+                </div>` : ''}
+            </div>`;
+        }).join('');
+
+        document.getElementById('contenedor-briefing').innerHTML = `
+            <div style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;">
+                <p style="font-size:14px;color:var(--texto-secundario);">${flows.length} flujo${flows.length!==1?'s':''} configurado${flows.length!==1?'s':''}.</p>
+                ${canEdit?`<button class="btn btn-primario btn-xs" onclick="nuevoFlujoBriefing()"><i class="fa-solid fa-plus"></i> Nuevo Flujo</button>`:''}
+            </div>
+            ${flowsHTML || '<div style="text-align:center;padding:48px;color:var(--texto-secundario);"><i class="fa-solid fa-robot" style="font-size:36px;opacity:0.2;display:block;margin-bottom:16px;"></i>Sin flujos Manychat configurados.</div>'}`;
+    }
+
+    function toggleMcCard(i) {
+        if (_mcExpanded.has(i)) _mcExpanded.delete(i); else _mcExpanded.add(i);
+        renderBriefingManychat();
+    }
+
+    function nuevoFlujoBriefing() {
+        const n = { id:'mc_'+Date.now(), keyword:'KEYWORD', mensaje:'', objetivo:'Agendar', estado:'Activo', activaciones_mes:0 };
+        DB.datos[SUC_ACTIVA].briefing.manychat.push(n);
+        _mcExpanded.add(DB.datos[SUC_ACTIVA].briefing.manychat.length - 1);
+        guardarBD(); renderBriefing();
+    }
+
+    // ── TAB 4: HORARIOS ────────────────────────────────────────────
+    function renderBriefingHorarios() {
+        const b = DB.datos[SUC_ACTIVA].briefing;
+        const canEdit = ROL === 'agencia';
+        const grid = b.horarios.grid || {};
+        const fmt  = b.horarios.por_formato || {};
+        const DIAS   = [['lun','Lun'],['mar','Mar'],['mie','Mié'],['jue','Jue'],['vie','Vie'],['sab','Sáb'],['dom','Dom']];
+        const FRANJAS = [['m','Mañana','6–12'],['t','Tarde','12–18'],['n','Noche','18–24']];
+        const CICLO  = ['','optimo','bueno','evitar'];
+        const TEXTOS = { optimo:'Óptimo', bueno:'Bueno', evitar:'Evitar', '':'' };
+
+        let gridHTML = '<div class="horarios-grid">';
+        // Header row
+        gridHTML += '<div class="h-header"></div>' + DIAS.map(d=>`<div class="h-header">${d[1]}</div>`).join('');
+        // Rows per franja
+        FRANJAS.forEach(([fk, fnombre, fhoras]) => {
+            gridHTML += `<div class="h-franja"><div><div style="font-size:11px;font-weight:700;">${fnombre}</div><div style="font-size:9px;color:var(--texto-secundario);">${fhoras}h</div></div></div>`;
+            DIAS.forEach(([dk]) => {
+                const key = dk+'_'+fk;
+                const val = grid[key] || '';
+                const cls = val ? 'h-'+val : 'h-cell';
+                const onClick = canEdit ? `onclick="toggleHorarioCell('${key}')"` : '';
+                gridHTML += `<div class="h-cell ${cls}" id="hc-${key}" ${onClick}>${TEXTOS[val]||''}</div>`;
+            });
+        });
+        gridHTML += '</div>';
+
+        const FORMATOS = [['reel','🎬 Reel'],['story','📱 Story'],['post','🖼 Post'],['pauta','🎯 Pauta']];
+        const fmtHTML = FORMATOS.map(([fk, fnombre]) => `
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--color-tarjeta);border-radius:12px;border:1px solid var(--color-borde);">
+                <span style="font-size:14px;font-weight:700;min-width:80px;">${fnombre}</span>
+                <input type="time" class="input-celda" style="border:1px solid var(--color-borde);width:130px;font-weight:700;font-family:monospace;" value="${fmt[fk]||''}" ${canEdit?'':'readonly'}
+                    onchange="DB.datos['${SUC_ACTIVA}'].briefing.horarios.por_formato['${fk}']=this.value;guardarBD()">
+                <span style="font-size:12px;color:var(--texto-secundario);">${fmt[fk]?'Publicar a las '+fmt[fk]:'Sin configurar'}</span>
+            </div>`).join('');
+
+        document.getElementById('contenedor-briefing').innerHTML = `
+            <div class="briefing-card">
+                <h3 style="margin-bottom:20px;">Franjas Horarias por Día</h3>
+                <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:20px;">${canEdit?'Haz clic en cada celda para ciclar entre: Vacío → Óptimo → Bueno → Evitar.':'Distribución de horas ideales para publicar.'}</p>
+                ${gridHTML}
+                <h3 style="margin-bottom:16px;margin-top:4px;">Mejor Hora por Formato</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;max-width:480px;">${fmtHTML}</div>
+            </div>`;
+    }
+
+    function toggleHorarioCell(key) {
+        const b = DB.datos[SUC_ACTIVA].briefing;
+        if (!b.horarios) b.horarios = { grid:{}, por_formato:{reel:'',story:'',post:'',pauta:''} };
+        const CICLO = ['','optimo','bueno','evitar'];
+        const cur = b.horarios.grid[key] || '';
+        const next = CICLO[(CICLO.indexOf(cur)+1) % CICLO.length];
+        b.horarios.grid[key] = next;
+        guardarBD();
+        // Update cell directly without full re-render
+        const TEXTOS = { optimo:'Óptimo', bueno:'Bueno', evitar:'Evitar', '':'' };
+        const el = document.getElementById('hc-'+key);
+        if (el) {
+            el.className = 'h-cell' + (next ? ' h-'+next : '');
+            el.textContent = TEXTOS[next]||'';
+        }
     }
 
     function renderMood() {
@@ -2030,7 +2414,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function nuevoCliente() {
         const id = 'p_' + Date.now();
         DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123"), equipo_miembros: [] });
-        DB.datos[id] = { highlights: [{ label: "Sales", val: "0" }, { label: "Followers", val: "0" }, { label: "DMs", val: "0" }], rendimiento: [], productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas: [], manychat: [] }, ads: [], offline: [], shooting: [], stories_ind: [] };
+        DB.datos[id] = { highlights: [{ label: "Sales", val: "0" }, { label: "Followers", val: "0" }, { label: "DMs", val: "0" }], rendimiento: [], productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [] };
         guardarBD(); iniciarApp(id);
     }
 
