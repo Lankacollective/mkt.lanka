@@ -14,6 +14,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 
 <style>
     :root {
@@ -40,6 +41,18 @@
 
         --asmr: #A7A28D; --story: #86826C; --reel: #C4855A; --carrusel: #7A8C6E;
         --pauta: #D4956A; --masaje: #9B8FA0; --facial: #8FA0A8; --urgente: #EA4335;
+        --brand:#C4855A; --brand-rgb:196,133,90;
+        --bg-gradient: radial-gradient(ellipse at 20% 20%,rgba(196,133,90,.18) 0%,transparent 55%), radial-gradient(ellipse at 80% 80%,rgba(196,133,90,.12) 0%,transparent 50%), radial-gradient(ellipse at 60% 10%,rgba(220,160,110,.1) 0%,transparent 40%), #EDE9E4;
+        --glass-bg:rgba(255,255,255,.55); --glass-bg-strong:rgba(255,255,255,.82);
+        --glass-border:rgba(255,255,255,.9); --glass-border-soft:rgba(196,133,90,.2);
+        --glass-shadow:0 8px 32px rgba(196,133,90,.12),0 2px 8px rgba(0,0,0,.06);
+        --glass-shadow-strong:0 16px 48px rgba(196,133,90,.18),0 4px 16px rgba(0,0,0,.08);
+        --glass-blur:blur(20px);
+        --text-primary:#1A1410; --text-secondary:#6B5C50; --text-tertiary:#A0887A;
+        --chart-grid:rgba(0,0,0,.06); --kpi-bg:rgba(255,255,255,.4);
+        --intel-bg:rgba(255,255,255,.4); --obj-bg:rgba(28,22,18,.88);
+        --tab-bg:rgba(255,255,255,.4); --tab-active-bg:rgba(255,255,255,.9);
+        --sprint-bg:rgba(0,0,0,.04); --sprint-text:rgba(0,0,0,.35);
     }
 
     .tema-login { background: #0A0A0A; color: #FFFFFF; }
@@ -381,9 +394,7 @@
         --sombra-flotante: 0 20px 48px -8px rgba(196,133,90,0.18);
     }
     [data-theme="light"] body {
-        background: #F5F0EA;
-        background-image: radial-gradient(ellipse 80% 60% at 20% 10%, rgba(196,133,90,0.07) 0%, transparent 60%),
-                          radial-gradient(ellipse 60% 50% at 80% 90%, rgba(196,133,90,0.05) 0%, transparent 60%);
+        background: var(--bg-gradient);
     }
     /* Login light */
     [data-theme="light"] body.tema-login { background: #F5F0EA !important; color: #1A1612 !important; }
@@ -456,11 +467,20 @@
         --color-borde-fuerte: rgba(255,255,255,0.13);
         --sombra-suave: 0 4px 28px -6px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.25);
         --sombra-flotante: 0 20px 60px -12px rgba(0,0,0,0.7);
+        --bg-gradient: radial-gradient(ellipse at 15% 25%,rgba(196,133,90,.22) 0%,transparent 50%), radial-gradient(ellipse at 85% 75%,rgba(150,80,30,.18) 0%,transparent 50%), radial-gradient(ellipse at 50% 0%,rgba(220,140,70,.12) 0%,transparent 40%), #12100E;
+        --glass-bg:rgba(255,255,255,.05); --glass-bg-strong:rgba(255,255,255,.09);
+        --glass-border:rgba(255,255,255,.12); --glass-border-soft:rgba(196,133,90,.3);
+        --glass-shadow:0 8px 32px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.08);
+        --glass-shadow-strong:0 20px 60px rgba(0,0,0,.5),0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.1);
+        --glass-blur:blur(24px);
+        --text-primary:rgba(255,255,255,.92); --text-secondary:rgba(255,255,255,.55); --text-tertiary:rgba(255,255,255,.3);
+        --chart-grid:rgba(255,255,255,.06); --kpi-bg:rgba(255,255,255,.04);
+        --intel-bg:rgba(255,255,255,.04); --obj-bg:rgba(196,133,90,.15);
+        --tab-bg:rgba(255,255,255,.05); --tab-active-bg:rgba(255,255,255,.12);
+        --sprint-bg:rgba(255,255,255,.05); --sprint-text:rgba(255,255,255,.3);
     }
     [data-theme="dark"] body {
-        background: #0D0D0D;
-        background-image: radial-gradient(ellipse 80% 60% at 15% 10%, rgba(196,133,90,0.09) 0%, transparent 55%),
-                          radial-gradient(ellipse 60% 50% at 85% 90%, rgba(196,133,90,0.06) 0%, transparent 55%);
+        background: var(--bg-gradient);
         color: #F0EDE8;
     }
     [data-theme="dark"] body.tema-login { background: #0D0D0D !important; }
@@ -739,6 +759,32 @@
     [data-theme="dark"] .dash-periodo-wrap { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
     .dash-periodo-sep { width:1px; height:22px; background:var(--color-borde-fuerte); margin:0 4px; }
 
+    /* ══ Glass Design System ══════════════════════════════════════════════ */
+    .glass-card { background:var(--glass-bg); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border); border-radius:18px; box-shadow:var(--glass-shadow); position:relative; overflow:hidden; }
+    .glass-card::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.6),transparent); pointer-events:none; z-index:1; }
+    .glass-card-solid { background:var(--glass-bg-strong); backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border); border-radius:18px; box-shadow:var(--glass-shadow-strong); position:relative; overflow:hidden; }
+    .glass-card-solid::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent); pointer-events:none; z-index:1; }
+
+    /* ══ Dashboard Layout ═════════════════════════════════════════════════ */
+    .dash-semaforo-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .dash-grid-main { display:grid; grid-template-columns:1fr 1fr 320px; gap:16px; }
+    .dash-grid-bottom { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .dash-grid-2x2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    @media(max-width:1100px) { .dash-grid-main { grid-template-columns:1fr 1fr; } .dash-grid-main > *:nth-child(3) { grid-column:1/-1; display:grid; grid-template-columns:1fr 1fr; gap:16px; } }
+    @media(max-width:780px) { .dash-semaforo-row,.dash-grid-main,.dash-grid-bottom,.dash-grid-2x2 { grid-template-columns:1fr; } .dash-grid-main > *:nth-child(3) { display:flex; flex-direction:column; } }
+    /* Tabs */
+    .dash-tabs { display:inline-flex; background:var(--tab-bg); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid var(--glass-border); border-radius:12px; padding:4px; gap:2px; }
+    .dash-tab { padding:7px 18px; border-radius:9px; font-size:12px; font-weight:600; cursor:pointer; border:none; background:transparent; color:var(--texto-secundario); transition:var(--transicion); display:inline-flex; align-items:center; gap:6px; }
+    .dash-tab.activo { background:var(--tab-active-bg); color:var(--texto-principal); box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    /* Period selector → glass */
+    .dash-periodo-wrap { background:var(--glass-bg) !important; backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border) !important; box-shadow:var(--glass-shadow) !important; }
+    /* KPI minis */
+    .dash-kpi-mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+    .dash-kpi-mini { background:var(--kpi-bg); border:1px solid var(--glass-border-soft); border-radius:12px; padding:14px; position:relative; overflow:hidden; }
+    /* Inversion glass override */
+    .inv-wrap { background:var(--glass-bg) !important; backdrop-filter:var(--glass-blur) !important; -webkit-backdrop-filter:var(--glass-blur) !important; border:1px solid var(--glass-border) !important; box-shadow:var(--glass-shadow) !important; }
+    [data-theme="dark"] .inv-wrap { background:var(--glass-bg) !important; border-color:var(--glass-border) !important; }
+
     /* ── EJECUTOR DE KPIs ── */
     .ejecutor-card { background:var(--color-tarjeta); border-radius:20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); margin-bottom:24px; overflow:hidden; }
     [data-theme="dark"] .ejecutor-card { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
@@ -759,6 +805,19 @@
     /* Date/time inputs native picker — dark color scheme */
     [data-theme="dark"] input[type="date"],
     [data-theme="dark"] input[type="time"] { color-scheme: dark; }
+
+    /* ── Excel Import Modal ── */
+    .xls-step-header { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--texto-secundario); margin-bottom:8px; }
+    .xls-kpi-list { display:grid; grid-template-columns:1fr 1fr; gap:6px 16px; margin:10px 0; }
+    .xls-kpi-item { display:flex; justify-content:space-between; align-items:center; padding:9px 12px; border-radius:10px; background:var(--color-fondo); border:1px solid var(--color-borde); }
+    .xls-kpi-label { font-size:11px; font-weight:600; color:var(--texto-secundario); }
+    .xls-kpi-val { font-size:14px; font-weight:900; color:var(--texto-principal); font-family:var(--font-display); letter-spacing:-0.02em; }
+    .xls-map-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--color-borde); font-size:13px; }
+    .xls-map-field { font-weight:600; color:var(--texto-principal); }
+    .xls-canal-row { display:flex; justify-content:space-between; align-items:center; padding:7px 11px; border-radius:8px; background:var(--color-fondo); border:1px solid var(--color-borde); font-size:12px; margin-bottom:5px; }
+    [data-theme="dark"] .xls-kpi-item,
+    [data-theme="dark"] .xls-canal-row { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    [data-theme="dark"] .xls-map-row { border-bottom-color:rgba(255,255,255,0.07)!important; }
 
     /* ================================================================
        BRIEFING ESTRATÉGICO — SPRINT 5
@@ -1005,7 +1064,8 @@
 
     <main>
         <header class="barra-superior">
-            <div style="display:flex; align-items:center;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div id="proyecto-logo-header" style="display:none;flex-shrink:0;"></div>
                 <h2 id="etiqueta-cliente" class="oculto"></h2>
                 <select id="selector-sucursal" class="select-apple req-agencia" onchange="cambiarSucursal()"></select>
             </div>
@@ -1038,47 +1098,126 @@
             
             <!-- SECCIONES ORIGINALES -->
             <section id="vista-resumen" class="seccion-app">
-                <div class="encabezado-seccion">
+                <!-- ── Topbar ──────────────────────────────────────────── -->
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
                     <div>
-                        <h1>Dashboard</h1>
-                        <p>KPIs acumulados del periodo + métricas del proyecto. <span id="dash-tipo-badge"></span></p>
+                        <h1 style="font-size:22px;margin-bottom:3px;">Dashboard</h1>
+                        <p style="font-size:12px;color:var(--texto-secundario);" id="dash-tipo-badge"></p>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <button class="btn btn-fantasma btn-xs" title="Ir a Métricas" onclick="irA('vista-charts')"><i class="fa-solid fa-file-lines"></i></button>
+                        <button class="btn btn-fantasma btn-xs" title="Exportar reporte" onclick="abrirReporteEjecutivo()"><i class="fa-solid fa-download"></i></button>
                     </div>
                 </div>
-                <!-- Selector de periodo global -->
+                <!-- ── Selector de periodo ────────────────────────────── -->
                 <div id="dash-periodo-selector"></div>
-                <!-- Ejecutor de KPIs (ingreso semanal) -->
-                <div id="ejecutor-kpis-wrap"></div>
-                <!-- 4 KPI fijos: clientes + CAC -->
-                <div class="dash-kpi-row" id="dash-kpis-clientes"></div>
-                <!-- Desglose inversión desde presupuesto -->
-                <div id="dash-inversion"></div>
-                <div class="tarjeta">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>Variación de Métricas</h3>
-                        <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('rendimiento')"><i class="fa-solid fa-plus"></i> Métrica</button>
+                <!-- ── Tabs Ejecutivo / Analítico ─────────────────────── -->
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;flex-wrap:wrap;">
+                    <div class="dash-tabs">
+                        <button class="dash-tab activo" id="dash-tab-exec-btn" onclick="setDashTab('exec')"><i class="fa-solid fa-chart-pie" style="font-size:10px;"></i> Ejecutivo</button>
+                        <button class="dash-tab" id="dash-tab-anal-btn" onclick="setDashTab('anal')"><i class="fa-solid fa-chart-line" style="font-size:10px;"></i> Analítico</button>
                     </div>
-                    <table class="tabla-editable" style="margin-top:16px;">
-                        <thead>
-                            <tr><th>Métrica</th><th>Mes Pasado</th><th>Mes Actual</th><th>Variación</th><th>Meta</th><th class="req-agencia" style="width:40px;"></th></tr>
-                        </thead>
-                        <tbody id="dash-rendimiento"></tbody>
-                    </table>
+                    <div id="dash-rol-selector-wrap"></div>
                 </div>
-                <div class="tarjeta">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h3>Distribución de Pauta</h3>
-                        <span id="dash-pauta-fuente" style="font-size:10px;font-weight:700;color:var(--texto-secundario);padding:3px 10px;border:1px solid var(--color-borde);border-radius:100px;"></span>
+
+                <!-- ══ TAB EJECUTIVO ═══════════════════════════════════ -->
+                <div id="dash-tab-exec-content">
+                    <!-- Ejecutor de KPIs -->
+                    <div id="ejecutor-kpis-wrap"></div>
+                    <!-- Fila 1: Semáforo -->
+                    <div class="dash-semaforo-row" id="dash-semaforo" style="margin-bottom:18px;"></div>
+                    <!-- Fila 2: grid 3 cols -->
+                    <div class="dash-grid-main" style="margin-bottom:18px;">
+                        <!-- Col 1: Resultados del periodo -->
+                        <div class="glass-card-solid" style="padding:20px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;z-index:2;">
+                                <h3 style="font-size:14px;margin:0;">Resultados del periodo</h3>
+                                <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('rendimiento')"><i class="fa-solid fa-plus"></i> KPI</button>
+                            </div>
+                            <div class="dash-kpi-mini-grid" id="dash-kpis-clientes"></div>
+                            <div id="dash-trend-svg" style="margin-top:4px;"></div>
+                        </div>
+                        <!-- Col 2: Inversión -->
+                        <div id="dash-inversion"></div>
+                        <!-- Col 3: Origen + Engagement -->
+                        <div style="display:flex;flex-direction:column;gap:14px;">
+                            <div class="glass-card" id="dash-origen" style="padding:16px;flex:1;min-height:140px;"></div>
+                            <div class="glass-card" id="dash-engagement" style="padding:16px;flex:1;min-height:140px;"></div>
+                        </div>
                     </div>
-                    <div class="bar-container" id="dash-productos"></div>
+                    <!-- Fila 3: grid 2 cols -->
+                    <div class="dash-grid-bottom" style="margin-bottom:18px;">
+                        <!-- Col 1: Variación de métricas -->
+                        <div class="glass-card-solid" style="padding:20px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;z-index:2;">
+                                <h3 style="font-size:14px;margin:0;">Variación de métricas</h3>
+                                <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('rendimiento')"><i class="fa-solid fa-plus"></i> Métrica</button>
+                            </div>
+                            <div style="overflow-x:auto;">
+                                <table class="tabla-editable" style="min-width:460px;">
+                                    <thead><tr>
+                                        <th>Métrica</th>
+                                        <th id="th-periodo-anterior" style="white-space:nowrap;">Periodo anterior</th>
+                                        <th id="th-periodo-actual" style="white-space:nowrap;">Periodo actual</th>
+                                        <th>Variación</th><th>Meta</th>
+                                        <th class="req-agencia" style="width:30px;"></th>
+                                    </tr></thead>
+                                    <tbody id="dash-rendimiento"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Col 2: Objetivo + Inteligencia + Pauta -->
+                        <div style="display:flex;flex-direction:column;gap:14px;">
+                            <!-- Objetivo del mes -->
+                            <div id="dash-obj-card" style="background:var(--obj-bg);backdrop-filter:var(--glass-blur);-webkit-backdrop-filter:var(--glass-blur);border:1px solid var(--glass-border-soft);border-radius:18px;padding:20px;position:relative;overflow:hidden;">
+                                <div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(196,133,90,.6),transparent);"></div>
+                                <div id="dash-objetivos"></div>
+                            </div>
+                            <!-- Inteligencia -->
+                            <div class="glass-card" style="padding:18px;">
+                                <h3 style="font-size:13px;margin:0 0 12px;position:relative;z-index:2;">Inteligencia</h3>
+                                <div style="display:flex;flex-direction:column;gap:8px;">
+                                    <div style="background:var(--intel-bg);border-radius:12px;padding:12px;">
+                                        <span style="background:rgba(52,168,83,.15);color:var(--color-exito);padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;display:inline-block;margin-bottom:8px;">✓ Funcionó</span>
+                                        <textarea id="txt-working" placeholder="Ej. Reels con audio ASMR generan 40% más interacciones..." oninput="updObjTexto('txt_working',this.value)" style="width:100%;background:transparent;border:none;outline:none;font-size:12px;color:var(--texto-principal);resize:vertical;min-height:52px;font-family:var(--font-body);line-height:1.5;"></textarea>
+                                    </div>
+                                    <div style="background:var(--intel-bg);border-radius:12px;padding:12px;">
+                                        <span style="background:rgba(251,188,5,.15);color:var(--color-alerta);padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;display:inline-block;margin-bottom:8px;">⚠ Mejorar</span>
+                                        <textarea id="txt-change" placeholder="Ej. Bajar la frecuencia de carruseles estáticos..." oninput="updObjTexto('txt_change',this.value)" style="width:100%;background:transparent;border:none;outline:none;font-size:12px;color:var(--texto-principal);resize:vertical;min-height:52px;font-family:var(--font-body);line-height:1.5;"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Distribución de pauta -->
+                            <div class="glass-card" style="padding:16px;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;position:relative;z-index:2;">
+                                    <h3 style="font-size:13px;margin:0;">Distribución de Pauta</h3>
+                                    <span id="dash-pauta-fuente" style="font-size:10px;font-weight:700;color:var(--texto-secundario);padding:3px 10px;border:1px solid var(--color-borde);border-radius:100px;"></span>
+                                </div>
+                                <div class="bar-container" id="dash-productos"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="dashboard-grid-2" style="margin-top:24px;">
-                    <div class="analysis-box" style="border-left: 6px solid var(--color-exito);">
-                        <h3 style="color:var(--color-exito);"><i class="fa-regular fa-circle-check"></i> Qué está funcionando</h3>
-                        <textarea id="txt-working" placeholder="Ej. Reels con audio ASMR generan 40% más interacciones..." oninput="updObjTexto('txt_working', this.value)"></textarea>
-                    </div>
-                    <div class="analysis-box" style="border-left: 6px solid var(--color-peligro);">
-                        <h3 style="color:var(--color-peligro);"><i class="fa-regular fa-circle-xmark"></i> Qué mejorar</h3>
-                        <textarea id="txt-change" placeholder="Ej. Bajar la frecuencia de carruseles estáticos..." oninput="updObjTexto('txt_change', this.value)"></textarea>
+
+                <!-- ══ TAB ANALÍTICO ══════════════════════════════════ -->
+                <div id="dash-tab-anal-content" style="display:none;">
+                    <div class="dash-grid-2x2" style="margin-bottom:18px;">
+                        <div class="glass-card" style="padding:20px;">
+                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Mix de servicios</h3>
+                            <div style="position:relative;height:200px;"><canvas id="dash-chart-mix"></canvas></div>
+                        </div>
+                        <div class="glass-card" style="padding:20px;">
+                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Inversión vs Conversión</h3>
+                            <div style="position:relative;height:200px;"><canvas id="dash-chart-inv"></canvas></div>
+                        </div>
+                        <div class="glass-card" style="padding:20px;">
+                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Crecimiento de seguidores</h3>
+                            <div style="position:relative;height:200px;"><canvas id="dash-chart-seg"></canvas></div>
+                        </div>
+                        <div class="glass-card" style="padding:20px;">
+                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Engagement histórico</h3>
+                            <div style="position:relative;height:200px;"><canvas id="dash-chart-eng"></canvas></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -1495,7 +1634,11 @@
         <div class="modal-header"><h3>Exportación CSV</h3><button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button></div>
         <div style="padding:32px 24px; text-align:center;">
             <i class="fa-solid fa-file-csv" style="font-size:48px; color:var(--color-primario); margin-bottom:16px;"></i>
-            <p>El reporte consolidado de <strong><span id="rep-nombre-cliente"></span></strong> está listo para descarga.</p>
+            <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;">
+                <span id="rep-logo-cliente"></span>
+                <strong id="rep-nombre-cliente" style="font-size:18px;font-family:var(--font-display);letter-spacing:-0.02em;"></strong>
+            </div>
+            <p style="color:var(--texto-secundario);font-size:13px;">El reporte consolidado está listo para descarga.</p>
             <button class="btn btn-primario" style="margin-top:24px;" onclick="descargarReporteCSV()">Descargar Archivo</button>
         </div>
     </div>
@@ -1568,6 +1711,18 @@
             <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
             <button class="btn btn-primario" onclick="guardarNuevaStory()"><i class="fa-solid fa-check"></i> Guardar Story</button>
         </div>
+    </div>
+</div>
+
+<!-- Modal: Importar Reporte Excel (Wellness/Spa) -->
+<div class="fondo-modal" id="modal-excel-import">
+    <div class="modal-caja" style="max-width:680px;">
+        <div class="modal-header">
+            <h3 id="xls-modal-title"><i class="fa-solid fa-file-excel" style="color:#1D6F42;margin-right:10px;"></i> Importar Reporte Excel</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModalExcel()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="xls-modal-body" style="padding:24px;max-height:68vh;overflow-y:auto;"></div>
+        <div id="xls-modal-footer" style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 20px 20px;"></div>
     </div>
 </div>
 
@@ -1863,9 +2018,10 @@ document.addEventListener('DOMContentLoaded', function() {
             hasta:  _df(new Date(_hoy.getFullYear(), _hoy.getMonth()+1, 0)),
             chip:  'mes'
         };
+        const _VALID_CHIPS = ['mes','ant','3m','6m','anio'];
         try {
             const saved = JSON.parse(localStorage.getItem('lanka_dash_periodo') || 'null');
-            window.dashPeriodo = saved && saved.desde ? saved : _defaults;
+            window.dashPeriodo = (saved && saved.desde && _VALID_CHIPS.includes(saved.chip)) ? saved : _defaults;
         } catch(e) {
             window.dashPeriodo = _defaults;
         }
@@ -2220,6 +2376,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const inf = DB.sucursales.find(s => s.id === SUC_ACTIVA);
         document.documentElement.style.setProperty('--color-primario', inf.color);
         if(ROL === 'cliente' || ROL === 'equipo') document.getElementById('etiqueta-cliente').innerText = inf.nombre;
+        _actualizarLogoHeader();
         renderDashboard(); renderInsights(); renderOrquestacion(); renderDAM();
         renderPresupuesto(); renderFacturas(); renderBriefing(); renderMood(); 
         renderEstrategia(); renderAdministracion();
@@ -2227,63 +2384,110 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderDashboard() {
-        const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
-        // Auto-apply preset if project has no metrics yet
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d) return;
+        const ro = ROL === 'cliente' ? 'readonly' : '';
+        // Auto-apply preset
         if (!d.rendimiento || d.rendimiento.length === 0) {
             aplicarPresetMetricas(SUC_ACTIVA, getTipoProyecto(SUC_ACTIVA), false);
         }
-        // Show project type badge
+        // Type badge / subtitle
         const _tipo = getTipoProyecto(SUC_ACTIVA);
         const _tipoLabel = (TIPOS_PROYECTO.find(t=>t.id===_tipo)||{}).label || _tipo;
+        const _suc = (DB.sucursales||[]).find(s=>s.id===SUC_ACTIVA)||{};
         const _badgeEl = document.getElementById('dash-tipo-badge');
-        if (_badgeEl) _badgeEl.innerHTML = `<span style="background:var(--color-primario);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;vertical-align:middle;letter-spacing:.04em;">${_tipoLabel}</span>`;
-        // ── Selector de Periodo ─────────────────────────────────────────────
+        if (_badgeEl) _badgeEl.innerHTML = `<strong style="color:var(--texto-principal);">${_suc.nombre||''}</strong> · <span style="background:var(--color-primario);color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;vertical-align:middle;">${_tipoLabel}</span>`;
+        // Periodo selector
         _renderDashPeriodoSelector();
-        // ── Ejecutor de KPIs ───────────────────────────────────────────────
+        // Ejecutor
         renderEjecutorKPIs();
-        // ── 4 KPI Cards (alimentadas desde el Ejecutor) ────────────────────
+        // KPI minis
         _renderDashKPIs(d);
-        // ── Desglose Inversión desde Presupuesto ────────────────────────────
+        // Inversión
         _renderDashInversion(d);
-        document.getElementById('dash-rendimiento').innerHTML = d.rendimiento.map((r, i) => {
-            let v1 = Number(r.v1); let v2 = Number(r.v2); let pct = v1 > 0 ? ((v2 - v1) / v1 * 100).toFixed(1) : 0;
-            let isTime = r.m.toLowerCase().includes("time") || r.m.toLowerCase().includes("tiempo");
-            let badge = '';
-            if(pct == 0) badge = `<span class="var-badge" style="background:var(--color-borde-fuerte);color:var(--texto-secundario);">- 0%</span>`;
-            else if(isTime) badge = pct < 0 ? `<span class="var-badge var-positive">↓ ${Math.abs(pct)}% (Mejor)</span>` : `<span class="var-badge var-negative">↑ ${Math.abs(pct)}% (Peor)</span>`;
-            else badge = pct > 0 ? `<span class="var-badge var-positive">↑ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↓ ${Math.abs(pct)}%</span>`;
-            return `<tr><td><input class="input-celda" value="${r.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].m=this.value;guardarBD();"></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="text" inputmode="numeric" class="input-celda" value="${r.v1}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].v1=isNaN(this.value)||this.value===''?this.value:Number(this.value);guardarBD();renderDashboard()"></div></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="text" inputmode="numeric" class="input-celda" value="${r.v2}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].v2=isNaN(this.value)||this.value===''?this.value:Number(this.value);guardarBD();renderDashboard()"></div></td><td>${badge}</td><td><input class="input-celda" style="color:var(--color-azul);font-weight:600;" placeholder="—" value="${r.meta||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].meta=this.value;guardarBD()"></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('rendimiento',${i})"></i></td></tr>`;
+        // Semáforo
+        _renderDashSemaforo(d);
+        // Objetivos
+        _renderDashObjetivos(d);
+        // Origen de clientas
+        _renderDashOrigen(d);
+        // Engagement por formato
+        _renderDashEngagement(d);
+        // Trend SVG
+        _renderDashTrend(d);
+        // Role selector
+        _renderDashRolSelector();
+        // ── Variación de Métricas ──────────────────────────────────────────
+        const _pAct = window.dashPeriodo || {};
+        const _pAnt = _periodoAnterior();
+        const _accAct = _acumularKPIsParaPeriodo(
+            _pAct.desde || new Date().toISOString().split('T')[0],
+            _pAct.hasta  || new Date().toISOString().split('T')[0]
+        );
+        const _accAnt = _pAnt ? _acumularKPIsParaPeriodo(_pAnt.desde, _pAnt.hasta) : null;
+        const _thAnt = document.getElementById('th-periodo-anterior');
+        const _thAct = document.getElementById('th-periodo-actual');
+        if (_thAnt) _thAnt.textContent = _pAnt ? _labelPeriodoFechas(_pAnt.desde, _pAnt.hasta) : 'Periodo anterior';
+        if (_thAct) _thAct.textContent = _labelPeriodoFechas(_pAct.desde || '', _pAct.hasta || '');
+        const _metaRo = !_canEditKPIs();
+        const _fmtVal = (v, pre) => v != null ? (pre === '$' ? formatDinero(v) : (pre||'') + Number(v).toLocaleString('es-MX')) : '—';
+        const _rend = document.getElementById('dash-rendimiento');
+        if (_rend) _rend.innerHTML = d.rendimiento.map((r, i) => {
+            const v2 = _getAutoValor(r.m, _accAct);
+            const v1 = _getAutoValor(r.m, _accAnt);
+            const pct = (v1 != null && v2 != null && v1 > 0) ? ((v2-v1)/v1*100).toFixed(1) : null;
+            const isTime = r.m.toLowerCase().includes('time') || r.m.toLowerCase().includes('tiempo');
+            let badge = pct === null ? `<span style="color:var(--texto-secundario);font-size:12px;">—</span>` :
+                +pct === 0 ? `<span class="var-badge" style="background:var(--color-borde-fuerte);color:var(--texto-secundario);">0%</span>` :
+                isTime ? (+pct<0 ? `<span class="var-badge var-positive">↓ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↑ ${Math.abs(pct)}%</span>`) :
+                (+pct>0 ? `<span class="var-badge var-positive">↑ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↓ ${Math.abs(pct)}%</span>`);
+            const meta = r.meta;
+            const pctMeta = meta && v2 != null && parseFloat(meta) > 0
+                ? Math.min(100, Math.round(v2 / parseFloat(String(meta).replace(/[$,]/g,'')) * 100)) : null;
+            const metaColor = pctMeta !== null ? (pctMeta >= 70 ? 'var(--color-exito)' : 'var(--color-peligro)') : 'var(--color-azul)';
+            const metaCell = _metaRo ? `<span style="font-weight:600;color:var(--color-azul);">${meta||'—'}</span>` :
+                `<input class="input-celda" style="color:var(--color-azul);font-weight:600;" placeholder="—" value="${meta||''}" onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].meta=this.value;guardarBD()">`;
+            return `<tr>
+                <td><input class="input-celda" value="${r.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].m=this.value;guardarBD();"></td>
+                <td style="text-align:right;padding:10px 14px;font-weight:700;">${_fmtVal(v1,r.pre)}</td>
+                <td style="text-align:right;padding:10px 14px;font-weight:700;">${_fmtVal(v2,r.pre)}</td>
+                <td>${badge}</td>
+                <td>${metaCell}${pctMeta!==null?`<span style="font-size:10px;font-weight:700;color:${metaColor};margin-left:4px;">${pctMeta}%</span>`:''}</td>
+                <td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('rendimiento',${i})"></i></td>
+            </tr>`;
         }).join('');
-        // Distribución de Pauta — desde _calcularDistribucionPauta()
+        // Distribución de Pauta
         const _dist = _calcularDistribucionPauta();
         const _fuenteEl = document.getElementById('dash-pauta-fuente');
         if (_fuenteEl) _fuenteEl.textContent = _dist.fuente !== 'vacio' ? _dist.fuente : '';
-        if (_dist.items.length === 0) {
-            document.getElementById('dash-productos').innerHTML = `<div style="text-align:center;padding:28px 16px;color:var(--texto-secundario);">
-                <i class="fa-solid fa-chart-pie" style="font-size:28px;opacity:.2;display:block;margin-bottom:10px;"></i>
-                <p style="font-size:13px;">Agrega campañas en <strong>Ad Performance</strong> para ver la distribución real.</p>
-            </div>`;
-        } else {
-            document.getElementById('dash-productos').innerHTML = _dist.items.map(item => `
-                <div class="bar-row" style="align-items:center;gap:10px;">
-                    <span style="flex:0 0 145px;text-align:right;font-size:12px;font-weight:600;color:var(--texto-principal);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${item.nombre}">${item.nombre}</span>
-                    <div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:${item.porcentaje}%;"></div></div>
-                    <span style="font-size:12px;font-weight:800;min-width:38px;text-align:right;">${item.porcentaje}%</span>
-                    ${item.monto!==null ? `<span style="font-size:10px;color:var(--texto-secundario);min-width:70px;text-align:right;">${formatDinero(item.monto)}</span>` : ''}
-                </div>`).join('');
+        const _prodEl = document.getElementById('dash-productos');
+        if (_prodEl) {
+            if (_dist.items.length === 0) {
+                _prodEl.innerHTML = `<div style="text-align:center;padding:20px 12px;color:var(--texto-secundario);"><i class="fa-solid fa-chart-pie" style="font-size:22px;opacity:.2;display:block;margin-bottom:8px;"></i><p style="font-size:12px;">Agrega campañas en <strong>Ad Performance</strong>.</p></div>`;
+            } else {
+                _prodEl.innerHTML = _dist.items.map(item => `
+                    <div class="bar-row" style="align-items:center;gap:8px;">
+                        <span style="flex:0 0 120px;text-align:right;font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${item.nombre}">${item.nombre}</span>
+                        <div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:${item.porcentaje}%;box-shadow:0 0 6px rgba(var(--brand-rgb),.3);"></div></div>
+                        <span style="font-size:11px;font-weight:800;min-width:32px;text-align:right;">${item.porcentaje}%</span>
+                        ${item.monto!==null?`<span style="font-size:10px;color:var(--texto-secundario);min-width:60px;text-align:right;">${formatDinero(item.monto)}</span>`:''}
+                    </div>`).join('');
+            }
         }
+        // txt-working / txt-change
         const txW = document.getElementById('txt-working');
         const txC = document.getElementById('txt-change');
-        if (document.activeElement !== txW) txW.value = d.txt_working || '';
-        if (document.activeElement !== txC) txC.value = d.txt_change || '';
+        if (txW && document.activeElement !== txW) txW.value = d.txt_working || '';
+        if (txC && document.activeElement !== txC) txC.value = d.txt_change || '';
     }
 
     /* ── Ejecutor de KPIs ───────────────────────────────────────────── */
     let _ejecutorOpen = null; // null = auto-decide per role
+    let _ejecutorModo = localStorage.getItem('lanka_ejecutor_modo') || 'semana';
 
     function _canEditKPIs() {
         if (!USUARIO_ACTIVO) return ROL === 'agencia';
-        return ['owner','lanka_team'].includes(USUARIO_ACTIVO.rol_id) && !ROL_SIMULADO;
+        return _getPermisos('ejecutor', 'editar');
     }
 
     /* ── Periodo Global — Helpers ─────────────────────────────────── */
@@ -2367,32 +2571,216 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>`;
     }
 
-        function _acumularKPIs() {
+    /* ── Variación de Métricas — helpers de periodos ── */
+    function _periodoAnterior() {
+        const p = window.dashPeriodo;
+        if (!p?.desde || !p?.hasta) return null;
+        const desde = new Date(p.desde + 'T00:00:00');
+        const hasta  = new Date(p.hasta + 'T23:59:59');
+        const durMs  = hasta.getTime() - desde.getTime();
+        const antHasta = new Date(desde.getTime() - 1);
+        antHasta.setHours(23,59,59,999);
+        const antDesde = new Date(antHasta.getTime() - durMs);
+        antDesde.setHours(0,0,0,0);
+        const fmt = d => d.toISOString().split('T')[0];
+        return { desde: fmt(antDesde), hasta: fmt(antHasta) };
+    }
+
+    function _acumularKPIsParaPeriodo(desdeStr, hastaStr) {
         const todas = DB.datos[SUC_ACTIVA]?.kpi_semanal || [];
-        // Filter by dashPeriodo
-        const desde = _dashPeriodoDesde();
-        const hasta  = _dashPeriodoHasta();
-        const semanas = todas.filter(s => {
-            if (!s.fecha) return true; // sin fecha: incluir siempre
-            const fd = new Date(s.fecha+'T00:00:00');
-            return fd >= desde && fd <= hasta;
+        const desde = new Date(desdeStr + 'T00:00:00');
+        const hasta  = new Date(hastaStr + 'T23:59:59');
+        const enRango = s => {
+            if (!s.fecha) return false;
+            const ini = new Date(s.fecha + 'T00:00:00');
+            if (s.tipo === 'mensual' || s.fuente === 'excel_import') {
+                const fin = s.fecha_hasta ? new Date(s.fecha_hasta + 'T23:59:59')
+                    : new Date(ini.getFullYear(), ini.getMonth()+1, 0, 23,59,59);
+                return ini <= hasta && fin >= desde;
+            }
+            return ini >= desde && ini <= hasta;
+        };
+        const mesesC = new Set();
+        todas.forEach(s => {
+            if ((s.tipo==='mensual'||s.fuente==='excel_import') && enRango(s)) {
+                const d = new Date(s.fecha+'T00:00:00');
+                mesesC.add(`${d.getFullYear()}-${d.getMonth()}`);
+            }
         });
-        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, ticket_medio:0 };
-        semanas.forEach(s => {
+        const lista = todas.filter(s => {
+            if (!enRango(s)) return false;
+            if (s.tipo==='mensual'||s.fuente==='excel_import') return true;
+            if (!s.fecha) return false;
+            const d = new Date(s.fecha+'T00:00:00');
+            return !mesesC.has(`${d.getFullYear()}-${d.getMonth()}`);
+        });
+        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0,
+                      ventas:0, dms:0, ticket_medio:0, _n: lista.length };
+        lista.forEach(s => {
             acc.clientes_nuevos      += s.clientes_nuevos      || 0;
             acc.clientes_recurrentes += s.clientes_recurrentes || 0;
             acc.clientes_recuperados += s.clientes_recuperados || 0;
             acc.ventas               += s.ventas               || 0;
             acc.dms                  += s.dms                  || 0;
         });
-        const tmSemanas = semanas.filter(s => (s.ticket_medio||0) > 0);
-        acc.ticket_medio = tmSemanas.length ? Math.round(tmSemanas.reduce((a,s)=>a+(s.ticket_medio||0),0)/tmSemanas.length) : 0;
+        const conTM = lista.filter(s => (s.ticket_medio||0) > 0);
+        acc.ticket_medio = conTM.length
+            ? Math.round(conTM.reduce((a,s)=>a+(s.ticket_medio||0),0)/conTM.length) : 0;
+        return acc;
+    }
+
+    function _labelPeriodoFechas(desdeStr, hastaStr) {
+        if (!desdeStr || !hastaStr) return '—';
+        const MC = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const d1 = new Date(desdeStr + 'T00:00:00');
+        const d2 = new Date(hastaStr + 'T00:00:00');
+        const y1 = d1.getFullYear(), m1 = d1.getMonth();
+        const y2 = d2.getFullYear(), m2 = d2.getMonth();
+        if (y1 === y2 && m1 === m2) return `${MESES[m1]} ${y1}`;
+        if (y1 === y2) return `${MC[m1]}–${MC[m2]} ${y1}`;
+        return `${MC[m1]} ${y1} – ${MC[m2]} ${y2}`;
+    }
+
+    function _getAutoValor(metricNombre, acc) {
+        if (!acc || acc._n === 0) return null;
+        const mn = (metricNombre||'').toLowerCase();
+        const MAP = [
+            { keys:['nuevo'],       campo:'clientes_nuevos'      },
+            { keys:['recurrent'],   campo:'clientes_recurrentes' },
+            { keys:['recuper'],     campo:'clientes_recuperados' },
+            { keys:['venta'],       campo:'ventas'               },
+            { keys:['dm'],          campo:'dms'                  },
+            { keys:['ticket'],      campo:'ticket_medio'         }
+        ];
+        for (const { keys, campo } of MAP) {
+            if (keys.some(k => mn.includes(k))) return acc[campo];
+        }
+        return null;
+    }
+
+        function _acumularKPIs() {
+        const todas  = DB.datos[SUC_ACTIVA]?.kpi_semanal || [];
+        const desde  = _dashPeriodoDesde();
+        const hasta  = _dashPeriodoHasta();
+
+        // Check if an entry's date range overlaps with dashPeriodo
+        const enPeriodo = s => {
+            if (!s.fecha) return true;
+            const ini = new Date(s.fecha + 'T00:00:00');
+            const esMensual = s.tipo === 'mensual' || s.fuente === 'excel_import';
+            if (esMensual) {
+                // For monthly entries use fecha_hasta or last day of month
+                const fin = s.fecha_hasta ? new Date(s.fecha_hasta + 'T23:59:59')
+                    : new Date(ini.getFullYear(), ini.getMonth() + 1, 0, 23, 59, 59);
+                return ini <= hasta && fin >= desde;
+            }
+            // Weekly: only start date needs to fall within period
+            return ini >= desde && ini <= hasta;
+        };
+
+        // Identify months already covered by a monthly entry in the period
+        const mesesCubiertos = new Set();
+        todas.forEach(s => {
+            if ((s.tipo === 'mensual' || s.fuente === 'excel_import') && enPeriodo(s)) {
+                const d = new Date(s.fecha + 'T00:00:00');
+                mesesCubiertos.add(`${d.getFullYear()}-${d.getMonth()}`);
+            }
+        });
+
+        // Build list to sum: monthly entries + weekly entries NOT in covered months
+        const aAcumular = todas.filter(s => {
+            if (!enPeriodo(s)) return false;
+            if (s.tipo === 'mensual' || s.fuente === 'excel_import') return true;
+            if (!s.fecha) return true;
+            const d = new Date(s.fecha + 'T00:00:00');
+            return !mesesCubiertos.has(`${d.getFullYear()}-${d.getMonth()}`);
+        });
+
+        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, ticket_medio:0 };
+        aAcumular.forEach(s => {
+            acc.clientes_nuevos      += s.clientes_nuevos      || 0;
+            acc.clientes_recurrentes += s.clientes_recurrentes || 0;
+            acc.clientes_recuperados += s.clientes_recuperados || 0;
+            acc.ventas               += s.ventas               || 0;
+            acc.dms                  += s.dms                  || 0;
+        });
+        acc.ventas               = Math.round(acc.ventas);
+        acc.clientes_nuevos      = Math.round(acc.clientes_nuevos);
+        acc.clientes_recurrentes = Math.round(acc.clientes_recurrentes);
+        acc.clientes_recuperados = Math.round(acc.clientes_recuperados);
+        acc.dms                  = Math.round(acc.dms);
+        const conTM = aAcumular.filter(s => (s.ticket_medio||0) > 0);
+        acc.ticket_medio = conTM.length
+            ? Math.round(conTM.reduce((a,s) => a + (s.ticket_medio||0), 0) / conTM.length) : 0;
         return acc;
     }
 
     function toggleEjecutor() {
         _ejecutorOpen = !(_ejecutorOpen ?? _canEditKPIs());
         renderEjecutorKPIs();
+    }
+
+    function setEjecutorModo(modo) {
+        _ejecutorModo = modo;
+        localStorage.setItem('lanka_ejecutor_modo', modo);
+        renderEjecutorKPIs();
+    }
+
+    function _ejecutorGetFechasSemana() {
+        const hoy = new Date();
+        const dow = hoy.getDay(); // 0=Dom
+        const diasDesdeL = dow === 0 ? 6 : dow - 1;
+        const lunes = new Date(hoy);
+        lunes.setDate(hoy.getDate() - diasDesdeL - 7);
+        const domingo = new Date(lunes);
+        domingo.setDate(lunes.getDate() + 6);
+        const fmt = d => d.toISOString().split('T')[0];
+        return { desde: fmt(lunes), hasta: fmt(domingo) };
+    }
+
+    function _ejecutorGetFechaMes() {
+        const hoy = new Date();
+        const mes = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        return `${mes.getFullYear()}-${String(mes.getMonth()+1).padStart(2,'0')}`;
+    }
+
+    function _ejecutorBuildLabel(desde, hasta, tipo) {
+        const MC = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        if (tipo === 'mes') {
+            const d = new Date(desde + 'T00:00:00');
+            return `${MESES[d.getMonth()]} ${d.getFullYear()} · mes`;
+        }
+        const d1 = new Date(desde + 'T00:00:00');
+        const d2 = hasta ? new Date(hasta + 'T00:00:00') : d1;
+        const s1 = `${d1.getDate()} ${MC[d1.getMonth()]}`;
+        const s2 = `${d2.getDate()} ${MC[d2.getMonth()]}`;
+        return s1 === s2 ? `${s1} · semana` : `${s1} - ${s2} · semana`;
+    }
+
+    function _ejecutorSetMesAnio(idx, campo, valor) {
+        const s = DB.datos[SUC_ACTIVA].kpi_semanal[idx];
+        const base = s.fecha ? s.fecha.substring(0,7) : `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+        const [yr, mo] = base.split('-').map(Number);
+        const nuevoYr = campo === 'año' ? Number(valor) : yr;
+        const nuevoMo = campo === 'mes' ? Number(valor) + 1 : mo;
+        const ultimoDia = new Date(nuevoYr, nuevoMo, 0).getDate();
+        s.fecha       = `${nuevoYr}-${String(nuevoMo).padStart(2,'0')}-01`;
+        s.fecha_hasta = `${nuevoYr}-${String(nuevoMo).padStart(2,'0')}-${String(ultimoDia).padStart(2,'0')}`;
+        guardarBD();
+        renderEjecutorKPIs();
+    }
+
+    function _actualizarTotalesEjecutor() {
+        const row = document.getElementById('ejec-total-row');
+        if (!row) return;
+        const acc = _acumularKPIs();
+        const cells = row.cells;
+        // cells[0] = colspan=3 "Total acumulado"; rest are KPI values
+        if (cells[1]) cells[1].textContent = acc.clientes_nuevos.toLocaleString('es-MX');
+        if (cells[2]) cells[2].textContent = acc.clientes_recurrentes.toLocaleString('es-MX');
+        if (cells[3]) cells[3].textContent = acc.clientes_recuperados.toLocaleString('es-MX');
+        if (cells[4]) cells[4].textContent = formatDinero(acc.ventas);
+        if (cells[5]) cells[5].textContent = acc.dms.toLocaleString('es-MX');
     }
 
     function renderEjecutorKPIs() {
@@ -2410,26 +2798,58 @@ document.addEventListener('DOMContentLoaded', function() {
         const thS = s => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}</th>`;
         const inp = (val, key, idx, pre) => canEdit
             ? `<input class="ejecutor-input" value="${val||0}" inputmode="numeric"
-                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);_renderDashInversion(DB.datos['${SUC_ACTIVA}']);">`
+                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);_renderDashInversion(DB.datos['${SUC_ACTIVA}']);_actualizarTotalesEjecutor();">`
             : `<span style="display:block;text-align:right;padding:6px 8px;font-weight:600;font-size:13px;">${pre||''}${Number(val||0).toLocaleString('es-MX')}</span>`;
 
-        const rows = semanas.map((s, i) => `<tr>
-            <td style="padding:6px 8px;"><input class="ejecutor-input" style="text-align:left;font-weight:700;" value="${s.semana||''}" ${ro}
-                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].semana=this.value;guardarBD();"></td>
-            <td style="padding:6px 8px;"><input type="date" class="ejecutor-input" style="text-align:left;" value="${s.fecha||''}" ${ro}
-                onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;guardarBD();"></td>
-            <td>${inp(s.clientes_nuevos,'clientes_nuevos',i,'')}</td>
-            <td>${inp(s.clientes_recurrentes,'clientes_recurrentes',i,'')}</td>
-            <td>${inp(s.clientes_recuperados,'clientes_recuperados',i,'')}</td>
-            <td>${inp(s.ventas,'ventas',i,'$')}</td>
-            <td>${inp(s.dms,'dms',i,'')}</td>
-            ${esRest ? `<td>${inp(s.ticket_medio,'ticket_medio',i,'$')}</td>` : ''}
-            ${canEdit ? `<td style="padding:6px 4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;"
-                onclick="DB.datos['${SUC_ACTIVA}'].kpi_semanal.splice(${i},1);guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();renderEjecutorKPIs();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);"></i></td>` : ''}
-        </tr>`).join('');
+        const rows = semanas.map((s, i) => {
+            const esMensual = s.tipo === 'mensual' || s.fuente === 'excel_import';
+            const _MESES_F = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            const _mIdx = s.fecha ? parseInt(s.fecha.substring(5,7))-1 : new Date().getMonth();
+            const _anio = s.fecha ? parseInt(s.fecha.substring(0,4)) : new Date().getFullYear();
+            const _mOps = _MESES_F.map((m,mi) => `<option value="${mi}"${mi===_mIdx?' selected':''}>${m}</option>`).join('');
+            const _yOps = [2024,2025,2026,2027].map(y => `<option value="${y}"${y===_anio?' selected':''}>${y}</option>`).join('');
+            const _cs = 'border:1px solid var(--color-borde);border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;background:transparent;color:var(--texto-principal);cursor:pointer;outline:none;';
+            const _lastDia = new Date(_anio, _mIdx + 1, 0);
+            const _hastaShow = s.fecha_hasta
+                ? (() => { const d = new Date(s.fecha_hasta+'T00:00:00'); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; })()
+                : `${String(_lastDia.getDate()).padStart(2,'0')}/${String(_mIdx+1).padStart(2,'0')}/${_anio}`;
+            const fechaCells = esMensual
+                ? `<td style="padding:4px 6px;">
+                       <div style="display:flex;gap:4px;align-items:center;">
+                           <select class="select-celda" style="${_cs}min-width:120px;" ${ro}
+                               onchange="_ejecutorSetMesAnio(${i},'mes',this.value)">${_mOps}</select>
+                           <select class="select-celda" style="${_cs}width:90px;" ${ro}
+                               onchange="_ejecutorSetMesAnio(${i},'año',this.value)">${_yOps}</select>
+                       </div>
+                   </td>
+                   <td style="padding:4px 6px;text-align:right;"><span style="font-size:12px;font-weight:600;color:var(--texto-secundario);padding:6px 8px;display:block;">${_hastaShow}</span></td>`
+                : `<td style="padding:4px 6px;">
+                       <input type="date" style="${_cs}min-width:120px;width:100%;"
+                           value="${s.fecha||''}" ${ro}
+                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;guardarBD();">
+                   </td>
+                   <td style="padding:4px 6px;">
+                       <input type="date" style="${_cs}min-width:120px;width:100%;"
+                           value="${s.fecha_hasta||''}" ${ro}
+                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha_hasta=this.value;guardarBD();">
+                   </td>`;
+            return `<tr>
+                <td style="padding:6px 8px;"><input class="ejecutor-input" style="text-align:left;font-weight:700;" value="${s.semana||''}" ${ro}
+                    oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].semana=this.value;guardarBD();"></td>
+                ${fechaCells}
+                <td>${inp(s.clientes_nuevos,'clientes_nuevos',i,'')}</td>
+                <td>${inp(s.clientes_recurrentes,'clientes_recurrentes',i,'')}</td>
+                <td>${inp(s.clientes_recuperados,'clientes_recuperados',i,'')}</td>
+                <td>${inp(s.ventas,'ventas',i,'$')}</td>
+                <td>${inp(s.dms,'dms',i,'')}</td>
+                ${esRest ? `<td>${inp(s.ticket_medio,'ticket_medio',i,'$')}</td>` : ''}
+                ${canEdit ? `<td style="padding:6px 4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;"
+                    onclick="DB.datos['${SUC_ACTIVA}'].kpi_semanal.splice(${i},1);guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();renderEjecutorKPIs();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);"></i></td>` : ''}
+            </tr>`;
+        }).join('');
 
-        const totRow = `<tr class="ejecutor-total-row">
-            <td colspan="2" style="padding:10px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Total acumulado</td>
+        const totRow = `<tr class="ejecutor-total-row" id="ejec-total-row">
+            <td colspan="3" style="padding:10px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Total acumulado</td>
             <td style="text-align:right;padding:10px 8px;color:var(--color-primario);">${acc.clientes_nuevos.toLocaleString('es-MX')}</td>
             <td style="text-align:right;padding:10px 8px;color:#34A853;">${acc.clientes_recurrentes.toLocaleString('es-MX')}</td>
             <td style="text-align:right;padding:10px 8px;color:#4A90D9;">${acc.clientes_recuperados.toLocaleString('es-MX')}</td>
@@ -2439,10 +2859,37 @@ document.addEventListener('DOMContentLoaded', function() {
             ${canEdit ? '<td></td>' : ''}
         </tr>`;
 
-        const addBtn = canEdit ? `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;" onclick="
-            const n={id:'s'+Date.now(),semana:'Semana '+(DB.datos['${SUC_ACTIVA}'].kpi_semanal.length+1),fecha:new Date().toISOString().split('T')[0],clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0};
-            DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
-        "><i class="fa-solid fa-plus"></i> Agregar semana</button>` : '';
+        const addBtn = (() => {
+            if (!canEdit) return '';
+            if (_ejecutorModo === 'mes') {
+                const mVal = _ejecutorGetFechaMes();
+                const [yr, mo] = mVal.split('-').map(Number);
+                const label = `${MESES[mo-1]} ${yr} · mes`;
+                const f0 = `${mVal}-01`;
+                return `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;" onclick="
+                    const n={id:'s'+Date.now(),tipo:'mensual',semana:'${label}',fecha:'${f0}',fecha_hasta:null,clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0};
+                    DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
+                "><i class="fa-solid fa-plus"></i> Agregar mes</button>`;
+            } else {
+                const {desde, hasta} = _ejecutorGetFechasSemana();
+                const label = _ejecutorBuildLabel(desde, hasta, 'semana');
+                return `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;" onclick="
+                    const n={id:'s'+Date.now(),tipo:'semana',semana:'${label}',fecha:'${desde}',fecha_hasta:'${hasta}',clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0};
+                    DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
+                "><i class="fa-solid fa-plus"></i> Agregar entrada</button>`;
+            }
+        })();
+
+        const importBtn = (canEdit && getTipoProyecto(SUC_ACTIVA) === 'wellness')
+            ? `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;margin-left:8px;" onclick="abrirModalExcel()"><i class="fa-solid fa-file-excel" style="color:#1D6F42;"></i> Importar Excel</button>`
+            : '';
+
+        const modoToggle = canEdit ? `
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-top:14px;">
+                <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);">Granularidad</span>
+                <button onclick="setEjecutorModo('semana')" class="dash-chip${_ejecutorModo==='semana'?' activo':''}" style="padding:4px 12px;font-size:11px;">Por semana</button>
+                <button onclick="setEjecutorModo('mes')" class="dash-chip${_ejecutorModo==='mes'?' activo':''}" style="padding:4px 12px;font-size:11px;">Por mes</button>
+            </div>` : '';
 
         // ── Engagement section (Owner + Lanka Team only) ─────────────
         const canEditEng = _canEditKPIs();
@@ -2502,7 +2949,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fa-solid fa-table-cells-large" style="color:var(--color-primario);font-size:14px;"></i>
                     <div>
                         <div style="font-family:var(--font-display);font-weight:800;font-size:14px;">Ejecutor de KPIs</div>
-                        <div style="font-size:11px;color:var(--texto-secundario);">Ingreso semanal · ${semanas.length} semana${semanas.length!==1?'s':''} registrada${semanas.length!==1?'s':''}</div>
+                        <div style="font-size:11px;color:var(--texto-secundario);">Registro de KPIs · ${semanas.length} entrada${semanas.length!==1?'s':''} registrada${semanas.length!==1?'s':''}</div>
                     </div>
                 </div>
                 <div style="display:flex;align-items:center;gap:10px;">
@@ -2511,10 +2958,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
             </div>
             <div class="ejecutor-body${isOpen?'':' hidden'}">
-                <div style="overflow-x:auto;margin-top:14px;">
-                    <table class="tabla-editable" style="min-width:600px;">
+                ${modoToggle}
+                <div style="overflow-x:auto;margin-top:4px;">
+                    <table class="tabla-editable" style="min-width:700px;">
                         <thead><tr>
-                            ${thS('Semana')}${thS('Fecha')}
+                            ${thS('Etiqueta')}${thS('Desde / Mes')}${thS('Hasta')}
                             ${thS('Nuevos')}${thS('Recurrentes')}${thS('Recuperados')}
                             ${thS('Ventas')}${thS('DMs')}
                             ${esRest ? thS('Ticket Medio') : ''}
@@ -2523,7 +2971,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <tbody>${rows}${totRow}</tbody>
                     </table>
                 </div>
-                ${addBtn}
+                <div style="display:flex;align-items:center;flex-wrap:wrap;">
+                    ${addBtn}${importBtn}
+                </div>
                 ${engSection}
             </div>
         </div>`;
@@ -2693,126 +3143,355 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function _renderDashKPIs(d) {
         const rend = d.rendimiento || [];
-        const inv = _inversionPorTipo(d); // uses dashPeriodo
+        const inv = _inversionPorTipo(d);
         const invTotal = Object.values(inv).reduce((a,b)=>a+b, 0);
-
-        // Accumulated from Ejecutor de KPIs (weekly entries)
         const kpiAcc = _acumularKPIs();
-        // v1 (previous period) still comes from rendimiento for trend comparison
         const mNuevos = { v2: kpiAcc.clientes_nuevos,      v1: (_findMetrica(rend,['nuevo'])).v1 };
         const mRecurr = { v2: kpiAcc.clientes_recurrentes, v1: (_findMetrica(rend,['recurrent'])).v1 };
         const mRecup  = { v2: kpiAcc.clientes_recuperados, v1: (_findMetrica(rend,['recuper'])).v1 };
         const cac     = mNuevos.v2 > 0 ? Math.round(invTotal / mNuevos.v2) : null;
         const cacPrev = mNuevos.v1 > 0 ? Math.round(invTotal / mNuevos.v1) : null;
-
-        const _metas   = _getKpiMetas();
+        const _metas  = _getKpiMetas();
         const _canMeta = _canEditKPIs();
 
-        const kpiCard = (label, icon, color, val, v1, pre, formula, campo, inverso) => {
+        const kpiMini = (label, icon, color, val, v1, pre, campo, inverso) => {
             const pct = v1 > 0 && val !== null ? +((val-v1)/v1*100).toFixed(1) : null;
             const delta = pct !== null
-                ? `<span class="var-badge ${pct>=0?'var-positive':'var-negative'}" style="display:inline-flex;">${pct>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`
+                ? `<span class="var-badge ${pct>=0&&!inverso?'var-positive':pct<0&&!inverso?'var-negative':pct<=0&&inverso?'var-positive':'var-negative'}" style="display:inline-flex;font-size:10px;">${pct>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`
                 : '';
-            const display = val === null ? `<span style="color:var(--texto-secundario);font-size:18px;">—</span>`
-                          : pre==='$' ? formatDinero(val)
-                          : (pre||'')+Number(val).toLocaleString('es-MX');
-
-            // Progress bar
+            const display = val === null
+                ? `<span style="color:var(--texto-secundario);">—</span>`
+                : pre==='$' ? formatDinero(val) : Number(val).toLocaleString('es-MX');
             const meta = _metas[campo] || 0;
-            let progressHTML = '';
+            let bar = '';
             if (meta > 0 && val !== null) {
                 const semColor = _semaforoColor(val, meta, inverso);
                 const rawPct = inverso
-                    ? (val === 0 ? 100 : val <= meta ? 100 : Math.max(0, Math.round((2*meta - val) / meta * 100)))
-                    : Math.min(100, Math.round(val / meta * 100));
-                const metaFmt = pre==='$' ? formatDinero(meta) : (pre||'')+Number(meta).toLocaleString('es-MX');
-                progressHTML = `<div class="kpi-progress-wrap">
-                    <div class="kpi-meta-row">
-                        <span>Meta ${inverso?'máx.':''}</span>
-                        ${_canMeta
-                            ? `<input class="kpi-meta-input" inputmode="numeric" value="${meta}" title="Editar meta del periodo (${window.dashPeriodo?.chip||'mes'})"
-                                onchange="_saveKpiMeta('${campo}',this.value)">`
-                            : `<span style="font-weight:700;">${metaFmt}</span>`}
-                    </div>
-                    <div class="kpi-progress-bar">
-                        <div class="kpi-progress-fill" style="width:${rawPct}%;background:${semColor};"></div>
-                    </div>
-                    <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;">
-                        <span style="font-size:10px;font-weight:800;color:${semColor};">${rawPct}%</span>
-                        <span style="font-size:10px;color:var(--texto-secundario);">de la meta</span>
-                    </div>
-                </div>`;
-            } else if (_canMeta && val !== null) {
-                // No meta set — show editable placeholder for owners
-                progressHTML = `<div class="kpi-progress-wrap">
-                    <div class="kpi-meta-row">
-                        <span style="opacity:.6;">Meta ${inverso?'máx.':''}</span>
-                        <input class="kpi-meta-input" inputmode="numeric" placeholder="Definir…" style="opacity:.7;"
-                            title="Ingresa la meta del periodo (${window.dashPeriodo?.chip||'mes'})"
-                            onchange="_saveKpiMeta('${campo}',this.value)">
-                    </div>
+                    ? (val===0?100:val<=meta?100:Math.max(0,Math.round((2*meta-val)/meta*100)))
+                    : Math.min(100, Math.round(val/meta*100));
+                bar = `<div class="kpi-progress-bar" style="margin-top:8px;">
+                    <div class="kpi-progress-fill" style="width:${rawPct}%;background:${semColor};box-shadow:0 0 5px ${semColor}60;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">
+                    <span style="font-size:9px;color:var(--texto-secundario);">Meta: ${pre==='$'?formatDinero(meta):Number(meta).toLocaleString('es-MX')}</span>
+                    <span style="font-size:10px;font-weight:800;color:${semColor};">${rawPct}%</span>
                 </div>`;
             }
-
-            return `<div class="dash-kpi-card" style="--kpi-c:${color}">
-                <div class="dash-kpi-label"><i class="fa-solid ${icon}"></i> ${label}</div>
-                <div class="dash-kpi-val">${display}</div>
-                <div class="dash-kpi-sub">${delta}${pct!==null?`<span style="margin-left:6px;color:var(--texto-secundario);font-size:11px;">vs anterior</span>`:''}</div>
-                ${formula?`<div class="dash-kpi-formula">${formula}</div>`:''}
-                ${progressHTML}
+            if (!bar && _canMeta && val !== null) {
+                bar = `<div style="margin-top:8px;" class="kpi-meta-row">
+                    <span style="font-size:9px;opacity:.6;">Sin meta</span>
+                    <input class="kpi-meta-input" inputmode="numeric" placeholder="Definir…" style="opacity:.7;font-size:10px;" onchange="_saveKpiMeta('${campo}',this.value)">
+                </div>`;
+            }
+            return `<div class="dash-kpi-mini" style="--kpi-c:${color}">
+                <div class="dash-kpi-label" style="font-size:9px;"><i class="fa-solid ${icon}" style="color:${color};"></i> ${label}</div>
+                <div style="font-family:var(--font-display);font-size:26px;font-weight:900;letter-spacing:-0.04em;line-height:1.1;margin:6px 0 4px;">${display}</div>
+                <div style="font-size:10px;">${delta}${pct!==null?`<span style="margin-left:5px;color:var(--texto-secundario);">vs ant.</span>`:''}</div>
+                ${bar}
             </div>`;
         };
 
-        const cacFormula = invTotal > 0 && mNuevos.v2 > 0
-            ? `${formatDinero(invTotal)} ÷ ${mNuevos.v2} clientes`
-            : invTotal === 0 ? 'Sin inversión en Presupuesto este mes' : 'Sin clientes nuevos registrados';
-
-        document.getElementById('dash-kpis-clientes').innerHTML =
-            kpiCard('Clientes nuevos',      'fa-user-plus',        'var(--color-primario)', mNuevos.v2, mNuevos.v1, '',  '',           'nuevos',      false) +
-            kpiCard('Clientes recurrentes', 'fa-rotate',           '#34A853',               mRecurr.v2, mRecurr.v1, '',  '',           'recurrentes', false) +
-            kpiCard('Clientes recuperados', 'fa-heart-circle-plus','#4A90D9',               mRecup.v2,  mRecup.v1,  '',  '',           'recuperados', false) +
-            kpiCard('CAC Real',             'fa-calculator',       '#8B5CF6',               cac,        cacPrev,    '$', cacFormula,   'cac',         true);
+        const el = document.getElementById('dash-kpis-clientes');
+        if (el) el.innerHTML =
+            kpiMini('Clientes nuevos',      'fa-user-plus',        'var(--color-primario)', mNuevos.v2, mNuevos.v1, '',  'nuevos',      false) +
+            kpiMini('Clientes recurrentes', 'fa-rotate',           '#34A853',               mRecurr.v2, mRecurr.v1, '',  'recurrentes', false) +
+            kpiMini('Clientes recuperados', 'fa-heart-circle-plus','#4A90D9',               mRecup.v2,  mRecup.v1,  '',  'recuperados', false) +
+            kpiMini('CAC Real',             'fa-calculator',       '#8B5CF6',               cac,        cacPrev,    '$', 'cac',         true);
     }
 
     function _renderDashInversion(d) {
-        const inv = _inversionPorTipo(d); // uses dashPeriodo
+        const inv = _inversionPorTipo(d);
         const total = Object.values(inv).reduce((a,b)=>a+b, 0);
         const mesNombre = _dashPeriodoRangeLabel();
         const el = document.getElementById('dash-inversion');
         if (!el) return;
 
         if (total === 0) {
-            el.innerHTML = `<div class="inv-wrap" style="text-align:center;color:var(--texto-secundario);padding:28px;">
-                <i class="fa-solid fa-wallet" style="font-size:28px;opacity:.2;display:block;margin-bottom:10px;"></i>
-                Sin inversión registrada en <strong>${mesNombre}</strong>. Ingresa montos en el módulo <strong>Presupuesto</strong>.
+            el.innerHTML = `<div class="inv-wrap" style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--texto-secundario);padding:32px 20px;min-height:160px;">
+                <i class="fa-solid fa-wallet" style="font-size:26px;opacity:.2;display:block;margin-bottom:10px;"></i>
+                <p style="font-size:12px;">Sin inversión en <strong>${mesNombre}</strong>.<br>Ingresa montos en <strong>Presupuesto</strong>.</p>
             </div>`;
             return;
         }
 
+        const kpiAcc = _acumularKPIs();
+        const roi = kpiAcc.ventas > 0 && total > 0
+            ? ((kpiAcc.ventas - total) / total * 100).toFixed(0) : null;
+
         const barSegs = INVERSION_CATEGORIAS.map(c => {
             const pct = total > 0 ? (inv[c.tipo]||0)/total*100 : 0;
-            return pct > 0 ? `<div class="inv-bar-seg" style="flex:${pct.toFixed(2)};background:${c.color};"></div>` : '';
+            return pct > 0 ? `<div class="inv-bar-seg" style="flex:${pct.toFixed(2)};background:${c.color};box-shadow:0 0 6px ${c.color}50;"></div>` : '';
         }).join('');
 
-        const cats = INVERSION_CATEGORIAS.map(c => {
+        const cats = INVERSION_CATEGORIAS.filter(c=>(inv[c.tipo]||0)>0).map(c => {
             const v = inv[c.tipo]||0;
             const pct = total > 0 ? (v/total*100).toFixed(1) : '0.0';
             return `<div class="inv-cat">
                 <div class="inv-cat-label" style="color:${c.color};"><i class="fa-solid ${c.icon}"></i> ${c.label}</div>
-                <div class="inv-cat-val" style="color:${c.color};">${formatDinero(v)}</div>
-                <div class="inv-cat-pct">${pct}% del total</div>
+                <div class="inv-cat-val" style="color:${c.color};font-size:17px;">${formatDinero(v)}</div>
+                <div class="inv-cat-pct">${pct}%</div>
             </div>`;
         }).join('');
 
-        el.innerHTML = `<div class="inv-wrap">
-            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:2px;">
-                <h3 style="font-size:15px;">Inversión Total — ${mesNombre}</h3>
-                <span style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--color-primario);letter-spacing:-0.04em;">${formatDinero(total)}</span>
+        el.innerHTML = `<div class="inv-wrap" style="padding:20px;height:100%;box-sizing:border-box;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                <div>
+                    <h3 style="font-size:14px;margin:0 0 2px;">Inversión total</h3>
+                    <p style="font-size:11px;color:var(--texto-secundario);">${mesNombre}</p>
+                </div>
+                ${roi!==null?`<span style="font-size:10px;font-weight:700;padding:3px 9px;border-radius:100px;background:rgba(52,168,83,.15);color:var(--color-exito);border:1px solid rgba(52,168,83,.25);">ROI ${roi>0?'+':''}${roi}%</span>`:''}
             </div>
-            <p style="font-size:12px;color:var(--texto-secundario);margin-bottom:0;">Leída desde Presupuesto · sin doble entrada</p>
+            <div style="font-family:var(--font-display);font-size:32px;font-weight:900;color:var(--color-primario);letter-spacing:-0.04em;margin-bottom:14px;">${formatDinero(total)}</div>
             <div class="inv-bar">${barSegs}</div>
             <div class="inv-grid">${cats}</div>
         </div>`;
+    }
+
+    /* ── Dashboard Tabs ──────────────────────────────────────────── */
+    function setDashTab(tab) {
+        const exec = document.getElementById('dash-tab-exec-content');
+        const anal = document.getElementById('dash-tab-anal-content');
+        const execBtn = document.getElementById('dash-tab-exec-btn');
+        const analBtn = document.getElementById('dash-tab-anal-btn');
+        if (!exec || !anal) return;
+        const isAnal = tab === 'anal';
+        exec.style.display = isAnal ? 'none' : '';
+        anal.style.display = isAnal ? '' : 'none';
+        if (execBtn) execBtn.classList.toggle('activo', !isAnal);
+        if (analBtn) analBtn.classList.toggle('activo', isAnal);
+        if (isAnal) _renderDashCharts(DB.datos[SUC_ACTIVA]);
+    }
+
+    /* ── Semáforo ─────────────────────────────────────────────── */
+    function _renderDashSemaforo(d) {
+        const el = document.getElementById('dash-semaforo');
+        if (!el) return;
+        const acc = _acumularKPIs();
+        const inv = _inversionPorTipo(d);
+        const invTotal = Object.values(inv).reduce((a,b)=>a+b, 0);
+        const tipo = getTipoProyecto(SUC_ACTIVA);
+        const BENCH = {
+            wellness:    { cac:{good:150,warn:250}, ticket:{good:800,warn:500}, conv:{good:25,warn:12}, ret:{good:60,warn:40} },
+            restaurante: { cac:{good:80,warn:150},  ticket:{good:350,warn:200}, conv:{good:35,warn:18}, ret:{good:50,warn:30} }
+        };
+        const b = BENCH[tipo] || BENCH.wellness;
+        const cac    = acc.clientes_nuevos > 0 ? Math.round(invTotal / acc.clientes_nuevos) : null;
+        const total  = acc.clientes_nuevos + acc.clientes_recurrentes + acc.clientes_recuperados;
+        const ticket = acc.ventas > 0 && total > 0 ? Math.round(acc.ventas / total) : null;
+        const conv   = acc.dms > 0 && total > 0 ? Math.round(total / acc.dms * 100) : null;
+        const ret    = total > 0 ? Math.round(acc.clientes_recurrentes / total * 100) : null;
+        const sc = (v, good, warn, inv) => {
+            if (v===null) return '#888';
+            return inv ? (v<=good?'#34A853':v<=warn?'#FBBC05':'#EA4335')
+                       : (v>=good?'#34A853':v>=warn?'#FBBC05':'#EA4335');
+        };
+        const card = (label, val, unit, good, warn, isInv, bench) => {
+            const color = sc(val, good, warn, isInv);
+            const disp = val===null ? '—' : unit==='$' ? formatDinero(val) : val+(unit||'');
+            const status = {['#34A853']:'Óptimo',['#FBBC05']:'Atención',['#EA4335']:'Crítico',['#888']:'Sin datos'}[color]||'';
+            return `<div class="glass-card" style="padding:16px;overflow:hidden;">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${color},${color}55);"></div>
+                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:8px;">${label}</div>
+                <div style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--texto-principal);letter-spacing:-0.04em;line-height:1;margin-bottom:6px;">${disp}</div>
+                <div style="font-size:10px;color:var(--texto-secundario);margin-bottom:8px;">${bench}</div>
+                <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;background:${color}22;color:${color};border:1px solid ${color}44;">${status}</span>
+            </div>`;
+        };
+        el.innerHTML =
+            card('CAC Real',     cac,    '$', b.cac.good,    b.cac.warn,    true,  `Bench $${b.cac.good} óptimo`) +
+            card('Ticket Medio', ticket, '$', b.ticket.good, b.ticket.warn, false, `Bench $${b.ticket.good} óptimo`) +
+            card('Conv. DM→Cita',conv,   '%', b.conv.good,   b.conv.warn,   false, `Bench ${b.conv.good}% óptimo`) +
+            card('Retención',    ret,    '%', b.ret.good,    b.ret.warn,    false, `Bench ${b.ret.good}% óptimo`);
+    }
+
+    /* ── Objetivos ────────────────────────────────────────────── */
+    function _renderDashObjetivos(d) {
+        const el = document.getElementById('dash-objetivos');
+        if (!el) return;
+        const objetivos = d.objetivos || [];
+        if (objetivos.length === 0) {
+            el.innerHTML = `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);margin-bottom:8px;">Objetivos del Mes</div><div style="font-size:12px;color:rgba(255,255,255,.4);font-style:italic;">Sin objetivos definidos.</div>`;
+            return;
+        }
+        const acc = _acumularKPIs();
+        el.innerHTML = `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);margin-bottom:12px;">Objetivos del Mes</div>` +
+            objetivos.map(obj => {
+                const mn = (obj.m||'').toLowerCase();
+                let cur = null;
+                if (mn.includes('venta')) cur = acc.ventas;
+                else if (mn.includes('nuevo')||mn.includes('cliente')) cur = acc.clientes_nuevos;
+                const target = parseFloat(String(obj.o||'').replace(/[$%,]/g,''))||0;
+                const pct = target>0 && cur!==null ? Math.min(100,Math.round(cur/target*100)) : null;
+                const bc = pct===null?'var(--color-primario)':pct>=70?'#34A853':pct>=40?'#FBBC05':'#EA4335';
+                return `<div style="margin-bottom:12px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+                        <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">${obj.m}</span>
+                        <span style="font-size:12px;font-weight:600;color:var(--color-primario);">${obj.o}</span>
+                    </div>
+                    ${pct!==null?`<div style="height:3px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:3px;"><div style="height:100%;width:${pct}%;background:${bc};box-shadow:0 0 6px ${bc}66;transition:width .5s;border-radius:3px;"></div></div><div style="text-align:right;font-size:10px;font-weight:700;color:${bc};">${pct}%</div>`:''}
+                </div>`;
+            }).join('');
+    }
+
+    /* ── Origen de clientas ───────────────────────────────────── */
+    function _renderDashOrigen(d) {
+        const el = document.getElementById('dash-origen');
+        if (!el) return;
+        const canalTotals = {};
+        (d.kpi_semanal||[]).forEach(s => {
+            (s.atribucion||[]).forEach(a => {
+                if (a.canal && a.cantidad>0) canalTotals[a.canal] = (canalTotals[a.canal]||0)+a.cantidad;
+            });
+        });
+        const items = Object.entries(canalTotals).sort((a,b)=>b[1]-a[1]);
+        const IC = { 'Instagram DM':{i:'fa-instagram',c:'#E1306C'}, 'Recomendación':{i:'fa-heart',c:'#34A853'}, 'WhatsApp directo':{i:'fa-whatsapp',c:'#25D366'}, 'Búsqueda':{i:'fa-magnifying-glass',c:'#4A90D9'}, 'Facebook':{i:'fa-facebook',c:'#1877F2'}, 'TikTok':{i:'fa-tiktok',c:'#010101'} };
+        el.innerHTML = `<div style="font-size:13px;font-weight:800;margin-bottom:12px;position:relative;z-index:2;">Origen de clientas</div>` +
+            (items.length===0
+                ? `<div style="text-align:center;padding:16px;color:var(--texto-secundario);font-size:12px;">Importa Excel de ventas para ver el origen.</div>`
+                : items.slice(0,5).map(([canal,qty])=>{
+                    const info = IC[canal]||{i:'fa-circle',c:'var(--color-primario)'};
+                    return `<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--color-borde);">
+                        <div style="width:26px;height:26px;border-radius:7px;background:${info.c}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-brands ${info.i}" style="font-size:12px;color:${info.c};"></i></div>
+                        <div style="flex:1;font-size:12px;font-weight:600;">${canal}</div>
+                        <span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(var(--brand-rgb),.12);color:var(--color-primario);">${qty}</span>
+                    </div>`;
+                }).join(''));
+    }
+
+    /* ── Engagement por formato ───────────────────────────────── */
+    function _renderDashEngagement(d) {
+        const el = document.getElementById('dash-engagement');
+        if (!el) return;
+        const formatos = [...(d.engagement_formato||[])].sort((a,b)=>{
+            const erA=a.alcance>0?a.interacciones/a.alcance:0;
+            const erB=b.alcance>0?b.interacciones/b.alcance:0;
+            return erB-erA;
+        });
+        const maxEr = Math.max(...formatos.map(f=>f.alcance>0?f.interacciones/f.alcance*100:0), 1);
+        const ops = [1,.75,.55,.4,.3];
+        el.innerHTML = `<div style="font-size:13px;font-weight:800;margin-bottom:12px;position:relative;z-index:2;">Engagement por formato</div>` +
+            (formatos.length===0
+                ? `<div style="text-align:center;padding:16px;color:var(--texto-secundario);font-size:12px;">Agrega datos en el Ejecutor.</div>`
+                : formatos.slice(0,5).map((f,idx)=>{
+                    const er = f.alcance>0?+(f.interacciones/f.alcance*100).toFixed(1):0;
+                    const pct = er/maxEr*100;
+                    const op = ops[idx]||.25;
+                    const glow = idx===0?`box-shadow:0 0 7px rgba(var(--brand-rgb),.45);`:'';
+                    return `<div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;">
+                        <span style="width:66px;font-size:11px;font-weight:600;color:var(--texto-secundario);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;">${f.formato}</span>
+                        <div style="flex:1;height:5px;border-radius:5px;background:rgba(var(--brand-rgb),.1);overflow:hidden;">
+                            <div style="height:100%;width:${pct}%;background:rgba(var(--brand-rgb),${op});border-radius:5px;${glow}transition:width .5s;"></div>
+                        </div>
+                        <span style="font-size:10px;font-weight:700;min-width:32px;text-align:right;">${er}%</span>
+                    </div>`;
+                }).join('') +
+                `<div style="margin-top:8px;padding:5px 9px;background:var(--sprint-bg);border-radius:7px;font-size:10px;color:var(--sprint-text);text-align:center;">Sprint 5 — Meta API</div>`);
+    }
+
+    /* ── Trend SVG ────────────────────────────────────────────── */
+    function _renderDashTrend(d) {
+        const el = document.getElementById('dash-trend-svg');
+        if (!el) return;
+        const hist = d.historico_mensual || [];
+        const MC = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const hasData = hist.some(h=>h.ventas>0||h.dms>0);
+        if (!hasData) {
+            el.innerHTML = `<div style="text-align:center;padding:12px;color:var(--texto-secundario);font-size:11px;">Registra 2+ meses para ver la tendencia.</div>`;
+            return;
+        }
+        const W=380, H=80;
+        const maxV = Math.max(...hist.map(h=>h.ventas||0), 1);
+        const maxD = Math.max(...hist.map(h=>h.dms||0), 1);
+        const pts = (arr,mx) => arr.map((v,i)=>`${(i/(arr.length-1)*W).toFixed(1)},${(H-6-(v/mx)*(H-12)).toFixed(1)}`);
+        const vPts = pts(hist.map(h=>h.ventas||0),maxV);
+        const dPts = pts(hist.map(h=>h.dms||0),maxD);
+        const vPath = `M ${vPts.join(' L ')}`;
+        const aPath = `M 0,${H} L ${vPts.join(' L ')} L ${W},${H} Z`;
+        const lV = vPts[vPts.length-1].split(',');
+        const lD = dPts[dPts.length-1].split(',');
+        const uid = 'g'+SUC_ACTIVA.replace(/[^a-z]/g,'');
+        el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;overflow:visible;">
+            <defs><linearGradient id="gv${uid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(196,133,90,.3)"/><stop offset="100%" stop-color="rgba(196,133,90,0)"/></linearGradient></defs>
+            ${[.25,.5,.75].map(f=>`<line x1="0" y1="${(H-6-f*(H-12)).toFixed(1)}" x2="${W}" y2="${(H-6-f*(H-12)).toFixed(1)}" stroke="var(--chart-grid)" stroke-width="1"/>`).join('')}
+            <path d="${aPath}" fill="url(#gv${uid})"/>
+            <path d="${vPath}" fill="none" stroke="rgba(196,133,90,.9)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M ${dPts.join(' L ')}" fill="none" stroke="rgba(74,144,217,.7)" stroke-width="1.5" stroke-dasharray="4 3" stroke-linecap="round"/>
+            <circle cx="${lV[0]}" cy="${lV[1]}" r="3.5" fill="rgba(196,133,90,1)"/>
+            <circle cx="${lD[0]}" cy="${lD[1]}" r="2.5" fill="rgba(74,144,217,1)"/>
+            ${[0,3,6,9,11].map(i=>`<text x="${(i/(hist.length-1)*W).toFixed(1)}" y="${H+2}" fill="var(--text-tertiary,#A0887A)" font-size="8" text-anchor="middle" font-family="var(--font-body)">${MC[i]}</text>`).join('')}
+        </svg>
+        <div style="display:flex;gap:12px;margin-top:4px;justify-content:flex-end;">
+            <div style="display:flex;align-items:center;gap:4px;"><div style="width:14px;height:2px;background:rgba(196,133,90,.9);border-radius:2px;"></div><span style="font-size:9px;color:var(--texto-secundario);">Ventas</span></div>
+            <div style="display:flex;align-items:center;gap:4px;"><div style="width:14px;height:1px;background:rgba(74,144,217,.7);border-top:1.5px dashed rgba(74,144,217,.7);"></div><span style="font-size:9px;color:var(--texto-secundario);">DMs</span></div>
+        </div>`;
+    }
+
+    /* ── Role Selector (Owner only) ───────────────────────────── */
+    function _renderDashRolSelector() {
+        const el = document.getElementById('dash-rol-selector-wrap');
+        if (!el) return;
+        const isRealOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner';
+        if (!isRealOwner) { el.innerHTML = ''; return; }
+        const ROLES = [{id:null,label:'Owner'},{id:'lanka_team',label:'Lanka Team'},{id:'direccion',label:'Dirección'},{id:'coordinador',label:'Coordinador'}];
+        el.innerHTML = `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.06em;">Vista:</span>
+            ${ROLES.map(r=>{
+                const active = ROL_SIMULADO===r.id || (!ROL_SIMULADO&&r.id===null);
+                return `<button onclick="${r.id?`simularVista('${r.id}')`:'salirVistaSimulada()'}"
+                    style="padding:4px 11px;border-radius:100px;font-size:10px;font-weight:600;cursor:pointer;border:1.5px solid ${active?'var(--color-primario)':'var(--color-borde-fuerte)'};background:${active?'var(--color-primario)':'transparent'};color:${active?'#fff':'var(--texto-secundario)'};transition:var(--transicion);">${r.label}</button>`;
+            }).join('')}
+        </div>`;
+    }
+
+    /* ── Chart.js — Tab Analítico ─────────────────────────────── */
+    function _renderDashCharts(d) {
+        if (!d) return;
+        const cs = getComputedStyle(document.documentElement);
+        const txtSec = cs.getPropertyValue('--text-secondary').trim()||'rgba(107,92,80,1)';
+        const txtTer = cs.getPropertyValue('--text-tertiary').trim()||'rgba(160,136,122,1)';
+        const grid   = cs.getPropertyValue('--chart-grid').trim()||'rgba(0,0,0,.06)';
+        const scaleDef = { grid:{color:grid}, ticks:{color:txtTer,font:{size:10}} };
+        const legDef = { labels:{color:txtSec,font:{size:10}} };
+        const MC = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const COLORS = ['rgba(196,133,90,.8)','rgba(74,144,217,.8)','rgba(52,168,83,.8)','rgba(251,188,5,.8)','rgba(139,92,246,.8)','rgba(234,67,53,.8)'];
+
+        // Chart 1: Mix de servicios
+        const tagC={};
+        (d.kanban||[]).forEach(k=>(k.tags||'').split(',').forEach(t=>{const s=t.trim();if(s)tagC[s]=(tagC[s]||0)+1;}));
+        const tagE = Object.entries(tagC).slice(0,6);
+        destroyChart('dash-chart-mix');
+        const c1 = document.getElementById('dash-chart-mix');
+        if (c1 && tagE.length>0) {
+            _charts['dash-chart-mix'] = new Chart(c1,{type:'doughnut',data:{labels:tagE.map(([t])=>t),datasets:[{data:tagE.map(([,v])=>v),backgroundColor:COLORS,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:legDef.labels}}}});
+        }
+
+        // Chart 2: Inversión vs Conversión
+        const ads=(d.ads||[]).filter(a=>a.inversion>0||a.conversiones>0).slice(0,5);
+        destroyChart('dash-chart-inv');
+        const c2=document.getElementById('dash-chart-inv');
+        if (c2 && ads.length>0) {
+            _charts['dash-chart-inv']=new Chart(c2,{type:'bar',data:{labels:ads.map(a=>(a.nombre||'').substring(0,12)),datasets:[{label:'Inversión ($)',data:ads.map(a=>a.inversion||0),backgroundColor:'rgba(196,133,90,.7)',borderRadius:5},{label:'Conversiones ×100',data:ads.map(a=>(a.conversiones||0)*100),backgroundColor:'rgba(74,144,217,.7)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:legDef}}});
+        }
+
+        // Chart 3: Seguidores
+        const hist=d.historico_mensual||[];
+        destroyChart('dash-chart-seg');
+        const c3=document.getElementById('dash-chart-seg');
+        if (c3) {
+            _charts['dash-chart-seg']=new Chart(c3,{type:'line',data:{labels:MC,datasets:[{label:'Seguidores',data:hist.map(h=>h.seguidores||0),borderColor:'rgba(196,133,90,.9)',backgroundColor:'rgba(196,133,90,.12)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'rgba(196,133,90,1)'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:legDef}}});
+        }
+
+        // Chart 4: Engagement histórico
+        const engD=d.engagement_formato||[];
+        const engByFmt={};
+        engD.forEach(e=>{if(!engByFmt[e.formato])engByFmt[e.formato]=[];engByFmt[e.formato].push(e.alcance>0?+(e.interacciones/e.alcance*100).toFixed(1):0);});
+        const fmts=Object.keys(engByFmt).slice(0,4);
+        destroyChart('dash-chart-eng');
+        const c4=document.getElementById('dash-chart-eng');
+        if (c4 && fmts.length>0) {
+            const maxLen=Math.max(...fmts.map(f=>engByFmt[f].length));
+            _charts['dash-chart-eng']=new Chart(c4,{type:'line',data:{labels:Array.from({length:maxLen},(_,i)=>`S${i+1}`),datasets:fmts.map((fmt,ci)=>({label:fmt,data:engByFmt[fmt],borderColor:COLORS[ci],backgroundColor:'transparent',tension:.4,pointRadius:3}))},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:{position:'bottom',labels:legDef.labels}}}});
+        }
     }
 
         function getTipoProyecto(sucId) {
@@ -3410,6 +4089,22 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('contenedor-clientes').innerHTML = DB.sucursales.map((s, i) => {
             let decodedPwd = ''; try { decodedPwd = atob(s.password); } catch(e) { decodedPwd = s.password; }
             const usuariosProyecto = (DB.usuarios||[]).filter(u => (u.proyectos||[]).includes(s.id) && u.estado==='activo');
+            const _logoActual = _getProyectoLogo(s.id);
+            const _logoPreview = _logoActual
+                ? `<img src="${_logoActual}" style="width:52px;height:52px;border-radius:10px;object-fit:contain;background:var(--color-fondo);border:1px solid var(--color-borde);">`
+                : `<div style="width:52px;height:52px;border-radius:10px;background:${s.color};display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:900;color:#fff;font-family:var(--font-display);">${_proyectoIniciales(s.nombre)}</div>`;
+            const _logoSection = `<div style="margin-bottom:14px;">
+                <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:8px;">LOGO DEL PROYECTO</label>
+                <div style="display:flex;align-items:center;gap:14px;">
+                    ${_logoPreview}
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                        <input type="file" id="logo-input-${s.id}" accept=".png,.jpg,.jpeg,.svg" style="display:none;" onchange="_uploadProyectoLogo('${s.id}',this)">
+                        <button class="btn btn-xs btn-fantasma" onclick="document.getElementById('logo-input-${s.id}').click()"><i class="fa-solid fa-upload"></i> Subir logo</button>
+                        ${_logoActual ? `<button class="btn btn-xs btn-peligro-suave" onclick="_deleteProyectoLogoConfirm('${s.id}')"><i class="fa-solid fa-trash"></i> Eliminar logo</button>` : ''}
+                    </div>
+                    <span style="font-size:11px;color:var(--texto-secundario);line-height:1.5;">PNG, JPG, SVG<br>máx. 2 MB</span>
+                </div>
+            </div>`;
             const avatarsHTML = usuariosProyecto.length
                 ? usuariosProyecto.map(u => {
                     const rolU = (DB.roles_sistema||[]).find(r=>r.id===u.rol_id)||{nombre:u.rol_id,color:'#888'};
@@ -3440,6 +4135,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="border:1px solid var(--color-borde);font-family:monospace;margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div>
                 <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0;font-family:monospace;font-weight:700;text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>
+                ${_logoSection}
                 ${equipoSection}
             </div>`;
         }).join('');
@@ -3453,7 +4149,95 @@ document.addEventListener('DOMContentLoaded', function() {
             DB.desplegables[k].forEach((val, vi) => { confHTML += `<span class="tag gris" style="color:var(--texto-principal); background:var(--color-tarjeta); border:1px solid var(--color-borde); padding:6px 12px; font-size:12px;">${val} <i class="fa-solid fa-times" style="margin-left:8px; color:#ccc; cursor:pointer;" onclick="DB.desplegables['${k}'].splice(${vi},1); guardarBD(); renderTodas();"></i></span>`; });
             confHTML += `<button class="btn btn-xs btn-fantasma" onclick="let n = prompt('Nuevo valor:'); if(n) { DB.desplegables['${k}'].push(n); guardarBD(); renderTodas(); }">+ Añadir</button></div></div>`;
         }
+        const _isOwnerForConfig = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+        if (_isOwnerForConfig) {
+            confHTML += `<div style="margin-top:32px;padding-top:24px;border-top:2px solid var(--color-borde);">
+                <div style="font-family:var(--font-display);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Zona de peligro</div>
+                <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:16px;line-height:1.6;">Elimina todos los datos operativos (KPIs, presupuesto, kanban, ads, métricas) de todos los proyectos.<br>No elimina usuarios, roles, permisos ni configuración.</p>
+                <button class="btn btn-peligro-suave" onclick="limpiarDatosPrueba()"><i class="fa-solid fa-trash-can" style="margin-right:6px;"></i>Limpiar datos de prueba</button>
+            </div>`;
+        }
         document.getElementById('contenedor-config').innerHTML = confHTML;
+    }
+
+    function limpiarDatosPrueba() {
+        if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO)) return;
+        if (!confirm('⚠️ ¿Eliminar todos los datos de KPIs, presupuesto, kanban, ads y métricas de TODOS los proyectos?\n\nEsta acción no se puede deshacer.')) return;
+        if (!confirm('¿Confirmas que quieres borrar PERMANENTEMENTE los datos de prueba de todos los proyectos?')) return;
+        const _mc = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        Object.keys(DB.datos || {}).forEach(sucId => {
+            const d = DB.datos[sucId];
+            if (!d) return;
+            d.kpi_semanal        = [];
+            d.historico_mensual  = Array.from({length:12},(_,i) => ({mes:_mc[i],ventas:0,seguidores:0,dms:0}));
+            d.presupuesto        = [];
+            d.kanban             = [];
+            d.ads                = [];
+            d.rendimiento        = [];
+            d.engagement_formato = [];
+            if (Array.isArray(d.highlights)) d.highlights.forEach(h => { h.val = '0'; });
+        });
+        guardarBD();
+        renderTodas();
+        alert('Datos eliminados. El sistema está listo para datos reales.');
+    }
+
+    /* ── Logo de proyecto — localStorage separado del DB principal ── */
+    function _getProyectoLogo(sucId) {
+        return localStorage.getItem('lanka_logo_' + sucId) || null;
+    }
+
+    function _proyectoIniciales(nombre) {
+        return (nombre||'').split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase() || '?';
+    }
+
+    function _proyectoLogoHTML(sucId, size) {
+        const logo = _getProyectoLogo(sucId);
+        const suc  = (DB.sucursales||[]).find(s => s.id === sucId) || {};
+        size = size || 36;
+        const r = Math.round(size * 0.28);
+        if (logo) {
+            return `<img src="${logo}" style="width:${size}px;height:${size}px;border-radius:${r}px;object-fit:contain;background:#fff;flex-shrink:0;display:block;">`;
+        }
+        const iniciales = _proyectoIniciales(suc.nombre || sucId);
+        const color = suc.color || '#C4855A';
+        const fs = Math.round(size * 0.36);
+        return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};display:inline-flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:900;color:#fff;flex-shrink:0;font-family:var(--font-display);line-height:1;">${iniciales}</div>`;
+    }
+
+    function _actualizarLogoHeader() {
+        const el = document.getElementById('proyecto-logo-header');
+        if (!el) return;
+        el.innerHTML = _proyectoLogoHTML(SUC_ACTIVA, 36);
+        el.style.display = '';
+    }
+
+    function _uploadProyectoLogo(sucId, input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            alert('El archivo excede el límite de 2 MB. Comprime la imagen antes de subir.');
+            input.value = ''; return;
+        }
+        const allowed = ['image/png', 'image/jpeg', 'image/svg+xml'];
+        if (!allowed.includes(file.type)) {
+            alert('Formato no soportado. Usa PNG, JPG o SVG.');
+            input.value = ''; return;
+        }
+        const reader = new FileReader();
+        reader.onload = e => {
+            localStorage.setItem('lanka_logo_' + sucId, e.target.result);
+            renderAdministracion();
+            _actualizarLogoHeader();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function _deleteProyectoLogoConfirm(sucId) {
+        if (!confirm('¿Eliminar el logo de este proyecto?')) return;
+        localStorage.removeItem('lanka_logo_' + sucId);
+        renderAdministracion();
+        _actualizarLogoHeader();
     }
 
     function eliminarProyecto(i) {
@@ -3501,7 +4285,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function cerrarModales() { document.querySelectorAll('.fondo-modal').forEach(m => m.classList.remove('activo')); document.getElementById('texto-feedback').value = ''; document.getElementById('activo-id-feedback').value = ''; document.getElementById('input-comando-ia').value = ''; }
 
     /* ====== REPORTE CSV (ORIGINAL) ====== */
-    function abrirReporteEjecutivo() { document.getElementById('rep-nombre-cliente').innerText = DB.sucursales.find(s=>s.id===SUC_ACTIVA).nombre; document.getElementById('modal-reporte').classList.add('activo'); }
+    function abrirReporteEjecutivo() {
+        const _repSuc = DB.sucursales.find(s=>s.id===SUC_ACTIVA);
+        document.getElementById('rep-nombre-cliente').innerText = _repSuc.nombre;
+        const _repLogo = document.getElementById('rep-logo-cliente');
+        if (_repLogo) _repLogo.innerHTML = _proyectoLogoHTML(SUC_ACTIVA, 32);
+        document.getElementById('modal-reporte').classList.add('activo');
+    }
     function descargarReporteCSV() {
         const d = DB.datos[SUC_ACTIVA]; let csv = "data:text/csv;charset=utf-8,REPORTE CONSOLIDADO - " + DB.sucursales.find(s=>s.id===SUC_ACTIVA).nombre.toUpperCase() + "\n\n";
         csv += "METRICAS GLOBALES\n"; d.rendimiento.forEach(r => csv += `${r.m},${r.v1},${r.v2}\n`);
@@ -4555,7 +5345,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ---- Control de Accesos ----
 
-    function renderControlAccesos() { activarTabAccesos('roles'); }
+    function renderControlAccesos() { activarTabAccesos('permisos'); }
 
     function activarTabAccesos(tab) {
         ['roles','permisos','ubicaciones'].forEach(t => {
@@ -4587,39 +5377,149 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>`;
     }
 
+    // ── Granular Permissions — Control de Accesos ────────────────────
+    const _PERMISOS_DEFAULTS = {
+        dashboard:   { ver:{owner:1,lanka_team:1,direccion:1,coordinador:1,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} },
+        ejecutor:    { ver:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0}, importar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} },
+        calendario:  { ver:{owner:1,lanka_team:1,direccion:1,coordinador:1,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:1,equipo:0}, aprobar:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0} },
+        tareas:      { ver:{owner:1,lanka_team:1,direccion:1,coordinador:1,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:1,equipo:0}, ejecutar:{owner:1,lanka_team:1,direccion:0,coordinador:1,equipo:1} },
+        dam:         { ver:{owner:1,lanka_team:1,direccion:1,coordinador:1,equipo:1}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0}, aprobar:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, importar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:1} },
+        ads:         { ver:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} },
+        presupuesto: { ver:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} },
+        reporte:     { ver:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} }
+    };
+    const _AC_TIPO_COLOR = { ver:'#378ADD', editar:'#C4855A', aprobar:'#639922', ejecutar:'#BA7517', importar:'#7F77DD' };
+    let _acRolActivo = 'owner';
+
+    function _cargarPermisosSucRol(rolId) {
+        const key = `permisos_${SUC_ACTIVA}_${rolId}`;
+        try { const s = JSON.parse(localStorage.getItem(key)); if (s && typeof s === 'object') return s; } catch(e) {}
+        const out = {};
+        Object.keys(_PERMISOS_DEFAULTS).forEach(mod => {
+            out[mod] = {};
+            Object.keys(_PERMISOS_DEFAULTS[mod]).forEach(accion => { out[mod][accion] = !!_PERMISOS_DEFAULTS[mod][accion][rolId]; });
+        });
+        return out;
+    }
+
+    function _getPermisos(modulo, accion) {
+        const rolId = ROL_SIMULADO || USUARIO_ACTIVO?.rol_id || (ROL === 'agencia' ? 'lanka_team' : 'equipo');
+        if (rolId === 'owner') return true;
+        const p = _cargarPermisosSucRol(rolId);
+        return !!(p[modulo] && p[modulo][accion]);
+    }
+
+    function _setPermisoAccion(rolId, modulo, accion, valor) {
+        if (rolId === 'owner') return;
+        const key = `permisos_${SUC_ACTIVA}_${rolId}`;
+        const p = _cargarPermisosSucRol(rolId);
+        if (!p[modulo]) p[modulo] = {};
+        p[modulo][accion] = valor;
+        if (valor && accion !== 'ver') p[modulo]['ver'] = true;
+        if (!valor && accion === 'ver') Object.keys(p[modulo]).forEach(a => { p[modulo][a] = false; });
+        localStorage.setItem(key, JSON.stringify(p));
+        _syncNavPermisos(rolId);
+        renderTabPermisos();
+    }
+
+    function _syncNavPermisos(rolId) {
+        if (!DB.permisos) DB.permisos = {};
+        const map = { dashboard:'performance', calendario:'calendario', dam:'dam', ads:'ads', presupuesto:'presupuesto' };
+        const p = _cargarPermisosSucRol(rolId);
+        Object.entries(map).forEach(([nk, ok]) => {
+            if (!DB.permisos[ok]) DB.permisos[ok] = {};
+            DB.permisos[ok][rolId] = !!(p[nk] && p[nk]['ver']);
+        });
+        guardarBD();
+        if (USUARIO_ACTIVO) aplicarPermisos(ROL_SIMULADO || USUARIO_ACTIVO.rol_id);
+    }
+
     function renderTabPermisos() {
         const el = document.getElementById('tab-permisos'); if (!el) return;
-        const roles = DB.roles_sistema || [];
-        const permisos = DB.permisos || {};
         const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
-        const GRUPOS = [
-            { g:'Inteligencia',  items:[['performance','Dashboard'],['charts','Métricas y Gráficas'],['insights','Laboratorio Insights']] },
-            { g:'Finanzas',      items:[['presupuesto','Presupuesto'],['facturas','Facturación']] },
-            { g:'Orquestación',  items:[['calendario','Calendario Content'],['cal_editorial','Calendario Visual'],['shooting','Agenda Shooting'],['dam','Gestión de Activos'],['stories','Stories']] },
-            { g:'Estrategia',    items:[['briefing','Briefing Mensual'],['mood','Mood & Ejes'],['target','Target & Seg.'],['ads','Ad Performance'],['offline','Materiales Offline']] },
-            { g:'Mi Trabajo',    items:[['mis_tareas','Mis Tareas']] },
-            { g:'Administración',items:[['proyectos','Proyectos'],['proveedores','Proveedores'],['config','Configuración'],['usuarios','Usuarios'],['control_accesos','Control de Accesos'],['auditoria','Auditoría']] }
+        const _isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+        const ROLES_AC = [
+            { id:'owner',       label:'Owner',           color:'#C4855A' },
+            { id:'lanka_team',  label:'Lanka Team',      color:'#E8A96A' },
+            { id:'direccion',   label:'Dirección',       color:'#4A90D9' },
+            { id:'coordinador', label:'Coordinador',     color:'#8B5CF6' },
+            { id:'equipo',      label:'Equipo Operativo',color:'#34A853' }
         ];
-        let h = `<div class="permisos-grid-wrap"><table class="permisos-grid"><thead><tr><th>Módulo</th>`;
-        roles.forEach(r => { h += `<th><span style="background:${r.color}20;color:${r.color};padding:3px 10px;border-radius:6px;font-size:10px;font-weight:700;white-space:nowrap;">${r.nombre}</span></th>`; });
-        h += `</tr></thead><tbody>`;
-        GRUPOS.forEach(({g, items}) => {
-            h += `<tr class="permisos-grupo"><td colspan="${roles.length+1}">${g}</td></tr>`;
-            items.forEach(([mod, nombre]) => {
-                h += `<tr><td>${nombre}</td>`;
-                roles.forEach(r => {
-                    const checked = !!(permisos[mod] && permisos[mod][r.id]);
-                    if (r.id === 'owner') {
-                        h += `<td><i class="fa-solid fa-check" style="color:${r.color};font-size:13px;"></i></td>`;
-                    } else {
-                        h += `<td><label class="toggle"><input type="checkbox" ${checked?'checked':''} ${isOwner?'':'disabled'} onchange="togglePermiso('${mod}','${r.id}',this.checked)"><span class="toggle-slider"></span></label></td>`;
-                    }
-                });
-                h += `</tr>`;
-            });
-        });
-        h += `</tbody></table></div>`;
-        el.innerHTML = h;
+        const MODULOS_AC = [
+            { id:'dashboard',   label:'Dashboard',               icon:'fa-solid fa-gauge-high',
+              perms:[{id:'ver',label:'Ver',desc:'Acceso al módulo'},{id:'editar',label:'Editar',desc:'Modificar metas y textos cualitativos'}] },
+            { id:'ejecutor',    label:'Ejecutor de KPIs',        icon:'fa-solid fa-table-cells-large',
+              perms:[{id:'ver',label:'Ver',desc:'Ver datos del Ejecutor'},{id:'editar',label:'Editar',desc:'Agregar y modificar entradas'},{id:'importar',label:'Importar',desc:'Subir Excel de ventas'}] },
+            { id:'calendario',  label:'Calendario de Contenido', icon:'fa-solid fa-table-columns',
+              perms:[{id:'ver',label:'Ver',desc:'Ver todas las tarjetas'},{id:'editar',label:'Editar',desc:'Crear, mover y eliminar tarjetas'},{id:'aprobar',label:'Aprobar',desc:'Aprobar o rechazar contenido'}] },
+            { id:'tareas',      label:'Tareas',                  icon:'fa-solid fa-list-check',
+              perms:[{id:'ver',label:'Ver',desc:'Ver tareas del proyecto'},{id:'editar',label:'Editar',desc:'Crear y asignar tareas'},{id:'ejecutar',label:'Ejecutar',desc:'Hacer check en tareas propias'}] },
+            { id:'dam',         label:'Gestión de Activos DAM',  icon:'fa-solid fa-photo-film',
+              perms:[{id:'ver',label:'Ver',desc:'Ver archivos del proyecto'},{id:'editar',label:'Editar',desc:'Organizar y eliminar archivos'},{id:'aprobar',label:'Aprobar',desc:'Aprobar o pedir cambios'},{id:'importar',label:'Importar',desc:'Cargar fotos y videos'}] },
+            { id:'ads',         label:'Ad Performance',          icon:'fa-solid fa-chart-bar',
+              perms:[{id:'ver',label:'Ver',desc:'Ver métricas de campañas'},{id:'editar',label:'Editar',desc:'Agregar y modificar campañas'}] },
+            { id:'presupuesto', label:'Presupuesto',              icon:'fa-solid fa-dollar-sign',
+              perms:[{id:'ver',label:'Ver',desc:'Ver inversión del proyecto'},{id:'editar',label:'Editar',desc:'Registrar inversiones'}] },
+            { id:'reporte',     label:'Reporte Mensual',          icon:'fa-solid fa-file-lines',
+              perms:[{id:'ver',label:'Ver',desc:'Ver reporte generado'},{id:'editar',label:'Editar',desc:'Generar y exportar reportes'}] }
+        ];
+
+        const rolAC = ROLES_AC.find(r => r.id === _acRolActivo) || ROLES_AC[0];
+        const perms = _acRolActivo === 'owner' ? null : _cargarPermisosSucRol(_acRolActivo);
+
+        const chips = ROLES_AC.map(r => {
+            const activo = r.id === _acRolActivo;
+            return `<button onclick="_acRolActivo='${r.id}';renderTabPermisos();"
+                style="padding:7px 18px;border-radius:100px;font-size:12px;font-weight:700;cursor:pointer;
+                       border:1.5px solid ${activo ? r.color : 'var(--color-borde-fuerte)'};
+                       background:${activo ? r.color : 'transparent'};
+                       color:${activo ? '#fff' : 'var(--texto-secundario)'};
+                       transition:var(--transicion);white-space:nowrap;">${r.label}</button>`;
+        }).join('');
+
+        const legend = Object.entries(_AC_TIPO_COLOR).map(([t,c]) =>
+            `<div style="display:flex;align-items:center;gap:5px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;"></div>
+                <span style="font-size:11px;font-weight:600;color:var(--texto-secundario);text-transform:capitalize;">${t}</span>
+             </div>`).join('');
+
+        const cards = MODULOS_AC.map(m => {
+            const rows = m.perms.map((p, pi) => {
+                const color = _AC_TIPO_COLOR[p.id] || '#888';
+                const isOwnerRole = _acRolActivo === 'owner';
+                const checked = isOwnerRole ? true : !!(perms && perms[m.id] && perms[m.id][p.id]);
+                const isLast = pi === m.perms.length - 1;
+                const right = isOwnerRole
+                    ? `<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;background:${color}18;color:${color};border:1px solid ${color}40;white-space:nowrap;flex-shrink:0;">Siempre</span>`
+                    : `<label class="toggle" style="flex-shrink:0;"><input type="checkbox" ${checked?'checked':''} ${isOwner?'':'disabled'} onchange="_setPermisoAccion('${_acRolActivo}','${m.id}','${p.id}',this.checked)"><span class="toggle-slider"></span></label>`;
+                return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;${isLast?'':'border-bottom:1px solid var(--color-borde);'}">
+                    <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:13px;font-weight:600;color:var(--texto-principal);">${p.label}</div>
+                        <div style="font-size:11px;color:var(--texto-secundario);margin-top:1px;">${p.desc}</div>
+                    </div>
+                    ${right}
+                </div>`;
+            }).join('');
+
+            return `<div style="background:var(--color-tarjeta);border-radius:16px;border:1px solid var(--color-borde);box-shadow:var(--sombra-suave);overflow:hidden;margin-bottom:14px;">
+                <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;background:${_isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.03)'};border-bottom:1px solid var(--color-borde);">
+                    <i class="${m.icon}" style="font-size:14px;color:var(--color-primario);width:18px;text-align:center;flex-shrink:0;"></i>
+                    <span style="font-weight:800;font-size:13px;font-family:var(--font-display);letter-spacing:.01em;">${m.label}</span>
+                </div>
+                <div style="padding:4px 20px 8px;">${rows}</div>
+            </div>`;
+        }).join('');
+
+        el.innerHTML = `
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">${chips}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:11px 16px;background:${_isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.02)'};border-radius:10px;border:1px solid var(--color-borde);margin-bottom:22px;">
+                <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);">Tipos de permiso</span>
+                ${legend}
+            </div>
+            ${!isOwner ? `<div style="padding:10px 14px;background:rgba(196,133,90,.08);border:1px solid rgba(196,133,90,.2);border-radius:8px;font-size:12px;color:var(--color-primario);font-weight:600;margin-bottom:20px;"><i class="fa-solid fa-lock" style="margin-right:6px;"></i>Solo el Owner puede modificar permisos.</div>` : ''}
+            <div>${cards}</div>`;
     }
 
     function renderTabUbicaciones() {
@@ -4959,6 +5859,570 @@ document.addEventListener('DOMContentLoaded', function() {
         if (overlay) overlay.classList.remove('activo');
     }
 
+</script>
+
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   IMPORTADOR DE EXCEL — Ejecutor de KPIs (Wellness/Spa)
+   Depende de: SheetJS (XLSX global), MESES[], formatDinero(),
+               guardarBD(), _kpiSemanalToHistorico(),
+               _syncKPIsToRendimiento(), renderDashboard()
+   ══════════════════════════════════════════════════════════════════ */
+
+let _xlsState = {
+    step: 'upload', wb: null, planAData: null,
+    planBMapping: {}, headers: [], atribucion: [],
+    periodoMes: null, previewData: null
+};
+
+function abrirModalExcel() {
+    if (typeof XLSX === 'undefined') {
+        alert('La librería SheetJS no está disponible. Verifica tu conexión a internet.');
+        return;
+    }
+    _xlsState = { step:'upload', wb:null, planAData:null, planBMapping:{}, headers:[], atribucion:[], periodoMes:null, fechaMin:null, fechaMax:null, previewData:null };
+    _xlsRender();
+    document.getElementById('modal-excel-import').classList.add('activo');
+}
+
+function cerrarModalExcel() {
+    document.getElementById('modal-excel-import').classList.remove('activo');
+    const inp = document.getElementById('xls-file-input');
+    if (inp) inp.value = '';
+}
+
+function _xlsRender() {
+    const body  = document.getElementById('xls-modal-body');
+    const foot  = document.getElementById('xls-modal-footer');
+    const title = document.getElementById('xls-modal-title');
+    if (!body || !foot || !title) return;
+    switch (_xlsState.step) {
+        case 'upload':   _xlsRenderUpload(body, foot, title);   break;
+        case 'loading':  _xlsRenderLoading(body, foot, title);  break;
+        case 'planA':    _xlsRenderPlanA(body, foot, title);    break;
+        case 'planB':    _xlsRenderPlanB(body, foot, title);    break;
+        case 'preview':  _xlsRenderPreview(body, foot, title);  break;
+    }
+}
+
+/* ── Step: Upload ─────────────────────────────────────────────── */
+function _xlsRenderUpload(body, foot, title) {
+    title.innerHTML = '<i class="fa-solid fa-file-excel" style="color:#1D6F42;margin-right:10px;"></i> Importar Reporte Excel';
+    body.innerHTML = `
+        <div style="text-align:center;padding:12px 0 20px;">
+            <i class="fa-solid fa-cloud-arrow-up" style="font-size:44px;color:var(--color-primario);opacity:.55;"></i>
+            <p style="margin:14px 0 6px;font-size:14px;font-weight:700;">Sube el reporte mensual exportado desde tu sistema de agenda</p>
+            <p style="font-size:12px;color:var(--texto-secundario);">El sistema detectará automáticamente KPIs y atribución por canal</p>
+        </div>
+        <div style="border:2px dashed var(--color-borde-fuerte);border-radius:14px;padding:28px;text-align:center;cursor:pointer;transition:border-color .2s;"
+             onclick="document.getElementById('xls-file-input').click()"
+             ondragover="event.preventDefault();this.style.borderColor='var(--color-primario)'"
+             ondragleave="this.style.borderColor=''"
+             ondrop="_xlsHandleDrop(event)">
+            <input type="file" id="xls-file-input" accept=".xlsx" style="display:none;" onchange="_xlsHandleFile(this.files[0])">
+            <i class="fa-solid fa-file-excel" style="font-size:30px;color:#1D6F42;margin-bottom:10px;display:block;"></i>
+            <p style="font-size:13px;font-weight:600;margin-bottom:4px;">Haz clic o arrastra tu archivo aquí</p>
+            <p style="font-size:11px;color:var(--texto-secundario);">Solo archivos <strong>.xlsx</strong></p>
+        </div>
+        <p id="xls-error-msg" style="color:var(--color-peligro);font-size:13px;font-weight:600;margin-top:12px;display:none;padding:10px 14px;background:rgba(234,67,53,0.06);border-radius:8px;border:1px solid rgba(234,67,53,0.15);"></p>`;
+    foot.innerHTML = `
+        <span style="font-size:12px;color:var(--texto-secundario);">Exporta desde tu sistema de agenda como <strong>.xlsx</strong></span>
+        <button class="btn btn-fantasma" onclick="cerrarModalExcel()">Cancelar</button>`;
+}
+
+function _xlsRenderLoading(body, foot, title) {
+    title.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color:var(--color-primario);margin-right:10px;"></i> Analizando archivo…';
+    body.innerHTML  = '<div style="text-align:center;padding:48px 24px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:36px;color:var(--color-primario);"></i><p style="margin-top:18px;color:var(--texto-secundario);font-size:13px;">Leyendo hojas y detectando campos…</p></div>';
+    foot.innerHTML  = '';
+}
+
+function _xlsHandleDrop(e) {
+    e.preventDefault();
+    if (e.dataTransfer.files[0]) _xlsHandleFile(e.dataTransfer.files[0]);
+}
+
+function _xlsHandleFile(file) {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+        _xlsShowError('Por favor exporta tu reporte como .xlsx desde tu sistema de agenda');
+        return;
+    }
+    _xlsState.step = 'loading';
+    _xlsRender();
+    const reader = new FileReader();
+    reader.onload = ev => {
+        try {
+            _xlsState.wb = XLSX.read(ev.target.result, { type:'array', cellDates:true });
+            _xlsParse();
+        } catch (err) {
+            _xlsState.step = 'upload';
+            _xlsRender();
+            _xlsShowError('No se pudo leer el archivo. Asegúrate de que sea un .xlsx válido.');
+        }
+    };
+    reader.onerror = () => { _xlsState.step = 'upload'; _xlsRender(); };
+    reader.readAsArrayBuffer(file);
+}
+
+function _xlsShowError(msg) {
+    const el = document.getElementById('xls-error-msg');
+    if (el) { el.style.display = 'block'; el.textContent = msg; }
+}
+
+/* ── Parsing ──────────────────────────────────────────────────── */
+function _xlsParse() {
+    const wb = _xlsState.wb;
+
+    // Collect all first-row headers from every sheet
+    const allHeaders = [];
+    wb.SheetNames.forEach(sName => {
+        const sheet = wb.Sheets[sName];
+        if (!sheet['!ref']) return;
+        const range = XLSX.utils.decode_range(sheet['!ref']);
+        for (let c = range.s.c; c <= Math.min(range.e.c, range.s.c + 60); c++) {
+            const cell = sheet[XLSX.utils.encode_cell({r: range.s.r, c})];
+            if (cell && cell.v != null)
+                allHeaders.push({ sheet: sName, col: c, header: String(cell.v).trim() });
+        }
+    });
+    _xlsState.headers = allHeaders;
+
+    const findSheet = name => {
+        const n = name.toLowerCase();
+        const found = wb.SheetNames.find(s => s.toLowerCase() === n);
+        return found ? wb.Sheets[found] : null;
+    };
+
+    const resumenSheet = findSheet('resumen');
+    const ventasSheet  = findSheet('ventas');
+
+    if (resumenSheet) {
+        const planA = _xlsExtractResumen(resumenSheet);
+        if (planA._complete) {
+            _xlsState.planAData = planA;
+            if (ventasSheet) {
+                const { atribucion, periodoMes, fechaMin, fechaMax } = _xlsExtractAtribucion(ventasSheet);
+                _xlsState.atribucion  = atribucion;
+                _xlsState.periodoMes  = periodoMes || _xlsGuessPeriod(wb);
+                _xlsState.fechaMin    = fechaMin;
+                _xlsState.fechaMax    = fechaMax;
+            } else {
+                _xlsState.periodoMes  = _xlsGuessPeriod(wb);
+                _xlsState.atribucion  = [];
+            }
+            _xlsState.step = 'planA';
+            _xlsRender();
+            return;
+        }
+    }
+    // Fallback Plan B
+    if (ventasSheet) {
+        const { periodoMes, fechaMin, fechaMax } = _xlsExtractAtribucion(ventasSheet);
+        _xlsState.periodoMes = periodoMes || _xlsGuessPeriod(wb);
+        _xlsState.fechaMin   = fechaMin;
+        _xlsState.fechaMax   = fechaMax;
+    } else {
+        _xlsState.periodoMes = _xlsGuessPeriod(wb);
+    }
+    _xlsState.step = 'planB';
+    _xlsRender();
+}
+
+/* Extrae KPIs de la hoja Resumen buscando texto + valor adyacente */
+function _xlsExtractResumen(sheet) {
+    const MAP = {
+        'total ventas':              'ventas',
+        'cantidad de reservación':   'reservaciones',
+        'cantidad de reservaciones': 'reservaciones',
+        'total reservaciones':       'reservaciones',
+        'venta promedio':            'ticket_medio',
+        'ticket promedio':           'ticket_medio',
+        'promedio venta':            'ticket_medio',
+        'clientes nuevos':           'clientes_nuevos',
+        'presupuesto gastado':       'inversion',
+        'inversión gastada':         'inversion',
+        'inversion':                 'inversion',
+        'costo por cliente nuevo':   'cac',
+        'cac':                       'cac',
+        'costo de adquisición':      'cac'
+    };
+    const data = {};
+    const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+
+    for (let r = range.s.r; r <= range.e.r; r++) {
+        for (let c = range.s.c; c <= range.e.c; c++) {
+            const cell = sheet[XLSX.utils.encode_cell({r, c})];
+            if (!cell || cell.v == null) continue;
+            const texto = String(cell.v).toLowerCase().trim();
+            const campo = MAP[texto];
+            if (!campo || data[campo] != null) continue;
+            // Search adjacent cells: right (×2), below (×2)
+            for (const pos of [{r, c:c+1}, {r, c:c+2}, {r:r+1, c}, {r:r+2, c}]) {
+                const v = sheet[XLSX.utils.encode_cell(pos)];
+                if (v && v.v != null && v.v !== '') {
+                    let n;
+                    if (typeof v.v === 'number') {
+                        n = v.v;
+                    } else {
+                        let s = String(v.v).replace(/[$\s]/g, '').trim();
+                        if (/^\d{1,3}(\.\d{3})+(,\d*)?$/.test(s)) {
+                            s = s.replace(/\./g, '').replace(',', '.');
+                        } else {
+                            s = s.replace(/,/g, '');
+                        }
+                        n = parseFloat(s);
+                    }
+                    if (!isNaN(n)) { data[campo] = Math.round(n); break; }
+                }
+            }
+        }
+    }
+    data._complete = ['ventas','clientes_nuevos','ticket_medio'].every(k => data[k] != null);
+    return data;
+}
+
+/* Extrae atribución por canal desde columna "Nota" de hoja Ventas */
+function _xlsExtractAtribucion(sheet) {
+    if (!sheet['!ref']) return { atribucion:[], periodoMes:null };
+    const range  = XLSX.utils.decode_range(sheet['!ref']);
+    let notaCol  = -1, fechaCol = -1;
+
+    for (let c = range.s.c; c <= range.e.c; c++) {
+        const cell = sheet[XLSX.utils.encode_cell({r: range.s.r, c})];
+        if (!cell) continue;
+        const t = String(cell.v||'').toLowerCase().trim();
+        if (['nota','origen','canal','fuente','procedencia'].includes(t)) notaCol = c;
+        if (t.includes('fecha') || t === 'date') fechaCol = c;
+    }
+
+    const canalCount = {};
+    const fechas = [];
+    for (let r = range.s.r + 1; r <= range.e.r; r++) {
+        if (notaCol >= 0) {
+            const nc = sheet[XLSX.utils.encode_cell({r, c: notaCol})];
+            if (nc && nc.v) {
+                const canal = _xlsNormalizarCanal(String(nc.v).trim());
+                canalCount[canal] = (canalCount[canal] || 0) + 1;
+            }
+        }
+        if (fechaCol >= 0) {
+            const fc = sheet[XLSX.utils.encode_cell({r, c: fechaCol})];
+            if (fc && fc.v) {
+                const d = fc.t === 'd' ? fc.v : new Date(fc.v);
+                if (d instanceof Date && !isNaN(d.getTime())) fechas.push(d);
+            }
+        }
+    }
+
+    // Detect period from most frequent month + actual date range
+    let periodoMes = null;
+    let fechaMin = null, fechaMax = null;
+    if (fechas.length > 0) {
+        const sorted = fechas.slice().sort((a,b) => a-b);
+        fechaMin = sorted[0];
+        fechaMax = sorted[sorted.length-1];
+        const mesCounts = {};
+        fechas.forEach(d => {
+            const key = `${d.getFullYear()}-${d.getMonth()}`;
+            mesCounts[key] = (mesCounts[key]||0) + 1;
+        });
+        const [topKey] = Object.entries(mesCounts).sort((a,b) => b[1]-a[1]);
+        if (topKey) {
+            const [yr, mo] = topKey[0].split('-').map(Number);
+            periodoMes = { mesIdx: mo, año: yr, mes: MESES[mo] };
+        }
+    }
+
+    const ads = DB.datos[SUC_ACTIVA]?.ads || [];
+    const atribucion = Object.entries(canalCount).map(([canal, cantidad]) => {
+        const match = _xlsMatchCampana(canal, ads);
+        return { canal, cantidad, campana_id: match?.id||null, campana_nombre: match?.nombre||null };
+    });
+
+    return { atribucion, periodoMes, fechaMin, fechaMax };
+}
+
+function _xlsNormalizarCanal(texto) {
+    const t = texto.toLowerCase();
+    if (t.includes('instagram') || t.includes(' ig ') || t.includes('ig dm')) return 'Instagram DM';
+    if (t.includes('recomend') || t.includes('referid') || t.includes('referral')) return 'Recomendación';
+    if (t.includes('whatsapp') || t.includes('directo whatsapp')) return 'WhatsApp directo';
+    if (t.includes('buscó') || t.includes('busco') || t.includes('keyword') || t.includes('google')) return 'Búsqueda';
+    if (t.includes('facebook') || t.includes(' fb ')) return 'Facebook';
+    if (t.includes('tiktok')) return 'TikTok';
+    return texto.length > 35 ? texto.substring(0,35) : texto;
+}
+
+function _xlsMatchCampana(canal, ads) {
+    if (!ads.length) return null;
+    const c = canal.toLowerCase();
+    return ads.find(a => {
+        const n = (a.nombre||'').toLowerCase();
+        if (c.includes('instagram') && (n.includes('instagram')||n.includes('meta')||n.includes('ig'))) return true;
+        if (c.includes('facebook')  && (n.includes('facebook') ||n.includes('meta')||n.includes('fb'))) return true;
+        if (c.includes('tiktok')    &&  n.includes('tiktok'))  return true;
+        if (c.includes('google')    && (n.includes('google')   ||n.includes('search'))) return true;
+        return false;
+    }) || null;
+}
+
+function _xlsGuessPeriod(wb) {
+    const MESES_LC = MESES.map(m => m.toLowerCase().substring(0,3));
+    for (const name of wb.SheetNames) {
+        const n = name.toLowerCase();
+        for (let i = 0; i < MESES_LC.length; i++) {
+            if (n.includes(MESES_LC[i])) {
+                const m = name.match(/20\d\d/);
+                return { mesIdx: i, año: m ? parseInt(m[0]) : new Date().getFullYear(), mes: MESES[i] };
+            }
+        }
+    }
+    const now = new Date();
+    return { mesIdx: now.getMonth(), año: now.getFullYear(), mes: MESES[now.getMonth()] };
+}
+
+/* ── Step: Plan A ─────────────────────────────────────────────── */
+function _xlsRenderPlanA(body, foot, title) {
+    const d = _xlsState.planAData;
+    const p = _xlsState.periodoMes;
+    const periodoLabel = p ? `${p.mes} ${p.año}` : '—';
+    const found = Object.keys(d).filter(k => k !== '_complete' && d[k] != null).length;
+
+    title.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--color-exito);margin-right:10px;"></i> Reconocimiento automático exitoso';
+
+    const fmtMXN = v => '$' + Number(v).toLocaleString('es-MX', {minimumFractionDigits:0});
+    const fmtNum = v => Number(v).toLocaleString('es-MX');
+
+    const atribRows = _xlsState.atribucion.map(a => `
+        <div class="xls-canal-row">
+            <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-weight:600;">${a.canal}</span>
+                ${a.campana_nombre
+                    ? `<span style="font-size:10px;padding:2px 8px;border-radius:100px;background:rgba(52,168,83,0.12);color:var(--color-exito);font-weight:700;">→ ${a.campana_nombre.substring(0,28)}</span>`
+                    : `<span style="font-size:10px;color:var(--texto-secundario);font-style:italic;">Sin campaña vinculada</span>`}
+            </div>
+            <span style="font-weight:800;color:var(--color-primario);">${a.cantidad} cliente${a.cantidad!==1?'s':''}</span>
+        </div>`).join('');
+
+    body.innerHTML = `
+        <div style="background:rgba(52,168,83,0.06);border:1px solid rgba(52,168,83,0.18);border-radius:10px;padding:11px 15px;margin-bottom:18px;font-size:12px;color:var(--color-exito);font-weight:600;">
+            <i class="fa-solid fa-circle-check"></i> Hoja "Resumen" encontrada — ${found} campo${found!==1?'s':''} detectado${found!==1?'s':''} automáticamente
+        </div>
+        <div class="xls-step-header">KPIs del periodo · ${periodoLabel}</div>
+        <div class="xls-kpi-list">
+            ${d.ventas        != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Ventas totales</span><span class="xls-kpi-val">${fmtMXN(d.ventas)}</span></div>` : ''}
+            ${d.clientes_nuevos != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Clientes nuevos</span><span class="xls-kpi-val">${fmtNum(d.clientes_nuevos)}</span></div>` : ''}
+            ${d.reservaciones  != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Reservaciones</span><span class="xls-kpi-val">${fmtNum(d.reservaciones)}</span></div>` : ''}
+            ${d.ticket_medio   != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Ticket medio</span><span class="xls-kpi-val">${fmtMXN(d.ticket_medio)}</span></div>` : ''}
+            ${d.inversion      != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Inversión</span><span class="xls-kpi-val">${fmtMXN(d.inversion)}</span></div>` : ''}
+            ${d.cac            != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">CAC (referencia)</span><span class="xls-kpi-val">${fmtMXN(d.cac)}</span></div>` : ''}
+        </div>
+        ${_xlsState.atribucion.length ? `
+            <div class="xls-step-header" style="margin-top:18px;">Atribución por canal</div>
+            ${atribRows}` : `
+            <p style="font-size:12px;color:var(--texto-secundario);margin-top:14px;font-style:italic;"><i class="fa-solid fa-circle-info"></i> No se encontró hoja "Ventas" — la atribución se puede registrar manualmente.</p>`}`;
+
+    foot.innerHTML = `
+        <button class="btn btn-fantasma" onclick="_xlsState.step='planB';_xlsRender()"><i class="fa-solid fa-sliders"></i> Cambiar mapeo</button>
+        <div style="display:flex;gap:8px;">
+            <button class="btn btn-fantasma" onclick="cerrarModalExcel()">Cancelar</button>
+            <button class="btn btn-primario" onclick="_xlsPreparePreview()"><i class="fa-solid fa-eye"></i> Ver preview</button>
+        </div>`;
+}
+
+/* ── Step: Plan B ─────────────────────────────────────────────── */
+function _xlsRenderPlanB(body, foot, title) {
+    title.innerHTML = '<i class="fa-solid fa-keyboard" style="color:var(--color-primario);margin-right:10px;"></i> Ingreso manual de KPIs';
+
+    const CAMPOS = [
+        { id:'ventas',          label:'Ventas totales (MXN)',            req:true,  ph:'Ej. 23040' },
+        { id:'clientes_nuevos', label:'Clientes nuevos',                  req:true,  ph:'Ej. 8' },
+        { id:'reservaciones',   label:'Reservaciones / Clientes totales', req:false, ph:'Ej. 22' },
+        { id:'ticket_medio',    label:'Ticket promedio (MXN)',            req:false, ph:'Ej. 1047' },
+        { id:'inversion',       label:'Inversión / Presupuesto (MXN)',    req:false, ph:'Ej. 2968' },
+        { id:'cac',             label:'CAC — solo referencia (MXN)',      req:false, ph:'Ej. 371' },
+    ];
+
+    const rows = CAMPOS.map(f => `
+        <div class="xls-map-row">
+            <span class="xls-map-field">${f.label}${f.req ? ' <span style="color:var(--color-peligro);">*</span>' : ''}</span>
+            <input type="number" min="0" id="planb-${f.id}"
+                   style="border:1px solid var(--color-borde);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;background:var(--color-fondo);color:var(--texto-principal);outline:none;width:100%;box-sizing:border-box;"
+                   placeholder="${f.ph}"
+                   oninput="_xlsState.planBMapping['${f.id}']=this.value">
+        </div>`).join('');
+
+    body.innerHTML = `
+        <div style="background:rgba(196,133,90,0.08);border:1px solid rgba(196,133,90,0.2);border-radius:10px;padding:11px 15px;margin-bottom:16px;font-size:12px;color:var(--color-primario);font-weight:600;">
+            <i class="fa-solid fa-circle-info"></i> Ingresa los valores directamente desde tu reporte. Los campos con <span style="color:var(--color-peligro);">*</span> son obligatorios.
+        </div>
+        ${rows}`;
+
+    foot.innerHTML = `
+        <button class="btn btn-fantasma" onclick="_xlsState.step='upload';_xlsRender()"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+        <div style="display:flex;gap:8px;">
+            <button class="btn btn-fantasma" onclick="cerrarModalExcel()">Cancelar</button>
+            <button class="btn btn-primario" onclick="_xlsApplyPlanB()"><i class="fa-solid fa-eye"></i> Ver preview</button>
+        </div>`;
+}
+
+function _xlsApplyPlanB() {
+    const data = {};
+    for (const [campo, valor] of Object.entries(_xlsState.planBMapping)) {
+        const n = parseFloat(String(valor||'').replace(/[^0-9.]/g,''));
+        if (!isNaN(n) && n >= 0) data[campo] = n;
+    }
+    if (!data.ventas || !data.clientes_nuevos) {
+        alert('Los campos "Ventas totales" y "Clientes nuevos" son obligatorios. Ingrésalos antes de continuar.');
+        return;
+    }
+    data._complete = true;
+    _xlsState.planAData = data;
+    _xlsPreparePreview();
+}
+
+/* ── Prepare preview ──────────────────────────────────────────── */
+function _xlsPreparePreview() {
+    const d = _xlsState.planAData;
+    const p = _xlsState.periodoMes || (() => {
+        const n = new Date();
+        return { mesIdx: n.getMonth(), año: n.getFullYear(), mes: MESES[n.getMonth()] };
+    })();
+    _xlsState.periodoMes = p;
+
+    const rec = (d.reservaciones != null && d.clientes_nuevos != null)
+        ? Math.max(0, Math.round(d.reservaciones) - Math.round(d.clientes_nuevos)) : 0;
+
+    _xlsState.previewData = {
+        ventas:               Math.round(d.ventas        || 0),
+        clientes_nuevos:      Math.round(d.clientes_nuevos || 0),
+        clientes_recurrentes: rec,
+        clientes_recuperados: 0,
+        ticket_medio:         Math.round(d.ticket_medio  || 0),
+        inversion:            Math.round(d.inversion     || 0),
+        cac:                  d.cac != null ? Math.round(d.cac) : null,
+        dms:                  0
+    };
+    _xlsState.step = 'preview';
+    _xlsRender();
+}
+
+/* ── Step: Preview ────────────────────────────────────────────── */
+function _xlsRenderPreview(body, foot, title) {
+    const pd = _xlsState.previewData;
+    const p  = _xlsState.periodoMes;
+    const label = `${p.mes} ${p.año}`;
+    title.innerHTML = '<i class="fa-solid fa-eye" style="color:var(--color-primario);margin-right:10px;"></i> Vista previa de importación';
+
+    const fmtMXN = v => '$' + Number(v).toLocaleString('es-MX', {minimumFractionDigits:0});
+    const fmtNum = v => Number(v).toLocaleString('es-MX');
+
+    // Check for existing monthly entry
+    const existing = (DB.datos[SUC_ACTIVA]?.kpi_semanal||[])
+        .find(s => s.tipo === 'mensual' && s.mesIdx === p.mesIdx && s.año === p.año);
+    const warnHtml = existing ? `
+        <div style="background:rgba(251,188,5,0.1);border:1px solid rgba(251,188,5,0.28);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:12px;font-weight:600;color:#9A7200;">
+            <i class="fa-solid fa-triangle-exclamation"></i> Ya existe un registro para <strong>${label}</strong> — se reemplazará al confirmar.
+        </div>` : '';
+
+    const atribHtml = _xlsState.atribucion.length ? `
+        <div class="xls-step-header" style="margin-top:18px;">Atribución de clientes por canal</div>
+        ${_xlsState.atribucion.map(a => `
+            <div class="xls-canal-row">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <i class="fa-solid fa-circle-dot" style="font-size:8px;color:var(--color-primario);"></i>
+                    <span>${a.canal}</span>
+                    ${a.campana_nombre
+                        ? `<span style="font-size:10px;color:var(--color-exito);font-weight:700;">→ ${a.campana_nombre.substring(0,26)}</span>`
+                        : `<span style="font-size:10px;color:var(--texto-secundario);">Sin campaña vinculada</span>`}
+                </div>
+                <span style="font-weight:700;">${a.cantidad} cliente${a.cantidad!==1?'s':''}</span>
+            </div>`).join('')}` : '';
+
+    body.innerHTML = `
+        ${warnHtml}
+        <p style="font-size:13px;font-weight:600;margin-bottom:14px;">Estos datos se importarán para <strong>${label}</strong>:</p>
+        <div class="xls-step-header">KPIs principales</div>
+        <div class="xls-kpi-list">
+            <div class="xls-kpi-item"><span class="xls-kpi-label">Ventas totales</span><span class="xls-kpi-val">${fmtMXN(pd.ventas)}</span></div>
+            <div class="xls-kpi-item"><span class="xls-kpi-label">Clientes nuevos</span><span class="xls-kpi-val">${fmtNum(pd.clientes_nuevos)}</span></div>
+            <div class="xls-kpi-item"><span class="xls-kpi-label">Clientes recurrentes</span><span class="xls-kpi-val">${fmtNum(pd.clientes_recurrentes)}</span></div>
+            ${pd.ticket_medio ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Ticket medio</span><span class="xls-kpi-val">${fmtMXN(pd.ticket_medio)}</span></div>` : ''}
+            ${pd.inversion ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Inversión</span><span class="xls-kpi-val">${fmtMXN(pd.inversion)}</span></div>` : ''}
+            ${pd.cac != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">CAC (referencia)</span><span class="xls-kpi-val">${fmtMXN(pd.cac)}</span></div>` : ''}
+        </div>
+        ${atribHtml}`;
+
+    foot.innerHTML = `
+        <button class="btn btn-fantasma" onclick="_xlsState.step='planA';_xlsRender()"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+        <div style="display:flex;gap:8px;">
+            <button class="btn btn-fantasma" onclick="cerrarModalExcel()">Cancelar</button>
+            <button class="btn btn-primario" onclick="_xlsConfirmar()"><i class="fa-solid fa-check"></i> Confirmar importación</button>
+        </div>`;
+}
+
+/* ── Confirmar ────────────────────────────────────────────────── */
+function _xlsConfirmar() {
+    const pd = _xlsState.previewData;
+    const p  = _xlsState.periodoMes;
+    const d  = DB.datos[SUC_ACTIVA];
+
+    // Remove existing mensual entry for same period
+    d.kpi_semanal = (d.kpi_semanal||[]).filter(s =>
+        !(s.tipo === 'mensual' && s.mesIdx === p.mesIdx && s.año === p.año)
+    );
+
+    // Build fecha range from actual sheet dates or fall back to month boundaries
+    const fmt = d => d.toISOString ? d.toISOString().split('T')[0]
+                   : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    const fechaInicio = _xlsState.fechaMin
+        ? fmt(_xlsState.fechaMin)
+        : `${p.año}-${String(p.mesIdx+1).padStart(2,'0')}-01`;
+    const diasMes = new Date(p.año, p.mesIdx+1, 0).getDate();
+    const fechaFin = _xlsState.fechaMax
+        ? fmt(_xlsState.fechaMax)
+        : `${p.año}-${String(p.mesIdx+1).padStart(2,'0')}-${String(diasMes).padStart(2,'0')}`;
+
+    // Create new entry
+    d.kpi_semanal.push({
+        id:                   'xl_' + Date.now(),
+        tipo:                 'mensual',
+        fuente:               'excel_import',
+        semana:               `${p.mes} ${p.año} · importado desde Excel`,
+        fecha:                fechaInicio,
+        fecha_hasta:          fechaFin,
+        mesIdx:               p.mesIdx,
+        año:                  p.año,
+        clientes_nuevos:      pd.clientes_nuevos,
+        clientes_recurrentes: pd.clientes_recurrentes,
+        clientes_recuperados: pd.clientes_recuperados,
+        ventas:               pd.ventas,
+        dms:                  pd.dms,
+        ticket_medio:         pd.ticket_medio,
+        atribucion:           _xlsState.atribucion
+    });
+
+    // Attribute conversions to matched campaigns
+    _xlsState.atribucion.forEach(a => {
+        if (!a.campana_id || !a.cantidad) return;
+        const ad = (d.ads||[]).find(x => x.id === a.campana_id);
+        if (ad) ad.conversiones = (ad.conversiones||0) + a.cantidad;
+    });
+
+    guardarBD();
+    _kpiSemanalToHistorico();
+    _syncKPIsToRendimiento();
+    cerrarModalExcel();
+    renderDashboard();
+
+    // Toast
+    const toast = document.createElement('div');
+    toast.textContent = `✓ ${p.mes} ${p.año} importado correctamente`;
+    toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1D6F42;color:#fff;padding:12px 28px;border-radius:100px;font-weight:700;font-size:13px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none;';
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.transition='opacity .4s'; toast.style.opacity='0'; }, 2600);
+    setTimeout(() => toast.remove(), 3200);
+}
 </script>
 ```
 
