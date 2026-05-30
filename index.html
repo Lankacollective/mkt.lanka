@@ -1142,7 +1142,7 @@
                 <div class="dashboard-grid-2">
                     <div class="chart-box">
                         <h3>Engagement Rate por Formato</h3>
-                        <p class="chart-subtitle">Promedio de interacciones por tipo de contenido</p>
+                        <p class="chart-subtitle">ER% = interacciones / alcance · promedio por formato en el periodo</p>
                         <canvas id="chart-radar" height="220"></canvas>
                     </div>
                     <div class="chart-box">
@@ -1665,7 +1665,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const DATOS_SEMILLA = {
         configuracion: { moneda: 'MXN', tc: { USD: 17.5, EUR: 18.9 }, tc_fecha: null },
         desplegables: {
-            estado_factura: ["Pendiente", "Pagado", "Vencido"], 
+            estado_factura: ["Pendiente", "Pagado", "Vencido"],
+            formatos_contenido: ["Reel", "Carrusel", "Historia", "Story"], 
             emociones: ["Alegría", "Festevo", "Profesional", "Relajación"], bebidas: ["Aperol", "Ninguna", "Té Matcha"], productos: ["Pizza", "SaaS", "Facial"],
             cat_proveedor: ["Agencia", "Medios", "Producción"],
             sexo: ["Ambos", "Hombre", "Mujer"], nivel: ["A/B", "C+", "C", "D", "E"]
@@ -1766,6 +1767,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     { id:"s2", semana:"Semana 2", fecha:"2026-05-08", clientes_nuevos:10, clientes_recurrentes:18, clientes_recuperados:3, ventas:4800, dms:420, ticket_medio:960  },
                     { id:"s3", semana:"Semana 3", fecha:"2026-05-15", clientes_nuevos:6,  clientes_recurrentes:20, clientes_recuperados:2, ventas:6100, dms:580, ticket_medio:1220 }
                 ],
+                engagement_formato: [
+                    { id:"eng_1", semana:"Semana 1", fecha:"2026-05-01", formato:"Reel",     alcance:8200,  interacciones:820  },
+                    { id:"eng_2", semana:"Semana 1", fecha:"2026-05-01", formato:"Historia", alcance:4100,  interacciones:312  },
+                    { id:"eng_3", semana:"Semana 2", fecha:"2026-05-08", formato:"Reel",     alcance:9100,  interacciones:1001 },
+                    { id:"eng_4", semana:"Semana 2", fecha:"2026-05-08", formato:"Carrusel", alcance:3200,  interacciones:288  },
+                    { id:"eng_5", semana:"Semana 3", fecha:"2026-05-15", formato:"Reel",     alcance:12500, interacciones:1500 },
+                    { id:"eng_6", semana:"Semana 3", fecha:"2026-05-15", formato:"Story",    alcance:5400,  interacciones:486  }
+                ],
                 historico_mensual: [
                     {mes:"Ene",ventas:8200, seguidores:380, dms:600},
                     {mes:"Feb",ventas:9100, seguidores:490, dms:780},
@@ -1788,7 +1797,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: [],
                 ads: [], offline: [], shooting: [], stories_ind: [],
                 historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0})),
-                kpi_semanal: []
+                kpi_semanal: [], engagement_formato: []
             }
         },
         proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ],
@@ -1997,6 +2006,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 const datos = DB.datos[s.id];
                 if (datos && !datos.kpi_semanal) { datos.kpi_semanal = []; _tipoMigrated = true; }
             });
+            // Add engagement_formato if missing
+            DB.sucursales.forEach(s => {
+                const datos = DB.datos[s.id];
+                if (datos && !datos.engagement_formato) { datos.engagement_formato = []; _tipoMigrated = true; }
+            });
+            // Add formatos_contenido to desplegables if missing
+            if (!DB.desplegables.formatos_contenido) {
+                DB.desplegables.formatos_contenido = ["Reel", "Carrusel", "Historia", "Story"];
+                _tipoMigrated = true;
+            }
             // Sync existing kpi_semanal → historico_mensual.ventas/dms on load
             DB.sucursales.forEach(s => {
                 const datos = DB.datos[s.id];
@@ -2417,6 +2436,58 @@ document.addEventListener('DOMContentLoaded', function() {
             DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
         "><i class="fa-solid fa-plus"></i> Agregar semana</button>` : '';
 
+        // ── Engagement section (Owner + Lanka Team only) ─────────────
+        const canEditEng = _canEditKPIs();
+        const formatos = DB.desplegables?.formatos_contenido || ["Reel","Carrusel","Historia","Story"];
+        const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+        const engData = d.engagement_formato || [];
+        const thE = s => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}</th>`;
+        const fmtOpts = formatos.map(f=>`<option value="${f}">${f}</option>`).join('');
+        let engSection = '';
+        if (canEditEng) {
+            const engRows = engData.map((e,ei) => {
+                const er = e.alcance > 0 ? (e.interacciones/e.alcance*100).toFixed(2) : '0.00';
+                return `<tr>
+                    <td style="padding:6px 8px;"><select class="select-celda" style="border:1px solid var(--color-borde);font-size:12px;font-weight:600;"
+                        onchange="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].formato=this.value;guardarBD();renderEjecutorKPIs();">
+                        ${formatos.map(f=>`<option ${f===e.formato?'selected':''}>${f}</option>`).join('')}</select></td>
+                    <td style="padding:6px 8px;"><input class="ejecutor-input" value="${e.semana||''}"
+                        oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].semana=this.value;guardarBD();"></td>
+                    <td style="padding:6px 8px;"><input type="date" class="ejecutor-input" style="text-align:left;" value="${e.fecha||''}"
+                        onchange="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].fecha=this.value;guardarBD();"></td>
+                    <td><input class="ejecutor-input" value="${e.alcance||0}" inputmode="numeric"
+                        oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].alcance=Number(this.value)||0;guardarBD();renderEjecutorKPIs();"></td>
+                    <td><input class="ejecutor-input" value="${e.interacciones||0}" inputmode="numeric"
+                        oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].interacciones=Number(this.value)||0;guardarBD();renderEjecutorKPIs();"></td>
+                    <td style="text-align:right;padding:10px 8px;font-weight:700;color:var(--color-primario);">${er}%</td>
+                    <td style="padding:6px 4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;"
+                        onclick="DB.datos['${SUC_ACTIVA}'].engagement_formato.splice(${ei},1);guardarBD();renderEjecutorKPIs();"></i></td>
+                </tr>`;
+            }).join('');
+            engSection = `<div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--color-borde);">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+                    <div>
+                        <div style="font-family:var(--font-display);font-weight:700;font-size:13px;">Engagement Rate por Formato</div>
+                        <div style="font-size:11px;color:var(--texto-secundario);">Alcance e interacciones reales por tipo de contenido</div>
+                    </div>
+                    <button class="btn btn-xs btn-fantasma" onclick="
+                        const n={id:'eng_'+Date.now(),semana:'Semana '+(DB.datos['${SUC_ACTIVA}'].engagement_formato.length+1),fecha:new Date().toISOString().split('T')[0],formato:'${formatos[0]}',alcance:0,interacciones:0};
+                        DB.datos['${SUC_ACTIVA}'].engagement_formato.push(n);guardarBD();renderEjecutorKPIs();
+                    "><i class="fa-solid fa-plus"></i> Registro</button>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="tabla-editable" style="min-width:560px;">
+                        <thead><tr>${thE('Formato')}${thE('Semana')}${thE('Fecha')}${thE('Alcance')}${thE('Interacciones')}${thE('ER%')}<th style="width:28px;"></th></tr></thead>
+                        <tbody>${engRows || `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--texto-secundario);font-size:13px;">Sin registros. Pulsa "Registro" para agregar.</td></tr>`}</tbody>
+                    </table>
+                </div>
+                ${isOwner ? `<div style="font-size:11px;color:var(--texto-secundario);margin-top:10px;padding:8px 12px;background:rgba(0,0,0,.03);border-radius:8px;display:flex;align-items:center;gap:6px;">
+                    <i class="fa-solid fa-code-merge" style="color:var(--color-primario);"></i>
+                    Sprint 5 — estos datos serán reemplazados automáticamente por Meta API
+                </div>` : ''}
+            </div>`;
+        }
+
         el.innerHTML = `<div class="ejecutor-card">
             <div class="ejecutor-header" onclick="toggleEjecutor()">
                 <div style="display:flex;align-items:center;gap:10px;">
@@ -2445,6 +2516,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </table>
                 </div>
                 ${addBtn}
+                ${engSection}
             </div>
         </div>`;
     }
@@ -2508,7 +2580,31 @@ document.addEventListener('DOMContentLoaded', function() {
         return r ? { v1: Number(r.v1)||0, v2: Number(r.v2)||0 } : { v1:0, v2:0 };
     }
 
-    function _calcularDistribucionPauta() {
+    function _calcEngagementPorFormato() {
+        const d = DB.datos[SUC_ACTIVA];
+        const entries = d.engagement_formato || [];
+        const desde = _dashPeriodoDesde();
+        const hasta  = _dashPeriodoHasta();
+        const filtered = entries.filter(e => {
+            if (!e.fecha) return true;
+            const fd = new Date(e.fecha+'T00:00:00');
+            return fd >= desde && fd <= hasta;
+        });
+        const byFmt = {};
+        filtered.forEach(e => {
+            if (!byFmt[e.formato]) byFmt[e.formato] = { alcance:0, interacciones:0 };
+            byFmt[e.formato].alcance       += e.alcance       || 0;
+            byFmt[e.formato].interacciones += e.interacciones || 0;
+        });
+        return Object.entries(byFmt).map(([formato, v]) => ({
+            formato,
+            alcance:       v.alcance,
+            interacciones: v.interacciones,
+            er: v.alcance > 0 ? +(v.interacciones / v.alcance * 100).toFixed(2) : 0
+        })).sort((a, b) => b.er - a.er);
+    }
+
+        function _calcularDistribucionPauta() {
         const d = DB.datos[SUC_ACTIVA];
         const desde = _dashPeriodoDesde();
         const hasta  = _dashPeriodoHasta();
@@ -3305,7 +3401,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const id = 'p_' + Date.now();
         DB.sucursales.push({ id: id, nombre: "Nuevo Proyecto", color: "#333333", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123"), equipo_miembros: [] });
         const _mesesCortos = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-        DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: (PRESETS_METRICAS.wellness||[]).map(p=>({...p})), productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})), kpi_semanal: [] };
+        DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: (PRESETS_METRICAS.wellness||[]).map(p=>({...p})), productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})), kpi_semanal: [], engagement_formato: [] };
         guardarBD(); iniciarApp(id);
     }
 
@@ -3467,17 +3563,24 @@ document.addEventListener('DOMContentLoaded', function() {
             options: { responsive: true, plugins: { legend: { position:'top', labels:{font:{size:11,weight:'600'}} } }, scales: { y: { grid:{color:'rgba(0,0,0,0.04)'} }, x: { grid:{display:false} } } }
         });
 
-        // Chart 4: Radar — tags del kanban como categorías
+        // Chart 4: Engagement Rate por Formato (barras horizontales)
         destroyChart('radar');
-        const tagCount = {};
-        (d.kanban||[]).forEach(k => (k.tags||'').split(',').forEach(t => { const tt=t.trim(); if(tt) tagCount[tt]=(tagCount[tt]||0)+1; }));
-        const radarLabels = Object.keys(tagCount).slice(0,6);
-        const radarData   = radarLabels.map(t => tagCount[t]);
+        const _engCalc = _calcEngagementPorFormato();
+        const _engLabels = _engCalc.length ? _engCalc.map(e=>e.formato) : ['Sin datos'];
+        const _engValues = _engCalc.length ? _engCalc.map(e=>e.er)      : [0];
+        const _engColors = PALETA.slice(0, Math.max(_engCalc.length, 1));
         _charts['radar'] = new Chart(document.getElementById('chart-radar').getContext('2d'), {
-            type: 'radar',
-            data: { labels: radarLabels.length ? radarLabels : ['Reels','ASMR','Pauta','Stories','Carrusel'],
-                datasets: [{ label: 'Piezas', data: radarData.length ? radarData : [0,0,0,0,0], backgroundColor: `${cp}20`, borderColor: cp, pointBackgroundColor: cp, borderWidth: 2, pointRadius: 4 }] },
-            options: { responsive: true, scales: { r: { beginAtZero:true, grid:{color:'rgba(0,0,0,0.06)'}, ticks:{font:{size:10}} } }, plugins: { legend:{display:false} } }
+            type: 'bar',
+            data: { labels: _engLabels,
+                datasets: [{ label: 'ER%', data: _engValues,
+                    backgroundColor: _engColors.map(c=>c+'BB'), borderColor: _engColors,
+                    borderWidth: 1.5, borderRadius: 8, borderSkipped: false }] },
+            options: { responsive: true, indexAxis: 'y',
+                plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ER: ${ctx.raw}%` } } },
+                scales: {
+                    x: { beginAtZero:true, grid:{color:'rgba(0,0,0,0.04)'}, ticks:{ callback: v => v+'%', font:{size:11} } },
+                    y: { grid:{display:false}, ticks:{font:{size:12,weight:'600'}} }
+                } }
         });
 
         // Chart 5: Área seguidores acumulado — desde historico_mensual
