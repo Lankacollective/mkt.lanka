@@ -1997,6 +1997,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 const datos = DB.datos[s.id];
                 if (datos && !datos.kpi_semanal) { datos.kpi_semanal = []; _tipoMigrated = true; }
             });
+            // Sync existing kpi_semanal → historico_mensual.ventas/dms on load
+            DB.sucursales.forEach(s => {
+                const datos = DB.datos[s.id];
+                if (!datos || !(datos.kpi_semanal||[]).length) return;
+                const mc = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+                if (!datos.historico_mensual || datos.historico_mensual.length !== 12)
+                    datos.historico_mensual = Array.from({length:12},(_,i)=>({mes:mc[i],ventas:0,seguidores:0,dms:0}));
+                datos.historico_mensual.forEach(h => { h.ventas = 0; h.dms = 0; });
+                datos.kpi_semanal.forEach(sem => {
+                    if (!sem.fecha) return;
+                    const mi = new Date(sem.fecha+'T00:00:00').getMonth();
+                    if (mi >= 0 && mi <= 11) {
+                        datos.historico_mensual[mi].ventas += sem.ventas || 0;
+                        datos.historico_mensual[mi].dms    += sem.dms    || 0;
+                    }
+                });
+                _tipoMigrated = true;
+            });
             if (_tipoMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
@@ -2348,7 +2366,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const thS = s => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}</th>`;
         const inp = (val, key, idx, pre) => canEdit
             ? `<input class="ejecutor-input" value="${val||0}" inputmode="numeric"
-                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;guardarBD();_syncKPIsToRendimiento();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);_renderDashInversion(DB.datos['${SUC_ACTIVA}']);">`
+                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);_renderDashInversion(DB.datos['${SUC_ACTIVA}']);">`
             : `<span style="display:block;text-align:right;padding:6px 8px;font-weight:600;font-size:13px;">${pre||''}${Number(val||0).toLocaleString('es-MX')}</span>`;
 
         const rows = semanas.map((s, i) => `<tr>
@@ -2363,7 +2381,7 @@ document.addEventListener('DOMContentLoaded', function() {
             <td>${inp(s.dms,'dms',i,'')}</td>
             ${esRest ? `<td>${inp(s.ticket_medio,'ticket_medio',i,'$')}</td>` : ''}
             ${canEdit ? `<td style="padding:6px 4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;"
-                onclick="DB.datos['${SUC_ACTIVA}'].kpi_semanal.splice(${i},1);guardarBD();_syncKPIsToRendimiento();renderEjecutorKPIs();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);"></i></td>` : ''}
+                onclick="DB.datos['${SUC_ACTIVA}'].kpi_semanal.splice(${i},1);guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();renderEjecutorKPIs();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);"></i></td>` : ''}
         </tr>`).join('');
 
         const totRow = `<tr class="ejecutor-total-row">
@@ -2379,7 +2397,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const addBtn = canEdit ? `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;" onclick="
             const n={id:'s'+Date.now(),semana:'Semana '+(DB.datos['${SUC_ACTIVA}'].kpi_semanal.length+1),fecha:new Date().toISOString().split('T')[0],clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0};
-            DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();renderEjecutorKPIs();
+            DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
         "><i class="fa-solid fa-plus"></i> Agregar semana</button>` : '';
 
         el.innerHTML = `<div class="ejecutor-card">
@@ -2414,7 +2432,27 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>`;
     }
 
-    function _syncKPIsToRendimiento() {
+    function _kpiSemanalToHistorico() {
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d) return;
+        const mc = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+        if (!d.historico_mensual || d.historico_mensual.length !== 12) {
+            d.historico_mensual = Array.from({length:12},(_,i)=>({mes:mc[i],ventas:0,seguidores:0,dms:0}));
+        }
+        // Reset only ventas and dms (seguidores stays manual)
+        d.historico_mensual.forEach(h => { h.ventas = 0; h.dms = 0; });
+        // Aggregate weekly entries into their month
+        (d.kpi_semanal||[]).forEach(s => {
+            if (!s.fecha) return;
+            const mi = new Date(s.fecha+'T00:00:00').getMonth();
+            if (mi >= 0 && mi <= 11) {
+                d.historico_mensual[mi].ventas += s.ventas || 0;
+                d.historico_mensual[mi].dms    += s.dms    || 0;
+            }
+        });
+    }
+
+        function _syncKPIsToRendimiento() {
         const d = DB.datos[SUC_ACTIVA];
         const acc = _acumularKPIs();
         const SYNC = [
@@ -3263,20 +3301,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const ro = ROL === 'cliente' ? 'readonly' : '';
         const el = document.getElementById('tabla-historico-mensual');
         if (!el) return;
+        const tt = 'Calculado automáticamente desde el Ejecutor de KPIs';
+        const autoBadge = color => `<span title="${tt}" style="margin-left:5px;font-size:9px;background:rgba(0,0,0,.06);color:${color};padding:2px 7px;border-radius:100px;font-weight:700;letter-spacing:.03em;cursor:default;">AUTO</span>`;
         el.innerHTML = `<thead><tr>
             <th>Mes</th>
-            <th style="color:var(--color-primario);">Ventas (MXN)</th>
-            <th style="color:#34A853;">Seguidores</th>
-            <th style="color:#4A90D9;">DMs</th>
+            <th style="color:var(--color-primario);">Ventas (MXN)${autoBadge('var(--color-primario)')}</th>
+            <th style="color:#34A853;">Seguidores <span style="font-size:9px;font-weight:400;opacity:.65;">(editable)</span></th>
+            <th style="color:#4A90D9;">DMs${autoBadge('#4A90D9')}</th>
         </tr></thead><tbody>` +
         hist.map((h,i) => `<tr>
             <td style="font-weight:700;color:var(--texto-secundario);">${h.mes}</td>
-            <td><input type="text" inputmode="numeric" class="input-celda" style="text-align:right;font-weight:600;" value="${h.ventas||0}" ${ro}
-                onchange="DB.datos['${SUC_ACTIVA}'].historico_mensual[${i}].ventas=Number(this.value)||0;guardarBD();renderCharts()"></td>
+            <td title="${tt}" style="text-align:right;padding:10px 16px;font-weight:700;color:var(--color-primario);background:rgba(196,133,90,.04);">
+                ${Number(h.ventas||0).toLocaleString('es-MX')}
+            </td>
             <td><input type="text" inputmode="numeric" class="input-celda" style="text-align:right;" value="${h.seguidores||0}" ${ro}
                 onchange="DB.datos['${SUC_ACTIVA}'].historico_mensual[${i}].seguidores=Number(this.value)||0;guardarBD();renderCharts()"></td>
-            <td><input type="text" inputmode="numeric" class="input-celda" style="text-align:right;" value="${h.dms||0}" ${ro}
-                onchange="DB.datos['${SUC_ACTIVA}'].historico_mensual[${i}].dms=Number(this.value)||0;guardarBD();renderCharts()"></td>
+            <td title="${tt}" style="text-align:right;padding:10px 16px;font-weight:700;color:#4A90D9;background:rgba(74,144,217,.04);">
+                ${Number(h.dms||0).toLocaleString('es-MX')}
+            </td>
         </tr>`).join('') + '</tbody>';
     }
 
