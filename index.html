@@ -1232,8 +1232,8 @@
                 <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
                     <div><h1>Agenda de Shooting</h1><p>Días de producción, brief visual y lista de contenidos a capturar.</p></div>
                     <div style="display:flex; gap:10px;">
-                        <button class="btn btn-fantasma req-agencia" onclick="generarShootingDesdeParrilla()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar desde Parrilla</button>
-                        <button class="btn btn-primario req-agencia" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>
+                        <button id="btn-generar-shooting" class="btn btn-fantasma req-agencia" onclick="generarShootingDesdeParrilla()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar desde Parrilla</button>
+                        <button id="btn-nuevo-shooting" class="btn btn-primario req-agencia" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>
                     </div>
                 </div>
                 <div class="shooting-grid" id="shooting-grid"></div>
@@ -3554,52 +3554,105 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /* ============= MÓDULO 4: AGENDA DE SHOOTING ============= */
-    function renderShootingGrid() {
+    function _canEditShooting() {
+        if (!USUARIO_ACTIVO) return ROL === 'agencia';
+        return ['owner','direccion'].includes(USUARIO_ACTIVO.rol_id) && !ROL_SIMULADO;
+    }
+
+        function renderShootingGrid() {
         const d = DB.datos[SUC_ACTIVA];
         const shooting = d.shooting || [];
-        const ro = ROL === 'cliente' ? 'readonly' : '';
+        const canEdit = _canEditShooting();
+
+        // Mostrar/ocultar botones del encabezado según rol
+        const btnN = document.getElementById('btn-nuevo-shooting');
+        const btnG = document.getElementById('btn-generar-shooting');
+        if (btnN) btnN.style.display  = canEdit ? '' : 'none';
+        if (btnG) btnG.style.display  = canEdit ? '' : 'none';
 
         document.getElementById('shooting-grid').innerHTML = shooting.map((s, si) => {
+            const done  = (s.checklist||[]).filter(c=>c.hecho).length;
+            const total = (s.checklist||[]).length;
+            const pct   = total > 0 ? Math.round(done/total*100) : 0;
+
+            // ── Checklist ─────────────────────────────────────────────────
             const checklistHTML = (s.checklist||[]).map((c, ci) => `
                 <li class="shooting-item">
-                    <div class="shooting-check ${c.hecho?'done':''}" onclick="${ROL==='agencia'?`toggleCheck('${s.id}',${ci})`:''}">
-                        ${c.hecho ? '<i class="fa-solid fa-check"></i>' : ''}
+                    <div class="shooting-check ${c.hecho?'done':''}" style="cursor:pointer;"
+                        onclick="toggleCheck('${s.id}',${ci})">
+                        ${c.hecho?'<i class="fa-solid fa-check"></i>':''}
                     </div>
-                    <span>${c.texto}</span>
-                </li>
-            `).join('');
+                    ${canEdit
+                        ? `<input class="input-celda" style="flex:1;padding:4px 6px;" value="${c.texto.replace(/"/g,'&quot;')}"
+                              onchange="const _s=DB.datos['${SUC_ACTIVA}'].shooting.find(x=>x.id==='${s.id}');if(_s)_s.checklist[${ci}].texto=this.value;guardarBD();">
+                           <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:10px;margin-left:4px;flex-shrink:0;"
+                              onclick="const _s=DB.datos['${SUC_ACTIVA}'].shooting.find(x=>x.id==='${s.id}');if(_s){_s.checklist.splice(${ci},1);guardarBD();renderShootingGrid();}"></i>`
+                        : `<span>${c.texto}</span>`}
+                </li>`).join('');
 
-            const equipoHTML = (s.equipo||[]).map(e=>`<span class="equipo-tag"><i class="fa-solid fa-user"></i>${e}</span>`).join('');
-            const done = (s.checklist||[]).filter(c=>c.hecho).length;
-            const total = (s.checklist||[]).length;
-            const pct = total > 0 ? Math.round(done/total*100) : 0;
+            // ── Equipo ────────────────────────────────────────────────────
+            const equipoHTML = canEdit
+                ? (s.equipo||[]).map((e,ei) => `
+                    <span class="equipo-tag" style="display:inline-flex;align-items:center;gap:4px;">
+                        <input class="input-celda" style="padding:2px 4px;font-size:11px;width:140px;font-weight:600;"
+                            value="${e.replace(/"/g,'&quot;')}"
+                            onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo[${ei}]=this.value;guardarBD();">
+                        <i class="fa-solid fa-times" style="color:#bbb;cursor:pointer;font-size:9px;"
+                            onclick="DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo.splice(${ei},1);guardarBD();renderShootingGrid();"></i>
+                    </span>`).join('')
+                : (s.equipo||[]).map(e=>`<span class="equipo-tag"><i class="fa-solid fa-user"></i>${e}</span>`).join('');
+
+            // ── Header: editable o lectura ────────────────────────────────
+            const header = canEdit ? `
+                <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;gap:8px;">
+                        <input type="date" class="input-celda" style="font-size:12px;font-weight:700;color:var(--color-primario);padding:4px 8px;"
+                            value="${s.fecha}" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].fecha=this.value;guardarBD();">
+                        <input type="time" class="input-celda" style="font-size:12px;font-weight:700;padding:4px 8px;"
+                            value="${s.hora}" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].hora=this.value;guardarBD();">
+                    </div>
+                    <input class="input-celda" style="font-size:17px;font-weight:800;font-family:var(--font-display);padding:4px 6px;"
+                        value="${s.titulo.replace(/"/g,'&quot;')}"
+                        onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].titulo=this.value;guardarBD();">
+                    <input class="input-celda" style="font-size:12px;padding:4px 6px;"
+                        value="${s.locacion.replace(/"/g,'&quot;')}"
+                        onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].locacion=this.value;guardarBD();">
+                </div>` : `
+                <div>
+                    <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${s.fecha} · ${s.hora}</div>
+                    <div class="shooting-titulo">${s.titulo}</div>
+                    <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${s.locacion}</div>
+                </div>`;
+
+            // ── Moodboard ─────────────────────────────────────────────────
+            const mood = canEdit
+                ? `<textarea class="shooting-mood copy-block" style="min-height:60px;font-style:italic;border-left:3px solid var(--color-primario);border-radius:0;background:transparent;border-top:none;border-right:none;border-bottom:none;"
+                    onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].moodboard=this.value;guardarBD();">${s.moodboard}</textarea>`
+                : `<div class="shooting-mood">${s.moodboard}</div>`;
 
             return `
             <div class="shooting-card">
                 <div class="shooting-header">
-                    <div>
-                        <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${s.fecha} · ${s.hora}</div>
-                        <div class="shooting-titulo">${s.titulo}</div>
-                        <div style="font-size:11px; color:var(--texto-secundario); margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${s.locacion}</div>
-                    </div>
-                    <div style="text-align:center; background: rgba(196,133,90,0.08); border-radius:12px; padding:10px 16px; min-width:70px;">
-                        <div style="font-family:var(--font-display); font-size:26px; font-weight:900; color:var(--color-primario);">${pct}%</div>
-                        <div style="font-size:9px; font-weight:700; color:var(--texto-secundario); text-transform:uppercase;">Listo</div>
+                    ${header}
+                    <div style="text-align:center;background:rgba(196,133,90,0.08);border-radius:12px;padding:10px 16px;min-width:70px;flex-shrink:0;">
+                        <div style="font-family:var(--font-display);font-size:26px;font-weight:900;color:var(--color-primario);">${pct}%</div>
+                        <div style="font-size:9px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;">Listo</div>
                     </div>
                 </div>
                 <div class="shooting-body">
-                    <div class="shooting-mood">${s.moodboard}</div>
-                    <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--texto-secundario); margin-bottom:10px;">Contenidos a capturar</div>
+                    ${mood}
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:10px;">Contenidos a capturar</div>
                     <ul class="shooting-checklist">${checklistHTML}</ul>
                     <div class="shooting-equipo">${equipoHTML}</div>
-                    ${ROL==='agencia' ? `
-                    <div style="margin-top:16px; padding-top:16px; border-top:1px solid var(--color-borde); display:flex; gap:8px;">
-                        <button class="btn btn-xs btn-fantasma" onclick="agregarCheckShooting('${s.id}')"><i class="fa-solid fa-plus"></i> Item</button>
-                        <button class="btn btn-xs btn-peligro-suave" onclick="eliminarShooting('${s.id}')">Eliminar</button>
+                    ${canEdit ? `
+                    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--color-borde);display:flex;gap:8px;flex-wrap:wrap;">
+                        <button class="btn btn-xs btn-fantasma" onclick="agregarCheckShooting('${s.id}')"><i class="fa-solid fa-plus"></i> Contenido</button>
+                        <button class="btn btn-xs btn-fantasma" onclick="agregarMiembroEquipo('${s.id}',${si})"><i class="fa-solid fa-user-plus"></i> Miembro</button>
+                        <button class="btn btn-xs btn-peligro-suave" style="margin-left:auto;" onclick="eliminarShooting('${s.id}')"><i class="fa-solid fa-trash"></i> Eliminar sesión</button>
                     </div>` : ''}
                 </div>
             </div>`;
-        }).join('') || `<div style="color:var(--texto-secundario); font-size:14px; padding:40px; text-align:center; grid-column:1/-1;"><i class="fa-solid fa-camera" style="font-size:32px; margin-bottom:12px; display:block; opacity:0.3;"></i>No hay sesiones de shooting programadas.</div>`;
+        }).join('') || `<div style="color:var(--texto-secundario);font-size:14px;padding:40px;text-align:center;grid-column:1/-1;"><i class="fa-solid fa-camera" style="font-size:32px;margin-bottom:12px;display:block;opacity:0.3;"></i>No hay sesiones de shooting programadas.<br>${canEdit?'<button class="btn btn-primario" style="margin-top:16px;" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>':''}</div>`;
     }
 
     function toggleCheck(shootingId, ci) {
@@ -3621,7 +3674,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const texto = prompt("¿Qué contenido se capturará?");
         if (!texto) return;
         const s = DB.datos[SUC_ACTIVA].shooting.find(x=>x.id===id);
-        s.checklist.push({ hecho: false, texto: texto });
+        if (s) s.checklist.push({ hecho: false, texto: texto });
+        guardarBD(); renderShootingGrid();
+    }
+
+    function agregarMiembroEquipo(id, si) {
+        const nombre = prompt("Nombre y rol del miembro (ej: Fotógrafo: Luis R.):");
+        if (!nombre) return;
+        const s = DB.datos[SUC_ACTIVA].shooting.find(x=>x.id===id);
+        if (s) s.equipo.push(nombre);
         guardarBD(); renderShootingGrid();
     }
 
