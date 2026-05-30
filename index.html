@@ -704,6 +704,18 @@
     .dash-kpi-sub { font-size:11px; color:var(--texto-secundario); margin-top:8px; }
     .dash-kpi-formula { font-size:10px; color:var(--texto-secundario); margin-top:6px; font-style:italic; opacity:.8; }
     [data-theme="dark"] .dash-kpi-card { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    /* ── KPI Progress + Metas ── */
+    .kpi-progress-wrap { margin-top:12px; padding-top:10px; border-top:1px solid var(--color-borde); }
+    [data-theme="dark"] .kpi-progress-wrap { border-top-color:rgba(255,255,255,.08)!important; }
+    .kpi-progress-bar  { height:5px; border-radius:4px; background:rgba(0,0,0,.07); overflow:hidden; margin:6px 0 4px; }
+    [data-theme="dark"] .kpi-progress-bar { background:rgba(255,255,255,.12)!important; }
+    .kpi-progress-fill { height:100%; border-radius:4px; transition:width .5s ease; }
+    .kpi-meta-row      { display:flex; align-items:center; justify-content:space-between; font-size:11px; color:var(--texto-secundario); }
+    .kpi-meta-input    { border:none; background:transparent; font-size:11px; font-weight:700; color:var(--texto-secundario); text-align:right; outline:none; width:80px; border-bottom:1px dashed transparent; transition:border-color .15s,color .15s; padding:0 2px; }
+    .kpi-meta-input:hover, .kpi-meta-input:focus { border-bottom-color:var(--color-primario); color:var(--texto-principal); background:rgba(196,133,90,.06); border-radius:4px; }
+    [data-theme="dark"] .kpi-meta-input { color:rgba(240,237,232,.5); }
+    [data-theme="dark"] .kpi-meta-input:hover, [data-theme="dark"] .kpi-meta-input:focus { color:#F0EDE8; }
+
 
     .inv-wrap { background:var(--color-tarjeta); border-radius:20px; padding:24px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); margin-bottom:24px; }
     [data-theme="dark"] .inv-wrap { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
@@ -741,8 +753,12 @@
     [data-theme="dark"] .ejecutor-input:hover:not([readonly]) { background:rgba(255,255,255,.05)!important; }
     .ejecutor-total-row td { background:rgba(0,0,0,.02); font-weight:800; border-top:2px solid var(--color-borde); }
     [data-theme="dark"] .ejecutor-total-row td { background:rgba(255,255,255,.03)!important; border-top-color:rgba(255,255,255,.1)!important; }
+    [data-theme="dark"] .ejecutor-input:focus { background:rgba(255,255,255,0.08)!important; }
     .ejecutor-chevron { font-size:11px; color:var(--texto-secundario); transition:transform .2s; }
     .ejecutor-chevron.open { transform:rotate(180deg); }
+    /* Date/time inputs native picker — dark color scheme */
+    [data-theme="dark"] input[type="date"],
+    [data-theme="dark"] input[type="time"] { color-scheme: dark; }
 
     /* ================================================================
        BRIEFING ESTRATÉGICO — SPRINT 5
@@ -1048,24 +1064,12 @@
                         <tbody id="dash-rendimiento"></tbody>
                     </table>
                 </div>
-                <div class="dashboard-grid-2">
-                    <div class="tarjeta">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3>Distribución de Pauta</h3>
-                            <span id="dash-pauta-fuente" style="font-size:10px;font-weight:700;color:var(--texto-secundario);padding:3px 10px;border:1px solid var(--color-borde);border-radius:100px;"></span>
-                        </div>
-                        <div class="bar-container" id="dash-productos"></div>
+                <div class="tarjeta">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h3>Distribución de Pauta</h3>
+                        <span id="dash-pauta-fuente" style="font-size:10px;font-weight:700;color:var(--texto-secundario);padding:3px 10px;border:1px solid var(--color-borde);border-radius:100px;"></span>
                     </div>
-                    <div class="tarjeta">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <h3>Objetivos del Mes</h3>
-                            <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('objetivos')"><i class="fa-solid fa-plus"></i></button>
-                        </div>
-                        <table class="tabla-editable" style="margin-top:16px;">
-                            <thead><tr><th>Métrica</th><th>Meta del mes</th><th class="req-agencia" style="width:40px;"></th></tr></thead>
-                            <tbody id="dash-objetivos"></tbody>
-                        </table>
-                    </div>
+                    <div class="bar-container" id="dash-productos"></div>
                 </div>
                 <div class="dashboard-grid-2" style="margin-top:24px;">
                     <div class="analysis-box" style="border-left: 6px solid var(--color-exito);">
@@ -1588,6 +1592,10 @@ function toggleTema() {
     if (icon) icon.className = nuevo === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
     setTimeout(function() { html.classList.remove('tema-transitioning'); }, 450);
     aplicarGradiente();
+    var chartsEl = document.getElementById('vista-charts');
+    if (chartsEl && !chartsEl.classList.contains('oculto') && typeof renderCharts === 'function') renderCharts();
+    var dashEl = document.getElementById('vista-resumen');
+    if (dashEl && !dashEl.classList.contains('oculto') && typeof renderEjecutorKPIs === 'function') renderEjecutorKPIs();
 }
 
 function _safeHex(hex) { return (hex && /^#[0-9A-Fa-f]{6}/.test(hex)) ? hex : '#C4855A'; }
@@ -2241,7 +2249,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let v1 = Number(r.v1); let v2 = Number(r.v2); let pct = v1 > 0 ? ((v2 - v1) / v1 * 100).toFixed(1) : 0;
             let isTime = r.m.toLowerCase().includes("time") || r.m.toLowerCase().includes("tiempo");
             let badge = '';
-            if(pct == 0) badge = `<span class="var-badge" style="background:#eee;color:#666;">- 0%</span>`;
+            if(pct == 0) badge = `<span class="var-badge" style="background:var(--color-borde-fuerte);color:var(--texto-secundario);">- 0%</span>`;
             else if(isTime) badge = pct < 0 ? `<span class="var-badge var-positive">↓ ${Math.abs(pct)}% (Mejor)</span>` : `<span class="var-badge var-negative">↑ ${Math.abs(pct)}% (Peor)</span>`;
             else badge = pct > 0 ? `<span class="var-badge var-positive">↑ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↓ ${Math.abs(pct)}%</span>`;
             return `<tr><td><input class="input-celda" value="${r.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].m=this.value;guardarBD();"></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="text" inputmode="numeric" class="input-celda" value="${r.v1}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].v1=isNaN(this.value)||this.value===''?this.value:Number(this.value);guardarBD();renderDashboard()"></div></td><td><div style="display:flex;align-items:center;">${r.pre}<input type="text" inputmode="numeric" class="input-celda" value="${r.v2}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].v2=isNaN(this.value)||this.value===''?this.value:Number(this.value);guardarBD();renderDashboard()"></div></td><td>${badge}</td><td><input class="input-celda" style="color:var(--color-azul);font-weight:600;" placeholder="—" value="${r.meta||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].meta=this.value;guardarBD()"></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('rendimiento',${i})"></i></td></tr>`;
@@ -2264,7 +2272,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${item.monto!==null ? `<span style="font-size:10px;color:var(--texto-secundario);min-width:70px;text-align:right;">${formatDinero(item.monto)}</span>` : ''}
                 </div>`).join('');
         }
-        document.getElementById('dash-objetivos').innerHTML = d.objetivos.map((o, i) => `<tr><td><input class="input-celda" value="${o.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${i}].m=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:700;" value="${o.o}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${i}].o=this.value;guardarBD()"></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('objetivos',${i})"></i></td></tr>`).join('');
         const txW = document.getElementById('txt-working');
         const txC = document.getElementById('txt-change');
         if (document.activeElement !== txW) txW.value = d.txt_working || '';
@@ -2398,6 +2405,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const isOpen  = _ejecutorOpen !== null ? _ejecutorOpen : canEdit;
         const acc     = _acumularKPIs();
         const ro      = canEdit ? '' : 'readonly';
+        const _isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
         const thS = s => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}</th>`;
         const inp = (val, key, idx, pre) => canEdit
@@ -2481,7 +2489,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <tbody>${engRows || `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--texto-secundario);font-size:13px;">Sin registros. Pulsa "Registro" para agregar.</td></tr>`}</tbody>
                     </table>
                 </div>
-                ${isOwner ? `<div style="font-size:11px;color:var(--texto-secundario);margin-top:10px;padding:8px 12px;background:rgba(0,0,0,.03);border-radius:8px;display:flex;align-items:center;gap:6px;">
+                ${isOwner ? `<div style="font-size:11px;color:var(--texto-secundario);margin-top:10px;padding:8px 12px;background:${_isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.03)'};border-radius:8px;display:flex;align-items:center;gap:6px;">
                     <i class="fa-solid fa-code-merge" style="color:var(--color-primario);"></i>
                     Sprint 5 — estos datos serán reemplazados automáticamente por Meta API
                 </div>` : ''}
@@ -2655,7 +2663,35 @@ document.addEventListener('DOMContentLoaded', function() {
         return { items:[], fuente:'vacio', total:0 };
     }
 
-        function _renderDashKPIs(d) {
+    function _getKpiMetas() {
+        const chip = window.dashPeriodo?.chip || 'mes';
+        try { return JSON.parse(localStorage.getItem(`lanka_metas_${SUC_ACTIVA}_${chip}`) || '{}'); }
+        catch(e) { return {}; }
+    }
+
+    function _saveKpiMeta(campo, valor) {
+        const chip = window.dashPeriodo?.chip || 'mes';
+        const key  = `lanka_metas_${SUC_ACTIVA}_${chip}`;
+        const metas = _getKpiMetas();
+        metas[campo] = Number(String(valor).replace(/[^0-9.]/g,'')) || 0;
+        localStorage.setItem(key, JSON.stringify(metas));
+        _renderDashKPIs(DB.datos[SUC_ACTIVA]);
+    }
+
+    function _semaforoColor(actual, meta, inverso) {
+        if (!meta || meta === 0 || actual === null) return null;
+        if (inverso) {
+            if (actual <= meta)        return '#34A853';
+            if (actual <= meta * 1.2)  return '#FBBC05';
+            return '#EA4335';
+        }
+        const ratio = actual / meta;
+        if (ratio >= 0.9) return '#34A853';
+        if (ratio >= 0.6) return '#FBBC05';
+        return '#EA4335';
+    }
+
+            function _renderDashKPIs(d) {
         const rend = d.rendimiento || [];
         const inv = _inversionPorTipo(d); // uses dashPeriodo
         const invTotal = Object.values(inv).reduce((a,b)=>a+b, 0);
@@ -2669,7 +2705,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const cac     = mNuevos.v2 > 0 ? Math.round(invTotal / mNuevos.v2) : null;
         const cacPrev = mNuevos.v1 > 0 ? Math.round(invTotal / mNuevos.v1) : null;
 
-        const kpiCard = (label, icon, color, val, v1, pre, formula) => {
+        const _metas   = _getKpiMetas();
+        const _canMeta = _canEditKPIs();
+
+        const kpiCard = (label, icon, color, val, v1, pre, formula, campo, inverso) => {
             const pct = v1 > 0 && val !== null ? +((val-v1)/v1*100).toFixed(1) : null;
             const delta = pct !== null
                 ? `<span class="var-badge ${pct>=0?'var-positive':'var-negative'}" style="display:inline-flex;">${pct>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`
@@ -2677,11 +2716,50 @@ document.addEventListener('DOMContentLoaded', function() {
             const display = val === null ? `<span style="color:var(--texto-secundario);font-size:18px;">—</span>`
                           : pre==='$' ? formatDinero(val)
                           : (pre||'')+Number(val).toLocaleString('es-MX');
+
+            // Progress bar
+            const meta = _metas[campo] || 0;
+            let progressHTML = '';
+            if (meta > 0 && val !== null) {
+                const semColor = _semaforoColor(val, meta, inverso);
+                const rawPct = inverso
+                    ? (val === 0 ? 100 : val <= meta ? 100 : Math.max(0, Math.round((2*meta - val) / meta * 100)))
+                    : Math.min(100, Math.round(val / meta * 100));
+                const metaFmt = pre==='$' ? formatDinero(meta) : (pre||'')+Number(meta).toLocaleString('es-MX');
+                progressHTML = `<div class="kpi-progress-wrap">
+                    <div class="kpi-meta-row">
+                        <span>Meta ${inverso?'máx.':''}</span>
+                        ${_canMeta
+                            ? `<input class="kpi-meta-input" inputmode="numeric" value="${meta}" title="Editar meta del periodo (${window.dashPeriodo?.chip||'mes'})"
+                                onchange="_saveKpiMeta('${campo}',this.value)">`
+                            : `<span style="font-weight:700;">${metaFmt}</span>`}
+                    </div>
+                    <div class="kpi-progress-bar">
+                        <div class="kpi-progress-fill" style="width:${rawPct}%;background:${semColor};"></div>
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;align-items:center;gap:4px;">
+                        <span style="font-size:10px;font-weight:800;color:${semColor};">${rawPct}%</span>
+                        <span style="font-size:10px;color:var(--texto-secundario);">de la meta</span>
+                    </div>
+                </div>`;
+            } else if (_canMeta && val !== null) {
+                // No meta set — show editable placeholder for owners
+                progressHTML = `<div class="kpi-progress-wrap">
+                    <div class="kpi-meta-row">
+                        <span style="opacity:.6;">Meta ${inverso?'máx.':''}</span>
+                        <input class="kpi-meta-input" inputmode="numeric" placeholder="Definir…" style="opacity:.7;"
+                            title="Ingresa la meta del periodo (${window.dashPeriodo?.chip||'mes'})"
+                            onchange="_saveKpiMeta('${campo}',this.value)">
+                    </div>
+                </div>`;
+            }
+
             return `<div class="dash-kpi-card" style="--kpi-c:${color}">
                 <div class="dash-kpi-label"><i class="fa-solid ${icon}"></i> ${label}</div>
                 <div class="dash-kpi-val">${display}</div>
                 <div class="dash-kpi-sub">${delta}${pct!==null?`<span style="margin-left:6px;color:var(--texto-secundario);font-size:11px;">vs anterior</span>`:''}</div>
                 ${formula?`<div class="dash-kpi-formula">${formula}</div>`:''}
+                ${progressHTML}
             </div>`;
         };
 
@@ -2690,10 +2768,10 @@ document.addEventListener('DOMContentLoaded', function() {
             : invTotal === 0 ? 'Sin inversión en Presupuesto este mes' : 'Sin clientes nuevos registrados';
 
         document.getElementById('dash-kpis-clientes').innerHTML =
-            kpiCard('Clientes nuevos',      'fa-user-plus',        'var(--color-primario)', mNuevos.v2, mNuevos.v1, '',  '') +
-            kpiCard('Clientes recurrentes', 'fa-rotate',           '#34A853',               mRecurr.v2, mRecurr.v1, '',  '') +
-            kpiCard('Clientes recuperados', 'fa-heart-circle-plus','#4A90D9',               mRecup.v2,  mRecup.v1,  '',  '') +
-            kpiCard('CAC Real',             'fa-calculator',       '#8B5CF6',               cac,        cacPrev,    '$', cacFormula);
+            kpiCard('Clientes nuevos',      'fa-user-plus',        'var(--color-primario)', mNuevos.v2, mNuevos.v1, '',  '',           'nuevos',      false) +
+            kpiCard('Clientes recurrentes', 'fa-rotate',           '#34A853',               mRecurr.v2, mRecurr.v1, '',  '',           'recurrentes', false) +
+            kpiCard('Clientes recuperados', 'fa-heart-circle-plus','#4A90D9',               mRecup.v2,  mRecup.v1,  '',  '',           'recuperados', false) +
+            kpiCard('CAC Real',             'fa-calculator',       '#8B5CF6',               cac,        cacPrev,    '$', cacFormula,   'cac',         true);
     }
 
     function _renderDashInversion(d) {
@@ -3466,7 +3544,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('tabla-historico-mensual');
         if (!el) return;
         const tt = 'Calculado automáticamente desde el Ejecutor de KPIs';
-        const autoBadge = color => `<span title="${tt}" style="margin-left:5px;font-size:9px;background:rgba(0,0,0,.06);color:${color};padding:2px 7px;border-radius:100px;font-weight:700;letter-spacing:.03em;cursor:default;">AUTO</span>`;
+        const _hIsDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const autoBadge = color => `<span title="${tt}" style="margin-left:5px;font-size:9px;background:${_hIsDark?'rgba(255,255,255,.10)':'rgba(0,0,0,.06)'};color:${color};padding:2px 7px;border-radius:100px;font-weight:700;letter-spacing:.03em;cursor:default;">AUTO</span>`;
         el.innerHTML = `<thead><tr>
             <th>Mes</th>
             <th style="color:var(--color-primario);">Ventas (MXN)${autoBadge('var(--color-primario)')}</th>
@@ -3498,6 +3577,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const ventasData = histToUse.map(h => h.ventas    || 0);
         const seguiData  = histToUse.map(h => h.seguidores|| 0);
         const dmsData    = histToUse.map(h => h.dms       || 0);
+
+        const _cIsDark   = document.documentElement.getAttribute('data-theme') === 'dark';
+        const _gridColor  = _cIsDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)';
+        const _tickColor  = _cIsDark ? 'rgba(240,237,232,0.45)' : '#9e9e9e';
+        const _legendColor = _cIsDark ? '#F0EDE8' : '#555';
 
         _renderHistoricoEditor();
 
@@ -3536,7 +3620,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     { label: 'DMs',          data: dmsData,    borderColor: '#4A90D9', backgroundColor: 'transparent', borderWidth: 2, tension: 0.4, pointBackgroundColor: '#4A90D9', pointRadius: 3, pointHoverRadius: 6, borderDash: [4,3] }
                 ]
             },
-            options: { responsive: true, interaction: { mode:'index', intersect:false }, plugins: { legend: { position:'top', labels:{ boxWidth:10, font:{size:11,weight:'600'} } }, tooltip: { backgroundColor:'#111', padding:12 } }, scales: { y: { grid:{color:'rgba(0,0,0,0.04)'}, ticks:{font:{size:11}} }, x: { grid:{display:false}, ticks:{font:{size:11}} } } }
+            options: { responsive: true, interaction: { mode:'index', intersect:false }, plugins: { legend: { position:'top', labels:{ boxWidth:10, font:{size:11,weight:'600'}, color:_legendColor } }, tooltip: { backgroundColor:'#111', titleColor:'#fff', bodyColor:'rgba(255,255,255,0.8)', padding:12 } }, scales: { y: { grid:{color:_gridColor}, ticks:{font:{size:11}, color:_tickColor} }, x: { grid:{display:false}, ticks:{font:{size:11}, color:_tickColor} } } }
         });
 
         // Chart 2: Donut — desde _calcularDistribucionPauta()
@@ -3546,7 +3630,7 @@ document.addEventListener('DOMContentLoaded', function() {
         _charts['donut'] = new Chart(document.getElementById('chart-donut').getContext('2d'), {
             type: 'doughnut',
             data: { labels: _donutItems.map(p=>p.nombre), datasets: [{ data: _donutItems.map(p=>p.porcentaje), backgroundColor: PALETA.slice(0,_donutItems.length), borderWidth: 0, hoverOffset: 6 }] },
-            options: { responsive: true, cutout: '68%', plugins: { legend: { display:false }, tooltip: { backgroundColor:'#111', padding:12, callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%${_distDonut.total ? ' · '+formatDinero(_donutItems[ctx.dataIndex].monto||0) : ''}` } } } }
+            options: { responsive: true, cutout: '68%', plugins: { legend: { display:false }, tooltip: { backgroundColor:'#111', titleColor:'#fff', bodyColor:'rgba(255,255,255,0.8)', padding:12, callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%${_distDonut.total ? ' · '+formatDinero(_donutItems[ctx.dataIndex].monto||0) : ''}` } } } }
         });
         document.getElementById('donut-legend').innerHTML = _donutItems.map((p,i) => `<div class="chart-legend-item"><div class="chart-legend-dot" style="background:${PALETA[i]};"></div>${p.nombre} <b style="color:var(--texto-principal)">${p.porcentaje}%</b>${p.monto!==null ? `<span style="color:var(--texto-secundario);font-size:10px;margin-left:4px;">${formatDinero(p.monto)}</span>` : ''}</div>`).join('');
 
@@ -3560,7 +3644,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     { label: 'Inversión',        data: ads.length ? ads.map(a=>a.inversion)      : [0], backgroundColor: `${cp}CC`, borderRadius: 8, borderSkipped: false },
                     { label: 'Conversiones ×10', data: ads.length ? ads.map(a=>a.conversiones*10) : [0], backgroundColor: '#34A85380', borderRadius: 8, borderSkipped: false }
                 ]},
-            options: { responsive: true, plugins: { legend: { position:'top', labels:{font:{size:11,weight:'600'}} } }, scales: { y: { grid:{color:'rgba(0,0,0,0.04)'} }, x: { grid:{display:false} } } }
+            options: { responsive: true, plugins: { legend: { position:'top', labels:{font:{size:11,weight:'600'}, color:_legendColor} } }, scales: { y: { grid:{color:_gridColor}, ticks:{color:_tickColor} }, x: { grid:{display:false}, ticks:{color:_tickColor} } } }
         });
 
         // Chart 4: Engagement Rate por Formato (barras horizontales)
@@ -3576,10 +3660,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     backgroundColor: _engColors.map(c=>c+'BB'), borderColor: _engColors,
                     borderWidth: 1.5, borderRadius: 8, borderSkipped: false }] },
             options: { responsive: true, indexAxis: 'y',
-                plugins: { legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ` ER: ${ctx.raw}%` } } },
+                plugins: { legend:{display:false}, tooltip:{ backgroundColor:'#111', titleColor:'#fff', bodyColor:'rgba(255,255,255,0.8)', callbacks:{ label: ctx => ` ER: ${ctx.raw}%` } } },
                 scales: {
-                    x: { beginAtZero:true, grid:{color:'rgba(0,0,0,0.04)'}, ticks:{ callback: v => v+'%', font:{size:11} } },
-                    y: { grid:{display:false}, ticks:{font:{size:12,weight:'600'}} }
+                    x: { beginAtZero:true, grid:{color:_gridColor}, ticks:{ callback: v => v+'%', font:{size:11}, color:_tickColor } },
+                    y: { grid:{display:false}, ticks:{font:{size:12,weight:'600'}, color:_tickColor} }
                 } }
         });
 
@@ -3593,7 +3677,7 @@ document.addEventListener('DOMContentLoaded', function() {
         _charts['area'] = new Chart(ctxA, {
             type: 'line',
             data: { labels, datasets: [{ label: 'Seguidores Acum.', data: acumData, fill: true, backgroundColor: gA, borderColor: '#34A853', borderWidth: 2.5, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#34A853' }] },
-            options: { responsive: true, plugins: { legend:{display:false} }, scales: { y: { grid:{color:'rgba(0,0,0,0.04)'} }, x: { grid:{display:false} } } }
+            options: { responsive: true, plugins: { legend:{display:false} }, scales: { y: { grid:{color:_gridColor}, ticks:{color:_tickColor} }, x: { grid:{display:false}, ticks:{color:_tickColor} } } }
         });
     }
 
