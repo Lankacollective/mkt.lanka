@@ -717,6 +717,16 @@
     .inv-cat-pct { font-size:10px; font-weight:700; color:var(--texto-secundario); margin-top:2px; }
 
 
+
+    /* ── Selector de Periodo Global (Dashboard) ── */
+    .dash-chip { padding:7px 16px; border-radius:100px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid var(--color-borde-fuerte); background:transparent; color:var(--texto-secundario); transition:var(--transicion); white-space:nowrap; }
+    .dash-chip:hover { border-color:var(--color-primario); color:var(--color-primario); }
+    .dash-chip.activo { background:var(--color-primario); border-color:var(--color-primario); color:#fff; box-shadow:0 4px 12px rgba(196,133,90,.3); }
+    [data-theme="dark"] .dash-chip:not(.activo) { border-color:rgba(255,255,255,0.15); }
+    .dash-periodo-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:24px; padding:14px 18px; background:var(--color-tarjeta); border-radius:14px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); }
+    [data-theme="dark"] .dash-periodo-wrap { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    .dash-periodo-sep { width:1px; height:22px; background:var(--color-borde-fuerte); margin:0 4px; }
+
     /* ── EJECUTOR DE KPIs ── */
     .ejecutor-card { background:var(--color-tarjeta); border-radius:20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); margin-bottom:24px; overflow:hidden; }
     [data-theme="dark"] .ejecutor-card { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
@@ -1018,6 +1028,8 @@
                         <p>KPIs acumulados del periodo + métricas del proyecto. <span id="dash-tipo-badge"></span></p>
                     </div>
                 </div>
+                <!-- Selector de periodo global -->
+                <div id="dash-periodo-selector"></div>
                 <!-- Ejecutor de KPIs (ingreso semanal) -->
                 <div id="ejecutor-kpis-wrap"></div>
                 <!-- 4 KPI fijos: clientes + CAC -->
@@ -1824,6 +1836,23 @@ document.addEventListener('DOMContentLoaded', function() {
     let DB = {}; let ROL = 'none'; let SUC_ACTIVA = ''; let USUARIO_EQUIPO = '';
     let USUARIO_ACTIVO = null; let ROL_SIMULADO = null;
     let _adsExpanded = new Set();
+
+    /* ── Selector de Periodo Global — Dashboard ── */
+    (function() {
+        const _hoy = new Date();
+        const _df = d => d.toISOString().split('T')[0];
+        const _defaults = {
+            desde: _df(new Date(_hoy.getFullYear(), _hoy.getMonth(), 1)),
+            hasta:  _df(new Date(_hoy.getFullYear(), _hoy.getMonth()+1, 0)),
+            chip:  'mes'
+        };
+        try {
+            const saved = JSON.parse(localStorage.getItem('lanka_dash_periodo') || 'null');
+            window.dashPeriodo = saved && saved.desde ? saved : _defaults;
+        } catch(e) {
+            window.dashPeriodo = _defaults;
+        }
+    })();
     let _briefingTab = 'reglas';
     let _mcExpanded  = new Set();
     let _pptoVista = 'anual';
@@ -2163,6 +2192,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const _tipoLabel = (TIPOS_PROYECTO.find(t=>t.id===_tipo)||{}).label || _tipo;
         const _badgeEl = document.getElementById('dash-tipo-badge');
         if (_badgeEl) _badgeEl.innerHTML = `<span style="background:var(--color-primario);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;vertical-align:middle;letter-spacing:.04em;">${_tipoLabel}</span>`;
+        // ── Selector de Periodo ─────────────────────────────────────────────
+        _renderDashPeriodoSelector();
         // ── Ejecutor de KPIs ───────────────────────────────────────────────
         renderEjecutorKPIs();
         // ── 4 KPI Cards (alimentadas desde el Ejecutor) ────────────────────
@@ -2194,8 +2225,97 @@ document.addEventListener('DOMContentLoaded', function() {
         return ['owner','lanka_team'].includes(USUARIO_ACTIVO.rol_id) && !ROL_SIMULADO;
     }
 
-    function _acumularKPIs() {
-        const semanas = DB.datos[SUC_ACTIVA]?.kpi_semanal || [];
+    /* ── Periodo Global — Helpers ─────────────────────────────────── */
+    function _dashPdf(d) {
+        // Acepta string ISO o Date, devuelve Date al inicio del día
+        if (typeof d === 'string') return new Date(d + 'T00:00:00');
+        return d instanceof Date ? d : new Date();
+    }
+    function _dashPeriodoDesde() { return _dashPdf(window.dashPeriodo?.desde || new Date().toISOString().split('T')[0]); }
+    function _dashPeriodoHasta() {
+        const s = window.dashPeriodo?.hasta;
+        if (!s) return new Date();
+        const d = new Date(typeof s === 'string' ? s + 'T23:59:59' : s);
+        d.setHours(23,59,59,999);
+        return d;
+    }
+    function _getMonthsInPeriod() {
+        const year = new Date().getFullYear();
+        const desde = _dashPeriodoDesde();
+        const hasta  = _dashPeriodoHasta();
+        const meses = [];
+        for (let mi = 0; mi <= 11; mi++) {
+            const ini = new Date(year, mi, 1);
+            const fin = new Date(year, mi+1, 0, 23, 59, 59);
+            if (ini <= hasta && fin >= desde) meses.push(mi);
+        }
+        return meses.length ? meses : [new Date().getMonth()];
+    }
+    function _dashPeriodoRangeLabel() {
+        const ms = _getMonthsInPeriod();
+        if (ms.length === 1) return MESES[ms[0]];
+        return `${MESES[ms[0]].substring(0,3)} – ${MESES[ms[ms.length-1]].substring(0,3)}`;
+    }
+
+    function setDashPeriodo(chip, desdeStr, hastaStr) {
+        const hoy = new Date();
+        const y = hoy.getFullYear(), m = hoy.getMonth();
+        const fmt = d => { const dd = typeof d === 'string' ? new Date(d+' 00:00:00') : d; return dd.toISOString().split('T')[0]; };
+        let desde, hasta;
+        if (chip === 'mes')  { desde = fmt(new Date(y,m,1));   hasta  = fmt(new Date(y,m+1,0)); }
+        else if (chip==='ant') { desde = fmt(new Date(y,m-1,1)); hasta  = fmt(new Date(y,m,0)); }
+        else if (chip==='3m')  { desde = fmt(new Date(y,m-2,1)); hasta  = fmt(new Date(y,m+1,0)); }
+        else if (chip==='6m')  { desde = fmt(new Date(y,m-5,1)); hasta  = fmt(new Date(y,m+1,0)); }
+        else if (chip==='anio'){ desde = `${y}-01-01`;          hasta  = `${y}-12-31`; }
+        else { chip='custom'; desde = desdeStr || fmt(new Date(y,m,1)); hasta = hastaStr || fmt(new Date(y,m+1,0)); }
+
+        window.dashPeriodo = { desde, hasta, chip };
+        localStorage.setItem('lanka_dash_periodo', JSON.stringify(window.dashPeriodo));
+        renderDashboard();
+        if (!document.getElementById('vista-charts').classList.contains('oculto')) renderCharts();
+    }
+
+    function _renderDashPeriodoSelector() {
+        const el = document.getElementById('dash-periodo-selector');
+        if (!el) return;
+        const p = window.dashPeriodo || { chip:'mes' };
+        const chip = p.chip || 'mes';
+        const CHIPS = [
+            { id:'mes',  label:'Este mes' },
+            { id:'ant',  label:'Mes anterior' },
+            { id:'3m',   label:'Últimos 3 meses' },
+            { id:'6m',   label:'Últimos 6 meses' },
+            { id:'anio', label:'Este año' }
+        ];
+        const nSemanas = (DB.datos[SUC_ACTIVA]?.kpi_semanal||[]).filter(s => {
+            if (!s.fecha) return false;
+            const fd = new Date(s.fecha+'T00:00:00');
+            return fd >= _dashPeriodoDesde() && fd <= _dashPeriodoHasta();
+        }).length;
+        el.innerHTML = `<div class="dash-periodo-wrap">
+            ${CHIPS.map(c=>`<button class="dash-chip${chip===c.id?' activo':''}" onclick="setDashPeriodo('${c.id}')">${c.label}</button>`).join('')}
+            <div class="dash-periodo-sep"></div>
+            <input type="date" id="dash-desde-inp" class="input-celda" style="border:1px solid var(--color-borde);padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;width:138px;"
+                value="${p.desde||''}"
+                onchange="const h=document.getElementById('dash-hasta-inp').value;setDashPeriodo('custom',this.value,h||this.value)">
+            <span style="font-size:11px;color:var(--texto-secundario);">→</span>
+            <input type="date" id="dash-hasta-inp" class="input-celda" style="border:1px solid var(--color-borde);padding:6px 10px;border-radius:8px;font-size:12px;font-weight:600;width:138px;"
+                value="${p.hasta||''}"
+                onchange="const d=document.getElementById('dash-desde-inp').value;setDashPeriodo('custom',d||this.value,this.value)">
+            <span style="font-size:11px;color:var(--texto-secundario);margin-left:4px;">· ${nSemanas} semana${nSemanas!==1?'s':''} · ${_dashPeriodoRangeLabel()}</span>
+        </div>`;
+    }
+
+        function _acumularKPIs() {
+        const todas = DB.datos[SUC_ACTIVA]?.kpi_semanal || [];
+        // Filter by dashPeriodo
+        const desde = _dashPeriodoDesde();
+        const hasta  = _dashPeriodoHasta();
+        const semanas = todas.filter(s => {
+            if (!s.fecha) return true; // sin fecha: incluir siempre
+            const fd = new Date(s.fecha+'T00:00:00');
+            return fd >= desde && fd <= hasta;
+        });
         const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, ticket_medio:0 };
         semanas.forEach(s => {
             acc.clientes_nuevos      += s.clientes_nuevos      || 0;
@@ -2316,10 +2436,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function _inversionPorTipo(d, mes) {
         const result = {};
         INVERSION_CATEGORIAS.forEach(c => { result[c.tipo] = 0; });
-        (d.presupuesto||[]).forEach(p => {
-            const m = p.montos_mes?.[mes] || {};
-            const val = (m.inversion||0) + (m.colaboracion||0);
-            if (result[p.tipo] !== undefined) result[p.tipo] += val;
+        // Use dashPeriodo months when no explicit mes passed
+        const meses = (mes !== undefined) ? [mes] : _getMonthsInPeriod();
+        (d.presupuesto||[]).forEach(p_item => {
+            meses.forEach(mi => {
+                const m = p_item.montos_mes?.[mi] || {};
+                const val = (m.inversion||0) + (m.colaboracion||0);
+                if (result[p_item.tipo] !== undefined) result[p_item.tipo] += val;
+            });
         });
         return result;
     }
@@ -2330,9 +2454,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function _renderDashKPIs(d) {
-        const mes = new Date().getMonth();
         const rend = d.rendimiento || [];
-        const inv = _inversionPorTipo(d, mes);
+        const inv = _inversionPorTipo(d); // uses dashPeriodo
         const invTotal = Object.values(inv).reduce((a,b)=>a+b, 0);
 
         // Accumulated from Ejecutor de KPIs (weekly entries)
@@ -2372,10 +2495,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function _renderDashInversion(d) {
-        const mes = new Date().getMonth();
-        const inv = _inversionPorTipo(d, mes);
+        const inv = _inversionPorTipo(d); // uses dashPeriodo
         const total = Object.values(inv).reduce((a,b)=>a+b, 0);
-        const mesNombre = MESES[mes];
+        const mesNombre = _dashPeriodoRangeLabel();
         const el = document.getElementById('dash-inversion');
         if (!el) return;
 
@@ -3161,11 +3283,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderCharts() {
         const d = DB.datos[SUC_ACTIVA];
         const cp = COLOR_P();
-        const hist = d.historico_mensual || Array.from({length:12},(_,i)=>({mes:MESES[i].substring(0,3),ventas:0,seguidores:0,dms:0}));
-        const labels = hist.map(h => h.mes);
-        const ventasData = hist.map(h => h.ventas    || 0);
-        const seguiData  = hist.map(h => h.seguidores|| 0);
-        const dmsData    = hist.map(h => h.dms       || 0);
+        const histFull = d.historico_mensual || Array.from({length:12},(_,i)=>({mes:MESES[i].substring(0,3),ventas:0,seguidores:0,dms:0}));
+        // Filter historico_mensual by dashPeriodo
+        const mesesPeriodo = _getMonthsInPeriod();
+        const hist = histFull.filter((_,mi) => mesesPeriodo.includes(mi));
+        const histToUse = hist.length ? hist : histFull;
+        const labels = histToUse.map(h => h.mes);
+        const ventasData = histToUse.map(h => h.ventas    || 0);
+        const seguiData  = histToUse.map(h => h.seguidores|| 0);
+        const dmsData    = histToUse.map(h => h.dms       || 0);
 
         _renderHistoricoEditor();
 
