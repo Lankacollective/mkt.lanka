@@ -4387,41 +4387,46 @@ document.addEventListener('DOMContentLoaded', function() {
         const _formatos = _getFormatos(SUC_ACTIVA);
         const _servicios = _getServicios(SUC_ACTIVA);
 
-        let confHTML = '';
-        // Secciones por proyecto
-        confHTML += _renderConfigLista('Formatos de Contenido', _formatos, 'formatos', _isOwnerForConfig, _sucNombre);
-        confHTML += _renderConfigLista('Servicios / Productos', _servicios, 'servicios', _isOwnerForConfig, _sucNombre);
+        const _cardStyle = 'background:var(--color-tarjeta);border-radius:14px;border:1px solid var(--color-borde);padding:20px;';
+        let confHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-bottom:24px;">`;
 
-        // Variables globales restantes (excluir formatos_contenido y productos — ahora son por proyecto)
+        // Card 1: Formatos de Contenido
+        confHTML += `<div style="${_cardStyle}">${_renderConfigLista('Formatos de Contenido', _formatos, 'formatos', _isOwnerForConfig, _sucNombre)}</div>`;
+
+        // Card 2: Servicios / Productos
+        confHTML += `<div style="${_cardStyle}">${_renderConfigLista('Servicios / Productos', _servicios, 'servicios', _isOwnerForConfig, _sucNombre)}</div>`;
+
+        // Card 3: Variables globales
         const _GLOBAL_KEYS = ['estado_factura','emociones','cat_proveedor','sexo','nivel'];
-        confHTML += `<div style="margin-bottom:24px;padding-top:20px;border-top:1px solid var(--color-borde);">
-            <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;color:var(--texto-secundario);">Variables globales</b>
-        </div>`;
+        let _globalHTML = `<div style="margin-bottom:16px;"><b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;color:var(--texto-secundario);">Variables globales</b></div>`;
         _GLOBAL_KEYS.forEach(k => {
             if (!DB.desplegables[k]) return;
-            confHTML += `<div style="margin-bottom:18px;"><b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">${k.replace(/_/g,' ')}</b>
-            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">`;
+            _globalHTML += `<div style="margin-bottom:16px;"><b style="font-family:var(--font-display);font-size:12px;text-transform:uppercase;">${k.replace(/_/g,' ')}</b>
+            <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">`;
             DB.desplegables[k].forEach((val,vi) => {
-                confHTML += `<span class="tag gris" style="color:var(--texto-principal);background:var(--color-tarjeta);border:1px solid var(--color-borde);padding:6px 12px;font-size:12px;">${val}
-                    ${_isOwnerForConfig?`<i class="fa-solid fa-times" style="margin-left:8px;color:#ccc;cursor:pointer;" onclick="DB.desplegables['${k}'].splice(${vi},1);guardarBD();renderAdministracion();"></i>`:''}
+                _globalHTML += `<span class="tag gris" style="color:var(--texto-principal);background:var(--color-tarjeta);border:1px solid var(--color-borde);padding:5px 10px;font-size:12px;">${val}
+                    ${_isOwnerForConfig?`<i class="fa-solid fa-times" style="margin-left:6px;color:#ccc;cursor:pointer;" onclick="DB.desplegables['${k}'].splice(${vi},1);guardarBD();renderAdministracion();"></i>`:''}
                 </span>`;
             });
-            confHTML += _isOwnerForConfig ? `<button class="btn btn-xs btn-fantasma" onclick="const n=prompt('Nuevo valor:');if(n){DB.desplegables['${k}'].push(n);guardarBD();renderAdministracion();}">+ Añadir</button>` : '';
-            confHTML += `</div></div>`;
+            _globalHTML += _isOwnerForConfig ? `<button class="btn btn-xs btn-fantasma" onclick="const n=prompt('Nuevo valor:');if(n){DB.desplegables['${k}'].push(n);guardarBD();renderAdministracion();}">+ Añadir</button>` : '';
+            _globalHTML += `</div></div>`;
         });
+        confHTML += `<div style="${_cardStyle}">${_globalHTML}</div>`;
 
-        // Tipos de proyecto (global)
-        confHTML += `<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--color-borde);">
+        // Card 4: Tipos de proyecto
+        confHTML += `<div style="${_cardStyle}">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Tipos de Proyecto</b>
-                <span style="font-size:11px;color:var(--texto-secundario);">Global · todos los proyectos</span>
+                <span style="font-size:11px;color:var(--texto-secundario);">Global</span>
             </div>
             <div id="cfg-tipos-proyecto"></div>
         </div>`;
 
-        // Zona de peligro
+        confHTML += `</div>`; // cierre grid 2×2
+
+        // Zona de peligro (full-width, fuera del grid)
         if (_isOwnerForConfig) {
-            confHTML += `<div style="margin-top:32px;padding-top:24px;border-top:2px solid var(--color-borde);">
+            confHTML += `<div style="margin-top:8px;padding-top:24px;border-top:2px solid var(--color-borde);">
                 <div style="font-family:var(--font-display);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Zona de peligro</div>
                 <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:16px;line-height:1.6;">Elimina todos los datos operativos de todos los proyectos. No elimina usuarios, roles ni configuración.</p>
                 <button class="btn btn-peligro-suave" onclick="limpiarDatosPrueba()"><i class="fa-solid fa-trash-can" style="margin-right:6px;"></i>Limpiar datos de prueba</button>
