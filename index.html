@@ -2383,7 +2383,20 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ====== MODIFICADORES UNIVERSALES (ORIGINAL) ====== */
     function updObj(lista, idx, campo, val) { DB.datos[SUC_ACTIVA][lista][idx][campo] = isNaN(val) || val===''? val : Number(val); guardarBD(); renderTodas(); }
     function updObjTexto(campo, val) { DB.datos[SUC_ACTIVA][campo] = val; guardarBD(); }
-    function delObj(lista, idx) { if(confirm("¿Confirmas eliminación?")) { DB.datos[SUC_ACTIVA][lista].splice(idx, 1); guardarBD(); renderTodas(); } }
+    function delObj(lista, idx) {
+        if (!confirm("¿Confirmas eliminación?")) return;
+        if (lista === 'kanban') {
+            const card = (DB.datos[SUC_ACTIVA].kanban || [])[idx];
+            if (card) {
+                const linked = (DB.datos[SUC_ACTIVA].stories_ind || []).filter(s => s.post_vinculado === card.id);
+                if (linked.length && confirm(`Hay ${linked.length} story vinculada a este post. ¿Eliminar también?`)) {
+                    DB.datos[SUC_ACTIVA].stories_ind = DB.datos[SUC_ACTIVA].stories_ind.filter(s => s.post_vinculado !== card.id);
+                }
+            }
+        }
+        DB.datos[SUC_ACTIVA][lista].splice(idx, 1);
+        guardarBD(); renderTodas();
+    }
 
     function agregarElemento(lista) {
         let n = {};
@@ -3617,7 +3630,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
             let t_val = t.target_id || "";
             let selTarget = ROL==='agencia' ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
-            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;guardarBD()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;guardarBD()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
+            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;guardarBD()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
         });
         ['Ideas','Producción','Revisión','Programado'].forEach(e => { document.getElementById('k-'+e).innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
@@ -5177,6 +5190,36 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ================================================================
        MÓDULO: STORIES INDEPENDIENTES
        ================================================================ */
+    function _sincKanbanStories() {
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d) return;
+        if (!d.stories_ind) d.stories_ind = [];
+        (d.kanban || []).forEach(card => {
+            const texto = (card.stories || '').trim();
+            const existing = d.stories_ind.find(s => s.post_vinculado === card.id);
+            if (texto) {
+                if (existing) {
+                    // Actualizar si cambió el contenido o la fecha
+                    existing.copy = texto;
+                    existing.dia  = card.fecha || existing.dia;
+                    existing._from_kanban = true;
+                } else {
+                    d.stories_ind.push({
+                        id:             'st_k_' + card.id,
+                        dia:            card.fecha || new Date().toISOString().split('T')[0],
+                        hora:           card.hora  || '12:00',
+                        tipo:           'DM',
+                        copy:           texto,
+                        cta:            card.manychat || '',
+                        post_vinculado: card.id,
+                        _from_kanban:   true
+                    });
+                }
+            }
+        });
+        guardarBD();
+    }
+
     function renderStories() {
         const d = DB.datos[SUC_ACTIVA];
         const stories = d.stories_ind || [];
@@ -5198,7 +5241,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const realIdx = stories.findIndex(x => x.id === s.id);
             const postVinc = kanban.find(k => k.id === s.post_vinculado);
             const postLabel = postVinc
-                ? `<span class="segment-link"><i class="fa-solid fa-link" style="margin-right:4px;"></i>${postVinc.titulo.substring(0,26)}${postVinc.titulo.length>26?'…':''}</span>`
+                ? `<span class="segment-link"><i class="fa-solid fa-link" style="margin-right:4px;"></i>${postVinc.titulo.substring(0,26)}${postVinc.titulo.length>26?'…':''}${s._from_kanban?'<span style="margin-left:6px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;background:rgba(196,133,90,.12);color:var(--color-primario);">Auto</span>':''}</span>`
                 : `<span style="font-size:12px; color:var(--texto-secundario);">Sin post vinculado</span>`;
             const fecha = s.dia
                 ? new Date(s.dia+'T00:00:00').toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'})
@@ -6063,7 +6106,7 @@ document.addEventListener('DOMContentLoaded', function() {
             importados++;
         });
 
-        guardarBD(); cerrarModales(); renderOrquestacion();
+        _sincKanbanStories(); cerrarModales(); renderOrquestacion();
 
         const s = document.getElementById('status-save');
         s.innerHTML = `<i class="fa-solid fa-check"></i> ${importados} post${importados !== 1 ? 's' : ''} importados`;
