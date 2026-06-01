@@ -3319,7 +3319,12 @@ document.addEventListener('DOMContentLoaded', function() {
         anal.style.display = isAnal ? '' : 'none';
         if (execBtn) execBtn.classList.toggle('activo', !isAnal);
         if (analBtn) analBtn.classList.toggle('activo', isAnal);
-        if (isAnal) _renderDashCharts(DB.datos[SUC_ACTIVA]);
+        if (isAnal) {
+            setTimeout(() => {
+                _renderDashCharts(DB.datos[SUC_ACTIVA]);
+                window.dispatchEvent(new Event('resize'));
+            }, 50);
+        }
     }
 
     /* ── Semáforo ─────────────────────────────────────────────── */
@@ -4596,6 +4601,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Helper: destruir chart si existe
     function destroyChart(id) {
         if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
+        const el = document.getElementById(id);
+        if (el) { const ex = Chart.getChart(el); if (ex) ex.destroy(); }
     }
 
     // Colores con transparencia
