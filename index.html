@@ -42,7 +42,7 @@
         --asmr: #A7A28D; --story: #86826C; --reel: #C4855A; --carrusel: #7A8C6E;
         --pauta: #D4956A; --masaje: #9B8FA0; --facial: #8FA0A8; --urgente: #EA4335;
         --brand:#C4855A; --brand-rgb:196,133,90;
-        --bg-gradient: radial-gradient(ellipse at 20% 20%,rgba(196,133,90,.18) 0%,transparent 55%), radial-gradient(ellipse at 80% 80%,rgba(196,133,90,.12) 0%,transparent 50%), radial-gradient(ellipse at 60% 10%,rgba(220,160,110,.1) 0%,transparent 40%), #EDE9E4;
+        --bg-gradient: radial-gradient(ellipse at 20% 20%,rgba(196,133,90,.10) 0%,transparent 55%), radial-gradient(ellipse at 80% 80%,rgba(196,133,90,.07) 0%,transparent 50%), #F7F6F4;
         --glass-bg:rgba(255,255,255,.55); --glass-bg-strong:rgba(255,255,255,.82);
         --glass-border:rgba(255,255,255,.9); --glass-border-soft:rgba(196,133,90,.2);
         --glass-shadow:0 8px 32px rgba(196,133,90,.12),0 2px 8px rgba(0,0,0,.06);
@@ -1014,7 +1014,6 @@
         <div class="menu-titulo req-no-equipo">Inteligencia</div>
         <ul class="menu-nav req-no-equipo">
             <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-gauge-high"></i> Dashboard</li>
-            <li class="item-nav" data-target="vista-charts"><i class="fa-solid fa-chart-line"></i> Métricas y Gráficas</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
         </ul>
 
@@ -1105,7 +1104,7 @@
                         <p style="font-size:12px;color:var(--texto-secundario);" id="dash-tipo-badge"></p>
                     </div>
                     <div style="display:flex;align-items:center;gap:8px;">
-                        <button class="btn btn-fantasma btn-xs" title="Ir a Métricas" onclick="irA('vista-charts')"><i class="fa-solid fa-file-lines"></i></button>
+                        <button class="btn btn-fantasma btn-xs" title="Ver gráficas" onclick="setDashTab('anal')"><i class="fa-solid fa-chart-line"></i></button>
                         <button class="btn btn-fantasma btn-xs" title="Exportar reporte" onclick="abrirReporteEjecutivo()"><i class="fa-solid fa-download"></i></button>
                     </div>
                 </div>
@@ -1793,6 +1792,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const TIPOS_PROYECTO = [
         { id: "wellness",    label: "Wellness / Spa" },
         { id: "restaurante", label: "Restaurante / Food" },
+        { id: "personal",    label: "Marca Personal" },
+        { id: "cafeteria",   label: "Cafetería Pre-lanzamiento" },
         { id: "otro",        label: "Otro (genérico)" }
     ];
 
@@ -2200,6 +2201,10 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             if (_tipoMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
+        // Migrate: ensure all projects have moneda field (default MXN)
+        let _monedaMigrated = false;
+        (DB.sucursales||[]).forEach(s => { if (!s.moneda) { s.moneda = 'MXN'; _monedaMigrated = true; } });
+        if (_monedaMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
 
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
         
@@ -2222,13 +2227,25 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    function formatMoneda(monto, moneda) {
+        if (monto === null || monto === undefined || monto === '') return '—';
+        const num = Number(monto);
+        if (isNaN(num)) return '—';
+        const fmt0 = n => n.toLocaleString('es-MX', { minimumFractionDigits:0, maximumFractionDigits:0 });
+        const fmt2 = n => n.toLocaleString('es-MX', { minimumFractionDigits:2, maximumFractionDigits:2 });
+        if (moneda === 'EUR') return `€ ${fmt2(num)}`;
+        if (moneda === 'USD') return `USD ${fmt0(num)}`;
+        return `$${fmt0(num)}`; // MXN default
+    }
+
     function formatDinero(val) {
-        const moneda = DB.configuracion.moneda || 'MXN';
-        const tc = DB.configuracion.tc || {};
+        if (val === null || val === undefined) return '—';
+        const suc = (DB.sucursales||[]).find(s => s.id === SUC_ACTIVA) || {};
+        const moneda = suc.moneda || 'MXN';
+        const tc = DB.configuracion?.tc || {};
         let num = Number(val) || 0;
-        // All stored values are in MXN — convert to selected currency
-        if (moneda !== 'MXN' && tc[moneda]) num = num / tc[moneda];
-        return new Intl.NumberFormat('es-MX', { style: 'currency', currency: moneda, maximumFractionDigits: 0 }).format(num);
+        if (moneda !== 'MXN' && tc[moneda]) num = Math.round(num / tc[moneda]);
+        return formatMoneda(num, moneda);
     }
     
     function guardarBD() {
@@ -2341,12 +2358,26 @@ document.addEventListener('DOMContentLoaded', function() {
         renderTodas();
         // Nav colapsable: init only once
         if (!document.getElementById('nav-tooltip')) initNavCollapse();
+        // Sync moneda selector to active project
+        _sincMonedaSelector();
         // Exchange rate (non-blocking)
         obtenerTipoCambio();
     }
 
-    function cambiarSucursal() { SUC_ACTIVA = document.getElementById('selector-sucursal').value; _adsExpanded = new Set(); _mcExpanded = new Set(); aplicarGradiente(); renderTodas(); }
-    function cambiarMoneda() { DB.configuracion.moneda = document.getElementById('selector-moneda').value; guardarBD(); renderTodas(); }
+    function _sincMonedaSelector() {
+        const sel = document.getElementById('selector-moneda');
+        if (!sel) return;
+        const suc = (DB.sucursales||[]).find(s => s.id === SUC_ACTIVA) || {};
+        sel.value = suc.moneda || 'MXN';
+    }
+    function cambiarSucursal() { SUC_ACTIVA = document.getElementById('selector-sucursal').value; _adsExpanded = new Set(); _mcExpanded = new Set(); _sincMonedaSelector(); aplicarGradiente(); renderTodas(); }
+    function cambiarMoneda() {
+        const m = document.getElementById('selector-moneda').value;
+        DB.configuracion.moneda = m;
+        const suc = (DB.sucursales||[]).find(s => s.id === SUC_ACTIVA);
+        if (suc) suc.moneda = m;
+        guardarBD(); renderTodas();
+    }
     function navegarVista(id) { document.querySelectorAll('.seccion-app').forEach(s=>s.classList.add('oculto')); document.getElementById(id).classList.remove('oculto'); }
 
     /* ====== MODIFICADORES UNIVERSALES (ORIGINAL) ====== */
@@ -2365,7 +2396,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Pauta digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
-        if(lista === 'proveedores') { DB.proveedores.push({nombre:"Nuevo", categoria:"", contacto:"", forma_pago:""}); guardarBD(); renderTodas(); return; }
+        if(lista === 'proveedores') { const _pa=_getProveedores(SUC_ACTIVA); _pa.push({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:""}); _saveProveedores(SUC_ACTIVA,_pa); renderAdministracion(); return; }
         DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); renderTodas();
     }
 
@@ -2715,6 +2746,27 @@ document.addEventListener('DOMContentLoaded', function() {
         return acc;
     }
 
+    // Suma TODAS las entradas del ejecutor sin filtro de periodo — para el total de la tabla
+    function _acumularTodosKPIs() {
+        const todas = DB.datos[SUC_ACTIVA]?.kpi_semanal || [];
+        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, ticket_medio:0 };
+        todas.forEach(s => {
+            acc.clientes_nuevos      += s.clientes_nuevos      || 0;
+            acc.clientes_recurrentes += s.clientes_recurrentes || 0;
+            acc.clientes_recuperados += s.clientes_recuperados || 0;
+            acc.ventas               += s.ventas               || 0;
+            acc.dms                  += s.dms                  || 0;
+        });
+        acc.ventas               = Math.round(acc.ventas);
+        acc.clientes_nuevos      = Math.round(acc.clientes_nuevos);
+        acc.clientes_recurrentes = Math.round(acc.clientes_recurrentes);
+        acc.clientes_recuperados = Math.round(acc.clientes_recuperados);
+        acc.dms                  = Math.round(acc.dms);
+        const conTM = todas.filter(s => (s.ticket_medio||0) > 0);
+        acc.ticket_medio = conTM.length ? Math.round(conTM.reduce((a,s)=>a+(s.ticket_medio||0),0)/conTM.length) : 0;
+        return acc;
+    }
+
     function toggleEjecutor() {
         _ejecutorOpen = !(_ejecutorOpen ?? _canEditKPIs());
         renderEjecutorKPIs();
@@ -2773,14 +2825,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function _actualizarTotalesEjecutor() {
         const row = document.getElementById('ejec-total-row');
         if (!row) return;
-        const acc = _acumularKPIs();
+        const acc = _acumularTodosKPIs();
         const cells = row.cells;
         // cells[0] = colspan=3 "Total acumulado"; rest are KPI values
         if (cells[1]) cells[1].textContent = acc.clientes_nuevos.toLocaleString('es-MX');
         if (cells[2]) cells[2].textContent = acc.clientes_recurrentes.toLocaleString('es-MX');
-        if (cells[3]) cells[3].textContent = acc.clientes_recuperados.toLocaleString('es-MX');
-        if (cells[4]) cells[4].textContent = formatDinero(acc.ventas);
-        if (cells[5]) cells[5].textContent = acc.dms.toLocaleString('es-MX');
+        if (cells[3]) cells[3].textContent = formatDinero(acc.ventas);
+        if (cells[4]) cells[4].textContent = acc.dms.toLocaleString('es-MX');
     }
 
     function renderEjecutorKPIs() {
@@ -2791,7 +2842,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const canEdit = _canEditKPIs();
         const esRest  = getTipoProyecto(SUC_ACTIVA) === 'restaurante';
         const isOpen  = _ejecutorOpen !== null ? _ejecutorOpen : canEdit;
-        const acc     = _acumularKPIs();
+        const acc     = _acumularTodosKPIs();
         const ro      = canEdit ? '' : 'readonly';
         const _isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
@@ -2799,7 +2850,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const inp = (val, key, idx, pre) => canEdit
             ? `<input class="ejecutor-input" value="${val||0}" inputmode="numeric"
                 oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);_renderDashInversion(DB.datos['${SUC_ACTIVA}']);_actualizarTotalesEjecutor();">`
-            : `<span style="display:block;text-align:right;padding:6px 8px;font-weight:600;font-size:13px;">${pre||''}${Number(val||0).toLocaleString('es-MX')}</span>`;
+            : `<span style="display:block;text-align:right;padding:6px 8px;font-weight:600;font-size:13px;">${pre==='$' ? formatDinero(val) : (pre||'')+Number(val||0).toLocaleString('es-MX')}</span>`;
 
         const rows = semanas.map((s, i) => {
             const esMensual = s.tipo === 'mensual' || s.fuente === 'excel_import';
@@ -2839,7 +2890,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${fechaCells}
                 <td>${inp(s.clientes_nuevos,'clientes_nuevos',i,'')}</td>
                 <td>${inp(s.clientes_recurrentes,'clientes_recurrentes',i,'')}</td>
-                <td>${inp(s.clientes_recuperados,'clientes_recuperados',i,'')}</td>
                 <td>${inp(s.ventas,'ventas',i,'$')}</td>
                 <td>${inp(s.dms,'dms',i,'')}</td>
                 ${esRest ? `<td>${inp(s.ticket_medio,'ticket_medio',i,'$')}</td>` : ''}
@@ -2852,7 +2902,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <td colspan="3" style="padding:10px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Total acumulado</td>
             <td style="text-align:right;padding:10px 8px;color:var(--color-primario);">${acc.clientes_nuevos.toLocaleString('es-MX')}</td>
             <td style="text-align:right;padding:10px 8px;color:#34A853;">${acc.clientes_recurrentes.toLocaleString('es-MX')}</td>
-            <td style="text-align:right;padding:10px 8px;color:#4A90D9;">${acc.clientes_recuperados.toLocaleString('es-MX')}</td>
             <td style="text-align:right;padding:10px 8px;color:var(--color-primario);">${formatDinero(acc.ventas)}</td>
             <td style="text-align:right;padding:10px 8px;">${acc.dms.toLocaleString('es-MX')}</td>
             ${esRest ? `<td style="text-align:right;padding:10px 8px;">${formatDinero(acc.ticket_medio)}</td>` : ''}
@@ -2893,7 +2942,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ── Engagement section (Owner + Lanka Team only) ─────────────
         const canEditEng = _canEditKPIs();
-        const formatos = DB.desplegables?.formatos_contenido || ["Reel","Carrusel","Historia","Story"];
+        const formatos = _getFormatos(SUC_ACTIVA);
         const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
         const engData = d.engagement_formato || [];
         const thE = s => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}</th>`;
@@ -2963,7 +3012,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <table class="tabla-editable" style="min-width:700px;">
                         <thead><tr>
                             ${thS('Etiqueta')}${thS('Desde / Mes')}${thS('Hasta')}
-                            ${thS('Nuevos')}${thS('Recurrentes')}${thS('Recuperados')}
+                            ${thS('Nuevos')}${thS('Recurrentes')}
                             ${thS('Ventas')}${thS('DMs')}
                             ${esRest ? thS('Ticket Medio') : ''}
                             ${canEdit ? '<th style="width:28px;"></th>' : ''}
@@ -3192,11 +3241,22 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         const el = document.getElementById('dash-kpis-clientes');
+        const _showRecup = localStorage.getItem('lanka_show_recuperados') === '1';
+        const _canToggleRecup = _canEditKPIs();
+        const _toggleBtn = _canToggleRecup
+            ? `<div style="grid-column:1/-1;text-align:right;margin-top:2px;">
+                <button onclick="localStorage.setItem('lanka_show_recuperados',localStorage.getItem('lanka_show_recuperados')==='1'?'0':'1');_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);"
+                    style="font-size:10px;font-weight:600;color:var(--texto-secundario);background:none;border:none;cursor:pointer;padding:2px 0;text-decoration:underline;text-underline-offset:2px;">
+                    ${_showRecup ? '– Ocultar recuperados' : '+ Ver recuperados'}
+                </button>
+               </div>`
+            : '';
         if (el) el.innerHTML =
-            kpiMini('Clientes nuevos',      'fa-user-plus',        'var(--color-primario)', mNuevos.v2, mNuevos.v1, '',  'nuevos',      false) +
-            kpiMini('Clientes recurrentes', 'fa-rotate',           '#34A853',               mRecurr.v2, mRecurr.v1, '',  'recurrentes', false) +
-            kpiMini('Clientes recuperados', 'fa-heart-circle-plus','#4A90D9',               mRecup.v2,  mRecup.v1,  '',  'recuperados', false) +
-            kpiMini('CAC Real',             'fa-calculator',       '#8B5CF6',               cac,        cacPrev,    '$', 'cac',         true);
+            kpiMini('Clientes nuevos',      'fa-user-plus',  'var(--color-primario)', mNuevos.v2, mNuevos.v1, '',  'nuevos',      false) +
+            kpiMini('Clientes recurrentes', 'fa-rotate',     '#34A853',               mRecurr.v2, mRecurr.v1, '',  'recurrentes', false) +
+            (_showRecup ? kpiMini('Clientes recuperados', 'fa-heart-circle-plus','#4A90D9', mRecup.v2, mRecup.v1, '', 'recuperados', false) : '') +
+            kpiMini('CAC Real',             'fa-calculator', '#8B5CF6',               cac,        cacPrev,    '$', 'cac',         true) +
+            _toggleBtn;
     }
 
     function _renderDashInversion(d) {
@@ -4085,6 +4145,167 @@ document.addEventListener('DOMContentLoaded', function() {
         }).join('');
     }
 
+    // ── Presets por tipo de proyecto ────────────────────────────────
+    const _FORMATOS_PRESET = {
+        wellness:   ['Reel','Carrusel','Historia','Story','ASMR','BTS','Educativo','Testimonio'],
+        restaurante:['Reel','Carrusel','Historia','Story','BTS','Menú','Promoción','Reseña'],
+        personal:   ['Reel','Carrusel','Historia','Story','Opinión','Caso de éxito','Behind the scenes','Educativo'],
+        cafeteria:  ['Reel','Carrusel','Historia','Story','Teaser','Countdown','Behind the scenes'],
+        otro:       ['Reel','Carrusel','Historia','Story','BTS']
+    };
+    const _SERVICIOS_PRESET = {
+        wellness:   ['Head Spa','Facial Clínico','Masaje Terapéutico','Body Reset','Age Element Mesoestétic','Ainhoa CBD','Consulta'],
+        restaurante:['Pizza','Bebida','Postre','Entrada','Combo','Promoción'],
+        personal:   ['Consultoría','Conferencia','Mentoría','Contenido patrocinado'],
+        cafeteria:  ['Café','Bebida','Alimento','Merchandise'],
+        otro:       ['Servicio','Producto']
+    };
+
+    // ── Per-project data helpers ────────────────────────────────────
+    function _getProveedores(sucId) {
+        try { const s=localStorage.getItem('proveedores_'+sucId); if(s) return JSON.parse(s); } catch(e){}
+        if ((DB.proveedores||[]).length>0) {
+            const arr=JSON.parse(JSON.stringify(DB.proveedores));
+            localStorage.setItem('proveedores_'+sucId,JSON.stringify(arr));
+            return arr;
+        }
+        return [];
+    }
+    function _saveProveedores(sucId,arr) { localStorage.setItem('proveedores_'+sucId,JSON.stringify(arr)); }
+
+    function _getFormatos(sucId) {
+        try { const s=localStorage.getItem('config_formatos_'+sucId); if(s) return JSON.parse(s); } catch(e){}
+        const tipo=getTipoProyecto(sucId);
+        return (_FORMATOS_PRESET[tipo]||_FORMATOS_PRESET.otro).slice();
+    }
+    function _saveFormatos(sucId,arr) {
+        localStorage.setItem('config_formatos_'+sucId,JSON.stringify(arr));
+        if (DB.desplegables) DB.desplegables.formatos_contenido=arr.slice();
+        guardarBD();
+    }
+
+    function _getServicios(sucId) {
+        try { const s=localStorage.getItem('config_servicios_'+sucId); if(s) return JSON.parse(s); } catch(e){}
+        const tipo=getTipoProyecto(sucId);
+        return (_SERVICIOS_PRESET[tipo]||_SERVICIOS_PRESET.otro).slice();
+    }
+    function _saveServicios(sucId,arr) { localStorage.setItem('config_servicios_'+sucId,JSON.stringify(arr)); }
+
+    // ── Config list: drag state ─────────────────────────────────────
+    let _cfgDragIdx=null, _cfgDragType=null;
+    let _cfgEditIdx=null, _cfgEditType=null;
+
+    function _cfgDragStart(type,idx){ _cfgDragIdx=idx; _cfgDragType=type; }
+    function _cfgDragDrop(type,idx){
+        if(_cfgDragIdx===null||_cfgDragType!==type||_cfgDragIdx===idx) return;
+        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):type==='servicios'?_getServicios(SUC_ACTIVA):_getProveedores(SUC_ACTIVA);
+        const [m]=arr.splice(_cfgDragIdx,1); arr.splice(idx,0,m);
+        if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr);
+        else if(type==='servicios') _saveServicios(SUC_ACTIVA,arr);
+        else _saveProveedores(SUC_ACTIVA,arr);
+        _cfgDragIdx=null; renderAdministracion();
+    }
+    function _cfgDeleteItem(type,idx){
+        if(!confirm('¿Eliminar este elemento?')) return;
+        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):type==='servicios'?_getServicios(SUC_ACTIVA):_getProveedores(SUC_ACTIVA);
+        arr.splice(idx,1);
+        if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr);
+        else if(type==='servicios') _saveServicios(SUC_ACTIVA,arr);
+        else _saveProveedores(SUC_ACTIVA,arr);
+        renderAdministracion();
+    }
+    function _cfgAddItem(type){
+        const el=document.getElementById('cfg-add-input-'+type); if(!el||!el.value.trim()) return;
+        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):_getServicios(SUC_ACTIVA);
+        arr.push(el.value.trim());
+        if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr); else _saveServicios(SUC_ACTIVA,arr);
+        renderAdministracion();
+    }
+    function _cfgSaveEdit(type,idx){
+        const el=document.getElementById('cfg-edit-input-'+type+'-'+idx); if(!el) return;
+        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):_getServicios(SUC_ACTIVA);
+        if(arr[idx]!==undefined){ arr[idx]=el.value.trim()||arr[idx]; if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr); else _saveServicios(SUC_ACTIVA,arr); }
+        _cfgEditIdx=null; _cfgEditType=null; renderAdministracion();
+    }
+    function _cfgCancelEdit(){ _cfgEditIdx=null; _cfgEditType=null; renderAdministracion(); }
+    function _cfgStartEdit(type,idx){ _cfgEditIdx=idx; _cfgEditType=type; renderAdministracion(); }
+
+    function _renderConfigLista(title, items, type, isOwner, sucNombre) {
+        const list = items.map((item,i)=>{
+            const isEditing = _cfgEditType===type && _cfgEditIdx===i;
+            if(isEditing) return `<div style="display:flex;align-items:center;gap:6px;padding:6px;border-radius:8px;background:var(--color-fondo);margin-bottom:5px;">
+                <input id="cfg-edit-input-${type}-${i}" class="input-celda" value="${item}" style="flex:1;border:1px solid var(--color-primario);border-radius:6px;padding:6px 10px;">
+                <button class="btn btn-xs btn-primario" onclick="_cfgSaveEdit('${type}',${i})">✓</button>
+                <button class="btn btn-xs btn-fantasma" onclick="_cfgCancelEdit()">✕</button>
+            </div>`;
+            return `<div draggable="true" ondragstart="_cfgDragStart('${type}',${i})" ondragover="event.preventDefault()" ondrop="_cfgDragDrop('${type}',${i})"
+                style="display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:8px;border:1px solid var(--color-borde);background:var(--color-tarjeta);cursor:grab;margin-bottom:5px;user-select:none;">
+                <i class="fa-solid fa-grip-vertical" style="color:var(--texto-secundario);font-size:10px;flex-shrink:0;"></i>
+                <span style="flex:1;font-size:13px;font-weight:600;">${item}</span>
+                ${isOwner?`<button class="btn btn-xs btn-fantasma" style="padding:2px 7px;" onclick="_cfgStartEdit('${type}',${i})"><i class="fa-solid fa-pen" style="font-size:10px;"></i></button>`:''}
+                ${isOwner?`<button class="btn btn-xs btn-fantasma" style="padding:2px 7px;color:var(--color-peligro);" onclick="_cfgDeleteItem('${type}',${i})"><i class="fa-solid fa-times" style="font-size:10px;"></i></button>`:''}
+            </div>`;
+        }).join('');
+        const addRow = isOwner ? `<div style="display:flex;gap:8px;margin-top:8px;">
+            <input id="cfg-add-input-${type}" class="input-celda" placeholder="Nuevo valor..." style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:7px 12px;"
+                onkeydown="if(event.key==='Enter')_cfgAddItem('${type}')">
+            <button class="btn btn-xs btn-primario" onclick="_cfgAddItem('${type}')"><i class="fa-solid fa-plus"></i> Agregar</button>
+        </div>` : '';
+        return `<div style="margin-bottom:24px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">${title}</b>
+                <span style="font-size:10px;font-weight:700;color:var(--texto-secundario);padding:2px 7px;border-radius:100px;background:var(--color-borde-fuerte);">${items.length}</span>
+                <span style="font-size:11px;color:var(--color-primario);font-weight:600;">· ${sucNombre}</span>
+            </div>
+            <div>${list}</div>
+            ${addRow}
+        </div>`;
+    }
+
+    // ── Tipos de Proyecto globales ───────────────────────────────────
+    const _TIPOS_BASE_IDS = ['wellness','restaurante','personal','cafeteria','otro'];
+    function _getTiposProyectoCustom() {
+        try { return JSON.parse(localStorage.getItem('tipos_proyecto_global')||'[]'); } catch(e){ return []; }
+    }
+    function _getTiposProyectoAll() {
+        return [...TIPOS_PROYECTO, ..._getTiposProyectoCustom()];
+    }
+    function renderTiposProyecto() {
+        const el=document.getElementById('cfg-tipos-proyecto'); if(!el) return;
+        const isOwner=USUARIO_ACTIVO&&USUARIO_ACTIVO.rol_id==='owner'&&!ROL_SIMULADO;
+        const todos=_getTiposProyectoAll();
+        const rows=todos.map(t=>{
+            const base=_TIPOS_BASE_IDS.includes(t.id);
+            const enUso=(DB.sucursales||[]).some(s=>s.tipo===t.id);
+            return `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;border:1px solid var(--color-borde);background:var(--color-tarjeta);margin-bottom:6px;">
+                <span style="flex:1;font-size:13px;font-weight:600;">${t.label}</span>
+                ${base?`<span style="font-size:10px;font-weight:700;color:var(--texto-secundario);padding:2px 8px;border-radius:100px;border:1px solid var(--color-borde);">Base</span>`:''}
+                ${enUso?`<span style="font-size:10px;font-weight:700;color:var(--color-primario);padding:2px 8px;border-radius:100px;background:rgba(196,133,90,.1);">En uso</span>`:''}
+                ${isOwner&&!base?`<button class="btn btn-xs btn-peligro-suave" onclick="_deleteTipoProyecto('${t.id}',${enUso})" style="padding:3px 8px;"><i class="fa-solid fa-trash" style="font-size:10px;"></i></button>`:''}
+            </div>`;
+        }).join('');
+        const addForm = isOwner ? `<div style="display:flex;gap:8px;margin-top:10px;">
+            <input id="cfg-new-tipo" class="input-celda" placeholder="Nombre del nuevo tipo..." style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:7px 12px;" onkeydown="if(event.key==='Enter')_addTipoProyecto()">
+            <button class="btn btn-xs btn-primario" onclick="_addTipoProyecto()"><i class="fa-solid fa-plus"></i> Agregar tipo</button>
+        </div>` : '';
+        el.innerHTML=rows+addForm;
+    }
+    function _addTipoProyecto(){
+        const el=document.getElementById('cfg-new-tipo'); if(!el||!el.value.trim()) return;
+        const custom=_getTiposProyectoCustom();
+        const id='tipo_'+Date.now();
+        custom.push({id,label:el.value.trim()});
+        localStorage.setItem('tipos_proyecto_global',JSON.stringify(custom));
+        renderTiposProyecto();
+    }
+    function _deleteTipoProyecto(id,enUso){
+        if(enUso){ alert('No se puede eliminar: hay proyectos usando este tipo.'); return; }
+        if(!confirm('¿Eliminar este tipo de proyecto?')) return;
+        const custom=_getTiposProyectoCustom().filter(t=>t.id!==id);
+        localStorage.setItem('tipos_proyecto_global',JSON.stringify(custom));
+        renderTiposProyecto();
+    }
+
     function renderAdministracion() {
         document.getElementById('contenedor-clientes').innerHTML = DB.sucursales.map((s, i) => {
             let decodedPwd = ''; try { decodedPwd = atob(s.password); } catch(e) { decodedPwd = s.password; }
@@ -4134,30 +4355,80 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Define qué métricas aparecen en el Dashboard.</div>
                 </div>
                 <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="border:1px solid var(--color-borde);font-family:monospace;margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div>
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:6px;">MONEDA</label>
+                    <select class="select-celda" style="border:1px solid var(--color-borde);width:100%;border-radius:8px;padding:8px 12px;font-weight:600;"
+                        onchange="DB.sucursales[${i}].moneda=this.value;guardarBD();if('${s.id}'===SUC_ACTIVA){_sincMonedaSelector();renderTodas();}">
+                        ${['MXN','USD','EUR'].map(m=>`<option value="${m}"${(s.moneda||'MXN')===m?' selected':''}>${m === 'MXN' ? 'MXN — Pesos mexicanos ($)' : m === 'USD' ? 'USD — Dólares (USD)' : 'EUR — Euros (€)'}</option>`).join('')}
+                    </select>
+                    <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Afecta todos los montos mostrados en este proyecto.</div>
+                </div>
                 <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0;font-family:monospace;font-weight:700;text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>
                 ${_logoSection}
                 ${equipoSection}
             </div>`;
         }).join('');
-        document.getElementById('tabla-proveedores').innerHTML = DB.proveedores.map((p,i) => {
+        // ── Proveedores (per project) ──────────────────────────────
+        const _provs = _getProveedores(SUC_ACTIVA);
+        document.getElementById('tabla-proveedores').innerHTML = _provs.map((p,i) => {
             let catP = DB.desplegables.cat_proveedor.map(c=>`<option ${c===p.categoria?'selected':''}>${c}</option>`).join('');
-            return `<tr><td><input class="input-celda" style="font-weight:700;" value="${p.nombre}" onchange="DB.proveedores[${i}].nombre=this.value; guardarBD();"></td><td><select class="select-celda" onchange="DB.proveedores[${i}].categoria=this.value; guardarBD();">${catP}</select></td><td><input class="input-celda" value="${p.contacto}" onchange="DB.proveedores[${i}].contacto=this.value; guardarBD();"></td><td><input class="input-celda" value="${p.forma_pago}" onchange="DB.proveedores[${i}].forma_pago=this.value; guardarBD();"></td><td><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="DB.proveedores.splice(${i},1); guardarBD(); renderTodas();"></i></td></tr>`;
+            return `<tr>
+                <td><input class="input-celda" style="font-weight:700;" value="${p.nombre||''}" onchange="const _pa=_getProveedores('${SUC_ACTIVA}');_pa[${i}].nombre=this.value;_saveProveedores('${SUC_ACTIVA}',_pa);"></td>
+                <td><select class="select-celda" onchange="const _pa=_getProveedores('${SUC_ACTIVA}');_pa[${i}].categoria=this.value;_saveProveedores('${SUC_ACTIVA}',_pa);">${catP}</select></td>
+                <td><input class="input-celda" value="${p.contacto||''}" onchange="const _pa=_getProveedores('${SUC_ACTIVA}');_pa[${i}].contacto=this.value;_saveProveedores('${SUC_ACTIVA}',_pa);"></td>
+                <td><input class="input-celda" value="${p.forma_pago||''}" onchange="const _pa=_getProveedores('${SUC_ACTIVA}');_pa[${i}].forma_pago=this.value;_saveProveedores('${SUC_ACTIVA}',_pa);"></td>
+                <td><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="_cfgDeleteItem('proveedores',${i})"></i></td>
+            </tr>`;
         }).join('');
-        let confHTML = '';
-        for(let k in DB.desplegables) {
-            confHTML += `<div style="margin-bottom:24px;"><b style="font-family:var(--font-display); font-size:14px; text-transform:uppercase;">${k.replace('_', ' ')}</b> <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">`;
-            DB.desplegables[k].forEach((val, vi) => { confHTML += `<span class="tag gris" style="color:var(--texto-principal); background:var(--color-tarjeta); border:1px solid var(--color-borde); padding:6px 12px; font-size:12px;">${val} <i class="fa-solid fa-times" style="margin-left:8px; color:#ccc; cursor:pointer;" onclick="DB.desplegables['${k}'].splice(${vi},1); guardarBD(); renderTodas();"></i></span>`; });
-            confHTML += `<button class="btn btn-xs btn-fantasma" onclick="let n = prompt('Nuevo valor:'); if(n) { DB.desplegables['${k}'].push(n); guardarBD(); renderTodas(); }">+ Añadir</button></div></div>`;
-        }
+
+        // ── Config por proyecto (Formatos + Servicios) + Global ──────
         const _isOwnerForConfig = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+        const _sucNombre = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).nombre || 'proyecto';
+        const _formatos = _getFormatos(SUC_ACTIVA);
+        const _servicios = _getServicios(SUC_ACTIVA);
+
+        let confHTML = '';
+        // Secciones por proyecto
+        confHTML += _renderConfigLista('Formatos de Contenido', _formatos, 'formatos', _isOwnerForConfig, _sucNombre);
+        confHTML += _renderConfigLista('Servicios / Productos', _servicios, 'servicios', _isOwnerForConfig, _sucNombre);
+
+        // Variables globales restantes (excluir formatos_contenido y productos — ahora son por proyecto)
+        const _GLOBAL_KEYS = ['estado_factura','emociones','cat_proveedor','sexo','nivel'];
+        confHTML += `<div style="margin-bottom:24px;padding-top:20px;border-top:1px solid var(--color-borde);">
+            <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;color:var(--texto-secundario);">Variables globales</b>
+        </div>`;
+        _GLOBAL_KEYS.forEach(k => {
+            if (!DB.desplegables[k]) return;
+            confHTML += `<div style="margin-bottom:18px;"><b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">${k.replace(/_/g,' ')}</b>
+            <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">`;
+            DB.desplegables[k].forEach((val,vi) => {
+                confHTML += `<span class="tag gris" style="color:var(--texto-principal);background:var(--color-tarjeta);border:1px solid var(--color-borde);padding:6px 12px;font-size:12px;">${val}
+                    ${_isOwnerForConfig?`<i class="fa-solid fa-times" style="margin-left:8px;color:#ccc;cursor:pointer;" onclick="DB.desplegables['${k}'].splice(${vi},1);guardarBD();renderAdministracion();"></i>`:''}
+                </span>`;
+            });
+            confHTML += _isOwnerForConfig ? `<button class="btn btn-xs btn-fantasma" onclick="const n=prompt('Nuevo valor:');if(n){DB.desplegables['${k}'].push(n);guardarBD();renderAdministracion();}">+ Añadir</button>` : '';
+            confHTML += `</div></div>`;
+        });
+
+        // Tipos de proyecto (global)
+        confHTML += `<div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--color-borde);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Tipos de Proyecto</b>
+                <span style="font-size:11px;color:var(--texto-secundario);">Global · todos los proyectos</span>
+            </div>
+            <div id="cfg-tipos-proyecto"></div>
+        </div>`;
+
+        // Zona de peligro
         if (_isOwnerForConfig) {
             confHTML += `<div style="margin-top:32px;padding-top:24px;border-top:2px solid var(--color-borde);">
                 <div style="font-family:var(--font-display);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Zona de peligro</div>
-                <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:16px;line-height:1.6;">Elimina todos los datos operativos (KPIs, presupuesto, kanban, ads, métricas) de todos los proyectos.<br>No elimina usuarios, roles, permisos ni configuración.</p>
+                <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:16px;line-height:1.6;">Elimina todos los datos operativos de todos los proyectos. No elimina usuarios, roles ni configuración.</p>
                 <button class="btn btn-peligro-suave" onclick="limpiarDatosPrueba()"><i class="fa-solid fa-trash-can" style="margin-right:6px;"></i>Limpiar datos de prueba</button>
             </div>`;
         }
         document.getElementById('contenedor-config').innerHTML = confHTML;
+        renderTiposProyecto();
     }
 
     function limpiarDatosPrueba() {
