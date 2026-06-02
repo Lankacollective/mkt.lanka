@@ -375,11 +375,14 @@
        ================================================================ */
 
     /* Transición suave solo durante el cambio de tema */
+    /* Solo color y border transicionan — background y box-shadow hacen snap
+       para evitar que backdrop-filter recalcule en GPU cada frame */
     html.tema-transitioning,
     html.tema-transitioning * {
-        transition: background-color 0.4s ease, background 0.4s ease,
-                    border-color 0.35s ease, color 0.3s ease,
-                    box-shadow 0.4s ease !important;
+        transition: color 0.25s ease, border-color 0.25s ease !important;
+    }
+    html.tema-transitioning body {
+        transition: background 0.3s ease !important;
     }
 
     /* ── LIGHT MODE — Frosted Glass Cálido ── */
@@ -1208,7 +1211,7 @@
                 <div id="dash-tab-anal-content" style="display:none;">
                     <div class="dash-grid-2x2" style="margin-bottom:18px;">
                         <div class="glass-card" style="padding:20px;">
-                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Mix de servicios</h3>
+                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Mix de contenido</h3>
                             <div style="position:relative;height:200px;"><canvas id="dash-chart-mix"></canvas></div>
                         </div>
                         <div class="glass-card" style="padding:20px;">
@@ -1892,12 +1895,15 @@ function toggleTema() {
     localStorage.setItem('lanka_tema', nuevo);
     var icon = document.getElementById('icon-tema');
     if (icon) icon.className = nuevo === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
-    setTimeout(function() { html.classList.remove('tema-transitioning'); }, 450);
     aplicarGradiente();
-    var chartsEl = document.getElementById('vista-charts');
-    if (chartsEl && !chartsEl.classList.contains('oculto') && typeof renderCharts === 'function') renderCharts();
-    var dashEl = document.getElementById('vista-resumen');
-    if (dashEl && !dashEl.classList.contains('oculto') && typeof renderEjecutorKPIs === 'function') renderEjecutorKPIs();
+    // Diferir re-renders al finalizar la transición CSS para evitar layout shift
+    setTimeout(function() {
+        html.classList.remove('tema-transitioning');
+        var chartsEl = document.getElementById('vista-charts');
+        if (chartsEl && !chartsEl.classList.contains('oculto') && typeof renderCharts === 'function') renderCharts();
+        var dashEl = document.getElementById('vista-resumen');
+        if (dashEl && !dashEl.classList.contains('oculto') && typeof renderEjecutorKPIs === 'function') renderEjecutorKPIs();
+    }, 280);
 }
 
 var _BG_PRESETS = {
@@ -3095,6 +3101,14 @@ document.addEventListener('DOMContentLoaded', function() {
         renderEjecutorKPIs();
     }
 
+    function _actualizarErCelda(ei) {
+        const e = (DB.datos[SUC_ACTIVA].engagement_formato||[])[ei];
+        if (!e) return;
+        const er = e.alcance > 0 ? (e.interacciones/e.alcance*100).toFixed(2) : '0.00';
+        const cell = document.getElementById('er-cell-' + ei);
+        if (cell) cell.textContent = er + '%';
+    }
+
     function _actualizarTotalesEjecutor() {
         const row = document.getElementById('ejec-total-row');
         if (!row) return;
@@ -3230,10 +3244,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td style="padding:6px 8px;"><input type="date" class="ejecutor-input" style="text-align:left;" value="${e.fecha||''}"
                         onchange="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].fecha=this.value;guardarBD();"></td>
                     <td><input class="ejecutor-input" value="${e.alcance||0}" inputmode="numeric"
-                        oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].alcance=Number(this.value)||0;guardarBD();renderEjecutorKPIs();"></td>
+                        oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].alcance=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();_actualizarErCelda(${ei});"
+                        onchange="renderEjecutorKPIs();"></td>
                     <td><input class="ejecutor-input" value="${e.interacciones||0}" inputmode="numeric"
-                        oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].interacciones=Number(this.value)||0;guardarBD();renderEjecutorKPIs();"></td>
-                    <td style="text-align:right;padding:10px 8px;font-weight:700;color:var(--color-primario);">${er}%</td>
+                        oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].interacciones=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();_actualizarErCelda(${ei});"
+                        onchange="renderEjecutorKPIs();"></td>
+                    <td id="er-cell-${ei}" style="text-align:right;padding:10px 8px;font-weight:700;color:var(--color-primario);">${er}%</td>
                     <td style="padding:6px 4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;"
                         onclick="DB.datos['${SUC_ACTIVA}'].engagement_formato.splice(${ei},1);guardarBD();renderEjecutorKPIs();"></i></td>
                 </tr>`;
@@ -3794,10 +3810,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const _CT = _projectTones || { base:{rgb:'196,133,90'}, light:{rgb:'215,166,133'}, dark:{rgb:'147,100,68'} };
         const COLORS = [`rgba(${_CT.base.rgb},.8)`,`rgba(${_CT.light.rgb},.8)`,`rgba(${_CT.dark.rgb},.8)`,'rgba(251,188,5,.8)','rgba(52,168,83,.8)','rgba(234,67,53,.8)'];
 
-        // Chart 1: Mix de servicios — fuente: kpi_semanal[].servicios_clientes
-        const _srvCount={};
-        (d.kpi_semanal||[]).forEach(s=>(s.servicios_clientes||[]).forEach(sv=>{if(sv)_srvCount[sv]=(_srvCount[sv]||0)+1;}));
-        const _srvEntries=Object.entries(_srvCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+        // Chart 1: Mix de contenido — fuente: kanban[].tags
+        const tagC={};
+        (d.kanban||[]).forEach(k=>(k.tags||'').split(',').forEach(t=>{const s=t.trim();if(s)tagC[s]=(tagC[s]||0)+1;}));
+        const _srvEntries=Object.entries(tagC).sort((a,b)=>b[1]-a[1]).slice(0,8);
         destroyChart('dash-chart-mix');
         const c1=document.getElementById('dash-chart-mix');
         if(c1){
@@ -3811,7 +3827,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const em=document.createElement('div');
                 em.className='mix-empty';
                 em.style.cssText='display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--texto-secundario);font-size:11px;line-height:1.5;padding:12px;';
-                em.textContent='Agrega el servicio por cliente en el Ejecutor de KPIs para ver este gráfico';
+                em.textContent='Agrega tags a tus publicaciones en el Calendario para ver este gráfico';
                 wrap.appendChild(em);
             }
         }
@@ -3839,9 +3855,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const fmts=Object.keys(engByFmt).slice(0,4);
         destroyChart('dash-chart-eng');
         const c4=document.getElementById('dash-chart-eng');
-        if (c4 && fmts.length>0) {
-            const maxLen=Math.max(...fmts.map(f=>engByFmt[f].length));
-            _charts['dash-chart-eng']=new Chart(c4,{type:'line',data:{labels:Array.from({length:maxLen},(_,i)=>`S${i+1}`),datasets:fmts.map((fmt,ci)=>({label:fmt,data:engByFmt[fmt],borderColor:COLORS[ci],backgroundColor:'transparent',tension:.4,pointRadius:3}))},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:{position:'bottom',labels:legDef.labels}}}});
+        if(c4){
+            if(fmts.length>0){
+                c4.style.display='';
+                const maxLen=Math.max(...fmts.map(f=>engByFmt[f].length));
+                _charts['dash-chart-eng']=new Chart(c4,{type:'line',data:{labels:Array.from({length:maxLen},(_,i)=>`S${i+1}`),datasets:fmts.map((fmt,ci)=>({label:fmt,data:engByFmt[fmt],borderColor:COLORS[ci],backgroundColor:'transparent',tension:.4,pointRadius:3}))},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:{position:'bottom',labels:legDef.labels}}}});
+            } else {
+                c4.style.display='none';
+                const em4=c4.parentElement.querySelector('.eng-empty');
+                if(!em4){const e=document.createElement('div');e.className='eng-empty';e.style.cssText='display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--texto-secundario);font-size:11px;line-height:1.5;padding:12px;';e.textContent='Agrega registros de Engagement en el Ejecutor de KPIs para ver este gráfico';c4.parentElement.appendChild(e);}
+            }
         }
     }
 
@@ -4129,7 +4152,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function _syncAdsToPresupuesto() {
         const d = DB.datos[SUC_ACTIVA];
         if (!d || !d.ads || !d.presupuesto) return;
-        // Acumular inversión de campañas Activas por mes
         const invPorMes = Array(12).fill(0);
         d.ads.forEach(a => {
             if ((a.estado === 'Activa' || a.estado === 'activa') && (a.inversion||0) > 0) {
@@ -4139,13 +4161,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (mi >= 0 && mi <= 11) invPorMes[mi] += Number(a.inversion)||0;
             }
         });
-        // Actualizar campo real del primer ítem de tipo Pauta digital
+        // Solo sincronizar si hay campañas activas con inversión — no sobreescribir
+        // valores manuales cuando no hay datos de ads
+        const hayAdsActivas = invPorMes.some(v => v > 0);
+        if (!hayAdsActivas) return;
         const pautaItem = d.presupuesto.find(p => p.tipo === 'Pauta digital');
         if (!pautaItem) return;
         let changed = false;
         (pautaItem.montos_mes || []).forEach((m, mi) => {
-            const nuevo = Math.round(invPorMes[mi]);
-            if ((m.real||0) !== nuevo) { m.real = nuevo; changed = true; }
+            if (invPorMes[mi] > 0) {
+                const nuevo = Math.round(invPorMes[mi]);
+                if ((m.real||0) !== nuevo) { m.real = nuevo; changed = true; }
+            }
         });
         if (changed) guardarBD();
     }
@@ -4218,9 +4245,9 @@ document.addEventListener('DOMContentLoaded', function() {
             p.montos_mes.forEach((m, mIdx) => {
                 const _real = m.real||0; const _inv = m.inversion||0;
                 const _rc = _real===0?'var(--texto-secundario)':(_real>_inv?'#EA4335':'#15803D');
-                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;font-weight:600;text-align:right;" value="${_inv}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
-                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;font-weight:600;text-align:right;color:${_rc};" value="${_real}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].real=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
-                h += `<td style="border-right:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
+                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;font-weight:600;text-align:right;" value="${_inv}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].inversion=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></td>`;
+                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;font-weight:600;text-align:right;color:${_rc};" value="${_real}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].real=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></td>`;
+                h += `<td style="border-right:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].colaboracion=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></td>`;
             });
             h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:700;white-space:nowrap;font-size:13px;">${formatDinero(rowTotal)}</td>`;
             if (!ro) h += `<td style="width:32px;text-align:center;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`;
@@ -4367,15 +4394,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 totColCol[ci]  += mm.colaboracion||0;
                 h += `<td style="border-left:1px solid var(--color-borde);">
                           <input type="text" inputmode="numeric" class="input-celda" style="font-weight:600;text-align:right;" value="${_iv}" ${ro}
-                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()">
+                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].inversion=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()">
                       </td>
                       <td>
                           <input type="text" inputmode="numeric" class="input-celda" style="font-weight:600;text-align:right;color:${_rc};" value="${_r}" ${ro}
-                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].real=Number(this.value)||0;guardarBD();renderPresupuesto()">
+                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].real=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()">
                       </td>
                       <td style="border-right:1px solid var(--color-borde);">
                           <input type="text" inputmode="numeric" class="input-celda" style="color:var(--texto-secundario);text-align:right;" value="${mm.colaboracion||0}" ${ro}
-                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()">
+                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].colaboracion=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()">
                       </td>`;
             });
             h += `<td style="border-left:2px solid var(--color-borde-fuerte);font-weight:700;text-align:right;white-space:nowrap;">${formatDinero(rowTotal)}</td>
