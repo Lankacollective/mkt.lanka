@@ -1140,7 +1140,6 @@
                         <div class="glass-card-solid" style="padding:20px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;z-index:2;">
                                 <h3 style="font-size:14px;margin:0;">Resultados del periodo</h3>
-                                <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('rendimiento')"><i class="fa-solid fa-plus"></i> KPI</button>
                             </div>
                             <div class="dash-kpi-mini-grid" id="dash-kpis-clientes"></div>
                             <div id="dash-trend-svg" style="margin-top:4px;"></div>
@@ -1158,7 +1157,10 @@
                         <!-- Col 1: Variación de métricas -->
                         <div class="glass-card-solid" style="padding:20px;">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;position:relative;z-index:2;">
-                                <h3 style="font-size:14px;margin:0;">Variación de métricas</h3>
+                                <div>
+                                    <h3 style="font-size:14px;margin:0 0 2px;">Variación de métricas</h3>
+                                    <span id="dash-variacion-label" style="font-size:11px;color:var(--texto-secundario);font-weight:600;"></span>
+                                </div>
                                 <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('rendimiento')"><i class="fa-solid fa-plus"></i> Métrica</button>
                             </div>
                             <div style="overflow-x:auto;">
@@ -1209,6 +1211,7 @@
 
                 <!-- ══ TAB ANALÍTICO ══════════════════════════════════ -->
                 <div id="dash-tab-anal-content" style="display:none;">
+                    <div class="glass-card" id="dash-mix-servicios" style="padding:18px;margin-bottom:18px;"></div>
                     <div class="dash-grid-2x2" style="margin-bottom:18px;">
                         <div class="glass-card" style="padding:20px;">
                             <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Mix de contenido</h3>
@@ -1967,6 +1970,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const MESES = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
 
     const INVERSION_CATEGORIAS = [
+        { id:"honorarios",         label:"Honorarios de agencia", tipo:"Honorarios de agencia",  color:"#6B7280", icon:"fa-file-invoice-dollar" },
         { id:"pauta_digital",      label:"Pauta Digital",         tipo:"Pauta digital",          color:"#C4855A", icon:"fa-bullhorn" },
         { id:"materiales_offline", label:"Materiales Offline",    tipo:"Materiales offline",     color:"#4A90D9", icon:"fa-print" },
         { id:"produccion",         label:"Producción Contenido",  tipo:"Producción de contenido",color:"#8B5CF6", icon:"fa-camera" },
@@ -2034,7 +2038,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ],
         datos: {
             aitama: {
-                highlights: [{ label: "Total Sales", val: "$12.5k" }, { label: "New Followers", val: "+840" }, { label: "Total DMs", val: "1.2k" }],
+                highlights: [{ label: "Ventas totales", val: "$12.5k" }, { label: "Seguidores nuevos", val: "+840" }, { label: "Total DMs", val: "1.2k" }],
                 rendimiento: [
                     { m: "Clientes nuevos",          v1:18,    v2:24,    pre:"",  meta:"30"    },
                     { m: "Clientes recurrentes",     v1:42,    v2:48,    pre:"",  meta:"50"    },
@@ -2059,6 +2063,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ],
                 dam: [ { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, url: "", historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } ],
                 presupuesto: [
+                    { categoria:"Lanka",          item:"Honorarios de agencia", tipo:"Honorarios de agencia",  montos_mes:Array.from({length:12},()=>({inversion:8000,colaboracion:0})) },
                     { categoria:"Meta Ads",       item:"Pauta Meta/Instagram",  tipo:"Pauta digital",          montos_mes:Array.from({length:12},()=>({inversion:2400,colaboracion:0})) },
                     { categoria:"Google",          item:"Google Ads",            tipo:"Pauta digital",          montos_mes:Array.from({length:12},()=>({inversion:0,  colaboracion:0})) },
                     { categoria:"Impresos",        item:"Tent Cards y Menús",    tipo:"Materiales offline",     montos_mes:Array.from({length:12},()=>({inversion:540, colaboracion:0})) },
@@ -2702,6 +2707,7 @@ document.addEventListener('DOMContentLoaded', function() {
         _renderDashObjetivos(d);
         // Origen de clientas
         _renderDashOrigen(d);
+        _renderDashMixServicios(d);
         // Engagement por formato
         _renderDashEngagement(d);
         // Trend SVG
@@ -2720,6 +2726,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const _thAct = document.getElementById('th-periodo-actual');
         if (_thAnt) _thAnt.textContent = _pAnt ? _labelPeriodoFechas(_pAnt.desde, _pAnt.hasta) : 'Periodo anterior';
         if (_thAct) _thAct.textContent = _labelPeriodoFechas(_pAct.desde || '', _pAct.hasta || '');
+        const _labelComp = document.getElementById('dash-variacion-label');
+        if (_labelComp) _labelComp.textContent = _pAnt
+            ? `${_labelPeriodoFechas(_pAct.desde||'',_pAct.hasta||'')} vs ${_labelPeriodoFechas(_pAnt.desde,_pAnt.hasta)}`
+            : '';
         const _metaRo = !_canEditKPIs();
         const _fmtVal = (v, pre) => v != null ? (pre === '$' ? formatDinero(v) : (pre||'') + Number(v).toLocaleString('es-MX')) : '—';
         const _rend = document.getElementById('dash-rendimiento');
@@ -2728,7 +2738,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const v1 = _getAutoValor(r.m, _accAnt);
             const pct = (v1 != null && v2 != null && v1 > 0) ? ((v2-v1)/v1*100).toFixed(1) : null;
             const isTime = r.m.toLowerCase().includes('time') || r.m.toLowerCase().includes('tiempo');
-            let badge = pct === null ? `<span style="color:var(--texto-secundario);font-size:12px;">—</span>` :
+            let badge = pct === null ? (v1 === null
+                ? `<span style="color:var(--texto-secundario);font-size:12px;cursor:help;" title="Sin datos del período anterior para comparar">—</span>`
+                : `<span style="color:var(--texto-secundario);font-size:12px;">—</span>`) :
                 +pct === 0 ? `<span class="var-badge" style="background:var(--color-borde-fuerte);color:var(--texto-secundario);">0%</span>` :
                 isTime ? (+pct<0 ? `<span class="var-badge var-positive">↓ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↑ ${Math.abs(pct)}%</span>`) :
                 (+pct>0 ? `<span class="var-badge var-positive">↑ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↓ ${Math.abs(pct)}%</span>`);
@@ -2750,11 +2762,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Distribución de Pauta
         const _dist = _calcularDistribucionPauta();
         const _fuenteEl = document.getElementById('dash-pauta-fuente');
-        if (_fuenteEl) _fuenteEl.textContent = _dist.fuente !== 'vacio' ? _dist.fuente : '';
+        if (_fuenteEl) _fuenteEl.textContent = _dist.fuente === 'Ad Performance' ? 'Ad Performance' : '';
         const _prodEl = document.getElementById('dash-productos');
         if (_prodEl) {
             if (_dist.items.length === 0) {
-                _prodEl.innerHTML = `<div style="text-align:center;padding:20px 12px;color:var(--texto-secundario);"><i class="fa-solid fa-chart-pie" style="font-size:22px;opacity:.2;display:block;margin-bottom:8px;"></i><p style="font-size:12px;">Agrega campañas en <strong>Ad Performance</strong>.</p></div>`;
+                _prodEl.innerHTML = `<div style="text-align:center;padding:20px 12px;color:var(--texto-secundario);"><i class="fa-solid fa-chart-pie" style="font-size:22px;opacity:.2;display:block;margin-bottom:8px;"></i><p style="font-size:12px;">Sin campañas registradas en este período.</p></div>`;
             } else {
                 _prodEl.innerHTML = _dist.items.map(item => `
                     <div class="bar-row" style="align-items:center;gap:8px;">
@@ -2865,15 +2877,38 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ── Variación de Métricas — helpers de periodos ── */
     function _periodoAnterior() {
         const p = window.dashPeriodo;
-        if (!p?.desde || !p?.hasta) return null;
-        const desde = new Date(p.desde + 'T00:00:00');
-        const hasta  = new Date(p.hasta + 'T23:59:59');
-        const durMs  = hasta.getTime() - desde.getTime();
-        const antHasta = new Date(desde.getTime() - 1);
-        antHasta.setHours(23,59,59,999);
-        const antDesde = new Date(antHasta.getTime() - durMs);
-        antDesde.setHours(0,0,0,0);
+        if (!p) return null;
+        const chip = p.chip || 'custom';
         const fmt = d => d.toISOString().split('T')[0];
+
+        if (chip === 'mes' || chip === 'ant') {
+            // Go back exactly 1 calendar month from the start of current period
+            const d = new Date((p.desde || '') + 'T00:00:00');
+            const y = d.getFullYear(), m = d.getMonth();
+            return { desde: fmt(new Date(y, m-1, 1)), hasta: fmt(new Date(y, m, 0)) };
+        }
+        if (chip === '3m') {
+            const d = new Date((p.desde || '') + 'T00:00:00');
+            const y = d.getFullYear(), m = d.getMonth();
+            return { desde: fmt(new Date(y, m-3, 1)), hasta: fmt(new Date(y, m, 0)) };
+        }
+        if (chip === '6m') {
+            const d = new Date((p.desde || '') + 'T00:00:00');
+            const y = d.getFullYear(), m = d.getMonth();
+            return { desde: fmt(new Date(y, m-6, 1)), hasta: fmt(new Date(y, m, 0)) };
+        }
+        if (chip === 'anio') {
+            const d = new Date((p.desde || '') + 'T00:00:00');
+            const y = d.getFullYear();
+            return { desde: fmt(new Date(y-1, 0, 1)), hasta: fmt(new Date(y-1, 11, 31)) };
+        }
+        // custom: shift back by the same duration
+        if (!p.desde || !p.hasta) return null;
+        const desde = new Date(p.desde + 'T00:00:00');
+        const hasta  = new Date(p.hasta + 'T00:00:00');
+        const durDays = Math.round((hasta - desde) / 86400000) + 1;
+        const antHasta = new Date(desde.getTime() - 86400000);
+        const antDesde = new Date(antHasta.getTime() - (durDays - 1) * 86400000);
         return { desde: fmt(antDesde), hasta: fmt(antHasta) };
     }
 
@@ -3110,15 +3145,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function _actualizarTotalesEjecutor() {
-        const row = document.getElementById('ejec-total-row');
-        if (!row) return;
         const acc = _acumularTodosKPIs();
-        const cells = row.cells;
-        // cells[0] = colspan=3 "Total acumulado"; rest are KPI values
-        if (cells[1]) cells[1].textContent = acc.clientes_nuevos.toLocaleString('es-MX');
-        if (cells[2]) cells[2].textContent = acc.clientes_recurrentes.toLocaleString('es-MX');
-        if (cells[3]) cells[3].textContent = formatDinero(acc.ventas);
-        if (cells[4]) cells[4].textContent = acc.dms.toLocaleString('es-MX');
+        const set = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+        set('ejec-tot-nuevos',      acc.clientes_nuevos.toLocaleString('es-MX'));
+        set('ejec-tot-recurrentes', acc.clientes_recurrentes.toLocaleString('es-MX'));
+        set('ejec-tot-recuperados', acc.clientes_recuperados.toLocaleString('es-MX'));
+        set('ejec-tot-ventas',      formatDinero(acc.ventas));
+        set('ejec-tot-dms',         acc.dms.toLocaleString('es-MX'));
     }
 
     function renderEjecutorKPIs() {
@@ -3133,64 +3166,113 @@ document.addEventListener('DOMContentLoaded', function() {
         const ro      = canEdit ? '' : 'readonly';
         const _isDark = document.documentElement.getAttribute('data-theme') === 'dark';
 
-        const thS = s => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}</th>`;
+        // ── Tooltip helpers ───────────────────────────────────────
+        const TIPS = {
+            nuevas:     'Clientas que vinieron por primera vez este mes —\nnunca habían visitado Aitama antes.',
+            recurrentes:'Clientas que ya habían venido antes y regresaron este mes.',
+            recuperadas:'Clientas que tenían más de 60 días sin venir y regresaron.\nSon importantes: indican que una campaña las trajo de vuelta.',
+            dms:        'Total de mensajes directos recibidos en Instagram\ndurante este período. Consúltalo en Meta Business Suite.',
+            ticket:     'Cuánto gasta en promedio cada clienta por visita.\nVentas totales ÷ número de servicios realizados.',
+            seguidores: 'Seguidores en Instagram al inicio y al final del período.\nLa diferencia muestra el crecimiento real.',
+            vistas:     'Total de veces que se vieron todos los contenidos\npublicados en el período.',
+            cac:        'Costo por clienta nueva — inversión total de marketing\n÷ número de clientas nuevas que llegaron este mes.',
+            retencion:  'De cada 10 clientas que atendiste, cuántas ya habían\nvenido antes. 7 de 10 = 70% de retención.',
+            conv_dm:    'De cada 100 personas que escribieron por Instagram,\ncuántas terminaron agendando una cita.',
+            crec_seg:   'Cuántos seguidores nuevos ganaste en Instagram\ndurante este período.',
+        };
+        const _tI = k => `<i class="fa-solid fa-circle-info" data-tip="${(TIPS[k]||'').replace(/"/g,'&quot;')}" onmouseenter="_ejTip(this)" onmouseleave="_ejTipHide()" style="color:var(--texto-secundario);opacity:.4;font-size:9px;cursor:default;vertical-align:middle;margin-left:2px;"></i>`;
+        const thS = (s, tip) => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}${tip?_tI(tip):''}</th>`;
+
         const inp = (val, key, idx, pre) => canEdit
             ? `<input class="ejecutor-input" value="${val||0}" inputmode="numeric"
-                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);_renderDashInversion(DB.datos['${SUC_ACTIVA}']);_actualizarTotalesEjecutor();">`
-            : `<span style="display:block;text-align:right;padding:6px 8px;font-weight:600;font-size:13px;">${pre==='$' ? formatDinero(val) : (pre||'')+Number(val||0).toLocaleString('es-MX')}</span>`;
+                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;if('clientes_nuevos,clientes_recurrentes,clientes_recuperados'.includes('${key}'))DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].clientes_fuente='manual';guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);_renderDashInversion(DB.datos['${SUC_ACTIVA}']);_actualizarTotalesEjecutor();">`
+            : `<span style="display:block;text-align:right;padding:6px 8px;font-weight:600;font-size:13px;">${pre==='$'?formatDinero(val):(pre||'')+Number(val||0).toLocaleString('es-MX')}</span>`;
+
+        const inpC = (val, key, idx) => canEdit
+            ? `<input class="ejecutor-input" value="${val||0}" inputmode="numeric"
+                oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${idx}].${key}=Number(this.value)||0;guardarBD();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);">`
+            : `<span style="display:block;text-align:right;padding:6px 8px;font-size:12px;">${Number(val||0).toLocaleString('es-MX')}</span>`;
+
+        const _fb = f => f==='auto'?`<span style="font-size:8px;padding:1px 5px;border-radius:100px;background:rgba(66,133,244,.12);color:#1a73e8;font-weight:700;">Auto ✓</span>`:f==='confirmado'?`<span style="font-size:8px;padding:1px 5px;border-radius:100px;background:rgba(52,168,83,.12);color:var(--color-exito);font-weight:700;">Confirmado ✓</span>`:f==='manual'?`<span style="font-size:8px;padding:1px 5px;border-radius:100px;background:rgba(196,133,90,.12);color:var(--color-primario);font-weight:700;">Manual ✓</span>`:'';
+
+        const _calc = s => {
+            const mi = s.fecha?new Date(s.fecha+'T00:00:00').getMonth():null;
+            const invM = mi!==null?Object.values(_inversionPorTipo(d,mi)).reduce((a,b)=>a+b,0):0;
+            const tot = (s.clientes_nuevos||0)+(s.clientes_recurrentes||0)+(s.clientes_recuperados||0);
+            const src = s.origen_clientes||(s.atribucion||[]).map(a=>({origen:a.canal,cantidad:a.cantidad}));
+            const igC = ((src||[]).find(a=>(a.origen||'').toLowerCase().includes('instagram'))||{cantidad:null}).cantidad;
+            return {
+                conv_dm:   igC!==null&&(s.dms||0)>0?(igC/(s.dms)*100).toFixed(1):null,
+                retencion: tot>0?((s.clientes_recurrentes||0)/tot*100).toFixed(1):null,
+                crec_seg:  s.seguidores_fin!=null&&s.seguidores_ini!=null?(s.seguidores_fin||0)-(s.seguidores_ini||0):null,
+                cac:       invM>0&&(s.clientes_nuevos||0)>0?Math.round(invM/(s.clientes_nuevos||1)):null,
+            };
+        };
 
         const rows = semanas.map((s, i) => {
             const esMensual = s.tipo === 'mensual' || s.fuente === 'excel_import';
-            const _MESES_F = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
             const _mIdx = s.fecha ? parseInt(s.fecha.substring(5,7))-1 : new Date().getMonth();
             const _anio = s.fecha ? parseInt(s.fecha.substring(0,4)) : new Date().getFullYear();
-            const _mOps = _MESES_F.map((m,mi) => `<option value="${mi}"${mi===_mIdx?' selected':''}>${m}</option>`).join('');
-            const _yOps = [2024,2025,2026,2027].map(y => `<option value="${y}"${y===_anio?' selected':''}>${y}</option>`).join('');
             const _cs = 'border:1px solid var(--color-borde);border-radius:6px;padding:5px 8px;font-size:12px;font-weight:600;background:transparent;color:var(--texto-principal);cursor:pointer;outline:none;';
             const _lastDia = new Date(_anio, _mIdx + 1, 0);
             const _hastaShow = s.fecha_hasta
-                ? (() => { const d = new Date(s.fecha_hasta+'T00:00:00'); return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`; })()
+                ? (() => { const dh=new Date(s.fecha_hasta+'T00:00:00'); return `${String(dh.getDate()).padStart(2,'0')}/${String(dh.getMonth()+1).padStart(2,'0')}/${dh.getFullYear()}`; })()
                 : `${String(_lastDia.getDate()).padStart(2,'0')}/${String(_mIdx+1).padStart(2,'0')}/${_anio}`;
             const fechaCells = esMensual
-                ? `<td style="padding:4px 6px;">
-                       <input type="date" style="${_cs}min-width:130px;width:100%;"
-                           value="${s.fecha||''}" ${ro}
-                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;const _ld=new Date(new Date(this.value+'T00:00:00').getFullYear(),new Date(this.value+'T00:00:00').getMonth()+1,0);DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha_hasta=_ld.toISOString().split('T')[0];_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
+                ? `<td style="padding:4px 6px;"><input type="date" style="${_cs}min-width:130px;width:100%;" value="${s.fecha||''}" ${ro}
+                       onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;const _ld=new Date(new Date(this.value+'T00:00:00').getFullYear(),new Date(this.value+'T00:00:00').getMonth()+1,0);DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha_hasta=_ld.toISOString().split('T')[0];_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
                    </td>
                    <td style="padding:4px 6px;text-align:right;"><span style="font-size:12px;font-weight:600;color:var(--texto-secundario);padding:6px 8px;display:block;">${_hastaShow}</span></td>`
-                : `<td style="padding:4px 6px;">
-                       <input type="date" style="${_cs}min-width:120px;width:100%;"
-                           value="${s.fecha||''}" ${ro}
-                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
+                : `<td style="padding:4px 6px;"><input type="date" style="${_cs}min-width:120px;width:100%;" value="${s.fecha||''}" ${ro}
+                       onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
                    </td>
-                   <td style="padding:4px 6px;">
-                       <input type="date" style="${_cs}min-width:120px;width:100%;"
-                           value="${s.fecha_hasta||''}" ${ro}
-                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha_hasta=this.value;_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
+                   <td style="padding:4px 6px;"><input type="date" style="${_cs}min-width:120px;width:100%;" value="${s.fecha_hasta||''}" ${ro}
+                       onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha_hasta=this.value;_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
                    </td>`;
+            const c = _calc(s);
+            const retC = c.retencion!==null?(parseFloat(c.retencion)>=60?'var(--color-exito)':parseFloat(c.retencion)>=40?'#9A7200':'var(--color-peligro)'):'';
+            const bg = 'background:var(--color-fondo);';
             return `<tr>
-                <td style="padding:6px 8px;"><input class="ejecutor-input" style="text-align:left;font-weight:700;" value="${s.semana||''}" ${ro}
-                    oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].semana=this.value;guardarBD();"></td>
+                <td style="padding:6px 8px;min-width:120px;">
+                    <input class="ejecutor-input" style="text-align:left;font-weight:700;" value="${s.semana||''}" ${ro}
+                        oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].semana=this.value;guardarBD();">
+                    ${s.fuente==='excel_import'&&s.clientes_fuente?`<div style="margin-top:1px;">${_fb(s.clientes_fuente)}</div>`:''}
+                </td>
                 ${fechaCells}
-                <td>${inp(s.clientes_nuevos,'clientes_nuevos',i,'')}</td>
+                <td style="border-left:2px solid rgba(66,133,244,.18);">${inp(s.clientes_nuevos,'clientes_nuevos',i,'')}</td>
                 <td>${inp(s.clientes_recurrentes,'clientes_recurrentes',i,'')}</td>
+                <td>${inp(s.clientes_recuperados,'clientes_recuperados',i,'')}</td>
                 <td>${inp(s.ventas,'ventas',i,'$')}</td>
-                <td>${inp(s.dms,'dms',i,'')}</td>
-                ${esRest ? `<td>${inp(s.ticket_medio,'ticket_medio',i,'$')}</td>` : ''}
-                ${canEdit ? `<td style="padding:6px 4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;"
-                    onclick="DB.datos['${SUC_ACTIVA}'].kpi_semanal.splice(${i},1);guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();renderEjecutorKPIs();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);"></i></td>` : ''}
+                <td>${inp(s.ticket_medio,'ticket_medio',i,'$')}</td>
+                <td style="border-left:2px solid rgba(196,133,90,.18);">${inpC(s.dms,'dms',i)}</td>
+                <td>${inpC(s.seguidores_ini,'seguidores_ini',i)}</td>
+                <td>${inpC(s.seguidores_fin,'seguidores_fin',i)}</td>
+                <td>${inpC(s.visualizaciones,'visualizaciones',i)}</td>
+                <td>${inpC(s.alcance_total,'alcance_total',i)}</td>
+                <td style="border-left:2px solid rgba(52,168,83,.18);text-align:right;padding:8px;${bg}font-size:12px;">${c.conv_dm!==null?`<span style="font-weight:700;">${c.conv_dm}%</span>`:`<span style="font-size:9px;color:var(--texto-secundario);">Llenar Nota Excel</span>`}</td>
+                <td style="text-align:right;padding:8px;${bg}font-size:12px;">${c.retencion!==null?`<span style="font-weight:700;color:${retC};">${c.retencion}%</span>`:'<span style="color:var(--texto-secundario);">—</span>'}</td>
+                <td style="text-align:right;padding:8px;${bg}font-size:12px;">${c.crec_seg!==null?`<span style="font-weight:700;color:${c.crec_seg>=0?'var(--color-exito)':'var(--color-peligro)'};">${c.crec_seg>=0?'+':''}${Number(c.crec_seg).toLocaleString('es-MX')}</span>`:'<span style="color:var(--texto-secundario);">—</span>'}</td>
+                <td style="text-align:right;padding:8px;${bg}font-size:12px;">${c.cac!==null?`<span style="font-weight:700;">${formatDinero(c.cac)}</span>`:'<span style="color:var(--texto-secundario);">—</span>'}</td>
+                ${canEdit?`<td style="padding:6px 4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;"
+                    onclick="DB.datos['${SUC_ACTIVA}'].kpi_semanal.splice(${i},1);guardarBD();_kpiSemanalToHistorico();_syncKPIsToRendimiento();renderEjecutorKPIs();_renderDashKPIs(DB.datos['${SUC_ACTIVA}']);"></i></td>`:''}
             </tr>`;
         }).join('');
 
         const totRow = `<tr class="ejecutor-total-row" id="ejec-total-row">
             <td colspan="3" style="padding:10px 8px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;">Total acumulado</td>
-            <td style="text-align:right;padding:10px 8px;color:var(--color-primario);">${acc.clientes_nuevos.toLocaleString('es-MX')}</td>
-            <td style="text-align:right;padding:10px 8px;color:#34A853;">${acc.clientes_recurrentes.toLocaleString('es-MX')}</td>
-            <td style="text-align:right;padding:10px 8px;color:var(--color-primario);">${formatDinero(acc.ventas)}</td>
-            <td style="text-align:right;padding:10px 8px;">${acc.dms.toLocaleString('es-MX')}</td>
-            ${esRest ? `<td style="text-align:right;padding:10px 8px;">${formatDinero(acc.ticket_medio)}</td>` : ''}
-            ${canEdit ? '<td></td>' : ''}
+            <td id="ejec-tot-nuevos" style="text-align:right;padding:10px 8px;color:var(--color-primario);">${acc.clientes_nuevos.toLocaleString('es-MX')}</td>
+            <td id="ejec-tot-recurrentes" style="text-align:right;padding:10px 8px;color:#34A853;">${acc.clientes_recurrentes.toLocaleString('es-MX')}</td>
+            <td id="ejec-tot-recuperados" style="text-align:right;padding:10px 8px;">${acc.clientes_recuperados.toLocaleString('es-MX')}</td>
+            <td id="ejec-tot-ventas" style="text-align:right;padding:10px 8px;color:var(--color-primario);">${formatDinero(acc.ventas)}</td>
+            <td id="ejec-tot-ticket" style="text-align:right;padding:10px 8px;">${acc.ticket_medio?formatDinero(acc.ticket_medio):'—'}</td>
+            <td id="ejec-tot-dms" style="text-align:right;padding:10px 8px;">${acc.dms.toLocaleString('es-MX')}</td>
+            <td colspan="4"></td>
+            <td colspan="4" style="text-align:center;font-size:9px;color:var(--texto-secundario);padding:8px;background:var(--color-fondo);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Auto · por fila</td>
+            ${canEdit?'<td></td>':''}
         </tr>`;
+
+        const _newRec = (tipo, semana, fecha, fecha_hasta) =>
+            `{id:'s'+Date.now(),tipo:'${tipo}',semana:'${semana}',fecha:'${fecha}',fecha_hasta:${fecha_hasta?`'${fecha_hasta}'`:'null'},clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0,seguidores_ini:0,seguidores_fin:0,visualizaciones:0,alcance_total:0,clientes_fuente:null}`;
 
         const addBtn = (() => {
             if (!canEdit) return '';
@@ -3200,14 +3282,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const label = `${MESES[mo-1]} ${yr} · mes`;
                 const f0 = `${mVal}-01`;
                 return `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;" onclick="
-                    const n={id:'s'+Date.now(),tipo:'mensual',semana:'${label}',fecha:'${f0}',fecha_hasta:null,clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0};
+                    const n=${_newRec('mensual',label,f0,null)};
                     DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
                 "><i class="fa-solid fa-plus"></i> Agregar mes</button>`;
             } else {
                 const {desde, hasta} = _ejecutorGetFechasSemana();
                 const label = _ejecutorBuildLabel(desde, hasta, 'semana');
                 return `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;" onclick="
-                    const n={id:'s'+Date.now(),tipo:'semana',semana:'${label}',fecha:'${desde}',fecha_hasta:'${hasta}',clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0};
+                    const n=${_newRec('semana',label,desde,hasta)};
                     DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
                 "><i class="fa-solid fa-plus"></i> Agregar entrada</button>`;
             }
@@ -3229,20 +3311,42 @@ document.addEventListener('DOMContentLoaded', function() {
         const formatos = _getFormatos(SUC_ACTIVA);
         const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
         const engData = d.engagement_formato || [];
-        const thE = s => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}</th>`;
-        const fmtOpts = formatos.map(f=>`<option value="${f}">${f}</option>`).join('');
+        const thE = (s, tip) => `<th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);padding:10px 8px;text-align:right;white-space:nowrap;">${s}${tip?`<i class="fa-solid fa-circle-info" data-tip="${tip.replace(/"/g,'&quot;')}" onmouseenter="_ejTip(this)" onmouseleave="_ejTipHide()" style="color:var(--texto-secundario);opacity:.4;font-size:9px;cursor:default;vertical-align:middle;margin-left:2px;"></i>`:''}</th>`;
+        const ER_TIP = 'Engagement Rate — qué porcentaje de las personas\nque vieron el contenido interactuaron con él\n(likes, comentarios, guardados, compartidos).';
         let engSection = '';
         if (canEditEng) {
+            const kanbanPosts = (DB.datos[SUC_ACTIVA]?.kanban||[])
+                .filter(k=>k.estado==='Programado'||k.estado==='Publicado')
+                .sort((a,b)=>(b.fecha||'')>(a.fecha||'')?1:-1);
+            const _fd = f => { if(!f)return''; const p=f.split('-'); return p.length===3?`${p[2]}/${p[1]}`:''; };
+            const _ft = post => { const t=(post.tags||'').split(',').map(x=>x.trim()).filter(Boolean); return t[0]||''; };
+
             const engRows = engData.map((e,ei) => {
                 const er = e.alcance > 0 ? (e.interacciones/e.alcance*100).toFixed(2) : '0.00';
+                const allKanban = DB.datos[SUC_ACTIVA]?.kanban||[];
+                const linked = e.post_id ? allKanban.find(k=>k.id===e.post_id) : null;
+                const deleted = e.post_id && e.post_id !== '__manual__' && !linked;
+
+                const postCell = deleted
+                    ? `<span style="font-size:12px;">${e.post_titulo||'Post'}</span> <span style="font-size:9px;padding:1px 5px;border-radius:100px;background:rgba(234,67,53,.1);color:var(--color-peligro);font-weight:700;">Eliminado</span>`
+                    : `<select class="select-celda" style="border:1px solid var(--color-borde);font-size:12px;min-width:155px;" onchange="_engVincularPost(${ei},this.value)">
+                        <option value="" ${!e.post_id?'selected':''}>— Seleccionar post —</option>
+                        ${kanbanPosts.map(k=>`<option value="${k.id}" ${e.post_id===k.id?'selected':''}>${_ft(k)?`[${_ft(k)}] `:''}${k.titulo} · ${_fd(k.fecha)}</option>`).join('')}
+                        <option value="__manual__" ${e.post_id==='__manual__'?'selected':''}>✏️ Ingreso manual</option>
+                    </select>`;
+
+                const formatoCell = (e.post_id && e.post_id!=='__manual__' && linked)
+                    ? `<span style="font-size:12px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(196,133,90,.1);color:var(--color-primario);">${e.formato||'—'}</span>`
+                    : `<select class="select-celda" style="border:1px solid var(--color-borde);font-size:12px;" onchange="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].formato=this.value;guardarBD();">${formatos.map(f=>`<option ${f===e.formato?'selected':''}>${f}</option>`).join('')}</select>`;
+
+                const fechaCell = (e.post_id && e.post_id!=='__manual__' && linked)
+                    ? `<span style="font-size:12px;color:var(--texto-secundario);padding:6px 8px;display:block;">${_fd(e.fecha)}</span>`
+                    : `<input type="date" class="ejecutor-input" style="text-align:left;" value="${e.fecha||''}" onchange="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].fecha=this.value;guardarBD();">`;
+
                 return `<tr>
-                    <td style="padding:6px 8px;"><select class="select-celda" style="border:1px solid var(--color-borde);font-size:12px;font-weight:600;"
-                        onchange="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].formato=this.value;guardarBD();renderEjecutorKPIs();">
-                        ${formatos.map(f=>`<option ${f===e.formato?'selected':''}>${f}</option>`).join('')}</select></td>
-                    <td style="padding:6px 8px;"><input class="ejecutor-input" value="${e.semana||''}"
-                        oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].semana=this.value;guardarBD();"></td>
-                    <td style="padding:6px 8px;"><input type="date" class="ejecutor-input" style="text-align:left;" value="${e.fecha||''}"
-                        onchange="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].fecha=this.value;guardarBD();"></td>
+                    <td style="padding:6px 8px;">${postCell}</td>
+                    <td style="padding:6px 8px;">${formatoCell}</td>
+                    <td style="padding:6px 8px;">${fechaCell}</td>
                     <td><input class="ejecutor-input" value="${e.alcance||0}" inputmode="numeric"
                         oninput="DB.datos['${SUC_ACTIVA}'].engagement_formato[${ei}].alcance=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();_actualizarErCelda(${ei});"
                         onchange="renderEjecutorKPIs();"></td>
@@ -3254,27 +3358,24 @@ document.addEventListener('DOMContentLoaded', function() {
                         onclick="DB.datos['${SUC_ACTIVA}'].engagement_formato.splice(${ei},1);guardarBD();renderEjecutorKPIs();"></i></td>
                 </tr>`;
             }).join('');
+
             engSection = `<div style="margin-top:20px;padding-top:18px;border-top:1px solid var(--color-borde);">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
                     <div>
                         <div style="font-family:var(--font-display);font-weight:700;font-size:13px;">Engagement Rate por Formato</div>
-                        <div style="font-size:11px;color:var(--texto-secundario);">Alcance e interacciones reales por tipo de contenido</div>
+                        <div style="font-size:11px;color:var(--texto-secundario);">Vincula posts del Kanban para medir el ER real</div>
                     </div>
                     <button class="btn btn-xs btn-fantasma" onclick="
-                        const n={id:'eng_'+Date.now(),semana:'Semana '+(DB.datos['${SUC_ACTIVA}'].engagement_formato.length+1),fecha:new Date().toISOString().split('T')[0],formato:'${formatos[0]}',alcance:0,interacciones:0};
+                        const n={id:'eng_'+Date.now(),post_id:null,post_titulo:'',fecha:new Date().toISOString().split('T')[0],formato:'${formatos[0]}',alcance:0,interacciones:0};
                         DB.datos['${SUC_ACTIVA}'].engagement_formato.push(n);guardarBD();renderEjecutorKPIs();
                     "><i class="fa-solid fa-plus"></i> Registro</button>
                 </div>
                 <div style="overflow-x:auto;">
-                    <table class="tabla-editable" style="min-width:560px;">
-                        <thead><tr>${thE('Formato')}${thE('Semana')}${thE('Fecha')}${thE('Alcance')}${thE('Interacciones')}${thE('ER%')}<th style="width:28px;"></th></tr></thead>
-                        <tbody>${engRows || `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--texto-secundario);font-size:13px;">Sin registros. Pulsa "Registro" para agregar.</td></tr>`}</tbody>
+                    <table class="tabla-editable" style="min-width:600px;">
+                        <thead><tr>${thE('Post vinculado')}${thE('Formato')}${thE('Fecha')}${thE('Alcance')}${thE('Interacciones')}${thE('ER%',ER_TIP)}<th style="width:28px;"></th></tr></thead>
+                        <tbody>${engRows || `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--texto-secundario);font-size:13px;">Sin registros. Pulsa "+ Registro" para agregar.</td></tr>`}</tbody>
                     </table>
                 </div>
-                ${isOwner ? `<div style="font-size:11px;color:var(--texto-secundario);margin-top:10px;padding:8px 12px;background:${_isDark?'rgba(20,18,16,0.65)':'rgba(0,0,0,.03)'};border-radius:8px;display:flex;align-items:center;gap:6px;">
-                    <i class="fa-solid fa-code-merge" style="color:var(--color-primario);"></i>
-                    Sprint 5 — estos datos serán reemplazados automáticamente por Meta API
-                </div>` : ''}
             </div>`;
         }
 
@@ -3295,14 +3396,23 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="ejecutor-body${isOpen?'':' hidden'}">
                 ${modoToggle}
                 <div style="overflow-x:auto;margin-top:4px;">
-                    <table class="tabla-editable" style="min-width:700px;">
-                        <thead><tr>
-                            ${thS('Etiqueta')}${thS('Desde / Mes')}${thS('Hasta')}
-                            ${thS('Nuevos')}${thS('Recurrentes')}
-                            ${thS('Ventas')}${thS('DMs')}
-                            ${esRest ? thS('Ticket Medio') : ''}
-                            ${canEdit ? '<th style="width:28px;"></th>' : ''}
-                        </tr></thead>
+                    <table class="tabla-editable" style="min-width:1400px;">
+                        <thead>
+                            <tr>
+                                <th colspan="3" style="padding:4px;"></th>
+                                <th colspan="5" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#4A90D9;padding:5px 8px;text-align:center;border-bottom:2px solid rgba(66,133,244,.3);">Clientes</th>
+                                <th colspan="5" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--color-primario);padding:5px 8px;text-align:center;border-bottom:2px solid rgba(196,133,90,.3);">Contenido y redes</th>
+                                <th colspan="4" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#34A853;padding:5px 8px;text-align:center;border-bottom:2px solid rgba(52,168,83,.3);">Calculados</th>
+                                ${canEdit?'<th style="width:28px;"></th>':''}
+                            </tr>
+                            <tr>
+                                ${thS('Etiqueta')}${thS('Desde')}${thS('Hasta')}
+                                ${thS('Nuevas','nuevas')}${thS('Recurrentes','recurrentes')}${thS('Recuperadas','recuperadas')}${thS('Ventas')}${thS('Ticket','ticket')}
+                                ${thS('DMs','dms')}${thS('Seg ini','seguidores')}${thS('Seg fin','seguidores')}${thS('Vistas','vistas')}${thS('Alcance')}
+                                ${thS('Conv DM','conv_dm')}${thS('Retención','retencion')}${thS('Crec Seg','crec_seg')}${thS('CAC','cac')}
+                                ${canEdit?'<th style="width:28px;"></th>':''}
+                            </tr>
+                        </thead>
                         <tbody>${rows}${totRow}</tbody>
                     </table>
                 </div>
@@ -3355,17 +3465,14 @@ document.addEventListener('DOMContentLoaded', function() {
         /* ── Helpers Inversión ──────────────────────────────────────────── */
     function _inversionPorTipo(d, mes) {
         const result = {};
-        INVERSION_CATEGORIAS.forEach(c => { result[c.tipo] = 0; });
-        // Use dashPeriodo months when no explicit mes passed
         const meses = (mes !== undefined) ? [mes] : _getMonthsInPeriod();
         (d.presupuesto||[]).forEach(p_item => {
+            const tipo = p_item.tipo || p_item.categoria || 'Otro';
             meses.forEach(mi => {
                 const m = p_item.montos_mes?.[mi] || {};
                 const val = (m.inversion||0) + (m.colaboracion||0);
                 if (!val) return;
-                // Use item's tipo if it exists in INVERSION_CATEGORIAS, else fallback to first category
-                const tipoKey = result[p_item.tipo] !== undefined ? p_item.tipo : INVERSION_CATEGORIAS[0].tipo;
-                result[tipoKey] += val;
+                result[tipo] = (result[tipo] || 0) + val;
             });
         });
         return result;
@@ -3400,6 +3507,98 @@ document.addEventListener('DOMContentLoaded', function() {
         })).sort((a, b) => b.er - a.er);
     }
 
+    /* ── Vincular post del Kanban a registro de Engagement ──── */
+    function _engVincularPost(ei, postId) {
+        const arr = DB.datos[SUC_ACTIVA].engagement_formato;
+        if (!arr || !arr[ei]) return;
+        const e = arr[ei];
+        if (!postId) { e.post_id = null; e.post_titulo = ''; }
+        else if (postId === '__manual__') { e.post_id = '__manual__'; e.post_titulo = ''; }
+        else {
+            const post = (DB.datos[SUC_ACTIVA]?.kanban||[]).find(k=>k.id===postId);
+            if (post) {
+                e.post_id   = post.id;
+                e.post_titulo = post.titulo || '';
+                e.fecha     = post.fecha || e.fecha;
+                const tags  = (post.tags||'').split(',').map(t=>t.trim()).filter(Boolean);
+                const fmts  = _getFormatos(SUC_ACTIVA);
+                const match = tags.find(t=>fmts.map(f=>f.toLowerCase()).includes(t.toLowerCase()));
+                if (match) { const f=fmts.find(f=>f.toLowerCase()===match.toLowerCase()); if(f) e.formato=f; }
+                else if (tags.length) e.formato = tags[0];
+            }
+        }
+        guardarBD();
+        renderEjecutorKPIs();
+    }
+
+    /* ── Tooltip del Ejecutor ────────────────────────────────── */
+    function _ejTip(el) {
+        const tip = document.getElementById('ejec-tooltip');
+        if (!tip) return;
+        tip.textContent = el.getAttribute('data-tip') || '';
+        tip.style.display = 'block';
+        requestAnimationFrame(() => {
+            const rect = el.getBoundingClientRect();
+            const h = tip.offsetHeight, w = tip.offsetWidth;
+            let left = Math.max(8, Math.min(rect.left + rect.width/2 - w/2, window.innerWidth - w - 8));
+            let top = rect.top - h - 8;
+            if (top < 8) top = rect.bottom + 8;
+            tip.style.left = left + 'px';
+            tip.style.top = top + 'px';
+        });
+    }
+    function _ejTipHide() {
+        const tip = document.getElementById('ejec-tooltip');
+        if (tip) tip.style.display = 'none';
+    }
+
+    /* ── Auto-cálculo de tipos de clientas desde ítems Excel ── */
+    function compararNombresClientes(currentItems, allPrevItems, fechaInicio) {
+        const current = [...new Set((currentItems||[]).map(it=>(it.cliente||'').trim().toLowerCase()).filter(Boolean))];
+        const history = {};
+        (allPrevItems||[]).forEach(({fecha, cliente}) => {
+            if (!cliente) return;
+            const k = cliente.trim().toLowerCase(), d = new Date(fecha+'T00:00:00');
+            if (!history[k] || d > history[k]) history[k] = d;
+        });
+        const inicio = new Date((fechaInicio||new Date().toISOString().split('T')[0])+'T00:00:00');
+        const dias60 = 60*24*60*60*1000;
+        let nuevas=0, recurrentes=0, recuperadas=0;
+        current.forEach(c => {
+            const last = history[c];
+            if (!last) nuevas++;
+            else if ((inicio - last) <= dias60) recurrentes++;
+            else recuperadas++;
+        });
+        return { nuevas, recurrentes, recuperadas };
+    }
+
+    function calcularMetricas(entrada, d) {
+        if (!(entrada.items||[]).length) return null;
+        const prevItems = [];
+        (d.kpi_semanal||[]).forEach(s => {
+            if (s.id === entrada.id) return;
+            (s.items||[]).forEach(it => { if (it.cliente && it.fecha) prevItems.push(it); });
+        });
+        return compararNombresClientes(entrada.items, prevItems, entrada.fecha);
+    }
+
+    function _confirmarClientesAuto(mesIdx, año) {
+        const reg = (DB.datos[SUC_ACTIVA]?.kpi_semanal||[]).find(s=>s.mesIdx===mesIdx&&s.año===año);
+        if (!reg) return;
+        reg.clientes_fuente = 'confirmado';
+        guardarBD();
+        // Mark notification as read
+        const arr = _loadNotifs().map(n=> {
+            if (n.subtipo==='clientes_auto'&&(n.referencia_id||'').includes(`${mesIdx}_${año}`)) n.leida=true;
+            return n;
+        });
+        _saveNotifs(arr);
+        _renderNotifBadge();
+        renderEjecutorKPIs();
+        _showToast('✓ Clientas confirmadas — badge actualizado a Confirmado ✓');
+    }
+
         function _calcularDistribucionPauta() {
         const d = DB.datos[SUC_ACTIVA];
         const desde = _dashPeriodoDesde();
@@ -3423,32 +3622,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return { items, fuente:'Ad Performance', total };
         }
 
-        // ── Fuente 2: d.presupuesto[] agrupado por tipo, en el periodo ───────
-        const meses = _getMonthsInPeriod();
-        const cats = {};
-        (d.presupuesto||[]).forEach(p => {
-            meses.forEach(mi => {
-                const m = p.montos_mes?.[mi]||{};
-                const v = (m.inversion||0)+(m.colaboracion||0);
-                if (v>0) cats[p.tipo||p.categoria||'Otro'] = (cats[p.tipo||p.categoria||'Otro']||0)+v;
-            });
-        });
-        const pptoTotal = Object.values(cats).reduce((s,v)=>s+v,0);
-        if (pptoTotal>0) {
-            const items = Object.entries(cats).map(([nombre,monto])=>({
-                nombre, monto,
-                porcentaje: +((monto/pptoTotal)*100).toFixed(1)
-            })).sort((a,b)=>b.monto-a.monto);
-            return { items, fuente:'Presupuesto', total:pptoTotal };
-        }
-
-        // ── Fuente 3: d.productos[] manual (fallback) ────────────────────────
-        if ((d.productos||[]).length>0) {
-            const items = d.productos.map(p=>({ nombre:p.m, monto:null, porcentaje:p.pct }));
-            return { items, fuente:'Manual', total:null };
-        }
-
-        return { items:[], fuente:'vacio', total:0 };
+        return { items:[], fuente:'sin_campanas', total:0 };
     }
 
     function _getKpiMetas() {
@@ -3567,17 +3741,27 @@ document.addEventListener('DOMContentLoaded', function() {
         const roi = kpiAcc.ventas > 0 && total > 0
             ? ((kpiAcc.ventas - total) / total * 100).toFixed(0) : null;
 
-        const barSegs = INVERSION_CATEGORIAS.map(c => {
-            const pct = total > 0 ? (inv[c.tipo]||0)/total*100 : 0;
-            return pct > 0 ? `<div class="inv-bar-seg" style="flex:${pct.toFixed(2)};background:${c.color};box-shadow:0 0 6px ${c.color}50;"></div>` : '';
+        const IC_MAP = {};
+        INVERSION_CATEGORIAS.forEach(c => { IC_MAP[c.tipo] = c; });
+        const XCOLS = ['#9CA3AF','#6B7280','#4B5563','#D1D5DB','#374151'];
+        let _xci = 0;
+        const _catColor = tipo => (IC_MAP[tipo]||{color:XCOLS[_xci++%XCOLS.length]}).color;
+        const _catIcon  = tipo => (IC_MAP[tipo]||{icon:'fa-tag'}).icon;
+        const _catLabel = tipo => (IC_MAP[tipo]||{label:tipo}).label;
+
+        const barSegs = Object.entries(inv).map(([tipo, v]) => {
+            const pct = total > 0 ? v/total*100 : 0;
+            if (pct <= 0) return '';
+            const color = _catColor(tipo);
+            return `<div class="inv-bar-seg" style="flex:${pct.toFixed(2)};background:${color};box-shadow:0 0 6px ${color}50;"></div>`;
         }).join('');
 
-        const cats = INVERSION_CATEGORIAS.filter(c=>(inv[c.tipo]||0)>0).map(c => {
-            const v = inv[c.tipo]||0;
+        const cats = Object.entries(inv).filter(([,v])=>v>0).map(([tipo,v]) => {
+            const color = _catColor(tipo);
             const pct = total > 0 ? (v/total*100).toFixed(1) : '0.0';
             return `<div class="inv-cat">
-                <div class="inv-cat-label" style="color:${c.color};"><i class="fa-solid ${c.icon}"></i> ${c.label}</div>
-                <div class="inv-cat-val" style="color:${c.color};font-size:17px;">${formatDinero(v)}</div>
+                <div class="inv-cat-label" style="color:${color};"><i class="fa-solid ${_catIcon(tipo)}"></i> ${_catLabel(tipo)}</div>
+                <div class="inv-cat-val" style="color:${color};font-size:17px;">${formatDinero(v)}</div>
                 <div class="inv-cat-pct">${pct}%</div>
             </div>`;
         }).join('');
@@ -3668,21 +3852,43 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         const acc = _acumularKPIs();
+        const canEdit = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+        const OBJ_TIPS = {
+            venta: 'El dato real viene del Excel importado o del Ejecutor de KPIs.',
+            nuevo: 'El dato real viene del Ejecutor de KPIs.',
+            cliente: 'El dato real viene del Ejecutor de KPIs.',
+            seguidor: 'El dato real viene del Ejecutor de KPIs (campo Seguidores).',
+            dm: 'El dato real viene del Ejecutor de KPIs.',
+        };
         el.innerHTML = `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);margin-bottom:12px;">Objetivos del Mes</div>` +
-            objetivos.map(obj => {
+            objetivos.map((obj, idx) => {
                 const mn = (obj.m||'').toLowerCase();
                 let cur = null;
-                if (mn.includes('venta')) cur = acc.ventas;
+                if (mn.includes('venta'))                     cur = acc.ventas;
                 else if (mn.includes('nuevo')||mn.includes('cliente')) cur = acc.clientes_nuevos;
+                else if (mn.includes('seguidor'))             cur = null;
+                else if (mn.includes('dm'))                   cur = acc.dms;
+                else if (mn.includes('ticket'))               cur = acc.ticket_medio;
                 const target = parseFloat(String(obj.o||'').replace(/[$%,]/g,''))||0;
-                const pct = target>0 && cur!==null ? Math.min(100,Math.round(cur/target*100)) : null;
-                const bc = pct===null?'var(--color-primario)':pct>=70?'#34A853':pct>=40?'#FBBC05':'#EA4335';
+                const rawPct = target>0 && cur!==null ? cur/target*100 : null;
+                const pct = rawPct !== null ? Math.min(100, Math.round(rawPct)) : null;
+                const bc = pct===null?'var(--color-primario)':pct>=100?'#34A853':pct>=70?'#34A853':pct>=40?'#FBBC05':'#EA4335';
+                const tipKey = Object.keys(OBJ_TIPS).find(k => mn.includes(k)) || null;
+                const tipIcon = tipKey ? `<i class="fa-solid fa-circle-info" title="${OBJ_TIPS[tipKey]}" style="font-size:9px;opacity:.5;cursor:help;margin-left:4px;vertical-align:middle;"></i>` : '';
+                const valorDisplay = canEdit
+                    ? `<input value="${obj.o||''}" style="background:transparent;border:none;border-bottom:1px solid rgba(196,133,90,.4);color:var(--color-primario);font-size:12px;font-weight:700;text-align:right;width:80px;outline:none;padding:1px 2px;"
+                        onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${idx}].o=this.value;guardarBD();_renderDashObjetivos(DB.datos['${SUC_ACTIVA}']);"
+                        onkeydown="if(event.key==='Enter')this.blur();">`
+                    : `<span style="font-size:12px;font-weight:700;color:var(--color-primario);">${obj.o}</span>`;
+                const metaBadge = rawPct !== null && rawPct >= 100
+                    ? `<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;background:rgba(52,168,83,.2);color:#34A853;margin-left:4px;">✓ Meta alcanzada</span>`
+                    : '';
                 return `<div style="margin-bottom:12px;">
-                    <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                        <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">${obj.m}</span>
-                        <span style="font-size:12px;font-weight:600;color:var(--color-primario);">${obj.o}</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">${obj.m}${tipIcon}</span>
+                        <div style="display:flex;align-items:center;gap:4px;">${metaBadge}${valorDisplay}</div>
                     </div>
-                    ${pct!==null?`<div style="height:3px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:3px;"><div style="height:100%;width:${pct}%;background:${bc};box-shadow:0 0 6px ${bc}66;transition:width .5s;border-radius:3px;"></div></div><div style="text-align:right;font-size:10px;font-weight:700;color:${bc};">${pct}%</div>`:''}
+                    ${pct!==null?`<div style="height:3px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:3px;"><div style="height:100%;width:${pct}%;background:${bc};box-shadow:0 0 6px ${bc}66;transition:width .5s;border-radius:3px;"></div></div><div style="text-align:right;font-size:10px;font-weight:700;color:${bc};">${pct}%${cur!==null?` · Real: ${mn.includes('venta')||mn.includes('ticket')?formatDinero(cur):Number(cur).toLocaleString('es-MX')}`:''}  </div>`:''}
                 </div>`;
             }).join('');
     }
@@ -3691,25 +3897,81 @@ document.addEventListener('DOMContentLoaded', function() {
     function _renderDashOrigen(d) {
         const el = document.getElementById('dash-origen');
         if (!el) return;
-        const canalTotals = {};
-        (d.kpi_semanal||[]).forEach(s => {
-            (s.atribucion||[]).forEach(a => {
-                if (a.canal && a.cantidad>0) canalTotals[a.canal] = (canalTotals[a.canal]||0)+a.cantidad;
-            });
-        });
-        const items = Object.entries(canalTotals).sort((a,b)=>b[1]-a[1]);
-        const IC = { 'Instagram DM':{i:'fa-instagram',c:'#E1306C'}, 'Recomendación':{i:'fa-heart',c:'#34A853'}, 'WhatsApp directo':{i:'fa-whatsapp',c:'#25D366'}, 'Búsqueda':{i:'fa-magnifying-glass',c:'#4A90D9'}, 'Facebook':{i:'fa-facebook',c:'#1877F2'}, 'TikTok':{i:'fa-tiktok',c:'#010101'} };
+        const IC = { 'Instagram DM':{i:'fa-instagram',c:'#E1306C'}, 'Recomendación':{i:'fa-heart',c:'#34A853'}, 'WhatsApp directo':{i:'fa-whatsapp',c:'#25D366'}, 'Búsqueda orgánica':{i:'fa-magnifying-glass',c:'#4A90D9'}, 'Búsqueda':{i:'fa-magnifying-glass',c:'#4A90D9'}, 'Facebook':{i:'fa-facebook',c:'#1877F2'}, 'TikTok':{i:'fa-tiktok',c:'#010101'} };
+
+        // Use most recent excel_import with origen_clientes defined
+        const imports = (d.kpi_semanal||[]).filter(s=>s.fuente==='excel_import'||s.tipo==='mensual')
+            .sort((a,b)=>((b.año||0)*12+(b.mesIdx||0))-((a.año||0)*12+(a.mesIdx||0)));
+        let items = [], sinDatos = false;
+        for (const s of imports) {
+            if ('origen_clientes' in s) {
+                if (s.origen_clientes === null) { sinDatos = true; }
+                else if (s.origen_clientes?.length) { items = s.origen_clientes.map(o=>[o.origen,o.cantidad]); }
+                break;
+            }
+            if (s.atribucion?.length) { items = s.atribucion.map(a=>[a.canal,a.cantidad]); break; }
+        }
+        if (!items.length && !sinDatos) {
+            const ct = {};
+            (d.kpi_semanal||[]).forEach(s=>(s.atribucion||[]).forEach(a=>{if(a.canal&&a.cantidad>0)ct[a.canal]=(ct[a.canal]||0)+a.cantidad;}));
+            items = Object.entries(ct).sort((a,b)=>b[1]-a[1]);
+        }
+
+        const notifBtn = sinDatos ? `<div style="margin-top:8px;"><button class="btn btn-xs btn-fantasma" onclick="_xlsNotificarOrigenManual()"><i class="fa-solid fa-bell"></i> Notificar a Ángeles</button></div>` : '';
         el.innerHTML = `<div style="font-size:13px;font-weight:800;margin-bottom:12px;position:relative;z-index:2;">Origen de clientas</div>` +
             (items.length===0
-                ? `<div style="text-align:center;padding:16px;color:var(--texto-secundario);font-size:12px;">Importa Excel de ventas para ver el origen.</div>`
+                ? `<div style="text-align:center;padding:14px;color:var(--texto-secundario);font-size:12px;">${sinDatos?'Columna Nota vacía en el último Excel.':'Importa Excel de ventas para ver el origen.'}</div>${notifBtn}`
                 : items.slice(0,5).map(([canal,qty])=>{
-                    const info = IC[canal]||{i:'fa-circle',c:'var(--color-primario)'};
+                    const info=IC[canal]||{i:'fa-circle-dot',c:'var(--color-primario)'};
                     return `<div style="display:flex;align-items:center;gap:9px;padding:5px 0;border-bottom:1px solid var(--color-borde);">
                         <div style="width:26px;height:26px;border-radius:7px;background:${info.c}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><i class="fa-brands ${info.i}" style="font-size:12px;color:${info.c};"></i></div>
                         <div style="flex:1;font-size:12px;font-weight:600;">${canal}</div>
                         <span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(var(--brand-rgb),.12);color:var(--color-primario);">${qty}</span>
                     </div>`;
                 }).join(''));
+    }
+
+    /* ── Mix de Servicios (desde Excel importado) ────────────── */
+    function _renderDashMixServicios(d) {
+        const el = document.getElementById('dash-mix-servicios');
+        if (!el) return;
+        const imports = (d.kpi_semanal||[]).filter(s=>s.fuente==='excel_import'||s.tipo==='mensual')
+            .sort((a,b)=>((b.año||0)*12+(b.mesIdx||0))-((a.año||0)*12+(a.mesIdx||0)));
+        let cats = [], label = '';
+        for (const s of imports) {
+            if (s.categorias?.length) { cats = s.categorias; label = `${MESES[s.mesIdx]||''} ${s.año||''}`; break; }
+        }
+        if (!cats.length) {
+            el.innerHTML = `<div style="font-size:13px;font-weight:800;margin-bottom:8px;">Mix de Servicios</div><div style="text-align:center;padding:20px;color:var(--texto-secundario);font-size:12px;">Importa Excel de ventas para ver el mix.</div>`;
+            return;
+        }
+        const fmtMXN = v => '$' + Number(v).toLocaleString('es-MX',{minimumFractionDigits:0});
+        const total = cats.reduce((s,c)=>s+c.monto,0);
+        const COLORES = ['#C4855A','#9B8FA0','#8FA0A8','#D4956A','#6A9B8F','#A08F9B'];
+        el.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <div style="font-size:13px;font-weight:800;">Mix de Servicios</div>
+                <span style="font-size:10px;font-weight:700;color:var(--texto-secundario);padding:3px 10px;border:1px solid var(--color-borde);border-radius:100px;">${label}</span>
+            </div>
+            ${cats.map((c,i)=>{
+                const pct=total>0?Math.round(c.monto/total*100):c.porcentaje||0;
+                const color=COLORES[i%COLORES.length];
+                return `<div style="margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <span style="font-size:12px;font-weight:600;">${c.nombre}</span>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span style="font-size:11px;color:var(--texto-secundario);">${pct}%</span>
+                            <span style="font-size:12px;font-weight:700;">${fmtMXN(c.monto)}</span>
+                        </div>
+                    </div>
+                    <div style="height:5px;border-radius:5px;background:rgba(0,0,0,.06);overflow:hidden;">
+                        <div style="height:100%;width:${pct}%;background:${color};border-radius:5px;transition:width .5s;"></div>
+                    </div>
+                </div>`;
+            }).join('')}
+            <div style="border-top:1px solid var(--color-borde);margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;font-size:12px;font-weight:700;">
+                <span>Total</span><span>${fmtMXN(total)}</span>
+            </div>`;
     }
 
     /* ── Engagement por formato ───────────────────────────────── */
@@ -3725,7 +3987,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const ops = [1,.75,.55,.4,.3];
         el.innerHTML = `<div style="font-size:13px;font-weight:800;margin-bottom:12px;position:relative;z-index:2;">Engagement por formato</div>` +
             (formatos.length===0
-                ? `<div style="text-align:center;padding:16px;color:var(--texto-secundario);font-size:12px;">Agrega datos en el Ejecutor.</div>`
+                ? `<div style="text-align:center;padding:16px;color:var(--texto-secundario);font-size:12px;">Sin registros de engagement para este período.</div>`
                 : formatos.slice(0,5).map((f,idx)=>{
                     const er = f.alcance>0?+(f.interacciones/f.alcance*100).toFixed(1):0;
                     const pct = er/maxEr*100;
@@ -5867,7 +6129,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function _renderNotifBadge() {
         const wrap = document.getElementById('notif-badge-wrap');
         if (!wrap) return;
-        const esOwnerOTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+        const esOwnerOTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team'||USUARIO_ACTIVO.rol_id==='direccion') && !ROL_SIMULADO;
         wrap.style.display = esOwnerOTeam ? '' : 'none';
         if (!esOwnerOTeam) return;
         const noLeidas = _loadNotifs().filter(n=>!n.leida).length;
@@ -5890,8 +6152,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function _renderNotifPanel() {
         const el = document.getElementById('notif-panel-content');
         if (!el) return;
-        const notifs = _loadNotifs().slice().reverse();
-        const ICONS  = { sugerencia:'fa-lightbulb', aprobacion:'fa-circle-check', completado:'fa-flag-checkered' };
+        const notifs = _loadNotifs().filter(n=>!n.descartada).slice().reverse();
+        const ICONS  = { sugerencia:'fa-lightbulb', aprobacion:'fa-circle-check', completado:'fa-flag-checkered', data_faltante:'fa-triangle-exclamation' };
+        const ICOLORS = { data_faltante:'#9A7200' };
         if (!notifs.length) {
             el.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--texto-secundario);">
                 <i class="fa-solid fa-bell-slash" style="font-size:36px;opacity:.2;display:block;margin-bottom:14px;"></i>
@@ -5900,19 +6163,38 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         el.innerHTML = notifs.map((n) => {
             const f = new Date(n.fecha).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
-            const verBtn = n.referencia_id ? `<button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="_irANotif('${n.id}','${n.referencia_id}')"><i class="fa-solid fa-arrow-right"></i> Ver</button>` : '';
-            return `<div onclick="_marcarNotifLeida('${n.id}')" style="padding:14px 18px;border-bottom:1px solid var(--color-borde,#eee);cursor:pointer;${n.leida?'opacity:.5;':'background:rgba(196,133,90,.04);'}">
+            const iconColor = ICOLORS[n.tipo] || 'var(--color-primario,#C4855A)';
+            const titulo = n.titulo ? `<div style="font-size:13px;font-weight:700;color:var(--texto-principal);margin-bottom:3px;">${n.titulo}</div>` : '';
+            const msgLines = (n.mensaje||'').split('\n').map(l=>l.trim()).filter(Boolean)
+                .map((l,i)=>i===0?`<div style="font-size:12px;color:var(--texto-secundario);line-height:1.45;">${l}</div>`
+                    :`<div style="font-size:11px;color:var(--color-primario);margin-top:3px;font-weight:600;">${l}</div>`).join('');
+            const accionBtn = n.accion_ruta
+                ? `<button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="_irANotif('${n.id}','${n.accion_ruta}')"><i class="fa-solid fa-arrow-right"></i> ${n.accion_label||'Ver'}</button>`
+                : (n.accion_label ? `<button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="_marcarNotifLeida('${n.id}');_renderNotifPanel()"><i class="fa-solid fa-check"></i> ${n.accion_label}</button>` : '');
+            const descartarBtn = `<button onclick="event.stopPropagation();_descartarNotif('${n.id}')" title="Descartar" style="background:none;border:none;cursor:pointer;color:var(--texto-secundario);font-size:11px;padding:2px 4px;flex-shrink:0;" onmouseover="this.style.color='var(--color-peligro)'" onmouseout="this.style.color='var(--texto-secundario)'"><i class="fa-solid fa-xmark"></i></button>`;
+            return `<div onclick="_marcarNotifLeida('${n.id}')" style="padding:14px 18px;border-bottom:1px solid var(--color-borde,#eee);cursor:pointer;${n.leida?'opacity:.55;':'background:rgba(196,133,90,.04);'}">
                 <div style="display:flex;align-items:flex-start;gap:10px;">
-                    <i class="fa-solid ${ICONS[n.tipo]||'fa-bell'}" style="color:var(--color-primario,#C4855A);margin-top:2px;font-size:13px;flex-shrink:0;"></i>
+                    <i class="fa-solid ${ICONS[n.tipo]||'fa-bell'}" style="color:${iconColor};margin-top:2px;font-size:13px;flex-shrink:0;"></i>
                     <div style="flex:1;min-width:0;">
                         <div style="font-size:11px;font-weight:700;color:var(--texto-secundario);margin-bottom:3px;">${n.de} · ${f}</div>
-                        <div style="font-size:13px;color:var(--texto-principal);line-height:1.45;">${n.mensaje}</div>
-                        ${verBtn}
+                        ${titulo}${msgLines}${accionBtn}
                     </div>
-                    ${!n.leida?'<div style="width:7px;height:7px;border-radius:50%;background:var(--color-primario,#C4855A);flex-shrink:0;margin-top:4px;"></div>':''}
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+                        ${!n.leida?'<div style="width:7px;height:7px;border-radius:50%;background:var(--color-primario,#C4855A);flex-shrink:0;"></div>':''}
+                        ${descartarBtn}
+                    </div>
                 </div>
             </div>`;
         }).join('');
+    }
+
+    function _descartarNotif(id) {
+        const arr = _loadNotifs();
+        const n = arr.find(x=>x.id===String(id));
+        if (n) { n.descartada=true; n.leida=true; }
+        _saveNotifs(arr);
+        _renderNotifBadge();
+        _renderNotifPanel();
     }
 
     function _marcarNotifLeida(id) {
@@ -5934,8 +6216,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function _irANotif(notifId, refId) {
         _marcarNotifLeida(notifId);
         _toggleNotifPanel();
-        irA('vista-shooting');
-        renderShootingGrid();
+        if (!refId) return;
+        if (refId.startsWith('_confirmar')) { eval(refId); return; }
+        irA(refId.includes('vista-') ? refId : 'vista-resumen');
+        if (refId === 'vista-resumen') openEjecutorModal();
     }
 
     /* ============= PARTE 4 — GUIÓN GENERADO POR IA ============= */
@@ -8175,7 +8459,7 @@ function abrirModalExcel() {
         alert('La librería SheetJS no está disponible. Verifica tu conexión a internet.');
         return;
     }
-    _xlsState = { step:'upload', wb:null, planAData:null, planBMapping:{}, headers:[], atribucion:[], periodoMes:null, fechaMin:null, fechaMax:null, previewData:null };
+    _xlsState = { step:'upload', wb:null, planAData:null, planBMapping:{}, headers:[], periodoMes:null, fechaMin:null, fechaMax:null, previewData:null, items:[], origen_clientes:null };
     _xlsRender();
     document.getElementById('modal-excel-import').classList.add('activo');
 }
@@ -8268,197 +8552,213 @@ function _xlsShowError(msg) {
 function _xlsParse() {
     const wb = _xlsState.wb;
 
-    // Collect all first-row headers from every sheet
-    const allHeaders = [];
-    wb.SheetNames.forEach(sName => {
-        const sheet = wb.Sheets[sName];
-        if (!sheet['!ref']) return;
-        const range = XLSX.utils.decode_range(sheet['!ref']);
-        for (let c = range.s.c; c <= Math.min(range.e.c, range.s.c + 60); c++) {
-            const cell = sheet[XLSX.utils.encode_cell({r: range.s.r, c})];
-            if (cell && cell.v != null)
-                allHeaders.push({ sheet: sName, col: c, header: String(cell.v).trim() });
-        }
-    });
-    _xlsState.headers = allHeaders;
-
     const findSheet = name => {
-        const n = name.toLowerCase();
-        const found = wb.SheetNames.find(s => s.toLowerCase() === n);
+        const n = name.toLowerCase().trim().replace(/[íi]/g,'i');
+        const found = wb.SheetNames.find(s => s.toLowerCase().trim().replace(/[íi]/g,'i') === n);
         return found ? wb.Sheets[found] : null;
     };
 
     const resumenSheet = findSheet('resumen');
-    const ventasSheet  = findSheet('ventas') || findSheet('ítems') || findSheet('items') || findSheet('ítem') || findSheet('item');
+    const itemsSheet   = findSheet('ítems') || findSheet('items') || findSheet('ítem') || findSheet('item');
+    const ventasSheet  = findSheet('ventas');
 
-    if (resumenSheet) {
-        const planA = _xlsExtractResumen(resumenSheet);
-        if (planA._complete) {
-            _xlsState.planAData = planA;
-            if (ventasSheet) {
-                const { atribucion, periodoMes, fechaMin, fechaMax } = _xlsExtractAtribucion(ventasSheet);
-                _xlsState.atribucion  = atribucion;
-                _xlsState.periodoMes  = periodoMes || _xlsGuessPeriod(wb);
-                _xlsState.fechaMin    = fechaMin;
-                _xlsState.fechaMax    = fechaMax;
-            } else {
-                _xlsState.periodoMes  = _xlsGuessPeriod(wb);
-                _xlsState.atribucion  = [];
-            }
-            _xlsState.step = 'planA';
-            _xlsRender();
-            return;
-        }
+    if (!resumenSheet) {
+        _xlsState.step = 'upload';
+        _xlsRender();
+        _xlsShowError('No se encontró la hoja "Resumen" — verifica que el Excel sea el reporte estándar de Aitama.');
+        return;
     }
-    // Fallback Plan B
+
+    const resumen = _xlsExtractResumen(resumenSheet);
+    _xlsState.planAData = resumen;
+
+    if (itemsSheet) {
+        _xlsState.items = _xlsExtractItems(itemsSheet);
+        if (!resumen.categorias.length && _xlsState.items.length) {
+            const catMap = {};
+            _xlsState.items.forEach(it => { if (it.categoria) catMap[it.categoria] = (catMap[it.categoria]||0) + it.total; });
+            const totalCat = Object.values(catMap).reduce((s,v)=>s+v,0);
+            resumen.categorias = Object.entries(catMap).sort((a,b)=>b[1]-a[1])
+                .map(([nombre,monto])=>({ nombre, monto, porcentaje: totalCat>0?Math.round(monto/totalCat*100):0 }));
+        }
+    } else {
+        _xlsState.items = [];
+    }
+
     if (ventasSheet) {
-        const { periodoMes, fechaMin, fechaMax } = _xlsExtractAtribucion(ventasSheet);
-        _xlsState.periodoMes = periodoMes || _xlsGuessPeriod(wb);
-        _xlsState.fechaMin   = fechaMin;
-        _xlsState.fechaMax   = fechaMax;
+        const { origen_clientes, fechaMin, fechaMax } = _xlsExtractVentas(ventasSheet);
+        _xlsState.origen_clientes = origen_clientes;
+        _xlsState.fechaMin = fechaMin || null;
+        _xlsState.fechaMax = fechaMax || null;
+    } else {
+        _xlsState.origen_clientes = null;
+        _xlsState.fechaMin = null;
+        _xlsState.fechaMax = null;
+    }
+
+    if (resumen.periodo) {
+        const parts = resumen.periodo.inicio.split('/');
+        if (parts.length === 3) {
+            const mo = parseInt(parts[1]) - 1, yr = parseInt(parts[2]);
+            _xlsState.periodoMes = { mesIdx: mo, año: yr, mes: MESES[mo] };
+        }
+    } else if (_xlsState.fechaMin) {
+        const fd = _xlsState.fechaMin;
+        _xlsState.periodoMes = { mesIdx: fd.getMonth(), año: fd.getFullYear(), mes: MESES[fd.getMonth()] };
     } else {
         _xlsState.periodoMes = _xlsGuessPeriod(wb);
     }
-    _xlsState.step = 'planB';
+
+    _xlsState.step = resumen.ventas_total != null ? 'planA' : 'planB';
     _xlsRender();
 }
 
-/* Extrae KPIs de la hoja Resumen buscando texto + valor adyacente */
+/* Extrae KPIs y categorías de la hoja Resumen con estructura real de Aitama */
 function _xlsExtractResumen(sheet) {
-    const MAP = {
-        'total ventas':              'ventas',
-        'cantidad de reservación':   'reservaciones',
-        'cantidad de reservaciones': 'reservaciones',
-        'total reservaciones':       'reservaciones',
-        'venta promedio':            'ticket_medio',
-        'ticket promedio':           'ticket_medio',
-        'promedio venta':            'ticket_medio',
-        'clientes nuevos':           'clientes_nuevos',
-        'presupuesto gastado':       'inversion',
-        'inversión gastada':         'inversion',
-        'inversion':                 'inversion',
-        'costo por cliente nuevo':   'cac',
-        'cac':                       'cac',
-        'costo de adquisición':      'cac'
+    const data = { categorias: [] };
+    if (!sheet['!ref']) return data;
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+
+    const LABEL_MAP = {
+        'total ventas ($)':'ventas_total', 'total ventas':'ventas_total',
+        'cantidad de ventas':'cantidad_ventas', 'cantidad ventas':'cantidad_ventas',
+        'venta promedio ($)':'ticket_medio', 'venta promedio':'ticket_medio',
+        'ticket promedio':'ticket_medio', 'promedio de venta':'ticket_medio',
+        'total descuentos ($)':'total_descuentos', 'total descuentos':'total_descuentos',
     };
-    const data = {};
-    const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+    const dateRangeRe = /(\d{1,2}\/\d{1,2}\/\d{4})\s+al\s+(\d{1,2}\/\d{1,2}\/\d{4})/i;
+    let catSection = false;
 
     for (let r = range.s.r; r <= range.e.r; r++) {
+        const row = [];
         for (let c = range.s.c; c <= range.e.c; c++) {
             const cell = sheet[XLSX.utils.encode_cell({r, c})];
-            if (!cell || cell.v == null) continue;
-            const texto = String(cell.v).toLowerCase().trim();
-            const campo = MAP[texto];
-            if (!campo || data[campo] != null) continue;
-            // Search adjacent cells: right (×2), below (×2)
-            for (const pos of [{r, c:c+1}, {r, c:c+2}, {r:r+1, c}, {r:r+2, c}]) {
-                const v = sheet[XLSX.utils.encode_cell(pos)];
-                if (v && v.v != null && v.v !== '') {
-                    let n;
-                    if (typeof v.v === 'number') {
-                        n = v.v;
-                    } else {
-                        let s = String(v.v).replace(/[$\s]/g, '').trim();
-                        if (/^\d{1,3}(\.\d{3})+(,\d*)?$/.test(s)) {
-                            s = s.replace(/\./g, '').replace(',', '.');
-                        } else {
-                            s = s.replace(/,/g, '');
-                        }
-                        n = parseFloat(s);
-                    }
-                    if (!isNaN(n)) { data[campo] = Math.round(n); break; }
-                }
+            row.push(cell ? cell.v : null);
+        }
+        const nonNull = row.filter(v => v != null && v !== '');
+        if (!nonNull.length) { if (catSection) catSection = false; continue; }
+
+        const firstV  = String(nonNull[0]).trim();
+        const firstLo = firstV.toLowerCase();
+
+        if (!data.periodo) {
+            for (const v of nonNull) {
+                const m = String(v).match(dateRangeRe);
+                if (m) { data.periodo = { inicio: m[1], fin: m[2] }; break; }
             }
         }
+
+        const campo = LABEL_MAP[firstLo];
+        if (campo && data[campo] == null) {
+            for (let i = 1; i < nonNull.length; i++) {
+                const n = _xlsParseNum(nonNull[i]);
+                if (!isNaN(n)) { data[campo] = n; break; }
+            }
+            catSection = false;
+            continue;
+        }
+
+        if (firstLo.includes('ventas por categor')) { catSection = true; continue; }
+        if (firstLo === 'categoría' || firstLo === 'categoria' || firstLo === 'monto') continue;
+        if (firstLo.includes('resumen') || firstLo.includes('reporte de')) { catSection = false; continue; }
+
+        if (catSection && firstV) {
+            let monto = null;
+            for (let i = 1; i < nonNull.length; i++) {
+                const n = _xlsParseNum(nonNull[i]);
+                if (!isNaN(n) && n > 0) { monto = n; break; }
+            }
+            if (monto != null) data.categorias.push({ nombre: firstV, monto });
+        }
     }
-    data._complete = data.ventas != null;
+
+    const totalCat = data.categorias.reduce((s,c)=>s+c.monto, 0);
+    if (totalCat > 0) data.categorias = data.categorias.map(c=>({ ...c, porcentaje: Math.round(c.monto/totalCat*100) }));
     return data;
 }
 
-/* Extrae atribución por canal desde columna "Nota" de hoja Ventas */
-function _xlsExtractAtribucion(sheet) {
-    if (!sheet['!ref']) return { atribucion:[], periodoMes:null };
-    const range  = XLSX.utils.decode_range(sheet['!ref']);
-    let notaCol  = -1, fechaCol = -1;
+/* Extrae ítems individuales de la hoja Ítems */
+function _xlsExtractItems(sheet) {
+    if (!sheet['!ref']) return [];
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    const cols = {};
 
-    for (let c = range.s.c; c <= range.e.c; c++) {
-        const cell = sheet[XLSX.utils.encode_cell({r: range.s.r, c})];
+    for (let r = range.s.r; r <= Math.min(range.s.r+4, range.e.r); r++) {
+        let found = false;
+        for (let c = range.s.c; c <= range.e.c; c++) {
+            const cell = sheet[XLSX.utils.encode_cell({r, c})];
+            if (!cell) continue;
+            const t = String(cell.v||'').toLowerCase().trim();
+            if (t.includes('fecha'))                                                           { cols.fecha=c; found=true; }
+            if (t.includes('cliente'))                                                           cols.cliente=c;
+            if (t.includes('categor'))                                                           cols.categoria=c;
+            if ((t.includes('nombre')||t.includes('item')||t.includes('servic'))&&!t.includes('id')) cols.nombre=c;
+            if (t==='cantidad'||t==='cant.')                                                     cols.cantidad=c;
+            if (t==='total'||t.includes('monto'))                                                cols.total=c;
+            if (t.includes('prestador')||t.includes('terapeuta'))                                cols.prestador=c;
+        }
+        if (found) { cols._hr=r; break; }
+    }
+    if (cols._hr==null) return [];
+
+    const items = [];
+    for (let r = cols._hr+1; r <= range.e.r; r++) {
+        const get = col => { if(col==null)return null; const cell=sheet[XLSX.utils.encode_cell({r,c:col})]; return cell?cell.v:null; };
+        const total = _xlsParseNum(get(cols.total));
+        if (isNaN(total)||total===0) continue;
+        let fecha = get(cols.fecha);
+        if (fecha!=null) {
+            if (fecha instanceof Date) fecha=`${String(fecha.getDate()).padStart(2,'0')}/${String(fecha.getMonth()+1).padStart(2,'0')}/${fecha.getFullYear()}`;
+            else if (typeof fecha==='number') { const d=new Date(Math.round((fecha-25569)*86400000)); fecha=`${String(d.getUTCDate()).padStart(2,'0')}/${String(d.getUTCMonth()+1).padStart(2,'0')}/${d.getUTCFullYear()}`; }
+            else fecha=String(fecha);
+        }
+        items.push({ fecha:fecha||'', cliente:get(cols.cliente)!=null?String(get(cols.cliente)):'', categoria:get(cols.categoria)!=null?String(get(cols.categoria)):'', nombre:get(cols.nombre)!=null?String(get(cols.nombre)):'', cantidad:_xlsParseNum(get(cols.cantidad))||1, total:Math.round(total), prestador:get(cols.prestador)!=null?String(get(cols.prestador)):'' });
+    }
+    return items;
+}
+
+/* Extrae origen de clientas de la columna Nota en hoja Ventas */
+function _xlsExtractVentas(sheet) {
+    if (!sheet['!ref']) return { origen_clientes:null, fechaMin:null, fechaMax:null };
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    let notaCol=-1, fechaCol=-1;
+    for (let c=range.s.c; c<=range.e.c; c++) {
+        const cell=sheet[XLSX.utils.encode_cell({r:range.s.r,c})];
         if (!cell) continue;
-        const t = String(cell.v||'').toLowerCase().trim();
-        if (t.includes('nota') || ['origen','canal','fuente','procedencia'].includes(t)) notaCol = c;
-        if (t.includes('fecha') || t === 'date') fechaCol = c;
+        const t=String(cell.v||'').toLowerCase().trim();
+        if (t.includes('nota')) notaCol=c;
+        if (t.includes('fecha')||t==='date') fechaCol=c;
     }
-
-    const canalCount = {};
-    const fechas = [];
-    for (let r = range.s.r + 1; r <= range.e.r; r++) {
-        if (notaCol >= 0) {
-            const nc = sheet[XLSX.utils.encode_cell({r, c: notaCol})];
-            if (nc && nc.v) {
-                const canal = _xlsNormalizarCanal(String(nc.v).trim());
-                canalCount[canal] = (canalCount[canal] || 0) + 1;
-            }
-        }
-        if (fechaCol >= 0) {
-            const fc = sheet[XLSX.utils.encode_cell({r, c: fechaCol})];
-            if (fc && fc.v) {
-                const d = fc.t === 'd' ? fc.v : new Date(fc.v);
-                if (d instanceof Date && !isNaN(d.getTime())) fechas.push(d);
-            }
-        }
+    const canalCount={}, fechas=[];
+    let hasNota=false;
+    for (let r=range.s.r+1; r<=range.e.r; r++) {
+        if (notaCol>=0) { const nc=sheet[XLSX.utils.encode_cell({r,c:notaCol})]; if(nc&&nc.v&&String(nc.v).trim()){hasNota=true;const canal=_xlsNormalizarCanal(String(nc.v).trim());canalCount[canal]=(canalCount[canal]||0)+1;} }
+        if (fechaCol>=0) { const fc=sheet[XLSX.utils.encode_cell({r,c:fechaCol})]; if(fc&&fc.v){let d;if(fc.t==='d')d=fc.v;else if(fc.t==='n')d=new Date(Math.round((fc.v-25569)*86400000));else d=new Date(fc.v);if(d instanceof Date&&!isNaN(d.getTime()))fechas.push(d);} }
     }
-
-    // Detect period from most frequent month + actual date range
-    let periodoMes = null;
-    let fechaMin = null, fechaMax = null;
-    if (fechas.length > 0) {
-        const sorted = fechas.slice().sort((a,b) => a-b);
-        fechaMin = sorted[0];
-        fechaMax = sorted[sorted.length-1];
-        const mesCounts = {};
-        fechas.forEach(d => {
-            const key = `${d.getFullYear()}-${d.getMonth()}`;
-            mesCounts[key] = (mesCounts[key]||0) + 1;
-        });
-        const [topKey] = Object.entries(mesCounts).sort((a,b) => b[1]-a[1]);
-        if (topKey) {
-            const [yr, mo] = topKey[0].split('-').map(Number);
-            periodoMes = { mesIdx: mo, año: yr, mes: MESES[mo] };
-        }
-    }
-
-    const ads = DB.datos[SUC_ACTIVA]?.ads || [];
-    const atribucion = Object.entries(canalCount).map(([canal, cantidad]) => {
-        const match = _xlsMatchCampana(canal, ads);
-        return { canal, cantidad, campana_id: match?.id||null, campana_nombre: match?.nombre||null };
-    });
-
-    return { atribucion, periodoMes, fechaMin, fechaMax };
+    let fechaMin=null,fechaMax=null;
+    if (fechas.length){const s=fechas.slice().sort((a,b)=>a-b);fechaMin=s[0];fechaMax=s[s.length-1];}
+    const origen_clientes=(notaCol>=0&&hasNota)?Object.entries(canalCount).sort((a,b)=>b[1]-a[1]).map(([origen,cantidad])=>({origen,cantidad})):null;
+    return { origen_clientes, fechaMin, fechaMax };
 }
 
 function _xlsNormalizarCanal(texto) {
     const t = texto.toLowerCase();
-    if (t.includes('instagram') || t.includes(' ig ') || t.includes('ig dm')) return 'Instagram DM';
-    if (t.includes('recomend') || t.includes('referid') || t.includes('referral')) return 'Recomendación';
-    if (t.includes('whatsapp') || t.includes('directo whatsapp')) return 'WhatsApp directo';
-    if (t.includes('buscó') || t.includes('busco') || t.includes('keyword') || t.includes('google')) return 'Búsqueda';
-    if (t.includes('facebook') || t.includes(' fb ')) return 'Facebook';
+    if (t.includes('instagram')||t==='ig'||t.includes('ig dm')) return 'Instagram DM';
+    if (t.includes('recomend')||t.includes('referid')||t.includes('boca a boca')) return 'Recomendación';
+    if (t.includes('whatsapp')||t==='wp'||t.includes('wp ')) return 'WhatsApp directo';
+    if (t.includes('búsqueda')||t.includes('busco')||t.includes('busca')||t.includes('google')||t.includes('orgánic')) return 'Búsqueda orgánica';
+    if (t.includes('facebook')||t==='fb') return 'Facebook';
     if (t.includes('tiktok')) return 'TikTok';
     return texto.length > 35 ? texto.substring(0,35) : texto;
 }
 
-function _xlsMatchCampana(canal, ads) {
-    if (!ads.length) return null;
-    const c = canal.toLowerCase();
-    return ads.find(a => {
-        const n = (a.nombre||'').toLowerCase();
-        if (c.includes('instagram') && (n.includes('instagram')||n.includes('meta')||n.includes('ig'))) return true;
-        if (c.includes('facebook')  && (n.includes('facebook') ||n.includes('meta')||n.includes('fb'))) return true;
-        if (c.includes('tiktok')    &&  n.includes('tiktok'))  return true;
-        if (c.includes('google')    && (n.includes('google')   ||n.includes('search'))) return true;
-        return false;
-    }) || null;
+function _xlsParseNum(v) {
+    if (v==null) return NaN;
+    if (typeof v==='number') return v;
+    let s=String(v).replace(/[$\s%]/g,'').trim();
+    if (/^\d{1,3}(\.\d{3})+(,\d*)?$/.test(s)) s=s.replace(/\./g,'').replace(',','.');
+    else s=s.replace(/,/g,'');
+    return parseFloat(s);
 }
 
 function _xlsGuessPeriod(wb) {
@@ -8481,44 +8781,44 @@ function _xlsRenderPlanA(body, foot, title) {
     const d = _xlsState.planAData;
     const p = _xlsState.periodoMes;
     const periodoLabel = p ? `${p.mes} ${p.año}` : '—';
-    const found = Object.keys(d).filter(k => k !== '_complete' && d[k] != null).length;
-
-    title.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--color-exito);margin-right:10px;"></i> Reconocimiento automático exitoso';
-
+    const periodoFechas = d.periodo ? `${d.periodo.inicio} – ${d.periodo.fin}` : periodoLabel;
     const fmtMXN = v => '$' + Number(v).toLocaleString('es-MX', {minimumFractionDigits:0});
     const fmtNum = v => Number(v).toLocaleString('es-MX');
 
-    const atribRows = _xlsState.atribucion.map(a => `
+    title.innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--color-exito);margin-right:10px;"></i> Reconocimiento automático exitoso';
+
+    const catRows = (d.categorias||[]).map(c => `
         <div class="xls-canal-row">
+            <span style="font-weight:600;">${c.nombre}</span>
             <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-weight:600;">${a.canal}</span>
-                ${a.campana_nombre
-                    ? `<span style="font-size:10px;padding:2px 8px;border-radius:100px;background:rgba(52,168,83,0.12);color:var(--color-exito);font-weight:700;">→ ${a.campana_nombre.substring(0,28)}</span>`
-                    : `<span style="font-size:10px;color:var(--texto-secundario);font-style:italic;">Sin campaña vinculada</span>`}
+                <span style="font-size:10px;color:var(--texto-secundario);">${c.porcentaje}%</span>
+                <span style="font-weight:800;color:var(--color-primario);">${fmtMXN(c.monto)}</span>
             </div>
-            <span style="font-weight:800;color:var(--color-primario);">${a.cantidad} cliente${a.cantidad!==1?'s':''}</span>
         </div>`).join('');
+
+    const origenRows = _xlsState.origen_clientes
+        ? (_xlsState.origen_clientes.length
+            ? _xlsState.origen_clientes.map(o=>`<div class="xls-canal-row"><span style="font-weight:600;">${o.origen}</span><span style="font-weight:800;color:var(--color-primario);">${o.cantidad} clienta${o.cantidad!==1?'s':''}</span></div>`).join('')
+            : '<p style="font-size:12px;color:var(--texto-secundario);margin:4px 0;font-style:italic;">Sin entradas en columna Nota.</p>')
+        : `<p style="font-size:12px;color:#9A7200;margin:6px 0 0;background:rgba(251,188,5,.08);padding:8px 12px;border-radius:8px;border:1px solid rgba(251,188,5,.22);"><i class="fa-solid fa-triangle-exclamation" style="margin-right:5px;"></i>Columna Nota vacía — se notificará a Ángeles para que la complete.</p>`;
 
     body.innerHTML = `
         <div style="background:rgba(52,168,83,0.06);border:1px solid rgba(52,168,83,0.18);border-radius:10px;padding:11px 15px;margin-bottom:18px;font-size:12px;color:var(--color-exito);font-weight:600;">
-            <i class="fa-solid fa-circle-check"></i> Hoja "Resumen" encontrada — ${found} campo${found!==1?'s':''} detectado${found!==1?'s':''} automáticamente
+            <i class="fa-solid fa-circle-check"></i> Hoja "Resumen" encontrada · Periodo: <strong>${periodoFechas}</strong>
         </div>
         <div class="xls-step-header">KPIs del periodo · ${periodoLabel}</div>
         <div class="xls-kpi-list">
-            ${d.ventas        != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Ventas totales</span><span class="xls-kpi-val">${fmtMXN(d.ventas)}</span></div>` : ''}
-            ${d.clientes_nuevos != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Clientes nuevos</span><span class="xls-kpi-val">${fmtNum(d.clientes_nuevos)}</span></div>` : ''}
-            ${d.reservaciones  != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Reservaciones</span><span class="xls-kpi-val">${fmtNum(d.reservaciones)}</span></div>` : ''}
-            ${d.ticket_medio   != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Ticket medio</span><span class="xls-kpi-val">${fmtMXN(d.ticket_medio)}</span></div>` : ''}
-            ${d.inversion      != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Inversión</span><span class="xls-kpi-val">${fmtMXN(d.inversion)}</span></div>` : ''}
-            ${d.cac            != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">CAC (referencia)</span><span class="xls-kpi-val">${fmtMXN(d.cac)}</span></div>` : ''}
+            ${d.ventas_total    !=null?`<div class="xls-kpi-item"><span class="xls-kpi-label">Ventas totales</span><span class="xls-kpi-val">${fmtMXN(d.ventas_total)}</span></div>`:''}
+            ${d.cantidad_ventas !=null?`<div class="xls-kpi-item"><span class="xls-kpi-label">Cantidad de ventas</span><span class="xls-kpi-val">${fmtNum(d.cantidad_ventas)}</span></div>`:''}
+            ${d.ticket_medio    !=null?`<div class="xls-kpi-item"><span class="xls-kpi-label">Venta promedio</span><span class="xls-kpi-val">${fmtMXN(d.ticket_medio)}</span></div>`:''}
+            ${d.total_descuentos!=null?`<div class="xls-kpi-item"><span class="xls-kpi-label">Total descuentos</span><span class="xls-kpi-val">${fmtMXN(d.total_descuentos)}</span></div>`:''}
         </div>
-        ${_xlsState.atribucion.length ? `
-            <div class="xls-step-header" style="margin-top:18px;">Atribución por canal</div>
-            ${atribRows}` : `
-            <p style="font-size:12px;color:var(--texto-secundario);margin-top:14px;font-style:italic;"><i class="fa-solid fa-circle-info"></i> No se encontró hoja "Ventas" — la atribución se puede registrar manualmente.</p>`}`;
+        ${(d.categorias||[]).length?`<div class="xls-step-header" style="margin-top:16px;">Ventas por categoría (${d.categorias.length})</div>${catRows}`:''}
+        <div class="xls-step-header" style="margin-top:16px;">Origen de clientas</div>
+        ${origenRows}`;
 
     foot.innerHTML = `
-        <button class="btn btn-fantasma" onclick="_xlsState.step='planB';_xlsRender()"><i class="fa-solid fa-sliders"></i> Cambiar mapeo</button>
+        <button class="btn btn-fantasma" onclick="_xlsState.step='planB';_xlsRender()"><i class="fa-solid fa-keyboard"></i> Ingresar manual</button>
         <div style="display:flex;gap:8px;">
             <button class="btn btn-fantasma" onclick="cerrarModalExcel()">Cancelar</button>
             <button class="btn btn-primario" onclick="_xlsPreparePreview()"><i class="fa-solid fa-eye"></i> Ver preview</button>
@@ -8584,19 +8884,16 @@ function _xlsPreparePreview() {
         return { mesIdx: n.getMonth(), año: n.getFullYear(), mes: MESES[n.getMonth()] };
     })();
     _xlsState.periodoMes = p;
-
-    const rec = (d.reservaciones != null && d.clientes_nuevos != null)
-        ? Math.max(0, Math.round(d.reservaciones) - Math.round(d.clientes_nuevos)) : 0;
-
     _xlsState.previewData = {
-        ventas:               Math.round(d.ventas        || 0),
-        clientes_nuevos:      Math.round(d.clientes_nuevos || 0),
-        clientes_recurrentes: rec,
+        ventas:           Math.round(d.ventas_total   || d.ventas    || 0),
+        cantidad_ventas:  Math.round(d.cantidad_ventas || d.reservaciones || 0),
+        ticket_medio:     Math.round(d.ticket_medio   || 0),
+        total_descuentos: Math.round(d.total_descuentos|| 0),
+        categorias:       d.categorias || [],
+        dms:              0,
+        clientes_nuevos:      0,
+        clientes_recurrentes: 0,
         clientes_recuperados: 0,
-        ticket_medio:         Math.round(d.ticket_medio  || 0),
-        inversion:            Math.round(d.inversion     || 0),
-        cac:                  d.cac != null ? Math.round(d.cac) : null,
-        dms:                  0
     };
     _xlsState.step = 'preview';
     _xlsRender();
@@ -8605,6 +8902,7 @@ function _xlsPreparePreview() {
 /* ── Step: Preview ────────────────────────────────────────────── */
 function _xlsRenderPreview(body, foot, title) {
     const pd = _xlsState.previewData;
+    const d  = _xlsState.planAData;
     const p  = _xlsState.periodoMes;
     const label = `${p.mes} ${p.año}`;
     title.innerHTML = '<i class="fa-solid fa-eye" style="color:var(--color-primario);margin-right:10px;"></i> Vista previa de importación';
@@ -8612,7 +8910,6 @@ function _xlsRenderPreview(body, foot, title) {
     const fmtMXN = v => '$' + Number(v).toLocaleString('es-MX', {minimumFractionDigits:0});
     const fmtNum = v => Number(v).toLocaleString('es-MX');
 
-    // Check for existing monthly entry
     const existing = (DB.datos[SUC_ACTIVA]?.kpi_semanal||[])
         .find(s => s.tipo === 'mensual' && s.mesIdx === p.mesIdx && s.año === p.año);
     const warnHtml = existing ? `
@@ -8620,33 +8917,33 @@ function _xlsRenderPreview(body, foot, title) {
             <i class="fa-solid fa-triangle-exclamation"></i> Ya existe un registro para <strong>${label}</strong> — se reemplazará al confirmar.
         </div>` : '';
 
-    const atribHtml = _xlsState.atribucion.length ? `
-        <div class="xls-step-header" style="margin-top:18px;">Atribución de clientes por canal</div>
-        ${_xlsState.atribucion.map(a => `
-            <div class="xls-canal-row">
-                <div style="display:flex;align-items:center;gap:8px;">
-                    <i class="fa-solid fa-circle-dot" style="font-size:8px;color:var(--color-primario);"></i>
-                    <span>${a.canal}</span>
-                    ${a.campana_nombre
-                        ? `<span style="font-size:10px;color:var(--color-exito);font-weight:700;">→ ${a.campana_nombre.substring(0,26)}</span>`
-                        : `<span style="font-size:10px;color:var(--texto-secundario);">Sin campaña vinculada</span>`}
-                </div>
-                <span style="font-weight:700;">${a.cantidad} cliente${a.cantidad!==1?'s':''}</span>
-            </div>`).join('')}` : '';
+    const catHtml = pd.categorias.length ? `
+        <div class="xls-step-header" style="margin-top:14px;">Ventas por categoría</div>
+        ${pd.categorias.map(c=>`<div class="xls-canal-row"><span>${c.nombre}</span><div style="display:flex;gap:8px;align-items:center;"><span style="font-size:10px;color:var(--texto-secundario);">${c.porcentaje}%</span><span style="font-weight:700;">${fmtMXN(c.monto)}</span></div></div>`).join('')}` : '';
+
+    const origenHtml = (_xlsState.origen_clientes||[]).length ? `
+        <div class="xls-step-header" style="margin-top:14px;">Origen de clientas</div>
+        ${_xlsState.origen_clientes.map(o=>`<div class="xls-canal-row"><span>${o.origen}</span><span style="font-weight:700;">${o.cantidad}</span></div>`).join('')}` : '';
+
+    const pendientes = [];
+    if (!_xlsState.origen_clientes) pendientes.push('Origen de clientas — columna Nota vacía en el Excel');
+    pendientes.push('Clientas nuevas y recurrentes — ingresar en Ejecutor de KPIs');
 
     body.innerHTML = `
         ${warnHtml}
-        <p style="font-size:13px;font-weight:600;margin-bottom:14px;">Estos datos se importarán para <strong>${label}</strong>:</p>
+        <p style="font-size:13px;font-weight:600;margin-bottom:14px;">Datos a importar para <strong>${label}</strong>${d.periodo?` · ${d.periodo.inicio} – ${d.periodo.fin}`:''}:</p>
         <div class="xls-step-header">KPIs principales</div>
         <div class="xls-kpi-list">
             <div class="xls-kpi-item"><span class="xls-kpi-label">Ventas totales</span><span class="xls-kpi-val">${fmtMXN(pd.ventas)}</span></div>
-            <div class="xls-kpi-item"><span class="xls-kpi-label">Clientes nuevos</span><span class="xls-kpi-val">${fmtNum(pd.clientes_nuevos)}</span></div>
-            <div class="xls-kpi-item"><span class="xls-kpi-label">Clientes recurrentes</span><span class="xls-kpi-val">${fmtNum(pd.clientes_recurrentes)}</span></div>
-            ${pd.ticket_medio ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Ticket medio</span><span class="xls-kpi-val">${fmtMXN(pd.ticket_medio)}</span></div>` : ''}
-            ${pd.inversion ? `<div class="xls-kpi-item"><span class="xls-kpi-label">Inversión</span><span class="xls-kpi-val">${fmtMXN(pd.inversion)}</span></div>` : ''}
-            ${pd.cac != null ? `<div class="xls-kpi-item"><span class="xls-kpi-label">CAC (referencia)</span><span class="xls-kpi-val">${fmtMXN(pd.cac)}</span></div>` : ''}
+            ${pd.cantidad_ventas?`<div class="xls-kpi-item"><span class="xls-kpi-label">Cantidad de ventas</span><span class="xls-kpi-val">${fmtNum(pd.cantidad_ventas)}</span></div>`:''}
+            ${pd.ticket_medio?`<div class="xls-kpi-item"><span class="xls-kpi-label">Venta promedio</span><span class="xls-kpi-val">${fmtMXN(pd.ticket_medio)}</span></div>`:''}
+            ${pd.total_descuentos?`<div class="xls-kpi-item"><span class="xls-kpi-label">Total descuentos</span><span class="xls-kpi-val">${fmtMXN(pd.total_descuentos)}</span></div>`:''}
         </div>
-        ${atribHtml}`;
+        ${catHtml}${origenHtml}
+        <div style="background:rgba(251,188,5,0.08);border:1px solid rgba(251,188,5,0.22);border-radius:10px;padding:10px 14px;margin-top:14px;font-size:12px;color:#9A7200;">
+            <div style="font-weight:700;margin-bottom:4px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:4px;"></i>Se notificará a Ángeles que faltan:</div>
+            ${pendientes.map(t=>`<div style="padding:1px 0;">· ${t}</div>`).join('')}
+        </div>`;
 
     foot.innerHTML = `
         <button class="btn btn-fantasma" onclick="_xlsState.step='planA';_xlsRender()"><i class="fa-solid fa-arrow-left"></i> Volver</button>
@@ -8659,27 +8956,21 @@ function _xlsRenderPreview(body, foot, title) {
 /* ── Confirmar ────────────────────────────────────────────────── */
 function _xlsConfirmar() {
     const pd = _xlsState.previewData;
+    const d  = _xlsState.planAData;
     const p  = _xlsState.periodoMes;
-    const d  = DB.datos[SUC_ACTIVA];
+    const dd = DB.datos[SUC_ACTIVA];
 
-    // Remove existing mensual entry for same period
-    d.kpi_semanal = (d.kpi_semanal||[]).filter(s =>
-        !(s.tipo === 'mensual' && s.mesIdx === p.mesIdx && s.año === p.año)
-    );
+    dd.kpi_semanal = (dd.kpi_semanal||[]).filter(s =>
+        !(s.tipo === 'mensual' && s.mesIdx === p.mesIdx && s.año === p.año));
 
-    // Build fecha range from actual sheet dates or fall back to month boundaries
-    const fmt = d => d.toISOString ? d.toISOString().split('T')[0]
-                   : `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    const fechaInicio = _xlsState.fechaMin
-        ? fmt(_xlsState.fechaMin)
-        : `${p.año}-${String(p.mesIdx+1).padStart(2,'0')}-01`;
+    const fmtISO = dt => `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`;
+    const fechaInicio = _xlsState.fechaMin ? fmtISO(_xlsState.fechaMin)
+        : (d.periodo ? _xlsParseDDMMYYYY(d.periodo.inicio) : `${p.año}-${String(p.mesIdx+1).padStart(2,'0')}-01`);
     const diasMes = new Date(p.año, p.mesIdx+1, 0).getDate();
-    const fechaFin = _xlsState.fechaMax
-        ? fmt(_xlsState.fechaMax)
-        : `${p.año}-${String(p.mesIdx+1).padStart(2,'0')}-${String(diasMes).padStart(2,'0')}`;
+    const fechaFin = _xlsState.fechaMax ? fmtISO(_xlsState.fechaMax)
+        : (d.periodo ? _xlsParseDDMMYYYY(d.periodo.fin) : `${p.año}-${String(p.mesIdx+1).padStart(2,'0')}-${String(diasMes).padStart(2,'0')}`);
 
-    // Create new entry
-    d.kpi_semanal.push({
+    dd.kpi_semanal.push({
         id:                   'xl_' + Date.now(),
         tipo:                 'mensual',
         fuente:               'excel_import',
@@ -8688,35 +8979,89 @@ function _xlsConfirmar() {
         fecha_hasta:          fechaFin,
         mesIdx:               p.mesIdx,
         año:                  p.año,
-        clientes_nuevos:      pd.clientes_nuevos,
-        clientes_recurrentes: pd.clientes_recurrentes,
-        clientes_recuperados: pd.clientes_recuperados,
         ventas:               pd.ventas,
-        dms:                  pd.dms,
+        cantidad_ventas:      pd.cantidad_ventas,
         ticket_medio:         pd.ticket_medio,
-        atribucion:           _xlsState.atribucion
+        total_descuentos:     pd.total_descuentos,
+        dms:                  0,
+        clientes_nuevos:      0,
+        clientes_recurrentes: 0,
+        clientes_recuperados: 0,
+        categorias:           pd.categorias,
+        items:                _xlsState.items || [],
+        origen_clientes:      _xlsState.origen_clientes,
+        atribucion:           (_xlsState.origen_clientes||[]).map(o=>({ canal:o.origen, cantidad:o.cantidad, campana_id:null, campana_nombre:null })),
     });
 
-    // Attribute conversions to matched campaigns
-    _xlsState.atribucion.forEach(a => {
-        if (!a.campana_id || !a.cantidad) return;
-        const ad = (d.ads||[]).find(x => x.id === a.campana_id);
-        if (ad) ad.conversiones = (ad.conversiones||0) + a.cantidad;
-    });
+    // Auto-calc client types from items if available
+    const _reg = dd.kpi_semanal[dd.kpi_semanal.length - 1];
+    if ((_xlsState.items||[]).length && typeof calcularMetricas === 'function') {
+        const _ac = calcularMetricas(_reg, dd);
+        if (_ac) {
+            _reg.clientes_nuevos = _ac.nuevas;
+            _reg.clientes_recurrentes = _ac.recurrentes;
+            _reg.clientes_recuperados = _ac.recuperadas;
+            _reg.clientes_fuente = 'auto';
+        }
+    }
 
     guardarBD();
     _kpiSemanalToHistorico();
     _syncKPIsToRendimiento();
     cerrarModalExcel();
     renderDashboard();
+    _xlsCrearNotificaciones(p, _reg);
 
-    // Toast
-    const toast = document.createElement('div');
-    toast.textContent = `✓ ${p.mes} ${p.año} importado correctamente`;
-    toast.style.cssText = 'position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#1D6F42;color:#fff;padding:12px 28px;border-radius:100px;font-weight:700;font-size:13px;z-index:99999;box-shadow:0 4px 20px rgba(0,0,0,.3);pointer-events:none;';
-    document.body.appendChild(toast);
-    setTimeout(() => { toast.style.transition='opacity .4s'; toast.style.opacity='0'; }, 2600);
-    setTimeout(() => toast.remove(), 3200);
+    const nCat = pd.categorias.length, nItems = (_xlsState.items||[]).length;
+    const parts = [`$${Number(pd.ventas).toLocaleString('es-MX')} en ventas`];
+    if (nItems) parts.push(`${nItems} servicios`);
+    if (nCat)   parts.push(`${nCat} categoría${nCat!==1?'s':''}`);
+    _showToast(`✓ ${p.mes} ${p.año} importado: ${parts.join(' · ')}`, 4000);
+}
+
+function _xlsParseDDMMYYYY(str) {
+    const p = (str||'').split('/');
+    if (p.length !== 3) return str;
+    return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+}
+
+function _xlsCrearNotificaciones(p, regKpi) {
+    const label = `${p.mes} ${p.año}`;
+    const reg = `${p.mesIdx}_${p.año}`;
+    const clean = _loadNotifs().filter(n=>!(n.tipo==='data_faltante'&&(n.referencia_id||'').includes(reg)));
+    const nuevas = [];
+
+    const reg_kpi = regKpi || (DB.datos[SUC_ACTIVA]?.kpi_semanal||[]).find(s=>s.tipo==='mensual'&&s.mesIdx===p.mesIdx&&s.año===p.año);
+    if (!reg_kpi?.origen_clientes) {
+        nuevas.push({ id:`notif_origen_${reg}_${Date.now()}`, tipo:'data_faltante', subtipo:'origen_clientes',
+            titulo:'📋 Origen de clientas sin registrar', de:'Sistema', para:'direccion',
+            mensaje:`El reporte de ${label} no tiene el origen de cada clienta en la columna Nota del Excel. Sin este dato no podemos saber de dónde vienen las clientas nuevas.\n→ Abre tu sistema de agenda, edita cada venta y agrega de dónde vino la clienta en el campo Nota.`,
+            accion_label:'Entendido', accion_ruta:null, leida:false, descartada:false,
+            fecha:new Date().toISOString(), referencia_id:reg });
+    }
+    if (reg_kpi?.clientes_fuente === 'auto') {
+        const n = reg_kpi.clientes_nuevos||0, r = reg_kpi.clientes_recurrentes||0, rec = reg_kpi.clientes_recuperados||0;
+        nuevas.push({ id:`notif_clientes_auto_${reg}_${Date.now()+1}`, tipo:'data_faltante', subtipo:'clientes_auto',
+            titulo:'📊 Clientas calculadas automáticamente — ¿es correcto?', de:'Sistema', para:'direccion',
+            mensaje:`El sistema calculó para ${label}:\n· ${n} clientas nuevas\n· ${r} clientas recurrentes\n· ${rec} clientas recuperadas\n¿Es correcto? Confirma o corrige desde el Ejecutor de KPIs.`,
+            accion_label:'Confirmar ✓', accion_ruta:`_confirmarClientesAuto(${p.mesIdx},${p.año})`, leida:false, descartada:false,
+            fecha:new Date().toISOString(), referencia_id:reg });
+    } else {
+    nuevas.push({ id:`notif_clientes_${reg}_${Date.now()+1}`, tipo:'data_faltante', subtipo:'clientes_nuevos',
+        titulo:'📊 KPIs de clientas pendientes', de:'Sistema', para:'direccion',
+        mensaje:`Necesitamos que ingreses cuántas clientas nuevas y recurrentes atendiste en ${label}. Esto no viene en el Excel automáticamente.\n→ Ve al Ejecutor de KPIs y llena los campos Nuevas y Recurrentes.`,
+        accion_label:'Llenar ahora', accion_ruta:'vista-resumen', leida:false, descartada:false,
+        fecha:new Date().toISOString(), referencia_id:reg });
+    }
+
+    _saveNotifs([...clean, ...nuevas]);
+    _renderNotifBadge();
+}
+
+function _xlsNotificarOrigenManual() {
+    const p = _xlsState.periodoMes || (() => { const n=new Date(); return {mesIdx:n.getMonth(),año:n.getFullYear(),mes:MESES[n.getMonth()]}; })();
+    _xlsCrearNotificaciones(p);
+    _showToast('✓ Notificación enviada a Ángeles');
 }
 </script>
 
@@ -8743,6 +9088,7 @@ function _xlsConfirmar() {
 <div id="lanka-toast" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 22px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;opacity:0;pointer-events:none;white-space:nowrap;transition:opacity .25s;box-shadow:0 4px 16px rgba(0,0,0,.3);"></div>
 
 <!-- Panel lateral de notificaciones -->
+<div id="ejec-tooltip" style="position:fixed;background:rgba(20,18,16,0.92);color:#fff;font-size:11px;font-weight:500;line-height:1.5;padding:8px 12px;border-radius:8px;max-width:220px;z-index:99999;pointer-events:none;display:none;white-space:pre-line;box-shadow:0 4px 16px rgba(0,0,0,.25);"></div>
 <div id="notif-panel" style="position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--color-tarjeta,#fff);border-left:1px solid var(--color-borde,#eee);box-shadow:-4px 0 24px rgba(0,0,0,.08);z-index:9000;transition:right .25s ease;display:flex;flex-direction:column;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--color-borde,#eee);">
         <div style="font-family:var(--font-display,sans-serif);font-size:15px;font-weight:800;"><i class="fa-solid fa-bell" style="margin-right:8px;color:var(--color-primario,#C4855A);"></i>Notificaciones</div>
