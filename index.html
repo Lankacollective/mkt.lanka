@@ -2253,7 +2253,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById(target).classList.remove('oculto');
                 // Render charts cuando se activa esa vista
                 if (target === 'vista-charts') setTimeout(renderCharts, 50);
-                if (target === 'vista-ads') setTimeout(renderAdsCharts, 50);
+                if (target === 'vista-ads') { _syncKanbanToAds(false); renderAdsTable(); setTimeout(renderAdsCharts, 50); }
                 if (target === 'vista-offline') setTimeout(renderOfflineCharts, 50);
                 if (target === 'vista-cal-editorial') renderCalEditorial();
                 if (target === 'vista-stories') renderStories();
@@ -2459,7 +2459,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderDashboard(); renderInsights(); renderOrquestacion(); renderDAM();
         renderPresupuesto(); renderFacturas(); renderBriefing(); renderMood(); 
         renderEstrategia(); renderAdministracion();
-        renderAdsTable(); renderOfflineTable(); renderShootingGrid(); renderStories(); renderMisTareas();
+        _syncKanbanToAds(false); renderAdsTable(); renderOfflineTable(); renderShootingGrid(); renderStories(); renderMisTareas();
     }
 
     function renderDashboard() {
@@ -5494,7 +5494,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return 0;
     }
 
-    function _syncKanbanToAds() {
+    function _syncKanbanToAds(autoRender = true) {
         const d = DB.datos[SUC_ACTIVA];
         if (!d) return;
         if (!d.ads) d.ads = [];
@@ -5527,7 +5527,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             added++;
         });
-        if (added > 0) { guardarBD(); renderAdsTable(); }
+        if (added > 0) { guardarBD(); if (autoRender) renderAdsTable(); }
     }
 
     /* ================================================================
