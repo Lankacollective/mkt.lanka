@@ -8289,7 +8289,7 @@ function _xlsParse() {
     };
 
     const resumenSheet = findSheet('resumen');
-    const ventasSheet  = findSheet('ventas');
+    const ventasSheet  = findSheet('ventas') || findSheet('ítems') || findSheet('items') || findSheet('ítem') || findSheet('item');
 
     if (resumenSheet) {
         const planA = _xlsExtractResumen(resumenSheet);
@@ -8372,7 +8372,7 @@ function _xlsExtractResumen(sheet) {
             }
         }
     }
-    data._complete = ['ventas','clientes_nuevos','ticket_medio'].every(k => data[k] != null);
+    data._complete = data.ventas != null;
     return data;
 }
 
@@ -8386,7 +8386,7 @@ function _xlsExtractAtribucion(sheet) {
         const cell = sheet[XLSX.utils.encode_cell({r: range.s.r, c})];
         if (!cell) continue;
         const t = String(cell.v||'').toLowerCase().trim();
-        if (['nota','origen','canal','fuente','procedencia'].includes(t)) notaCol = c;
+        if (t.includes('nota') || ['origen','canal','fuente','procedencia'].includes(t)) notaCol = c;
         if (t.includes('fecha') || t === 'date') fechaCol = c;
     }
 
