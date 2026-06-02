@@ -1039,6 +1039,7 @@
             <li class="item-nav" data-target="vista-target"><i class="fa-solid fa-users-viewfinder"></i> Target & Seg.</li>
             <li class="item-nav" data-target="vista-ads"><i class="fa-solid fa-bullhorn"></i> Ad Performance</li>
             <li class="item-nav" data-target="vista-offline"><i class="fa-solid fa-print"></i> Materiales Offline</li>
+            <li class="item-nav" data-target="vista-catalogo" onclick="irA('vista-catalogo');renderCatalogo()"><i class="fa-solid fa-book-open"></i> Catálogo</li>
         </ul>
 
         <div class="menu-titulo req-equipo">Mi Trabajo</div>
@@ -1447,6 +1448,16 @@
                     <button class="btn btn-primario req-agencia" onclick="agregarElemento('target')"><i class="fa-solid fa-plus"></i> Segmento</button>
                 </div>
                 <div class="tarjeta"><table class="tabla-editable"><thead><tr><th>ID Link</th><th>Nombre del Segmento</th><th>Sexo</th><th>Nivel Socioeconómico</th><th>Ubicación / Detalles</th><th class="req-agencia"></th></tr></thead><tbody id="tabla-target"></tbody></table></div>
+            </section>
+
+            <!-- ============ MÓDULO CATÁLOGO ============ -->
+            <section id="vista-catalogo" class="seccion-app oculto">
+                <div class="encabezado-seccion" style="display:flex;justify-content:space-between;align-items:center;">
+                    <div><h1>Catálogo</h1><p>Servicios y productos del proyecto activo.</p></div>
+                    <div style="display:flex;gap:8px;align-items:center;" id="catalogo-header-btns"></div>
+                </div>
+                <div id="catalogo-tabs" style="display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--color-borde);"></div>
+                <div id="catalogo-contenido"></div>
             </section>
 
             <!-- ============ NUEVO MÓDULO 5: AD PERFORMANCE ============ -->
@@ -1994,7 +2005,8 @@ document.addEventListener('DOMContentLoaded', function() {
             auditoria:       { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
             stories:         { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
             mis_tareas:      { owner:false,lanka_team:false, direccion:false, coordinador:true,  equipo:true  },
-            usuarios:        { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false }
+            usuarios:        { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
+            catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
         },
         usuarios: [
             { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      puesto:"Socio Director",  password:btoa("Lanka2026"),  rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",            estado:"activo" },
@@ -3089,7 +3101,10 @@ document.addEventListener('DOMContentLoaded', function() {
             meses.forEach(mi => {
                 const m = p_item.montos_mes?.[mi] || {};
                 const val = (m.inversion||0) + (m.colaboracion||0);
-                if (result[p_item.tipo] !== undefined) result[p_item.tipo] += val;
+                if (!val) return;
+                // Use item's tipo if it exists in INVERSION_CATEGORIAS, else fallback to first category
+                const tipoKey = result[p_item.tipo] !== undefined ? p_item.tipo : INVERSION_CATEGORIAS[0].tipo;
+                result[tipoKey] += val;
             });
         });
         return result;
@@ -3654,6 +3669,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderPresupuesto() {
         const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
+        // Bug 1 fix: save scroll positions before re-render
+        const _areaScroll   = document.getElementById('area-scroll');
+        const _contenedor   = document.getElementById('contenedor-presupuesto');
+        const _savedScrollY = _areaScroll ? _areaScroll.scrollTop : 0;
+        const _tableWrap    = _contenedor ? _contenedor.querySelector('[style*="overflow-x"]') : null;
+        const _savedScrollX = _tableWrap  ? _tableWrap.scrollLeft  : 0;
+
         const pres = d.presupuesto || [];
         let totalInv = 0, totalCol = 0;
         pres.forEach(p => p.montos_mes.forEach(m => { totalInv += m.inversion||0; totalCol += m.colaboracion||0; }));
@@ -3672,6 +3694,10 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>`;
         html += _pptoVista === 'anual' ? _renderPptoAnual(pres, ro) : _renderPptoMensual(pres, ro);
         document.getElementById('contenedor-presupuesto').innerHTML = html;
+        // Bug 1 fix: restore scroll positions after re-render
+        if (_areaScroll) _areaScroll.scrollTop = _savedScrollY;
+        const _newTableWrap = document.querySelector('#contenedor-presupuesto [style*="overflow-x"]');
+        if (_newTableWrap) _newTableWrap.scrollLeft = _savedScrollX;
     }
 
     function cambiarVistaPpto(v) { _pptoVista = v; renderPresupuesto(); }
@@ -4154,13 +4180,138 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('contenedor-mood').innerHTML = d.mood.map((m, i) => `<div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid var(--color-borde); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div><div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${ROL==='agencia' ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].emocion=this.value;guardarBD()"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div><div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">PRODUCTO/EJE</label>${ROL==='agencia' ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].producto=this.value;guardarBD()"><option selected hidden>${m.producto}</option>${optPro}</select>` : `<input class="input-celda" value="${m.producto}" readonly>`}</div></div>`).join('');
     }
 
+    let _expandedTargets = new Set();
+
+    function _targetToggleServicio(idx, servicio, chipEl) {
+        const t = DB.datos[SUC_ACTIVA].target[idx];
+        if (!t.servicios_aplica) t.servicios_aplica = [];
+        const pos = t.servicios_aplica.indexOf(servicio);
+        if (pos >= 0) {
+            t.servicios_aplica.splice(pos, 1);
+            chipEl.style.background = 'transparent';
+            chipEl.style.borderColor = 'var(--color-borde-fuerte)';
+            chipEl.style.color = 'var(--texto-secundario)';
+        } else {
+            t.servicios_aplica.push(servicio);
+            chipEl.style.background = 'var(--color-primario)';
+            chipEl.style.borderColor = 'var(--color-primario)';
+            chipEl.style.color = '#fff';
+        }
+        guardarBD();
+    }
+
+    function _targetAddInteres(idx, inputEl) {
+        const raw = typeof inputEl === 'string' ? inputEl : (inputEl.value || '');
+        const vals = raw.split(',').map(s => s.trim()).filter(Boolean);
+        if (!vals.length) return;
+        const t = DB.datos[SUC_ACTIVA].target[idx];
+        if (!t.intereses) t.intereses = [];
+        vals.forEach(v => { if (!t.intereses.includes(v)) t.intereses.push(v); });
+        guardarBD();
+        if (typeof inputEl !== 'string') inputEl.value = '';
+        _expandedTargets.add(t.id);
+        renderEstrategia();
+    }
+
+    function _targetRemoveInteres(idx, tagIdx) {
+        const t = DB.datos[SUC_ACTIVA].target[idx];
+        if (t.intereses) t.intereses.splice(tagIdx, 1);
+        guardarBD();
+        _expandedTargets.add(t.id);
+        renderEstrategia();
+    }
+
     function renderEstrategia() {
-        const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
-        document.getElementById('tabla-target').innerHTML = d.target.map((t,i) => {
-            let optSexo = DB.desplegables.sexo.map(s => `<option ${s===t.sexo?'selected':''}>${s}</option>`).join('');
+        const d = DB.datos[SUC_ACTIVA];
+        const ro = ROL === 'cliente' ? 'readonly' : '';
+        const canEdit = ROL === 'agencia';
+        const servicios = _getServicios(SUC_ACTIVA);
+
+        document.getElementById('tabla-target').innerHTML = d.target.map((t, i) => {
+            let optSexo  = DB.desplegables.sexo.map(s => `<option ${s===t.sexo?'selected':''}>${s}</option>`).join('');
             let optNivel = DB.desplegables.nivel.map(n => `<option ${n===t.nivel?'selected':''}>${n}</option>`).join('');
-            return `<tr><td><span style="font-family:monospace; font-size:11px; color:#888;">${t.id}</span></td><td><input class="input-celda" style="font-weight:700;" value="${t.segmento}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].segmento=this.value;guardarBD();renderTodas()"></td><td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].sexo=this.value;guardarBD()">${optSexo}</select>` : t.sexo}</td><td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].nivel=this.value;guardarBD()">${optNivel}</select>` : t.nivel}</td><td><input class="input-celda" value="${t.ubicacion}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].ubicacion=this.value;guardarBD()"></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('target',${i})"></i></td></tr>`;
+            const serviciosAplica = t.servicios_aplica || [];
+            const intereses       = t.intereses || [];
+
+            // ── Main row (existing fields) ─────────────────────────
+            const mainRow = `<tr>
+                <td><span style="font-family:monospace;font-size:11px;color:#888;">${t.id}</span></td>
+                <td><input class="input-celda" style="font-weight:700;" value="${t.segmento||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].segmento=this.value;guardarBD();renderTodas()"></td>
+                <td>${canEdit ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].sexo=this.value;guardarBD()">${optSexo}</select>` : (t.sexo||'')}</td>
+                <td>${canEdit ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].nivel=this.value;guardarBD()">${optNivel}</select>` : (t.nivel||'')}</td>
+                <td><input class="input-celda" value="${t.ubicacion||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].ubicacion=this.value;guardarBD()"></td>
+                <td class="req-agencia" style="white-space:nowrap;text-align:right;">
+                    <button title="Ver más campos" style="background:none;border:none;cursor:pointer;color:var(--texto-secundario);padding:4px 6px;border-radius:6px;" onclick="document.getElementById('td-${t.id}').classList.toggle('oculto');_expandedTargets[document.getElementById('td-${t.id}').classList.contains('oculto')?'delete':'add']('${t.id}')">
+                        <i class="fa-solid fa-sliders" style="font-size:11px;"></i>
+                    </button>
+                    <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;margin-left:2px;" onclick="delObj('target',${i})"></i>
+                </td>
+            </tr>`;
+
+            // ── Detail row (new fields) ─────────────────────────────
+            const interesesTags = intereses.map((tag, ti) =>
+                `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;background:rgba(196,133,90,.1);color:var(--color-primario);border:1px solid rgba(196,133,90,.2);margin:2px;">
+                    ${tag}${canEdit ? `<i class="fa-solid fa-times" style="font-size:9px;cursor:pointer;opacity:.7;" onclick="_targetRemoveInteres(${i},${ti})"></i>` : ''}
+                </span>`).join('');
+
+            const serviciosChips = servicios.map(s => {
+                const sel = serviciosAplica.includes(s);
+                const esc = s.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+                return `<span onclick="_targetToggleServicio(${i},'${esc}',this)"
+                    style="display:inline-flex;align-items:center;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;margin:2px;transition:var(--transicion);
+                    border:1.5px solid ${sel?'var(--color-primario)':'var(--color-borde-fuerte)'};
+                    background:${sel?'var(--color-primario)':'transparent'};
+                    color:${sel?'#fff':'var(--texto-secundario)'};">${s}</span>`;
+            }).join('');
+
+            const serviciosSection = servicios.length
+                ? `<div style="display:flex;flex-wrap:wrap;">${serviciosChips}</div>`
+                : `<input class="input-celda" placeholder="Escribe servicios separados por coma" value="${serviciosAplica.join(', ')}" ${ro}
+                    style="border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;width:100%;"
+                    onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].servicios_aplica=this.value.split(',').map(s=>s.trim()).filter(Boolean);guardarBD()">`;
+
+            const detailRow = `<tr id="td-${t.id}" class="oculto">
+                <td colspan="6" style="padding:14px 20px 16px;background:${document.documentElement.getAttribute('data-theme')==='dark'?'rgba(255,255,255,.02)':'rgba(0,0,0,.015)'};border-top:1px solid var(--color-borde);">
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;align-items:start;">
+                        <div>
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);display:block;margin-bottom:8px;">Rango de edad</label>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <input type="number" min="1" max="99" class="input-celda" placeholder="18" value="${t.edad_min??''}" ${ro}
+                                    style="width:58px;border:1px solid var(--color-borde);border-radius:8px;padding:6px 8px;text-align:center;font-weight:700;font-size:13px;"
+                                    onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].edad_min=this.value?Number(this.value):null;guardarBD()">
+                                <span style="color:var(--texto-secundario);">—</span>
+                                <input type="number" min="1" max="99" class="input-celda" placeholder="55" value="${t.edad_max??''}" ${ro}
+                                    style="width:58px;border:1px solid var(--color-borde);border-radius:8px;padding:6px 8px;text-align:center;font-weight:700;font-size:13px;"
+                                    onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].edad_max=this.value?Number(this.value):null;guardarBD()">
+                                <span style="font-size:11px;color:var(--texto-secundario);">años</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);display:block;margin-bottom:8px;">Intereses</label>
+                            <div style="display:flex;flex-wrap:wrap;min-height:26px;margin-bottom:6px;">${interesesTags||'<span style="font-size:11px;color:var(--texto-secundario);font-style:italic;">Sin intereses</span>'}</div>
+                            ${canEdit ? `<div style="display:flex;gap:6px;">
+                                <input id="interes-input-${t.id}" class="input-celda" placeholder="yoga, bienestar…"
+                                    style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:5px 10px;font-size:12px;"
+                                    onkeydown="if(event.key==='Enter'||event.key===','){event.preventDefault();_targetAddInteres(${i},this);}">
+                                <button class="btn btn-xs btn-fantasma" onclick="_targetAddInteres(${i},document.getElementById('interes-input-${t.id}'))"><i class="fa-solid fa-plus"></i></button>
+                            </div>` : ''}
+                        </div>
+                        <div>
+                            <label style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);display:block;margin-bottom:8px;">Servicios que aplican</label>
+                            ${serviciosSection}
+                        </div>
+                    </div>
+                </td>
+            </tr>`;
+
+            return mainRow + detailRow;
         }).join('');
+
+        // Restore expanded rows
+        _expandedTargets.forEach(id => {
+            const row = document.getElementById('td-' + id);
+            if (row) row.classList.remove('oculto');
+        });
     }
 
     // ── Presets por tipo de proyecto ────────────────────────────────
@@ -4442,6 +4593,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
         confHTML += `</div>`; // cierre grid 2×2
 
+        // Datos del sistema — exportar / importar
+        if (_isOwnerForConfig) {
+            confHTML += `<div style="margin-top:8px;padding-top:24px;border-top:1px solid var(--color-borde);">
+                <div style="font-family:var(--font-display);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Datos del sistema</div>
+                <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:16px;line-height:1.6;">Exporta o importa todos los datos para mover el sistema entre dispositivos o navegadores.</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <button class="btn btn-fantasma" onclick="exportarDatosSistema()"><i class="fa-solid fa-download" style="margin-right:6px;"></i>Exportar datos</button>
+                    <label class="btn btn-fantasma" style="cursor:pointer;margin:0;">
+                        <i class="fa-solid fa-upload" style="margin-right:6px;"></i>Importar datos
+                        <input type="file" accept=".json" style="display:none;" onchange="importarDatosSistema(this)">
+                    </label>
+                </div>
+            </div>`;
+        }
+
         // Zona de peligro (full-width, fuera del grid)
         if (_isOwnerForConfig) {
             confHTML += `<div style="margin-top:8px;padding-top:24px;border-top:2px solid var(--color-borde);">
@@ -4474,6 +4640,45 @@ document.addEventListener('DOMContentLoaded', function() {
         guardarBD();
         renderTodas();
         alert('Datos eliminados. El sistema está listo para datos reales.');
+    }
+
+    function exportarDatosSistema() {
+        if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO)) return;
+        const backup = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            backup[key] = localStorage.getItem(key);
+        }
+        const fecha = new Date().toISOString().split('T')[0];
+        const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `lanka_backup_${fecha}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    function importarDatosSistema(input) {
+        if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO)) return;
+        const file = input.files[0];
+        if (!file) return;
+        input.value = '';
+        if (!confirm('Esto reemplazará todos los datos actuales. ¿Estás segura?')) return;
+        if (!confirm('¿Confirmas que quieres reemplazar permanentemente todos los datos con el archivo importado?')) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            try {
+                const backup = JSON.parse(e.target.result);
+                if (typeof backup !== 'object' || Array.isArray(backup)) throw new Error('Formato inválido');
+                localStorage.clear();
+                Object.entries(backup).forEach(([key, val]) => localStorage.setItem(key, val));
+                alert('Datos importados correctamente. El sistema se recargará ahora.');
+                location.reload();
+            } catch(err) {
+                alert('Error al importar: ' + err.message + '\nVerifica que el archivo sea un backup válido de Lanka OS.');
+            }
+        };
+        reader.readAsText(file);
     }
 
     /* ── Logo de proyecto — localStorage separado del DB principal ── */
@@ -6183,6 +6388,234 @@ document.addEventListener('DOMContentLoaded', function() {
         const overlay = document.getElementById('nav-overlay');
         nav.classList.remove('mobile-abierta');
         if (overlay) overlay.classList.remove('activo');
+    }
+
+    // ── Catálogo ────────────────────────────────────────────────────────
+    let _catalogoTab = null;
+
+    function _catalogoCategoriasPorTipo() {
+        const tipo = getTipoProyecto(SUC_ACTIVA);
+        if (tipo === 'restaurante') return ['Comida', 'Bebida', 'Eventos'];
+        if (tipo === 'cafeteria')   return ['Productos', 'Eventos'];
+        if (tipo === 'personal')    return ['Servicios', 'Contenido patrocinado'];
+        return ['Servicios', 'Productos']; // wellness + otro
+    }
+
+    function _catalogoShowDuracion() {
+        const tipo = getTipoProyecto(SUC_ACTIVA);
+        return tipo === 'wellness' || tipo === 'personal';
+    }
+
+    function _getCatalogo(sucId) {
+        try {
+            const s = localStorage.getItem('catalogo_' + sucId);
+            if (s) return JSON.parse(s);
+        } catch(e) {}
+        // Migrar desde config_servicios si existe
+        const serviciosExistentes = _getServicios(sucId);
+        if (serviciosExistentes && serviciosExistentes.length > 0) {
+            const migrados = serviciosExistentes.map(nombre => ({
+                nombre, descripcion: '', precio: null, duracion: '', categoria: 'Servicios', activo: true
+            }));
+            _saveCatalogo(sucId, migrados);
+            return migrados;
+        }
+        // Pre-cargar defaults por proyecto/tipo
+        const suc = (DB.sucursales || []).find(s => s.id === sucId) || {};
+        if (sucId === 'aitama' || suc.tipo === 'wellness') {
+            const defaults = [
+                { nombre:'Head Spa',                      descripcion:'', precio:null, duracion:'60 min', categoria:'Servicios', activo:true },
+                { nombre:'Facial Clínico',                descripcion:'', precio:null, duracion:'60 min', categoria:'Servicios', activo:true },
+                { nombre:'Masaje Terapéutico',            descripcion:'', precio:null, duracion:'60 min', categoria:'Servicios', activo:true },
+                { nombre:'Body Reset',                    descripcion:'', precio:null, duracion:'90 min', categoria:'Servicios', activo:true },
+                { nombre:'Consulta',                      descripcion:'', precio:null, duracion:'30 min', categoria:'Servicios', activo:true },
+                { nombre:'Age Element Mesoestétic',       descripcion:'', precio:null, duracion:'',       categoria:'Productos', activo:true },
+                { nombre:'Ainhoa Cannabi7 / CBD',         descripcion:'', precio:null, duracion:'',       categoria:'Productos', activo:true },
+                { nombre:'Body Reset (línea de productos)',descripcion:'', precio:null, duracion:'',       categoria:'Productos', activo:true },
+            ];
+            _saveCatalogo(sucId, defaults);
+            return defaults;
+        }
+        _saveCatalogo(sucId, []);
+        return [];
+    }
+
+    function _saveCatalogo(sucId, arr) {
+        localStorage.setItem('catalogo_' + sucId, JSON.stringify(arr));
+        // Sincronizar items activos → config_servicios para que otros módulos los lean
+        const activos = arr.filter(i => i.activo !== false).map(i => i.nombre);
+        _saveServicios(sucId, activos);
+    }
+
+    function renderCatalogo() {
+        const catData    = _getCatalogo(SUC_ACTIVA);
+        const categorias = _catalogoCategoriasPorTipo();
+        const showDur    = _catalogoShowDuracion();
+        const canEdit    = ROL === 'agencia';
+        const isOwnerOrTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
+
+        if (!_catalogoTab || !categorias.includes(_catalogoTab)) _catalogoTab = categorias[0];
+
+        // Tabs
+        document.getElementById('catalogo-tabs').innerHTML = categorias.map(cat =>
+            `<button onclick="_catalogoTab='${cat.replace(/'/g,"\\'")}';renderCatalogo()"
+                style="padding:8px 18px;border:none;cursor:pointer;font-weight:600;font-size:13px;
+                border-bottom:2px solid ${_catalogoTab===cat?'var(--color-primario)':'transparent'};
+                color:${_catalogoTab===cat?'var(--color-primario)':'var(--texto-secundario)'};
+                background:transparent;transition:var(--transicion);">${cat}</button>`
+        ).join('');
+
+        // Botones de cabecera
+        let hBtns = '';
+        if (canEdit) hBtns += `<button class="btn btn-primario" onclick="_catalogoNuevoItem()"><i class="fa-solid fa-plus"></i> Nuevo</button>`;
+        if (isOwnerOrTeam) hBtns += `<button class="btn btn-fantasma" onclick="_catalogoToggleImport()"><i class="fa-solid fa-file-code"></i> Importar JSON</button>`;
+        document.getElementById('catalogo-header-btns').innerHTML = hBtns;
+
+        // Items de la pestaña activa
+        const items = catData.filter(it => it.categoria === _catalogoTab);
+
+        let html = `<div id="catalogo-import-panel" style="display:none;margin-bottom:20px;"></div>`;
+
+        if (items.length === 0) {
+            html += `<div class="tarjeta" style="text-align:center;padding:48px;color:var(--texto-secundario);">
+                <i class="fa-solid fa-box-open" style="font-size:32px;opacity:.3;display:block;margin-bottom:12px;"></i>
+                Sin items en esta categoría.
+                ${canEdit ? `<br><button class="btn btn-fantasma" style="margin-top:16px;" onclick="_catalogoNuevoItem()"><i class="fa-solid fa-plus"></i> Agregar primero</button>` : ''}
+            </div>`;
+        } else {
+            html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">`;
+            items.forEach(item => {
+                const globalIdx = catData.indexOf(item);
+                html += _renderCatalogoCard(item, globalIdx, showDur, canEdit);
+            });
+            if (canEdit) {
+                html += `<div onclick="_catalogoNuevoItem()"
+                    style="border:2px dashed var(--color-borde);border-radius:12px;display:flex;align-items:center;justify-content:center;min-height:130px;cursor:pointer;color:var(--texto-secundario);transition:var(--transicion);"
+                    onmouseover="this.style.borderColor='var(--color-primario)';this.style.color='var(--color-primario)'"
+                    onmouseout="this.style.borderColor='var(--color-borde)';this.style.color='var(--texto-secundario)'">
+                    <div style="text-align:center;"><i class="fa-solid fa-plus" style="font-size:20px;display:block;margin-bottom:8px;"></i>Nuevo item</div>
+                </div>`;
+            }
+            html += `</div>`;
+        }
+
+        document.getElementById('catalogo-contenido').innerHTML = html;
+    }
+
+    function _renderCatalogoCard(item, idx, showDur, canEdit) {
+        const ro = canEdit ? '' : 'readonly';
+        const isActivo = item.activo !== false;
+        const toggleLabel = isActivo
+            ? `<span title="Activo — clic para desactivar" onclick="_catalogoToggleActivo(${idx})" style="cursor:pointer;font-size:10px;padding:2px 9px;border-radius:100px;background:rgba(196,133,90,.12);color:var(--color-primario);font-weight:600;">Activo</span>`
+            : `<span title="Inactivo — clic para activar" onclick="_catalogoToggleActivo(${idx})" style="cursor:pointer;font-size:10px;padding:2px 9px;border-radius:100px;background:rgba(0,0,0,.06);color:var(--texto-secundario);font-weight:600;">Inactivo</span>`;
+        return `<div class="tarjeta" style="padding:16px;display:flex;flex-direction:column;gap:10px;opacity:${isActivo?1:0.5};transition:opacity .2s;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                <input class="input-celda" style="font-weight:700;font-size:14px;flex:1;"
+                    value="${(item.nombre||'').replace(/"/g,'&quot;')}" ${ro}
+                    onchange="_catalogoUpdateField(${idx},'nombre',this.value)">
+                <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+                    ${toggleLabel}
+                    ${canEdit ? `<i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="_catalogoEliminar(${idx})"></i>` : ''}
+                </div>
+            </div>
+            <textarea class="input-celda" placeholder="Descripción o ingredientes…" ${ro} rows="2"
+                style="resize:vertical;font-size:12px;border:1px solid var(--color-borde);border-radius:6px;padding:6px 8px;width:100%;box-sizing:border-box;"
+                onchange="_catalogoUpdateField(${idx},'descripcion',this.value)">${item.descripcion||''}</textarea>
+            <div style="display:flex;gap:10px;align-items:flex-end;">
+                <div style="flex:1;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px;">Precio</label>
+                    <input type="number" class="input-celda" placeholder="0" value="${item.precio??''}" ${ro} min="0"
+                        style="border:1px solid var(--color-borde);border-radius:6px;padding:5px 8px;font-size:13px;font-weight:700;width:100%;box-sizing:border-box;"
+                        onchange="_catalogoUpdateField(${idx},'precio',this.value!==''?Number(this.value):null)">
+                </div>
+                ${showDur ? `<div style="flex:1;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px;">Duración</label>
+                    <input class="input-celda" placeholder="60 min" value="${item.duracion||''}" ${ro}
+                        style="border:1px solid var(--color-borde);border-radius:6px;padding:5px 8px;font-size:13px;width:100%;box-sizing:border-box;"
+                        onchange="_catalogoUpdateField(${idx},'duracion',this.value)">
+                </div>` : ''}
+            </div>
+        </div>`;
+    }
+
+    function _catalogoUpdateField(idx, campo, valor) {
+        const cat = _getCatalogo(SUC_ACTIVA);
+        if (!cat[idx]) return;
+        cat[idx][campo] = valor;
+        _saveCatalogo(SUC_ACTIVA, cat);
+    }
+
+    function _catalogoToggleActivo(idx) {
+        const cat = _getCatalogo(SUC_ACTIVA);
+        if (!cat[idx]) return;
+        cat[idx].activo = cat[idx].activo === false;
+        _saveCatalogo(SUC_ACTIVA, cat);
+        renderCatalogo();
+    }
+
+    function _catalogoEliminar(idx) {
+        const cat = _getCatalogo(SUC_ACTIVA);
+        if (!confirm(`¿Eliminar "${cat[idx]?.nombre}" del catálogo?`)) return;
+        cat.splice(idx, 1);
+        _saveCatalogo(SUC_ACTIVA, cat);
+        renderCatalogo();
+    }
+
+    function _catalogoNuevoItem() {
+        const categorias = _catalogoCategoriasPorTipo();
+        const cat = _getCatalogo(SUC_ACTIVA);
+        cat.push({ nombre:'Nuevo item', descripcion:'', precio:null, duracion:'', categoria:_catalogoTab||categorias[0], activo:true });
+        _saveCatalogo(SUC_ACTIVA, cat);
+        renderCatalogo();
+    }
+
+    function _catalogoToggleImport() {
+        const panel = document.getElementById('catalogo-import-panel');
+        if (!panel) return;
+        if (panel.style.display !== 'none') { panel.style.display = 'none'; return; }
+        panel.style.display = 'block';
+        panel.innerHTML = `<div class="tarjeta" style="padding:16px;">
+            <div style="font-weight:700;font-size:13px;margin-bottom:8px;">Importar desde JSON</div>
+            <textarea id="catalogo-import-json" rows="6" style="width:100%;border:1px solid var(--color-borde);border-radius:8px;padding:8px;font-family:monospace;font-size:12px;resize:vertical;box-sizing:border-box;"
+                placeholder='{"catalogo":[{"nombre":"Head Spa","descripcion":"Tratamiento capilar","precio":850,"duracion":"60 min","categoria":"Servicios","activo":true}]}'></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+                <button class="btn btn-primario" onclick="_catalogoImportarJSON()">Importar</button>
+                <button class="btn btn-fantasma" onclick="document.getElementById('catalogo-import-panel').style.display='none'">Cancelar</button>
+            </div>
+        </div>`;
+    }
+
+    function _catalogoImportarJSON() {
+        const txt = (document.getElementById('catalogo-import-json') || {}).value || '';
+        let parsed;
+        try { parsed = JSON.parse(txt); } catch(e) { alert('JSON inválido: ' + e.message); return; }
+        const items = Array.isArray(parsed) ? parsed : (parsed.catalogo || []);
+        if (!items.length) { alert('No se encontraron items. Usa el schema: {"catalogo":[...]}'); return; }
+        const cat = _getCatalogo(SUC_ACTIVA);
+        let agregados = 0, actualizados = 0;
+        items.forEach(item => {
+            if (!item.nombre) return;
+            const existIdx = cat.findIndex(c => c.nombre.toLowerCase().trim() === item.nombre.toLowerCase().trim());
+            if (existIdx >= 0) {
+                if (confirm(`¿Actualizar "${item.nombre}" con los datos del JSON?\n(Cancelar para mantener el existente)`)) {
+                    cat[existIdx] = { ...cat[existIdx], ...item };
+                    actualizados++;
+                }
+            } else {
+                cat.push({
+                    nombre: item.nombre,
+                    descripcion: item.descripcion || '',
+                    precio: item.precio ?? null,
+                    duracion: item.duracion || '',
+                    categoria: item.categoria || _catalogoTab || _catalogoCategoriasPorTipo()[0],
+                    activo: item.activo !== false
+                });
+                agregados++;
+            }
+        });
+        _saveCatalogo(SUC_ACTIVA, cat);
+        alert(`Importación completada:\n• ${agregados} items nuevos\n• ${actualizados} items actualizados\n\nNingún item existente fue eliminado.`);
+        renderCatalogo();
     }
 
 </script>
