@@ -1450,6 +1450,7 @@
                     <div><h1>Target & Segmentación</h1><p>Audiencias maestras para vincular con las campañas de pauta.</p></div>
                     <button class="btn btn-primario req-agencia" onclick="agregarElemento('target')"><i class="fa-solid fa-plus"></i> Segmento</button>
                 </div>
+                <div id="target-notif-banner" style="display:none;"></div>
                 <div class="tarjeta"><table class="tabla-editable"><thead><tr><th>ID Link</th><th>Nombre del Segmento</th><th>Sexo</th><th>Nivel Socioeconómico</th><th>Ubicación / Detalles</th><th class="req-agencia"></th></tr></thead><tbody id="tabla-target"></tbody></table></div>
             </section>
 
@@ -2256,6 +2257,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (target === 'vista-offline') setTimeout(renderOfflineCharts, 50);
                 if (target === 'vista-cal-editorial') renderCalEditorial();
                 if (target === 'vista-stories') renderStories();
+                if (target === 'vista-target') renderEstrategia();
             }); 
         });
     });
@@ -3666,7 +3668,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
             let t_val = t.target_id || "";
             let selTarget = ROL==='agencia' ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
-            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;guardarBD()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
+            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
         });
         ['Ideas','Producción','Revisión','Programado'].forEach(e => { document.getElementById('k-'+e).innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
@@ -4219,6 +4221,7 @@ document.addEventListener('DOMContentLoaded', function() {
             chipEl.style.color = '#fff';
         }
         guardarBD();
+        _targetCambioDir(t.segmento||t.id, 'Servicios que aplican', (pos>=0?'Quitado: ':'Agregado: ') + servicio);
     }
 
     function _targetAddInteres(idx, inputEl) {
@@ -4229,6 +4232,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!t.intereses) t.intereses = [];
         vals.forEach(v => { if (!t.intereses.includes(v)) t.intereses.push(v); });
         guardarBD();
+        _targetCambioDir(t.segmento||t.id, 'Intereses', 'Agregado: ' + vals.join(', '));
         if (typeof inputEl !== 'string') inputEl.value = '';
         _expandedTargets.add(t.id);
         renderEstrategia();
@@ -4236,10 +4240,54 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function _targetRemoveInteres(idx, tagIdx) {
         const t = DB.datos[SUC_ACTIVA].target[idx];
+        const tagEliminado = t.intereses ? t.intereses[tagIdx] : '';
         if (t.intereses) t.intereses.splice(tagIdx, 1);
         guardarBD();
+        _targetCambioDir(t.segmento||t.id, 'Intereses', 'Eliminado: ' + tagEliminado);
         _expandedTargets.add(t.id);
         renderEstrategia();
+    }
+
+    function _targetCambioDir(segmento, campo, detalle) {
+        if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'direccion' && !ROL_SIMULADO)) return;
+        try {
+            const key = 'notif_target_' + SUC_ACTIVA;
+            const notifs = JSON.parse(localStorage.getItem(key) || '[]');
+            notifs.push({
+                ts: new Date().toISOString(),
+                usuario: USUARIO_ACTIVO.nombre,
+                segmento: String(segmento||''),
+                campo: String(campo||''),
+                detalle: String(detalle||'').substring(0, 80)
+            });
+            localStorage.setItem(key, JSON.stringify(notifs));
+        } catch(e) {}
+        _renderNotifOwnerBanner();
+    }
+
+    function _renderNotifOwnerBanner() {
+        const el = document.getElementById('target-notif-banner');
+        if (!el) return;
+        const isRealOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+        if (!isRealOwner) { el.style.display = 'none'; return; }
+        let notifs = [];
+        try { notifs = JSON.parse(localStorage.getItem('notif_target_' + SUC_ACTIVA) || '[]'); } catch(e) {}
+        if (!notifs.length) { el.style.display = 'none'; return; }
+        const recientes = notifs.slice(-5).reverse();
+        el.style.display = 'block';
+        el.innerHTML = `<div style="background:rgba(196,133,90,.07);border:1px solid rgba(196,133,90,.3);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
+            <div style="min-width:0;">
+                <div style="font-size:12px;font-weight:800;color:var(--color-primario);margin-bottom:10px;"><i class="fa-solid fa-bell" style="margin-right:6px;"></i>${notifs.length} cambio${notifs.length!==1?'s':''} realizados por Dirección</div>
+                <div style="display:flex;flex-direction:column;gap:5px;">
+                    ${recientes.map(n => {
+                        const f = new Date(n.ts).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+                        return `<div style="font-size:12px;color:var(--texto-secundario);"><span style="font-weight:600;color:var(--texto-principal);">${n.usuario}</span> · <em>${n.segmento}</em> · ${n.campo}: <strong>${n.detalle}</strong> <span style="font-size:10px;opacity:.7;">(${f})</span></div>`;
+                    }).join('')}
+                    ${notifs.length > 5 ? `<div style="font-size:11px;color:var(--texto-secundario);margin-top:2px;">…y ${notifs.length-5} cambio${notifs.length-5!==1?'s':''} más</div>` : ''}
+                </div>
+            </div>
+            <button class="btn btn-xs btn-fantasma" style="white-space:nowrap;flex-shrink:0;" onclick="localStorage.removeItem('notif_target_${SUC_ACTIVA}');_renderNotifOwnerBanner()">Marcar como visto</button>
+        </div>`;
     }
 
     function renderEstrategia() {
@@ -4257,10 +4305,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // ── Main row (existing fields) ─────────────────────────
             const mainRow = `<tr>
                 <td><span style="font-family:monospace;font-size:11px;color:#888;">${t.id}</span></td>
-                <td><input class="input-celda" style="font-weight:700;" value="${t.segmento||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].segmento=this.value;guardarBD();renderTodas()"></td>
-                <td>${canEdit ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].sexo=this.value;guardarBD()">${optSexo}</select>` : (t.sexo||'')}</td>
-                <td>${canEdit ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].nivel=this.value;guardarBD()">${optNivel}</select>` : (t.nivel||'')}</td>
-                <td><input class="input-celda" value="${t.ubicacion||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].ubicacion=this.value;guardarBD()"></td>
+                <td><input class="input-celda" style="font-weight:700;" value="${t.segmento||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].segmento=this.value;guardarBD();_targetCambioDir('${t.segmento||t.id}','Nombre',this.value);renderTodas()"></td>
+                <td>${canEdit ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].sexo=this.value;guardarBD();_targetCambioDir('${t.segmento||t.id}','Sexo',this.value)">${optSexo}</select>` : (t.sexo||'')}</td>
+                <td>${canEdit ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].nivel=this.value;guardarBD();_targetCambioDir('${t.segmento||t.id}','Nivel',this.value)">${optNivel}</select>` : (t.nivel||'')}</td>
+                <td><input class="input-celda" value="${t.ubicacion||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].ubicacion=this.value;guardarBD();_targetCambioDir('${t.segmento||t.id}','Ubicación',this.value)"></td>
                 <td class="req-agencia" style="white-space:nowrap;text-align:right;">
                     <button title="Ver más campos" style="background:none;border:none;cursor:pointer;color:var(--texto-secundario);padding:4px 6px;border-radius:6px;" onclick="document.getElementById('td-${t.id}').classList.toggle('oculto');_expandedTargets[document.getElementById('td-${t.id}').classList.contains('oculto')?'delete':'add']('${t.id}')">
                         <i class="fa-solid fa-sliders" style="font-size:11px;"></i>
@@ -4299,11 +4347,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div style="display:flex;align-items:center;gap:6px;">
                                 <input type="number" min="1" max="99" class="input-celda" placeholder="18" value="${t.edad_min??''}" ${ro}
                                     style="width:58px;border:1px solid var(--color-borde);border-radius:8px;padding:6px 8px;text-align:center;font-weight:700;font-size:13px;"
-                                    onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].edad_min=this.value?Number(this.value):null;guardarBD()">
+                                    onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].edad_min=this.value?Number(this.value):null;guardarBD();_targetCambioDir('${t.segmento||t.id}','Edad mín.',this.value)">
                                 <span style="color:var(--texto-secundario);">—</span>
                                 <input type="number" min="1" max="99" class="input-celda" placeholder="55" value="${t.edad_max??''}" ${ro}
                                     style="width:58px;border:1px solid var(--color-borde);border-radius:8px;padding:6px 8px;text-align:center;font-weight:700;font-size:13px;"
-                                    onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].edad_max=this.value?Number(this.value):null;guardarBD()">
+                                    onchange="DB.datos['${SUC_ACTIVA}'].target[${i}].edad_max=this.value?Number(this.value):null;guardarBD();_targetCambioDir('${t.segmento||t.id}','Edad máx.',this.value)">
                                 <span style="font-size:11px;color:var(--texto-secundario);">años</span>
                             </div>
                         </div>
@@ -4328,11 +4376,16 @@ document.addEventListener('DOMContentLoaded', function() {
             return mainRow + detailRow;
         }).join('');
 
+        // Auto-expandir todos los segmentos para Dirección
+        if (USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'direccion') {
+            d.target.forEach(t => _expandedTargets.add(t.id));
+        }
         // Restore expanded rows
         _expandedTargets.forEach(id => {
             const row = document.getElementById('td-' + id);
             if (row) row.classList.remove('oculto');
         });
+        _renderNotifOwnerBanner();
     }
 
     // ── Presets por tipo de proyecto ────────────────────────────────
@@ -5252,7 +5305,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="ad-cell" style="border-left:4px solid var(--color-primario);">
                         <div class="ad-cell-name">${a.nombre}</div>
                         <div class="ad-cell-seg"><i class="fa-solid fa-users" style="margin-right:4px;color:var(--texto-secundario);"></i>${a.segmento}</div>
-                        <div style="margin-top:6px;"><span class="ad-status ${statusCls}">${statusDot} ${a.estado}</span></div>
+                        <div style="margin-top:6px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+                            <span class="ad-status ${statusCls}">${statusDot} ${a.estado}</span>
+                            ${a.origen==='kanban' && a.pauta_status==='confirmada' ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,.1);color:#15803D;border:1px solid rgba(34,197,94,.25);"><i class="fa-solid fa-check" style="font-size:9px;"></i>Confirmada · desde parrilla</span>` : ''}
+                            ${a.origen==='kanban' && a.pauta_status==='condicional' ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(234,179,8,.1);color:#A16207;border:1px solid rgba(234,179,8,.25);"><i class="fa-solid fa-clock" style="font-size:9px;"></i>Pendiente de aprobación</span>` : ''}
+                        </div>
                     </div>
                     <div class="ad-cell"><div class="ad-cell-label">Inversión</div><div class="ad-cell-value">$${Number(a.inversion).toLocaleString()}</div></div>
                     <div class="ad-cell"><div class="ad-cell-label">Alcance</div><div class="ad-cell-value">${Number(a.alcance).toLocaleString()}</div></div>
@@ -5411,6 +5468,66 @@ document.addEventListener('DOMContentLoaded', function() {
     function nuevoOffline() {
         const n = { id:'o'+Date.now(), nombre:"Nuevo Material", categoria:"Impreso", cantidad:1, proveedor:"", costo_unit:0, estado:"Pendiente", entrega:new Date().toISOString().split('T')[0] };
         DB.datos[SUC_ACTIVA].offline.push(n); guardarBD(); renderOfflineTable(); setTimeout(renderOfflineCharts, 50);
+    }
+
+    /* ================================================================
+       SINCRONIZACIÓN KANBAN → AD PERFORMANCE
+       ================================================================ */
+    function _detectarPautaStatus(pauta) {
+        if (!pauta || !pauta.trim()) return 'sin_pauta';
+        const p = pauta.toLowerCase();
+        if (/\bno\b|org[aá]nic[ao]|sin\s*pauta/.test(p)) return 'sin_pauta';
+        if (/confirmada|aprobada|\bsí\b|\bsi\b/.test(p)) return 'confirmada';
+        if (/\$\s*\d+|\d[\d,\.]*\s*(mxn|usd|eur|pesos?)/i.test(p)) return 'confirmada';
+        if (/\b\d{3,}\b/.test(p)) return 'confirmada'; // número >= 100 implica presupuesto
+        if (/condicional|pendiente|seg[uú]n\s*resultados|stand[\s-]?by|en\s*espera|por\s*aprobar|\?/.test(p)) return 'condicional';
+        return 'sin_pauta';
+    }
+
+    function _extraerMontoPauta(pauta) {
+        if (!pauta) return 0;
+        const m = (pauta.match(/\$?\s*([\d,\.]+)\s*(mxn|usd|eur|pesos?)?/i) || []);
+        if (m[1]) {
+            const n = parseFloat(m[1].replace(/,/g,''));
+            if (!isNaN(n) && n > 0) return n;
+        }
+        return 0;
+    }
+
+    function _syncKanbanToAds() {
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d) return;
+        if (!d.ads) d.ads = [];
+        let added = 0;
+        (d.kanban || []).forEach(card => {
+            const status = _detectarPautaStatus(card.pauta);
+            card.pauta_status = status;
+            if (status !== 'confirmada' && status !== 'condicional') return;
+            if (d.ads.find(a => a.kanban_id === card.id)) return; // no duplicar
+            const monto = status === 'confirmada' ? _extraerMontoPauta(card.pauta) : 0;
+            d.ads.push({
+                id:           'a_k_' + card.id,
+                kanban_id:    card.id,
+                nombre:       card.titulo || 'Sin título',
+                fecha:        card.fecha  || new Date().toISOString().split('T')[0],
+                inicio:       card.fecha  || new Date().toISOString().split('T')[0],
+                fin:          '',
+                plataforma:   'Meta',
+                inversion:    monto,
+                alcance:      0,
+                clics:        0,
+                conversiones: 0,
+                cpr:          0,
+                segmento:     'Desde parrilla',
+                estado:       status === 'confirmada' ? 'Activa' : 'Pausada',
+                origen:       'kanban',
+                pauta_status: status,
+                formato:      card.tags  || '',
+                notas:        card.pauta || ''
+            });
+            added++;
+        });
+        if (added > 0) { guardarBD(); renderAdsTable(); }
     }
 
     /* ================================================================
@@ -6423,7 +6540,7 @@ document.addEventListener('DOMContentLoaded', function() {
             importados++;
         });
 
-        _sincKanbanStories(); cerrarModales(); renderOrquestacion();
+        _sincKanbanStories(); _syncKanbanToAds(); cerrarModales(); renderOrquestacion();
 
         const s = document.getElementById('status-save');
         s.innerHTML = `<i class="fa-solid fa-check"></i> ${importados} post${importados !== 1 ? 's' : ''} importados`;
