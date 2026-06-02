@@ -5263,6 +5263,27 @@ document.addEventListener('DOMContentLoaded', function() {
         ].map(k=>`<div class="ads-kpi-card"><div class="ads-kpi-icon" style="background:${k.bg};color:${k.color};"><i class="fa-solid ${k.icon}"></i></div><div class="ads-kpi-val">${k.val}</div><div class="ads-kpi-lbl">${k.label}</div></div>`).join('');
     }
 
+    function _renderAdSegmentoSelect(target, a, i) {
+        const selId = a.target_id || (target.find(t => t.segmento === a.segmento) || {}).id || '';
+        const opts = `<option value="">Sin segmento</option>` +
+            target.map(t => {
+                const label = t.segmento + (t.ubicacion ? ' · ' + t.ubicacion : '');
+                return `<option value="${t.id}" ${selId===t.id?'selected':''}>${label}</option>`;
+            }).join('');
+        return `<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="_adActualizarSegmento(${i},this)">${opts}</select>`;
+    }
+
+    function _adActualizarSegmento(i, el) {
+        const a = (DB.datos[SUC_ACTIVA].ads||[])[i];
+        if (!a) return;
+        a.target_id = el.value;
+        a.segmento  = el.value ? (el.options[el.selectedIndex]?.text || '') : '';
+        guardarBD();
+        _refreshAdsKpi();
+        const segEl = document.querySelector(`#ad-card-${i} .ad-cell-seg`);
+        if (segEl) segEl.innerHTML = `<i class="fa-solid fa-users" style="margin-right:4px;color:var(--texto-secundario);"></i>${a.segmento||'Sin segmento'}`;
+    }
+
     function renderAdsTable() {
         const d = DB.datos[SUC_ACTIVA];
         const ads = d.ads || [];
@@ -5291,7 +5312,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div>${lbl('CPR $')}${inp(a.cpr,'cpr',i,'number')}</div>
                 </div>
                 <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;align-items:end;">
-                    <div>${lbl('Segmento / Audiencia')}${inp(a.segmento,'segmento',i)}</div>
+                    <div>${lbl('Segmento / Audiencia')}${_renderAdSegmentoSelect(d.target||[], a, i)}</div>
                     <div>${lbl('Fecha inicio')}${inp(a.inicio||'','inicio',i,'date')}</div>
                     <div>${lbl('Fecha fin')}${inp(a.fin||'','fin',i,'date')}</div>
                 </div>
