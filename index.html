@@ -1408,7 +1408,10 @@
                         <h1>Stories Independientes</h1>
                         <p>Stories planificadas fuera del feed — encuestas, links y flujos de DM.</p>
                     </div>
-                    <button class="btn btn-primario req-agencia" onclick="nuevaStory()"><i class="fa-solid fa-plus"></i> Nueva Story</button>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <div id="stories-header-extra"></div>
+                        <button class="btn btn-primario req-agencia" onclick="nuevaStory()"><i class="fa-solid fa-plus"></i> Nueva Story</button>
+                    </div>
                 </div>
                 <div class="stories-lista" id="stories-lista"></div>
             </section>
@@ -1720,6 +1723,24 @@
         <div style="padding:16px 24px; border-top:1px solid var(--color-borde); background:#FAFAFA; display:flex; justify-content:flex-end; gap:8px; border-radius:0 0 20px 20px;">
             <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
             <button class="btn btn-primario" onclick="guardarNuevaStory()"><i class="fa-solid fa-check"></i> Guardar Story</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Importar Stories desde JSON -->
+<div class="fondo-modal" id="modal-importar-stories">
+    <div class="modal-caja" style="max-width:620px;">
+        <div class="modal-header">
+            <h3>Importar Stories desde JSON</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:24px; display:flex; flex-direction:column; gap:12px;">
+            <p style="font-size:13px; color:var(--texto-secundario); line-height:1.6; margin:0;">Pega el JSON generado por IA. Las stories con misma fecha + contenido no se duplican.</p>
+            <textarea id="stories-import-json" class="textarea-apple" rows="11" style="font-family:monospace; font-size:11px; line-height:1.5;" placeholder='{"semana":"1-7 junio 2026","proyecto":"aitama","stories":[{"fecha":"2026-06-01","hora":"08:00","tipo":"foto","contenido":"Descripción de la story","categoria":"apoya_post","post_vinculado":"titulo del post","vinculada":true,"manychat":null,"estado":"Ideas"}]}'></textarea>
+        </div>
+        <div style="padding:16px 24px; border-top:1px solid var(--color-borde); background:#FAFAFA; display:flex; justify-content:flex-end; gap:8px; border-radius:0 0 20px 20px;">
+            <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+            <button class="btn btn-primario" onclick="ejecutarImportStoriesJSON()"><i class="fa-solid fa-file-import"></i> Importar</button>
         </div>
     </div>
 </div>
@@ -5425,6 +5446,31 @@ document.addEventListener('DOMContentLoaded', function() {
         guardarBD();
     }
 
+    function _storyBadge(s) {
+        if (!s.categoria) return '';
+        if (s.categoria === 'apoya_post' && s.vinculada) {
+            const post = s.post_vinculado ? ` · ${s.post_vinculado.substring(0,30)}${s.post_vinculado.length>30?'…':''}` : '';
+            return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:rgba(196,133,90,.12);color:var(--color-primario);border:1px solid rgba(196,133,90,.2);"><i class="fa-solid fa-link" style="font-size:9px;"></i>Vinculada${post}</span>`;
+        }
+        if (s.categoria === 'campaña') {
+            return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:rgba(66,133,244,.1);color:#4285F4;border:1px solid rgba(66,133,244,.2);"><i class="fa-solid fa-bullhorn" style="font-size:9px;"></i>Campaña independiente</span>`;
+        }
+        if (s.categoria === 'operacion_diaria') {
+            return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:rgba(0,0,0,.05);color:var(--texto-secundario);border:1px solid var(--color-borde-fuerte);"><i class="fa-solid fa-clock" style="font-size:9px;"></i>Operación diaria</span>`;
+        }
+        return '';
+    }
+
+    function _storyEstadoBadge(estado) {
+        const cfg = {
+            'Ideas':      { bg:'rgba(234,179,8,.1)',   color:'#A16207', label:'Ideas' },
+            'Producción': { bg:'rgba(59,130,246,.1)',  color:'#1D4ED8', label:'Producción' },
+            'Programado': { bg:'rgba(34,197,94,.1)',   color:'#15803D', label:'Programado' },
+        };
+        const c = cfg[estado] || cfg['Ideas'];
+        return `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:100px;background:${c.bg};color:${c.color};">${c.label}</span>`;
+    }
+
     function renderStories() {
         const d = DB.datos[SUC_ACTIVA];
         const stories = d.stories_ind || [];
@@ -5432,47 +5478,71 @@ document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('stories-lista');
         if (!el) return;
 
+        // Botón de importación visible solo para Owner y Lanka Team
+        const isOwnerOrTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
+        const hdrExtra = document.getElementById('stories-header-extra');
+        if (hdrExtra) hdrExtra.innerHTML = isOwnerOrTeam
+            ? `<button class="btn btn-fantasma" onclick="document.getElementById('stories-import-json').value='';document.getElementById('modal-importar-stories').classList.add('activo')"><i class="fa-solid fa-file-import"></i> Importar stories</button>`
+            : '';
+
         if (!stories.length) {
             el.innerHTML = `<div style="text-align:center; padding:72px 40px; color:var(--texto-secundario); background:#FFFFFF; border-radius:20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave);"><i class="fa-solid fa-film" style="font-size:44px; opacity:0.18; display:block; margin-bottom:20px; color:var(--color-primario);"></i><p style="font-size:15px; font-weight:600; color:var(--texto-principal); margin-bottom:8px;">Sin stories programadas</p><p style="font-size:13px; line-height:1.6;">Usa el botón <strong>Nueva Story</strong> para comenzar a planificar.</p></div>`;
             return;
         }
 
-        const tipoCls  = { 'DM':'tipo-dm', 'link':'tipo-link', 'encuesta':'tipo-encuesta' };
-        const tipoIcon = { 'DM':'fa-comment-dots', 'link':'fa-link', 'encuesta':'fa-square-poll-vertical' };
+        const tipoIcon = {
+            'DM':'fa-comment-dots', 'link':'fa-link', 'encuesta':'fa-square-poll-vertical',
+            'foto':'fa-image', 'video':'fa-video', 'countdown':'fa-hourglass-half', 'texto':'fa-font'
+        };
+        const tipoCls = { 'DM':'tipo-dm', 'link':'tipo-link', 'encuesta':'tipo-encuesta' };
 
-        el.innerHTML = [...stories].sort((a, b) => {
-            return new Date(a.dia+'T'+(a.hora||'00:00')) - new Date(b.dia+'T'+(b.hora||'00:00'));
-        }).map(s => {
-            const realIdx = stories.findIndex(x => x.id === s.id);
-            const postVinc = kanban.find(k => k.id === s.post_vinculado);
-            const postLabel = postVinc
-                ? `<span class="segment-link"><i class="fa-solid fa-link" style="margin-right:4px;"></i>${postVinc.titulo.substring(0,26)}${postVinc.titulo.length>26?'…':''}${s._from_kanban?'<span style="margin-left:6px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;background:rgba(196,133,90,.12);color:var(--color-primario);">Auto</span>':''}</span>`
-                : `<span style="font-size:12px; color:var(--texto-secundario);">Sin post vinculado</span>`;
-            const fecha = s.dia
-                ? new Date(s.dia+'T00:00:00').toLocaleDateString('es-MX', {weekday:'short', day:'numeric', month:'short'})
-                : '—';
+        // Ordenar y agrupar por fecha
+        const sorted = [...stories].sort((a, b) =>
+            new Date(a.dia+'T'+(a.hora||'00:00')) - new Date(b.dia+'T'+(b.hora||'00:00'))
+        );
+        const groups = {};
+        sorted.forEach(s => { const k = s.dia||'sin-fecha'; if (!groups[k]) groups[k]=[]; groups[k].push(s); });
 
-            return `
-            <div class="story-card">
-                <div class="story-datetime">
-                    <div class="story-dia">${fecha}</div>
-                    <div class="story-hora-val">${s.hora||'—'}</div>
-                    <span class="story-tipo-badge ${tipoCls[s.tipo]||'tipo-dm'}">
-                        <i class="fa-solid ${tipoIcon[s.tipo]||'fa-comment-dots'}"></i> ${s.tipo}
-                    </span>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:10px; min-width:0;">
-                    <div style="font-size:14px; font-weight:500; color:var(--texto-principal); line-height:1.55;">${s.copy||'<span style="color:var(--texto-secundario); font-style:italic;">Sin copy...</span>'}</div>
-                    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-                        ${s.cta ? `<span style="background:rgba(0,0,0,0.04); border:1px solid var(--color-borde-fuerte); border-radius:6px; padding:4px 10px; font-size:12px; font-weight:700; color:var(--texto-principal);"><i class="fa-solid fa-arrow-pointer" style="margin-right:4px; color:var(--texto-secundario);"></i>${s.cta}</span>` : ''}
-                        ${postLabel}
+        el.innerHTML = Object.entries(groups).map(([fechaKey, items]) => {
+            const fechaLabel = fechaKey !== 'sin-fecha'
+                ? new Date(fechaKey+'T00:00:00').toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'})
+                : 'Sin fecha';
+
+            const cards = items.map(s => {
+                const realIdx = stories.findIndex(x => x.id === s.id);
+                const postVinc = kanban.find(k => k.id === s.post_vinculado);
+                const postLabel = postVinc
+                    ? `<span class="segment-link"><i class="fa-solid fa-link" style="margin-right:4px;"></i>${postVinc.titulo.substring(0,26)}${postVinc.titulo.length>26?'…':''}${s._from_kanban?'<span style="margin-left:6px;font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;background:rgba(196,133,90,.12);color:var(--color-primario);">Auto</span>':''}</span>`
+                    : (!s.categoria ? `<span style="font-size:12px; color:var(--texto-secundario);">Sin post vinculado</span>` : '');
+
+                return `
+                <div class="story-card">
+                    <div class="story-datetime">
+                        <div class="story-hora-val">${s.hora||'—'}</div>
+                        <span class="story-tipo-badge ${tipoCls[s.tipo]||''}">
+                            <i class="fa-solid ${tipoIcon[s.tipo]||'fa-film'}"></i> ${s.tipo||'—'}
+                        </span>
                     </div>
-                </div>
-                ${ROL==='agencia' ? `
-                <div style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
-                    <button class="btn btn-xs btn-fantasma" onclick="editarStory('${s.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
-                    <button class="btn btn-xs btn-peligro-suave" onclick="eliminarStory('${s.id}')"><i class="fa-solid fa-trash"></i></button>
-                </div>` : ''}
+                    <div style="display:flex; flex-direction:column; gap:8px; min-width:0; flex:1;">
+                        <div style="font-size:14px; font-weight:500; color:var(--texto-principal); line-height:1.55;">${s.copy||'<span style="color:var(--texto-secundario); font-style:italic;">Sin copy...</span>'}</div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            ${_storyBadge(s)}
+                            ${postLabel}
+                            ${s.cta ? `<span style="background:rgba(0,0,0,0.04); border:1px solid var(--color-borde-fuerte); border-radius:6px; padding:3px 9px; font-size:12px; font-weight:700; color:var(--texto-principal);"><i class="fa-solid fa-arrow-pointer" style="margin-right:4px; color:var(--texto-secundario);"></i>${s.cta}</span>` : ''}
+                            ${s.estado ? _storyEstadoBadge(s.estado) : ''}
+                        </div>
+                    </div>
+                    ${ROL==='agencia' ? `
+                    <div style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
+                        <button class="btn btn-xs btn-fantasma" onclick="editarStory('${s.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <button class="btn btn-xs btn-peligro-suave" onclick="eliminarStory('${s.id}')"><i class="fa-solid fa-trash"></i></button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+
+            return `<div style="margin-bottom:28px;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);padding:6px 0;border-bottom:1px solid var(--color-borde);margin-bottom:12px;">${fechaLabel}</div>
+                ${cards}
             </div>`;
         }).join('');
     }
@@ -5533,6 +5603,48 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!confirm('¿Eliminar esta story?')) return;
         DB.datos[SUC_ACTIVA].stories_ind = DB.datos[SUC_ACTIVA].stories_ind.filter(x => x.id !== id);
         guardarBD(); renderStories();
+    }
+
+    function ejecutarImportStoriesJSON() {
+        if (!(USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO)) {
+            alert('Solo Owner y Lanka Team pueden importar stories.'); return;
+        }
+        const txt = (document.getElementById('stories-import-json') || {}).value || '';
+        let parsed;
+        try { parsed = JSON.parse(txt); } catch(e) { alert('JSON inválido: ' + e.message); return; }
+        const items = Array.isArray(parsed) ? parsed : (parsed.stories || []);
+        if (!items.length) { alert('No se encontraron stories. Usa el schema correcto: {"stories":[...]}'); return; }
+
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d.stories_ind) d.stories_ind = [];
+
+        let agregadas = 0;
+        items.forEach(item => {
+            const dia  = item.fecha || '';
+            const copy = (item.contenido || '').trim();
+            // No duplicar si ya existe story con misma fecha + contenido
+            const existe = d.stories_ind.find(s => s.dia === dia && (s.copy || '').trim() === copy);
+            if (existe) return;
+            d.stories_ind.push({
+                id:             'st_imp_' + Date.now() + '_' + Math.random().toString(36).substr(2,4),
+                dia:            dia,
+                hora:           item.hora || '08:00',
+                tipo:           item.tipo || 'foto',
+                copy:           copy,
+                cta:            item.manychat || '',
+                post_vinculado: item.post_vinculado || '',
+                vinculada:      item.vinculada === true,
+                categoria:      item.categoria || '',
+                estado:         item.estado || 'Ideas',
+                _from_import:   true
+            });
+            agregadas++;
+        });
+
+        guardarBD();
+        cerrarModales();
+        renderStories();
+        alert(`${agregadas} stories importadas.\n${items.length - agregadas} omitidas por duplicado.`);
     }
 
     /* ================================================================
