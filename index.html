@@ -460,7 +460,7 @@
     /* ── DARK MODE — Glassmorphism Oscuro ── */
     [data-theme="dark"] {
         --color-fondo: #0D0D0D;
-        --color-tarjeta: rgba(255,255,255,0.04);
+        --color-tarjeta: rgba(20,18,16,0.82);
         --texto-principal: #F0EDE8;
         --texto-secundario: rgba(240,237,232,0.45);
         --color-borde: rgba(255,255,255,0.08);
@@ -468,16 +468,16 @@
         --sombra-suave: 0 4px 28px -6px rgba(0,0,0,0.5), 0 1px 4px rgba(0,0,0,0.25);
         --sombra-flotante: 0 20px 60px -12px rgba(0,0,0,0.7);
         --bg-gradient: radial-gradient(ellipse at 15% 25%,rgba(196,133,90,.22) 0%,transparent 50%), radial-gradient(ellipse at 85% 75%,rgba(150,80,30,.18) 0%,transparent 50%), radial-gradient(ellipse at 50% 0%,rgba(220,140,70,.12) 0%,transparent 40%), #12100E;
-        --glass-bg:rgba(255,255,255,.05); --glass-bg-strong:rgba(255,255,255,.09);
+        --glass-bg:rgba(20,18,16,0.75); --glass-bg-strong:rgba(20,18,16,0.88);
         --glass-border:rgba(255,255,255,.12); --glass-border-soft:rgba(196,133,90,.3);
         --glass-shadow:0 8px 32px rgba(0,0,0,.4),0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.08);
         --glass-shadow-strong:0 20px 60px rgba(0,0,0,.5),0 4px 16px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.1);
         --glass-blur:blur(24px);
         --text-primary:rgba(255,255,255,.92); --text-secondary:rgba(255,255,255,.55); --text-tertiary:rgba(255,255,255,.3);
-        --chart-grid:rgba(255,255,255,.06); --kpi-bg:rgba(255,255,255,.04);
-        --intel-bg:rgba(255,255,255,.04); --obj-bg:rgba(196,133,90,.15);
-        --tab-bg:rgba(255,255,255,.05); --tab-active-bg:rgba(255,255,255,.12);
-        --sprint-bg:rgba(255,255,255,.05); --sprint-text:rgba(255,255,255,.3);
+        --chart-grid:rgba(255,255,255,.06); --kpi-bg:rgba(20,18,16,0.78);
+        --intel-bg:rgba(20,18,16,0.72); --obj-bg:rgba(196,133,90,.15);
+        --tab-bg:rgba(20,18,16,0.65); --tab-active-bg:rgba(20,18,16,0.90);
+        --sprint-bg:rgba(20,18,16,0.65); --sprint-text:rgba(255,255,255,.3);
     }
     [data-theme="dark"] body {
         background: var(--bg-gradient);
@@ -486,7 +486,7 @@
     [data-theme="dark"] body.tema-login { background: #0D0D0D !important; }
     [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3 { color: #F0EDE8; }
     /* Nav dark */
-    [data-theme="dark"] nav { background: rgba(255,255,255,0.03) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.07) !important; }
+    [data-theme="dark"] nav { background: rgba(15,13,11,0.90) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-right: 1px solid rgba(255,255,255,0.07) !important; }
     [data-theme="dark"] .marca { color: var(--color-primario) !important; border-bottom-color: rgba(255,255,255,0.08) !important; }
     [data-theme="dark"] .menu-titulo { color: rgba(240,237,232,0.35) !important; }
     [data-theme="dark"] .item-nav { color: rgba(240,237,232,0.5) !important; }
@@ -496,10 +496,10 @@
     [data-theme="dark"] .badge-agencia { background: rgba(196,133,90,0.15) !important; }
     [data-theme="dark"] .badge-cliente { background: rgba(234,67,53,0.15) !important; }
     /* Top bar dark */
-    [data-theme="dark"] .barra-superior { background: rgba(13,13,13,0.72) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.07) !important; box-shadow: 0 1px 0 rgba(255,255,255,0.04) !important; }
+    [data-theme="dark"] .barra-superior { background: rgba(13,13,13,0.72) !important; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.07) !important; box-shadow: 0 1px 0 rgba(20,18,16,0.82) !important; }
     [data-theme="dark"] #etiqueta-cliente, [data-theme="dark"] .select-apple { color: #F0EDE8 !important; }
     [data-theme="dark"] .select-moneda { background: rgba(255,255,255,0.06) !important; border-color: rgba(255,255,255,0.1) !important; color: #F0EDE8 !important; }
-    [data-theme="dark"] .btn-fantasma { border-color: rgba(255,255,255,0.14) !important; color: rgba(240,237,232,0.65) !important; background: rgba(255,255,255,0.04) !important; }
+    [data-theme="dark"] .btn-fantasma { border-color: rgba(255,255,255,0.14) !important; color: rgba(240,237,232,0.65) !important; background: rgba(20,18,16,0.82) !important; }
     [data-theme="dark"] .btn-fantasma:hover { background: rgba(255,255,255,0.08) !important; color: #F0EDE8 !important; border-color: transparent !important; }
     [data-theme="dark"] .btn-ia { background: rgba(255,255,255,0.07) !important; border: 1px solid rgba(255,255,255,0.12) !important; box-shadow: 0 0 20px rgba(196,133,90,0.18) !important; }
     [data-theme="dark"] .btn-ia:hover { box-shadow: 0 0 30px rgba(196,133,90,0.35) !important; }
@@ -523,7 +523,7 @@
     [data-theme="dark"] .tarjeta-cliente,
     [data-theme="dark"] .briefing-card,
     [data-theme="dark"] .analysis-box {
-        background: rgba(255,255,255,0.04) !important;
+        background: rgba(20,18,16,0.82) !important;
         backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
         border: 1px solid rgba(255,255,255,0.08) !important;
         border-radius: 20px !important;
@@ -531,17 +531,17 @@
     }
     [data-theme="dark"] .kanban-card:hover, [data-theme="dark"] .shooting-card:hover,
     [data-theme="dark"] .story-card:hover, [data-theme="dark"] .content-card:hover {
-        background: rgba(255,255,255,0.07) !important;
+        background: rgba(20,18,16,0.92) !important;
         box-shadow: 0 0 0 1px rgba(196,133,90,0.25), 0 20px 60px rgba(0,0,0,0.5) !important;
     }
-    [data-theme="dark"] .kanban-col { background: rgba(255,255,255,0.02) !important; }
+    [data-theme="dark"] .kanban-col { background: rgba(20,18,16,0.55) !important; }
     [data-theme="dark"] .kanban-header { color: rgba(240,237,232,0.55) !important; }
     [data-theme="dark"] .card-body { background: rgba(0,0,0,0.25) !important; border-top-color: rgba(255,255,255,0.06) !important; }
     [data-theme="dark"] .selector-vista { background: rgba(255,255,255,0.05) !important; border-color: rgba(255,255,255,0.08) !important; }
     [data-theme="dark"] .btn-vista { color: rgba(240,237,232,0.5) !important; }
     [data-theme="dark"] .btn-vista.activo { background: rgba(255,255,255,0.08) !important; color: #F0EDE8 !important; }
     /* Tables dark */
-    [data-theme="dark"] .tabla-editable th { background: rgba(255,255,255,0.04) !important; color: rgba(240,237,232,0.4) !important; border-bottom-color: rgba(255,255,255,0.08) !important; backdrop-filter: blur(8px); }
+    [data-theme="dark"] .tabla-editable th { background: rgba(20,18,16,0.82) !important; color: rgba(240,237,232,0.4) !important; border-bottom-color: rgba(255,255,255,0.08) !important; backdrop-filter: blur(8px); }
     [data-theme="dark"] .tabla-editable td { border-bottom-color: rgba(255,255,255,0.05) !important; }
     /* Inputs dark */
     [data-theme="dark"] .input-celda { color: #F0EDE8 !important; background: transparent !important; }
@@ -567,8 +567,8 @@
     [data-theme="dark"] .modal-caja > div:last-child { background: rgba(255,255,255,0.03) !important; }
     [data-theme="dark"] #estado-ia-texto { color: rgba(240,237,232,0.5) !important; }
     /* Calendar dark */
-    [data-theme="dark"] .cal-grid { border-color: rgba(255,255,255,0.08) !important; background: rgba(255,255,255,0.04) !important; }
-    [data-theme="dark"] .cal-day-header { background: rgba(255,255,255,0.04) !important; color: rgba(240,237,232,0.4) !important; }
+    [data-theme="dark"] .cal-grid { border-color: rgba(255,255,255,0.08) !important; background: rgba(20,18,16,0.82) !important; }
+    [data-theme="dark"] .cal-day-header { background: rgba(20,18,16,0.82) !important; color: rgba(240,237,232,0.4) !important; }
     [data-theme="dark"] .cal-cell { background: rgba(255,255,255,0.02) !important; border-top-color: rgba(255,255,255,0.06) !important; }
     [data-theme="dark"] .cal-cell:hover { background: rgba(255,255,255,0.05) !important; }
     [data-theme="dark"] .cal-cell.empty { background: rgba(0,0,0,0.3) !important; }
@@ -618,7 +618,7 @@
     .mis-tareas-fecha { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--color-borde); padding-right: 20px; min-width: 90px; }
     .mis-tareas-dia-val { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--color-primario); letter-spacing: -0.04em; line-height: 1; }
     .mis-tareas-hora { font-size: 11px; font-weight: 700; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
-    [data-theme="dark"] .mis-tareas-card { background: rgba(255,255,255,0.04) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 4px 28px rgba(0,0,0,0.4) !important; }
+    [data-theme="dark"] .mis-tareas-card { background: rgba(20,18,16,0.82) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 4px 28px rgba(0,0,0,0.4) !important; }
     [data-theme="dark"] .mis-tareas-fecha { border-right-color: rgba(255,255,255,0.08) !important; }
     [data-theme="light"] .mis-tareas-card { background: rgba(255,255,255,0.72) !important; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.9) !important; }
 
@@ -673,15 +673,15 @@
 
     /* ── SPRINT 4 — DARK MODE FIXES & PRESUPUESTO ── */
     /* User cards dark */
-    [data-theme="dark"] .usuario-card { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="dark"] .usuario-card { background: rgba(20,18,16,0.82) !important; border-color: rgba(255,255,255,0.08) !important; }
     [data-theme="dark"] .usuario-card-body { background: rgba(255,255,255,0.02) !important; border-top-color: rgba(255,255,255,0.08) !important; }
     /* Permisos grid dark */
-    [data-theme="dark"] .permisos-grid th { background: rgba(255,255,255,0.04) !important; color: rgba(240,237,232,0.45) !important; border-bottom-color: rgba(255,255,255,0.1) !important; }
+    [data-theme="dark"] .permisos-grid th { background: rgba(20,18,16,0.82) !important; color: rgba(240,237,232,0.45) !important; border-bottom-color: rgba(255,255,255,0.1) !important; }
     [data-theme="dark"] .permisos-grid td { border-bottom-color: rgba(255,255,255,0.05) !important; color: #F0EDE8; }
     [data-theme="dark"] .permisos-grid tr:hover td { background: rgba(255,255,255,0.03) !important; }
     [data-theme="dark"] .permisos-grupo td { background: rgba(255,255,255,0.02) !important; border-top-color: rgba(255,255,255,0.1) !important; }
     /* Audit stat cards dark */
-    [data-theme="dark"] .audit-stat-card { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="dark"] .audit-stat-card { background: rgba(20,18,16,0.82) !important; border-color: rgba(255,255,255,0.08) !important; }
     /* Tabs dark */
     [data-theme="dark"] .tabs-header { border-bottom-color: rgba(255,255,255,0.1) !important; }
     [data-theme="dark"] .tab-btn { color: rgba(240,237,232,0.4) !important; }
@@ -692,7 +692,7 @@
     .ppto-kpi-card { background:#FFFFFF; border-radius:18px; padding:22px 24px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); }
     .ppto-kpi-val { font-family:var(--font-display); font-size:26px; font-weight:900; color:var(--color-primario); letter-spacing:-0.04em; line-height:1.1; margin-bottom:4px; }
     .ppto-kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-secundario); }
-    [data-theme="dark"] .ppto-kpi-card { background: rgba(255,255,255,0.04) !important; border-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="dark"] .ppto-kpi-card { background: rgba(20,18,16,0.82) !important; border-color: rgba(255,255,255,0.08) !important; }
     [data-theme="light"] .ppto-kpi-card { background: rgba(255,255,255,0.72) !important; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border: 1px solid rgba(255,255,255,0.9) !important; }
     /* Presupuesto view switcher */
     .ppto-view-btns { display:flex; gap:0; border-bottom:2px solid var(--color-borde); margin-bottom:24px; }
@@ -723,7 +723,7 @@
     .dash-kpi-val { font-family:var(--font-display); font-size:38px; font-weight:900; color:var(--texto-principal); letter-spacing:-0.04em; line-height:1; }
     .dash-kpi-sub { font-size:11px; color:var(--texto-secundario); margin-top:8px; }
     .dash-kpi-formula { font-size:10px; color:var(--texto-secundario); margin-top:6px; font-style:italic; opacity:.8; }
-    [data-theme="dark"] .dash-kpi-card { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    [data-theme="dark"] .dash-kpi-card { background:rgba(20,18,16,0.82)!important; border-color:rgba(255,255,255,0.08)!important; }
     /* ── KPI Progress + Metas ── */
     .kpi-progress-wrap { margin-top:12px; padding-top:10px; border-top:1px solid var(--color-borde); }
     [data-theme="dark"] .kpi-progress-wrap { border-top-color:rgba(255,255,255,.08)!important; }
@@ -738,7 +738,7 @@
 
 
     .inv-wrap { background:var(--color-tarjeta); border-radius:20px; padding:24px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); margin-bottom:24px; }
-    [data-theme="dark"] .inv-wrap { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    [data-theme="dark"] .inv-wrap { background:rgba(20,18,16,0.82)!important; border-color:rgba(255,255,255,0.08)!important; }
     .inv-bar { height:8px; border-radius:8px; display:flex; gap:2px; margin:14px 0 20px; overflow:hidden; }
     .inv-bar-seg { height:100%; border-radius:4px; min-width:2px; transition:flex .5s ease; }
     .inv-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
@@ -756,7 +756,7 @@
     .dash-chip.activo { background:var(--color-primario); border-color:var(--color-primario); color:#fff; box-shadow:0 4px 12px rgba(196,133,90,.3); }
     [data-theme="dark"] .dash-chip:not(.activo) { border-color:rgba(255,255,255,0.15); }
     .dash-periodo-wrap { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:24px; padding:14px 18px; background:var(--color-tarjeta); border-radius:14px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); }
-    [data-theme="dark"] .dash-periodo-wrap { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    [data-theme="dark"] .dash-periodo-wrap { background:rgba(20,18,16,0.82)!important; border-color:rgba(255,255,255,0.08)!important; }
     .dash-periodo-sep { width:1px; height:22px; background:var(--color-borde-fuerte); margin:0 4px; }
 
     /* ══ Glass Design System ══════════════════════════════════════════════ */
@@ -780,14 +780,14 @@
     .dash-periodo-wrap { background:var(--glass-bg) !important; backdrop-filter:var(--glass-blur); -webkit-backdrop-filter:var(--glass-blur); border:1px solid var(--glass-border) !important; box-shadow:var(--glass-shadow) !important; }
     /* KPI minis */
     .dash-kpi-mini-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
-    .dash-kpi-mini { background:var(--kpi-bg); border:1px solid var(--glass-border-soft); border-radius:12px; padding:14px; position:relative; overflow:hidden; }
+    .dash-kpi-mini { background:radial-gradient(ellipse at 30% 0%,rgba(var(--kpi-c-rgb,var(--brand-tone-base-rgb)),0.14) 0%,transparent 70%),var(--kpi-bg); border:1px solid var(--glass-border-soft); border-top:2px solid rgba(var(--kpi-c-rgb,var(--brand-tone-base-rgb)),0.55); border-radius:12px; padding:14px; position:relative; overflow:hidden; backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); }
     /* Inversion glass override */
     .inv-wrap { background:var(--glass-bg) !important; backdrop-filter:var(--glass-blur) !important; -webkit-backdrop-filter:var(--glass-blur) !important; border:1px solid var(--glass-border) !important; box-shadow:var(--glass-shadow) !important; }
     [data-theme="dark"] .inv-wrap { background:var(--glass-bg) !important; border-color:var(--glass-border) !important; }
 
     /* ── EJECUTOR DE KPIs ── */
     .ejecutor-card { background:var(--color-tarjeta); border-radius:20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); margin-bottom:24px; overflow:hidden; }
-    [data-theme="dark"] .ejecutor-card { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    [data-theme="dark"] .ejecutor-card { background:rgba(20,18,16,0.82)!important; border-color:rgba(255,255,255,0.08)!important; }
     .ejecutor-header { display:flex; align-items:center; justify-content:space-between; padding:18px 24px; cursor:pointer; user-select:none; }
     .ejecutor-body { border-top:1px solid var(--color-borde); padding:0 24px 20px; animation:fadeUp .15s ease; }
     [data-theme="dark"] .ejecutor-body { border-top-color:rgba(255,255,255,0.08)!important; }
@@ -816,7 +816,7 @@
     .xls-map-field { font-weight:600; color:var(--texto-principal); }
     .xls-canal-row { display:flex; justify-content:space-between; align-items:center; padding:7px 11px; border-radius:8px; background:var(--color-fondo); border:1px solid var(--color-borde); font-size:12px; margin-bottom:5px; }
     [data-theme="dark"] .xls-kpi-item,
-    [data-theme="dark"] .xls-canal-row { background:rgba(255,255,255,0.04)!important; border-color:rgba(255,255,255,0.08)!important; }
+    [data-theme="dark"] .xls-canal-row { background:rgba(20,18,16,0.82)!important; border-color:rgba(255,255,255,0.08)!important; }
     [data-theme="dark"] .xls-map-row { border-bottom-color:rgba(255,255,255,0.07)!important; }
 
     /* ================================================================
@@ -1123,13 +1123,12 @@
                         <button class="dash-tab activo" id="dash-tab-exec-btn" onclick="setDashTab('exec')"><i class="fa-solid fa-chart-pie" style="font-size:10px;"></i> Ejecutivo</button>
                         <button class="dash-tab" id="dash-tab-anal-btn" onclick="setDashTab('anal')"><i class="fa-solid fa-chart-line" style="font-size:10px;"></i> Analítico</button>
                     </div>
+                    <button onclick="openEjecutorModal()" style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;padding:7px 14px;border-radius:9px;border:1.5px solid var(--color-borde-fuerte);background:var(--tab-bg);color:var(--texto-secundario);cursor:pointer;transition:var(--transicion);white-space:nowrap;backdrop-filter:blur(12px);" onmouseenter="this.style.color='var(--color-primario)';this.style.borderColor='var(--color-primario)';" onmouseleave="this.style.color='var(--texto-secundario)';this.style.borderColor='var(--color-borde-fuerte)';"><i class="fa-solid fa-table-cells-large" style="font-size:10px;"></i> Ejecutor de KPIs</button>
                     <div id="dash-rol-selector-wrap"></div>
                 </div>
 
                 <!-- ══ TAB EJECUTIVO ═══════════════════════════════════ -->
                 <div id="dash-tab-exec-content">
-                    <!-- Ejecutor de KPIs -->
-                    <div id="ejecutor-kpis-wrap"></div>
                     <!-- Fila 1: Semáforo -->
                     <div class="dash-semaforo-row" id="dash-semaforo" style="margin-bottom:18px;"></div>
                     <!-- Fila 2: grid 3 cols -->
@@ -1774,6 +1773,35 @@
                     <option value="">Sin post vinculado</option>
                 </select>
             </div>
+            <div style="border:1px solid var(--color-borde);border-radius:12px;padding:14px;">
+                <label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:10px;">Activo Vinculado <span style="font-weight:400;font-size:10px;opacity:.6;">(opcional)</span></label>
+                <div style="display:flex;gap:6px;margin-bottom:10px;">
+                    <button id="ns-act-pill-none" class="btn btn-xs btn-primario" onclick="_nsActivoPill('none')" style="font-size:10px;">Sin activo</button>
+                    <button id="ns-act-pill-drive" class="btn btn-xs btn-fantasma" onclick="_nsActivoPill('drive')" style="font-size:10px;"><i class="fa-brands fa-google-drive" style="margin-right:3px;"></i>Link Drive</button>
+                    <button id="ns-act-pill-dam" class="btn btn-xs btn-fantasma" onclick="_nsActivoPill('dam')" style="font-size:10px;"><i class="fa-solid fa-paperclip" style="margin-right:3px;"></i>Desde DAM</button>
+                </div>
+                <div id="ns-act-drive-panel" style="display:none;">
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <input type="url" id="ns-activo-drive-url" class="textarea-apple" style="min-height:auto;padding:8px 12px;flex:1;font-size:13px;" placeholder="https://drive.google.com/..." oninput="_nsActDrivePreview()">
+                        <button class="btn btn-xs btn-fantasma" onclick="const u=document.getElementById('ns-activo-drive-url').value.trim();if(u)window.open(u,'_blank');else alert('Pega primero el URL');"><i class="fa-solid fa-arrow-up-right-from-square"></i> Abrir</button>
+                    </div>
+                    <div id="ns-act-drive-preview" style="display:none;font-size:11px;color:var(--texto-secundario);margin-top:6px;padding:5px 8px;background:rgba(0,0,0,.03);border-radius:6px;"></div>
+                </div>
+                <div id="ns-act-dam-panel" style="display:none;">
+                    <div style="display:flex;gap:5px;margin-bottom:8px;">
+                        <button id="ns-dam-f-todos" class="btn btn-xs btn-primario" onclick="_nsDamFiltrar('todos')" style="font-size:9px;">Todos</button>
+                        <button id="ns-dam-f-aprobado" class="btn btn-xs btn-fantasma" onclick="_nsDamFiltrar('aprobado')" style="font-size:9px;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#15803D;margin-right:3px;"></span>Aprobados</button>
+                        <button id="ns-dam-f-revision" class="btn btn-xs btn-fantasma" onclick="_nsDamFiltrar('revision')" style="font-size:9px;"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#A16207;margin-right:3px;"></span>En revisión</button>
+                    </div>
+                    <select id="ns-activo-dam-sel" class="textarea-apple" style="min-height:auto;padding:8px 12px;cursor:pointer;" onchange="_nsActDamChange()">
+                        <option value="">Selecciona un activo...</option>
+                    </select>
+                    <div id="ns-act-dam-estado" style="display:none;font-size:11px;color:var(--texto-secundario);margin-top:6px;padding:5px 8px;background:rgba(0,0,0,.03);border-radius:6px;"></div>
+                </div>
+                <input type="hidden" id="ns-activo-tipo" value="">
+                <input type="hidden" id="ns-activo-nombre" value="">
+                <input type="hidden" id="ns-activo-dam-id" value="">
+            </div>
         </div>
         <div style="padding:16px 24px; border-top:1px solid var(--color-borde); background:#FAFAFA; display:flex; justify-content:flex-end; gap:8px; border-radius:0 0 20px 20px;">
             <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
@@ -1831,6 +1859,20 @@
     </div>
 </div>
 
+<!-- Modal: Ejecutor de KPIs -->
+<div id="modal-ejecutor" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,0.45);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);overflow-y:auto;padding:24px 16px;" onclick="if(event.target===this)closeEjecutorModal()">
+    <div style="background:var(--color-tarjeta);border-radius:20px;max-width:980px;width:100%;margin:0 auto;border:1px solid var(--color-borde);box-shadow:var(--sombra-flotante);overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--color-borde);">
+            <div style="display:flex;align-items:center;gap:10px;">
+                <i class="fa-solid fa-table-cells-large" style="color:var(--color-primario);font-size:14px;"></i>
+                <span style="font-weight:800;font-size:15px;font-family:var(--font-display);">Ejecutor de KPIs</span>
+            </div>
+            <button onclick="closeEjecutorModal()" style="background:transparent;border:none;cursor:pointer;color:var(--texto-secundario);font-size:18px;padding:4px 8px;border-radius:8px;line-height:1;" title="Cerrar (Esc)"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="ejecutor-kpis-wrap" style="padding:0;"></div>
+    </div>
+</div>
+
 <script>
 /* ================================================================
    SISTEMA DE TEMAS — init inmediato + toggle
@@ -1858,6 +1900,18 @@ function toggleTema() {
     if (dashEl && !dashEl.classList.contains('oculto') && typeof renderEjecutorKPIs === 'function') renderEjecutorKPIs();
 }
 
+var _BG_PRESETS = {
+    seda_natural:    'radial-gradient(ellipse at 20% 30%,rgba(220,220,220,0.45) 0%,transparent 60%),radial-gradient(ellipse at 80% 70%,rgba(200,200,200,0.35) 0%,transparent 55%),radial-gradient(ellipse at 60% 10%,rgba(240,240,240,0.5) 0%,transparent 50%),#F2F2F0',
+    terracota_suave: 'radial-gradient(ellipse at 30% 20%,rgba(196,133,90,0.12) 0%,transparent 55%),radial-gradient(ellipse at 75% 80%,rgba(196,133,90,0.08) 0%,transparent 50%),#F4F1EE',
+    noche_profunda:  'radial-gradient(ellipse at 25% 35%,rgba(196,133,90,0.15) 0%,transparent 60%),radial-gradient(ellipse at 70% 65%,rgba(80,50,30,0.2) 0%,transparent 55%),#12100E',
+    neutro_puro:     '#EDEDED'
+};
+var _BG_PRESET_LABELS = {
+    seda_natural:    'Seda natural',
+    terracota_suave: 'Terracota suave',
+    noche_profunda:  'Noche profunda',
+    neutro_puro:     'Neutro puro'
+};
 function _safeHex(hex) { return (hex && /^#[0-9A-Fa-f]{6}/.test(hex)) ? hex : '#C4855A'; }
 function generarGradienteDark(colorHex) {
     var h = _safeHex(colorHex);
@@ -1867,13 +1921,33 @@ function generarGradienteLight(colorHex) {
     var h = _safeHex(colorHex);
     document.body.style.backgroundImage = 'radial-gradient(ellipse at 30% 20%, ' + h + '12 0%, #F5F0EA 60%, #EDE8E0 100%)';
 }
+function _bgDefault() {
+    // En dark mode: reset inline style — el CSS [data-theme="dark"] body toma control.
+    // En light mode: aplicar #EDEDED como fondo neutro base.
+    var _t = document.documentElement.getAttribute('data-theme') || 'light';
+    document.body.style.background = _t === 'dark' ? '' : '#EDEDED';
+}
 function aplicarGradiente() {
-    if (typeof SUC_ACTIVA === 'undefined' || !SUC_ACTIVA || typeof DB === 'undefined' || !DB.sucursales) return;
+    if (typeof SUC_ACTIVA === 'undefined' || !SUC_ACTIVA || typeof DB === 'undefined' || !DB.sucursales) {
+        _bgDefault(); return;
+    }
     var suc = DB.sucursales.find(function(s){ return s.id === SUC_ACTIVA; });
-    if (!suc) return;
-    var tema = document.documentElement.getAttribute('data-theme') || 'light';
-    if (tema === 'dark') generarGradienteDark(suc.color);
-    else generarGradienteLight(suc.color);
+    if (!suc) { _bgDefault(); return; }
+    var bg = suc.bg || {};
+    if (bg.tipo === 'solido') {
+        document.body.style.background = bg.color || '#EDEDED'; return;
+    }
+    if (bg.tipo === 'preset') {
+        var grad = _BG_PRESETS[bg.preset];
+        if (grad) { document.body.style.background = grad; return; }
+    }
+    if (bg.tipo === 'personalizado') {
+        var c1 = bg.grad_c1 || '#EDEDED', c2 = bg.grad_c2 || '#FFFFFF';
+        var dirMap = { horizontal: 'to right', vertical: 'to bottom', diagonal: '135deg' };
+        document.body.style.background = 'linear-gradient(' + (dirMap[bg.grad_dir] || '135deg') + ',' + c1 + ',' + c2 + ')';
+        return;
+    }
+    _bgDefault();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -2460,7 +2534,7 @@ document.addEventListener('DOMContentLoaded', function() {
         else { document.getElementById('error-login').style.opacity = 1; setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000); }
     }
 
-    function cerrarSesion() { location.reload(); }
+    function cerrarSesion() { _bgDefault(); location.reload(); }
 
     function iniciarApp(id) {
         SUC_ACTIVA = id;
@@ -2566,9 +2640,25 @@ document.addEventListener('DOMContentLoaded', function() {
     /* ====================================================
        SISTEMA RENDERIZADO ORIGINAL (completo, sin cambios)
        ==================================================== */
+    var _projectTones = null;
+    function generateProjectTones(hex) {
+        if (!hex || !/^#[0-9A-Fa-f]{6}/.test(hex)) hex = '#C4855A';
+        const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+        const lr=Math.round(r+(255-r)*0.4), lg=Math.round(g+(255-g)*0.4), lb=Math.round(b+(255-b)*0.4);
+        const dr=Math.round(r*0.75),        dg=Math.round(g*0.75),        db=Math.round(b*0.75);
+        return { base:{rgb:`${r},${g},${b}`}, light:{rgb:`${lr},${lg},${lb}`}, dark:{rgb:`${dr},${dg},${db}`} };
+    }
+
     function renderTodas() {
         const inf = DB.sucursales.find(s => s.id === SUC_ACTIVA);
         document.documentElement.style.setProperty('--color-primario', inf.color);
+        _projectTones = generateProjectTones(inf.color);
+        document.documentElement.style.setProperty('--brand-tone-base-rgb',  _projectTones.base.rgb);
+        document.documentElement.style.setProperty('--brand-tone-light-rgb', _projectTones.light.rgb);
+        document.documentElement.style.setProperty('--brand-tone-dark-rgb',  _projectTones.dark.rgb);
+        document.documentElement.style.setProperty('--brand-tone-base',  `rgb(${_projectTones.base.rgb})`);
+        document.documentElement.style.setProperty('--brand-tone-light', `rgb(${_projectTones.light.rgb})`);
+        document.documentElement.style.setProperty('--brand-tone-dark',  `rgb(${_projectTones.dark.rgb})`);
         if(ROL === 'cliente' || ROL === 'equipo') document.getElementById('etiqueta-cliente').innerText = inf.nombre;
         _actualizarLogoHeader();
         renderDashboard(); renderInsights(); renderOrquestacion(); renderDAM();
@@ -2931,6 +3021,25 @@ document.addEventListener('DOMContentLoaded', function() {
         return acc;
     }
 
+    function openEjecutorModal() {
+        _ejecutorOpen = true;
+        renderEjecutorKPIs();
+        document.getElementById('modal-ejecutor').style.display = '';
+    }
+    function closeEjecutorModal() {
+        document.getElementById('modal-ejecutor').style.display = 'none';
+    }
+    function _ejecutorAutoLabel(idx) {
+        const s = DB.datos[SUC_ACTIVA].kpi_semanal[idx];
+        if (!s || !s.fecha) return;
+        const MC = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+        const fmt = str => { if(!str) return ''; const d=new Date(str+'T00:00:00'); return `${String(d.getDate()).padStart(2,'0')} ${MC[d.getMonth()]}`; };
+        const hasta = s.fecha_hasta || (() => { const d=new Date(s.fecha+'T00:00:00'); return new Date(d.getFullYear(),d.getMonth()+1,0).toISOString().split('T')[0]; })();
+        const yr = new Date(s.fecha+'T00:00:00').getFullYear();
+        s.semana = `${fmt(s.fecha)} – ${fmt(hasta)} ${yr}`;
+    }
+    document.addEventListener('keydown', function(e) { if (e.key==='Escape') closeEjecutorModal(); });
+
     function toggleEjecutor() {
         _ejecutorOpen = !(_ejecutorOpen ?? _canEditKPIs());
         renderEjecutorKPIs();
@@ -3030,23 +3139,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 : `${String(_lastDia.getDate()).padStart(2,'0')}/${String(_mIdx+1).padStart(2,'0')}/${_anio}`;
             const fechaCells = esMensual
                 ? `<td style="padding:4px 6px;">
-                       <div style="display:flex;gap:4px;align-items:center;">
-                           <select class="select-celda" style="${_cs}min-width:120px;" ${ro}
-                               onchange="_ejecutorSetMesAnio(${i},'mes',this.value)">${_mOps}</select>
-                           <select class="select-celda" style="${_cs}width:90px;" ${ro}
-                               onchange="_ejecutorSetMesAnio(${i},'año',this.value)">${_yOps}</select>
-                       </div>
+                       <input type="date" style="${_cs}min-width:130px;width:100%;"
+                           value="${s.fecha||''}" ${ro}
+                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;const _ld=new Date(new Date(this.value+'T00:00:00').getFullYear(),new Date(this.value+'T00:00:00').getMonth()+1,0);DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha_hasta=_ld.toISOString().split('T')[0];_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
                    </td>
                    <td style="padding:4px 6px;text-align:right;"><span style="font-size:12px;font-weight:600;color:var(--texto-secundario);padding:6px 8px;display:block;">${_hastaShow}</span></td>`
                 : `<td style="padding:4px 6px;">
                        <input type="date" style="${_cs}min-width:120px;width:100%;"
                            value="${s.fecha||''}" ${ro}
-                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;guardarBD();">
+                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha=this.value;_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
                    </td>
                    <td style="padding:4px 6px;">
                        <input type="date" style="${_cs}min-width:120px;width:100%;"
                            value="${s.fecha_hasta||''}" ${ro}
-                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha_hasta=this.value;guardarBD();">
+                           onchange="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].fecha_hasta=this.value;_ejecutorAutoLabel(${i});guardarBD();renderEjecutorKPIs();">
                    </td>`;
             return `<tr>
                 <td style="padding:6px 8px;"><input class="ejecutor-input" style="text-align:left;font-weight:700;" value="${s.semana||''}" ${ro}
@@ -3149,7 +3255,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <tbody>${engRows || `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--texto-secundario);font-size:13px;">Sin registros. Pulsa "Registro" para agregar.</td></tr>`}</tbody>
                     </table>
                 </div>
-                ${isOwner ? `<div style="font-size:11px;color:var(--texto-secundario);margin-top:10px;padding:8px 12px;background:${_isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.03)'};border-radius:8px;display:flex;align-items:center;gap:6px;">
+                ${isOwner ? `<div style="font-size:11px;color:var(--texto-secundario);margin-top:10px;padding:8px 12px;background:${_isDark?'rgba(20,18,16,0.65)':'rgba(0,0,0,.03)'};border-radius:8px;display:flex;align-items:center;gap:6px;">
                     <i class="fa-solid fa-code-merge" style="color:var(--color-primario);"></i>
                     Sprint 5 — estos datos serán reemplazados automáticamente por Meta API
                 </div>` : ''}
@@ -3370,7 +3476,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const _metas  = _getKpiMetas();
         const _canMeta = _canEditKPIs();
 
-        const kpiMini = (label, icon, color, val, v1, pre, campo, inverso) => {
+        const kpiMini = (label, icon, color, rgb, val, v1, pre, campo, inverso) => {
             const pct = v1 > 0 && val !== null ? +((val-v1)/v1*100).toFixed(1) : null;
             const delta = pct !== null
                 ? `<span class="var-badge ${pct>=0&&!inverso?'var-positive':pct<0&&!inverso?'var-negative':pct<=0&&inverso?'var-positive':'var-negative'}" style="display:inline-flex;font-size:10px;">${pct>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`
@@ -3399,7 +3505,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <input class="kpi-meta-input" inputmode="numeric" placeholder="Definir…" style="opacity:.7;font-size:10px;" onchange="_saveKpiMeta('${campo}',this.value)">
                 </div>`;
             }
-            return `<div class="dash-kpi-mini" style="--kpi-c:${color}">
+            return `<div class="dash-kpi-mini" style="--kpi-c:${color};--kpi-c-rgb:${rgb}">
                 <div class="dash-kpi-label" style="font-size:9px;"><i class="fa-solid ${icon}" style="color:${color};"></i> ${label}</div>
                 <div style="font-family:var(--font-display);font-size:26px;font-weight:900;letter-spacing:-0.04em;line-height:1.1;margin:6px 0 4px;">${display}</div>
                 <div style="font-size:10px;">${delta}${pct!==null?`<span style="margin-left:5px;color:var(--texto-secundario);">vs ant.</span>`:''}</div>
@@ -3419,10 +3525,10 @@ document.addEventListener('DOMContentLoaded', function() {
                </div>`
             : '';
         if (el) el.innerHTML =
-            kpiMini('Clientes nuevos',      'fa-user-plus',  'var(--color-primario)', mNuevos.v2, mNuevos.v1, '',  'nuevos',      false) +
-            kpiMini('Clientes recurrentes', 'fa-rotate',     '#34A853',               mRecurr.v2, mRecurr.v1, '',  'recurrentes', false) +
-            (_showRecup ? kpiMini('Clientes recuperados', 'fa-heart-circle-plus','#4A90D9', mRecup.v2, mRecup.v1, '', 'recuperados', false) : '') +
-            kpiMini('CAC Real',             'fa-calculator', '#8B5CF6',               cac,        cacPrev,    '$', 'cac',         true) +
+            kpiMini('Clientes nuevos',      'fa-user-plus',       'var(--brand-tone-base)',  'var(--brand-tone-base-rgb)',  mNuevos.v2, mNuevos.v1, '',  'nuevos',      false) +
+            kpiMini('Clientes recurrentes', 'fa-rotate',          'var(--brand-tone-light)', 'var(--brand-tone-light-rgb)', mRecurr.v2, mRecurr.v1, '',  'recurrentes', false) +
+            (_showRecup ? kpiMini('Clientes recuperados', 'fa-heart-circle-plus','var(--brand-tone-dark)','var(--brand-tone-dark-rgb)', mRecup.v2, mRecup.v1, '', 'recuperados', false) : '') +
+            kpiMini('CAC Real',             'fa-calculator',      'var(--brand-tone-dark)',  'var(--brand-tone-dark-rgb)',  cac,        cacPrev,    '$', 'cac',         true) +
             _toggleBtn;
     }
 
@@ -3685,16 +3791,29 @@ document.addEventListener('DOMContentLoaded', function() {
         const scaleDef = { grid:{color:grid}, ticks:{color:txtTer,font:{size:10}} };
         const legDef = { labels:{color:txtSec,font:{size:10}} };
         const MC = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-        const COLORS = ['rgba(196,133,90,.8)','rgba(74,144,217,.8)','rgba(52,168,83,.8)','rgba(251,188,5,.8)','rgba(139,92,246,.8)','rgba(234,67,53,.8)'];
+        const _CT = _projectTones || { base:{rgb:'196,133,90'}, light:{rgb:'215,166,133'}, dark:{rgb:'147,100,68'} };
+        const COLORS = [`rgba(${_CT.base.rgb},.8)`,`rgba(${_CT.light.rgb},.8)`,`rgba(${_CT.dark.rgb},.8)`,'rgba(251,188,5,.8)','rgba(52,168,83,.8)','rgba(234,67,53,.8)'];
 
-        // Chart 1: Mix de servicios
-        const tagC={};
-        (d.kanban||[]).forEach(k=>(k.tags||'').split(',').forEach(t=>{const s=t.trim();if(s)tagC[s]=(tagC[s]||0)+1;}));
-        const tagE = Object.entries(tagC).slice(0,6);
+        // Chart 1: Mix de servicios — fuente: kpi_semanal[].servicios_clientes
+        const _srvCount={};
+        (d.kpi_semanal||[]).forEach(s=>(s.servicios_clientes||[]).forEach(sv=>{if(sv)_srvCount[sv]=(_srvCount[sv]||0)+1;}));
+        const _srvEntries=Object.entries(_srvCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
         destroyChart('dash-chart-mix');
-        const c1 = document.getElementById('dash-chart-mix');
-        if (c1 && tagE.length>0) {
-            _charts['dash-chart-mix'] = new Chart(c1,{type:'doughnut',data:{labels:tagE.map(([t])=>t),datasets:[{data:tagE.map(([,v])=>v),backgroundColor:COLORS,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:legDef.labels}}}});
+        const c1=document.getElementById('dash-chart-mix');
+        if(c1){
+            const wrap=c1.parentElement;
+            wrap.querySelectorAll('.mix-empty').forEach(e=>e.remove());
+            if(_srvEntries.length>0){
+                c1.style.display='';
+                _charts['dash-chart-mix']=new Chart(c1,{type:'doughnut',data:{labels:_srvEntries.map(([t])=>t),datasets:[{data:_srvEntries.map(([,v])=>v),backgroundColor:COLORS,borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:legDef.labels}}}});
+            } else {
+                c1.style.display='none';
+                const em=document.createElement('div');
+                em.className='mix-empty';
+                em.style.cssText='display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--texto-secundario);font-size:11px;line-height:1.5;padding:12px;';
+                em.textContent='Agrega el servicio por cliente en el Ejecutor de KPIs para ver este gráfico';
+                wrap.appendChild(em);
+            }
         }
 
         // Chart 2: Inversión vs Conversión
@@ -3702,7 +3821,7 @@ document.addEventListener('DOMContentLoaded', function() {
         destroyChart('dash-chart-inv');
         const c2=document.getElementById('dash-chart-inv');
         if (c2 && ads.length>0) {
-            _charts['dash-chart-inv']=new Chart(c2,{type:'bar',data:{labels:ads.map(a=>(a.nombre||'').substring(0,12)),datasets:[{label:'Inversión ($)',data:ads.map(a=>a.inversion||0),backgroundColor:'rgba(196,133,90,.7)',borderRadius:5},{label:'Conversiones ×100',data:ads.map(a=>(a.conversiones||0)*100),backgroundColor:'rgba(74,144,217,.7)',borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:legDef}}});
+            _charts['dash-chart-inv']=new Chart(c2,{type:'bar',data:{labels:ads.map(a=>(a.nombre||'').substring(0,12)),datasets:[{label:'Inversión ($)',data:ads.map(a=>a.inversion||0),backgroundColor:`rgba(${_CT.base.rgb},.7)`,borderRadius:5},{label:'Conversiones ×100',data:ads.map(a=>(a.conversiones||0)*100),backgroundColor:`rgba(${_CT.light.rgb},.7)`,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:legDef}}});
         }
 
         // Chart 3: Seguidores
@@ -3710,7 +3829,7 @@ document.addEventListener('DOMContentLoaded', function() {
         destroyChart('dash-chart-seg');
         const c3=document.getElementById('dash-chart-seg');
         if (c3) {
-            _charts['dash-chart-seg']=new Chart(c3,{type:'line',data:{labels:MC,datasets:[{label:'Seguidores',data:hist.map(h=>h.seguidores||0),borderColor:'rgba(196,133,90,.9)',backgroundColor:'rgba(196,133,90,.12)',fill:true,tension:.4,pointRadius:3,pointBackgroundColor:'rgba(196,133,90,1)'}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:legDef}}});
+            _charts['dash-chart-seg']=new Chart(c3,{type:'line',data:{labels:MC,datasets:[{label:'Seguidores',data:hist.map(h=>h.seguidores||0),borderColor:`rgba(${_CT.base.rgb},.9)`,backgroundColor:`rgba(${_CT.base.rgb},.12)`,fill:true,tension:.4,pointRadius:3,pointBackgroundColor:`rgba(${_CT.base.rgb},1)`}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:legDef}}});
         }
 
         // Chart 4: Engagement histórico
@@ -3850,25 +3969,27 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderOrquestacion() {
-        const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
+        const d = DB.datos[SUC_ACTIVA];
+        const canEdit = _getPermisos('calendario', 'editar');
+        const ro = canEdit ? '' : 'readonly';
         let kHTML = {'Ideas':'','Producción':'','Revisión':'','Programado':''};
         let pHTML = '';
         let targetOpts = d.target.map(t => `<option value="${t.id}">${t.segmento}</option>`).join('');
         [...d.kanban].sort((a,b) => new Date(a.fecha) - new Date(b.fecha)).forEach((t) => {
             let idx = d.kanban.findIndex(x => x.id === t.id);
-            let drag = ROL==='agencia' ? `draggable="true" ondragstart="event.dataTransfer.setData('text','${t.id}')"` : '';
+            let drag = canEdit ? `draggable="true" ondragstart="event.dataTransfer.setData('text','${t.id}')"` : '';
             const suc_info = DB.sucursales.find(s => s.id === SUC_ACTIVA);
             const miembros_suc = suc_info ? (suc_info.equipo_miembros || []) : [];
             const asignadoOpts = `<option value="">Sin asignar</option>` + miembros_suc.map(m => `<option value="${m.nombre}" ${t.asignado_a===m.nombre?'selected':''}>${m.nombre}</option>`).join('');
-            const asignadoSel = ROL === 'agencia' ? `<select class="select-celda" style="width:160px; border:1px solid var(--color-borde); background:#fafafa; font-size:12px; border-radius:8px;" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].asignado_a=this.value;guardarBD()">${asignadoOpts}</select>` : `<span style="font-size:12px; color:var(--texto-secundario);">${t.asignado_a || 'Sin asignar'}</span>`;
+            const asignadoSel = canEdit ? `<select class="select-celda" style="width:160px; border:1px solid var(--color-borde); background:#fafafa; font-size:12px; border-radius:8px;" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].asignado_a=this.value;guardarBD()">${asignadoOpts}</select>` : `<span style="font-size:12px; color:var(--texto-secundario);">${t.asignado_a || 'Sin asignar'}</span>`;
             const asignadoChip = t.asignado_a ? `<div style="margin-top:6px;"><span style="background:rgba(74,144,217,0.1); color:#4A90D9; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;"><i class="fa-solid fa-user-tie" style="margin-right:4px;"></i>${t.asignado_a}</span></div>` : '';
             kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag}><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div>${asignadoChip}</div>`;
             let optEst = ['Ideas','Producción','Revisión','Programado'].map(e => `<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
-            let selEst = ROL==='agencia' ? `<select class="select-celda" style="width:120px; border:1px solid var(--color-borde); background:#fafafa; font-size:11px; text-transform:uppercase;" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value)">${optEst}</select>` : `<span class="tag gris">${t.estado}</span>`;
+            let selEst = canEdit ? `<select class="select-celda" style="width:120px; border:1px solid var(--color-borde); background:#fafafa; font-size:11px; text-transform:uppercase;" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value)">${optEst}</select>` : `<span class="tag gris">${t.estado}</span>`;
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
             let t_val = t.target_id || "";
-            let selTarget = ROL==='agencia' ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
-            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:10px;">${selEst} ${_damBadgeKanban(t.id)}<i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div><div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--color-borde);"><h4 style="font-size:11px;color:var(--texto-secundario);margin-bottom:8px;text-transform:uppercase;font-weight:700;letter-spacing:.06em;"><i class="fa-solid fa-photo-film" style="margin-right:4px;opacity:.7;"></i>Activos vinculados</h4>${_renderActivosKanban(t.id)}</div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
+            let selTarget = canEdit ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
+            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:10px;">${selEst} ${_damBadgeKanban(t.id)}<i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div><div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--color-borde);"><h4 style="font-size:11px;color:var(--texto-secundario);margin-bottom:8px;text-transform:uppercase;font-weight:700;letter-spacing:.06em;"><i class="fa-solid fa-photo-film" style="margin-right:4px;opacity:.7;"></i>Activos vinculados</h4>${_renderActivosKanban(t.id)}</div>${canEdit ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
         });
         ['Ideas','Producción','Revisión','Programado'].forEach(e => { document.getElementById('k-'+e).innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
@@ -3925,11 +4046,11 @@ document.addEventListener('DOMContentLoaded', function() {
         else { _legacyCopy(url); _showToast('Link copiado'); }
     }
 
-    function renderDAM() {
+        function renderDAM() {
         const d = DB.datos[SUC_ACTIVA];
         const assets = d.dam || [];
         const cats   = _getDamCategorias();
-        const canEdit = ROL === 'agencia';
+        const canEdit = _getPermisos('dam', 'editar');
         const puedeAprobar = _damPuedeAprobar();
         const puedeSubirV  = USUARIO_ACTIVO?.rol_id === 'equipo' || ROL === 'agencia';
 
@@ -4030,7 +4151,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderPresupuesto() {
-        const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
+        const d = DB.datos[SUC_ACTIVA];
+        const canEdit = _getPermisos('presupuesto', 'editar');
+        const ro = canEdit ? '' : 'readonly';
         // Bug 1 fix: save scroll positions before re-render
         const _areaScroll   = document.getElementById('area-scroll');
         const _contenedor   = document.getElementById('contenedor-presupuesto');
@@ -4049,9 +4172,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const pctColor  = pctEjec > 100 ? '#EA4335' : '#15803D';
         const fmt = v => formatDinero(v);
         let html = `<div class="ppto-kpi-strip">
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(totalInv)}</div><div class="ppto-kpi-lbl">Presupuestado Anual</div></div>
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${totalReal>totalInv?'#EA4335':'#15803D'};">${fmt(totalReal)}</div><div class="ppto-kpi-lbl">Ejecutado Real</div></div>
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${diff<0?'#EA4335':'#15803D'};">${diff<0?'−':''}${fmt(Math.abs(diff))}</div><div class="ppto-kpi-lbl">Diferencia</div></div>
+            <div class="ppto-kpi-card" style="border-top:2px solid rgba(var(--brand-tone-light-rgb),.6);"><div class="ppto-kpi-val" style="color:var(--brand-tone-light);">${fmt(totalInv)}</div><div class="ppto-kpi-lbl">Presupuestado Anual</div></div>
+            <div class="ppto-kpi-card" style="border-top:2px solid rgba(var(--brand-tone-base-rgb),.6);"><div class="ppto-kpi-val" style="color:var(--brand-tone-base);">${fmt(totalReal)}</div><div class="ppto-kpi-lbl">Ejecutado Real</div></div>
+            <div class="ppto-kpi-card" style="border-top:2px solid rgba(var(--brand-tone-dark-rgb),.6);"><div class="ppto-kpi-val" style="color:var(--brand-tone-dark);">${diff<0?'−':''}${fmt(Math.abs(diff))}</div><div class="ppto-kpi-lbl">Diferencia</div></div>
             <div class="ppto-kpi-card">
                 <div class="ppto-kpi-val" style="color:${pctColor};">${pctEjec}%</div>
                 <div class="ppto-kpi-lbl">Ejecución</div>
@@ -4202,9 +4325,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         h += `
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR)}</div><div class="ppto-kpi-lbl">Presupuestado — ${label_rango}</div></div>
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${totalRealR>totalInvR?'#EA4335':'#15803D'};">${formatDinero(totalRealR)}</div><div class="ppto-kpi-lbl">Ejecutado Real</div></div>
-            ${(()=>{const _d=totalInvR-totalRealR;const _p=totalInvR>0?Math.round((totalRealR/totalInvR)*100):0;const _c=_p>100?'#EA4335':'#15803D';return `<div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${_c};">${_p}%</div><div class="ppto-kpi-lbl">Ejecución</div><div style="height:4px;border-radius:100px;background:var(--color-borde);margin-top:6px;overflow:hidden;"><div style="height:100%;width:${Math.min(_p,100)}%;background:${_c};border-radius:100px;"></div></div></div><div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${_d<0?'#EA4335':'#15803D'};">${_d<0?'−':''}${formatDinero(Math.abs(_d))}</div><div class="ppto-kpi-lbl">Diferencia</div></div>`;})()}
+            <div class="ppto-kpi-card" style="border-top:2px solid rgba(var(--brand-tone-light-rgb),.6);"><div class="ppto-kpi-val" style="color:var(--brand-tone-light);">${formatDinero(totalInvR)}</div><div class="ppto-kpi-lbl">Presupuestado — ${label_rango}</div></div>
+            <div class="ppto-kpi-card" style="border-top:2px solid rgba(var(--brand-tone-base-rgb),.6);"><div class="ppto-kpi-val" style="color:var(--brand-tone-base);">${formatDinero(totalRealR)}</div><div class="ppto-kpi-lbl">Ejecutado Real</div></div>
+            ${(()=>{const _d=totalInvR-totalRealR;const _p=totalInvR>0?Math.round((totalRealR/totalInvR)*100):0;return `<div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:var(--brand-tone-light);">${_p}%</div><div class="ppto-kpi-lbl">Ejecución</div><div style="height:4px;border-radius:100px;background:var(--color-borde);margin-top:6px;overflow:hidden;"><div style="height:100%;width:${Math.min(_p,100)}%;background:var(--brand-tone-base);border-radius:100px;"></div></div></div><div class="ppto-kpi-card" style="border-top:2px solid rgba(var(--brand-tone-dark-rgb),.6);"><div class="ppto-kpi-val" style="color:var(--brand-tone-dark);">${_d<0?'−':''}${formatDinero(Math.abs(_d))}</div><div class="ppto-kpi-lbl">Diferencia</div></div>`;})()}
             <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalColR)}</div><div class="ppto-kpi-lbl">Colaboración</div></div>
             <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR+totalColR)}</div><div class="ppto-kpi-lbl">Total periodo</div></div>
         </div>
@@ -4313,8 +4436,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── TAB 1: REGLAS DE MARCA ──────────────────────────────────────
     function renderBriefingReglas() {
         const b = DB.datos[SUC_ACTIVA].briefing;
-        const ro = ROL === 'cliente' ? 'readonly' : '';
-        const canEdit = ROL === 'agencia';
+        const canEdit = _getPermisos('briefing', 'editar');
+        const ro = canEdit ? '' : 'readonly';
         const esAitama = SUC_ACTIVA === 'aitama' || (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).nombre.toLowerCase().includes('aitama');
 
         const reglasHTML = (b.reglas||[]).map((r,i) => `
@@ -4346,7 +4469,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── TAB 2: TONO DE VOZ ─────────────────────────────────────────
     function renderBriefingTono() {
         const b = DB.datos[SUC_ACTIVA].briefing;
-        const canEdit = ROL === 'agencia';
+        const canEdit = _getPermisos('briefing', 'editar');
         const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
         const ejemplosHTML = (b.tono_ejemplos||[]).map((e,i) => `
@@ -4410,7 +4533,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── TAB 3: FLUJOS MANYCHAT ─────────────────────────────────────
     function renderBriefingManychat() {
         const b = DB.datos[SUC_ACTIVA].briefing;
-        const canEdit = ROL === 'agencia';
+        const canEdit = _getPermisos('briefing', 'editar');
         const flows = b.manychat || [];
         const OBJETIVOS = ['Agendar','Informar','Cerrar venta','Fidelizar'];
         const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -4504,7 +4627,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ── TAB 4: HORARIOS ────────────────────────────────────────────
     function renderBriefingHorarios() {
         const b = DB.datos[SUC_ACTIVA].briefing;
-        const canEdit = ROL === 'agencia';
+        const canEdit = _getPermisos('briefing', 'editar');
         const grid = b.horarios.grid || {};
         const fmt  = b.horarios.por_formato || {};
         const DIAS   = [['lun','Lun'],['mar','Mar'],['mie','Mié'],['jue','Jue'],['vie','Vie'],['sab','Sáb'],['dom','Dom']];
@@ -4565,10 +4688,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderMood() {
-        const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly disabled' : '';
+        const d = DB.datos[SUC_ACTIVA];
+        const canEdit = _getPermisos('mood', 'editar');
         let optEmo = DB.desplegables.emociones.map(e=>`<option>${e}</option>`).join('');
         let optPro = DB.desplegables.productos.map(e=>`<option>${e}</option>`).join('');
-        document.getElementById('contenedor-mood').innerHTML = d.mood.map((m, i) => `<div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid var(--color-borde); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div><div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${ROL==='agencia' ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].emocion=this.value;guardarBD()"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div><div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">PRODUCTO/EJE</label>${ROL==='agencia' ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].producto=this.value;guardarBD()"><option selected hidden>${m.producto}</option>${optPro}</select>` : `<input class="input-celda" value="${m.producto}" readonly>`}</div></div>`).join('');
+        document.getElementById('contenedor-mood').innerHTML = d.mood.map((m, i) => `<div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid var(--color-borde); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div><div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${canEdit ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].emocion=this.value;guardarBD()"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div><div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">PRODUCTO/EJE</label>${canEdit ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].producto=this.value;guardarBD()"><option selected hidden>${m.producto}</option>${optPro}</select>` : `<input class="input-celda" value="${m.producto}" readonly>`}</div></div>`).join('');
     }
 
     let _expandedTargets = new Set();
@@ -4953,6 +5077,29 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>`;
             const tipoOpts = TIPOS_PROYECTO.map(t => `<option value="${t.id}" ${(s.tipo||'wellness')===t.id?'selected':''}>${t.label}</option>`).join('');
             const tipoActual = TIPOS_PROYECTO.find(t=>t.id===(s.tipo||'wellness'))||TIPOS_PROYECTO[0];
+            // ── Background personalizado (solo owner) ─────────────────────────
+            const _isOwnerBg = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
+            const _bg = s.bg || {};
+            const _bgTipo = _bg.tipo || 'solido';
+            let _bgBodyHtml = '';
+            if (_bgTipo === 'solido') {
+                const _bCol = _bg.color || '#EDEDED';
+                _bgBodyHtml = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${_bCol}" onchange="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.tipo='solido';DB.sucursales[${i}].bg.color=this.value;guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();this.nextElementSibling.value=this.value;"><input class="input-celda" style="padding:0;font-family:monospace;font-weight:700;text-transform:uppercase;width:90px;" value="${_bCol}" onchange="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.tipo='solido';DB.sucursales[${i}].bg.color=this.value;guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();"></div></div>`;
+            } else if (_bgTipo === 'preset') {
+                const _bPre = _bg.preset || Object.keys(_BG_PRESETS)[0] || '';
+                const _swatches = Object.keys(_BG_PRESETS).map(k => {
+                    const _sel = _bPre === k;
+                    return `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;" onclick="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.tipo='preset';DB.sucursales[${i}].bg.preset='${k}';guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();renderAdministracion();"><div style="width:56px;height:56px;border-radius:8px;border:2px solid ${_sel?'var(--color-primario)':'var(--color-borde)'};box-shadow:${_sel?'0 0 0 3px rgba(196,133,90,0.25)':'none'};background:${_BG_PRESETS[k]};flex-shrink:0;"></div><span style="font-size:9px;font-weight:${_sel?'700':'500'};color:${_sel?'var(--color-primario)':'var(--texto-secundario)'};text-align:center;line-height:1.3;max-width:62px;">${_BG_PRESET_LABELS[k]||k}</span></div>`;
+                }).join('');
+                _bgBodyHtml = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;padding:4px 0;">${_swatches}</div>`;
+            } else if (_bgTipo === 'personalizado') {
+                const _bC1 = _bg.grad_c1 || '#EDEDED', _bC2 = _bg.grad_c2 || '#FFFFFF', _bDir = _bg.grad_dir || 'diagonal';
+                const _dirBtns = ['horizontal','vertical','diagonal'].map(d=>`<button class="btn btn-xs ${_bDir===d?'btn-primario':'btn-fantasma'}" style="flex:1;font-size:9px;padding:4px;" onclick="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.grad_dir='${d}';guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();">${d.charAt(0).toUpperCase()+d.slice(1)}</button>`).join('');
+                _bgBodyHtml = `<div style="display:flex;gap:8px;margin-bottom:8px;"><div style="flex:1;"><label style="font-size:9px;color:var(--texto-secundario);font-weight:700;letter-spacing:.04em;display:block;margin-bottom:4px;">INICIO</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${_bC1}" onchange="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.grad_c1=this.value;guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();"><input class="input-celda" style="padding:0;font-family:monospace;font-weight:700;text-transform:uppercase;width:80px;" value="${_bC1}" onchange="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.grad_c1=this.value;guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();"></div></div><div style="flex:1;"><label style="font-size:9px;color:var(--texto-secundario);font-weight:700;letter-spacing:.04em;display:block;margin-bottom:4px;">FIN</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${_bC2}" onchange="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.grad_c2=this.value;guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();"><input class="input-celda" style="padding:0;font-family:monospace;font-weight:700;text-transform:uppercase;width:80px;" value="${_bC2}" onchange="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.grad_c2=this.value;guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();"></div></div></div><label style="font-size:9px;color:var(--texto-secundario);font-weight:700;letter-spacing:.04em;display:block;margin-bottom:4px;">DIRECCIÓN</label><div style="display:flex;gap:5px;margin-bottom:8px;">${_dirBtns}</div>`;
+            }
+            const _bgPreviewCss = _bgTipo==='solido' ? `background:${_bg.color||'#EDEDED'};` : _bgTipo==='preset' ? `background:${_BG_PRESETS[_bg.preset]||'#EDEDED'};` : _bgTipo==='personalizado' ? `background:linear-gradient(${_bg.grad_dir==='horizontal'?'to right':_bg.grad_dir==='vertical'?'to bottom':'135deg'},${_bg.grad_c1||'#EDEDED'},${_bg.grad_c2||'#FFFFFF'});` : 'background:#EDEDED;';
+            const _btnTipoFn = (t,lbl) => `<button class="btn btn-xs ${_bgTipo===t?'btn-primario':'btn-fantasma'}" style="flex:1;font-size:9px;padding:4px 2px;" onclick="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.tipo='${t}';guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();renderAdministracion();">${lbl}</button>`;
+            const _bgSection = !_isOwnerBg ? '' : `<div style="margin-bottom:14px;border:1px solid var(--color-borde);border-radius:10px;padding:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:8px;">BACKGROUND DEL PROYECTO</label><div style="display:flex;gap:5px;margin-bottom:10px;">${_btnTipoFn('solido','Color sólido')}${_btnTipoFn('preset','Preset')}${_btnTipoFn('personalizado','Personalizado')}</div>${_bgBodyHtml}<div style="height:26px;border-radius:7px;border:1px solid var(--color-borde);${_bgPreviewCss}"></div><div style="font-size:10px;color:var(--texto-secundario);margin-top:5px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Fondo de la app cuando este proyecto está activo.</div></div>`;
             return `<div class="tarjeta-cliente">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <input class="input-celda" style="font-weight:800;font-size:18px;padding-left:0;font-family:var(--font-display);" value="${s.nombre}"
@@ -4975,6 +5122,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Afecta todos los montos mostrados en este proyecto.</div>
                 </div>
                 <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0;font-family:monospace;font-weight:700;text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>
+                ${_bgSection}
                 ${_logoSection}
                 ${equipoSection}
             </div>`;
@@ -5969,8 +6117,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function _canEditShooting() {
-        if (!USUARIO_ACTIVO) return ROL === 'agencia';
-        return ['owner','direccion'].includes(USUARIO_ACTIVO.rol_id) && !ROL_SIMULADO;
+        return _getPermisos('shooting', 'editar');
     }
 
         function _toggleShootingFiltro() {
@@ -6167,13 +6314,18 @@ document.addEventListener('DOMContentLoaded', function() {
         const roas      = totalInv > 0 ? (totalConv*85/totalInv).toFixed(1) : 0;
         const strip = document.getElementById('ads-kpi-strip');
         if (!strip) return;
+        const _AT = _projectTones || { base:{rgb:'196,133,90'}, light:{rgb:'215,166,133'}, dark:{rgb:'147,100,68'} };
+        const _atones = [_AT.base.rgb, _AT.light.rgb, _AT.dark.rgb, _AT.base.rgb, _AT.light.rgb];
         strip.innerHTML = [
-            { icon:'fa-peso-sign',   color:'#C4855A', bg:'rgba(196,133,90,0.1)', label:'Total Invertido', val:`$${totalInv.toLocaleString()}` },
-            { icon:'fa-eye',         color:'#4A90D9', bg:'rgba(74,144,217,0.1)', label:'Alcance Total',   val:totalAlc.toLocaleString() },
-            { icon:'fa-arrow-pointer',color:'#8B5CF6',bg:'rgba(139,92,246,0.1)', label:'Conversiones',    val:totalConv },
-            { icon:'fa-dollar-sign', color:'#34A853', bg:'rgba(52,168,83,0.1)',  label:'CPR Promedio',    val:`$${avgCPR}` },
-            { icon:'fa-chart-line',  color:'#FBBC05', bg:'rgba(251,188,5,0.1)',  label:'ROAS Estimado',   val:`${roas}x` }
-        ].map(k=>`<div class="ads-kpi-card"><div class="ads-kpi-icon" style="background:${k.bg};color:${k.color};"><i class="fa-solid ${k.icon}"></i></div><div class="ads-kpi-val">${k.val}</div><div class="ads-kpi-lbl">${k.label}</div></div>`).join('');
+            { icon:'fa-peso-sign',    ti:0, label:'Total Invertido', val:`$${totalInv.toLocaleString()}` },
+            { icon:'fa-eye',          ti:1, label:'Alcance Total',   val:totalAlc.toLocaleString() },
+            { icon:'fa-arrow-pointer',ti:2, label:'Conversiones',    val:totalConv },
+            { icon:'fa-dollar-sign',  ti:0, label:'CPR Promedio',    val:`$${avgCPR}` },
+            { icon:'fa-chart-line',   ti:1, label:'ROAS Estimado',   val:`${roas}x` }
+        ].map(k => {
+            const rgb = _atones[k.ti];
+            return `<div class="ads-kpi-card" style="border-top:2px solid rgba(${rgb},0.55);"><div class="ads-kpi-icon" style="background:rgba(${rgb},0.12);color:rgb(${rgb});"><i class="fa-solid ${k.icon}"></i></div><div class="ads-kpi-val">${k.val}</div><div class="ads-kpi-lbl">${k.label}</div></div>`;
+        }).join('');
     }
 
     function _renderAdSegmentoSelect(target, a, i) {
@@ -6200,7 +6352,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function renderAdsTable() {
         const d = DB.datos[SUC_ACTIVA];
         const ads = d.ads || [];
-        const canEdit = ROL !== 'cliente';
+        const canEdit = _getPermisos('ads', 'editar');
         const lbl = t => `<label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">${t}</label>`;
         const inp = (v, campo, i, type) => `<input class="input-celda" type="${type||'text'}" inputmode="${['number','inversion','alcance','clics','conversiones','cpr'].includes(type)?'numeric':'text'}" value="${v}" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'${campo}',this.value)">`;
 
@@ -6523,17 +6675,109 @@ document.addEventListener('DOMContentLoaded', function() {
         return `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:100px;background:${c.bg};color:${c.color};">${c.label}</span>`;
     }
 
+    function _driveFileName(url) {
+        if (!url) return '';
+        try {
+            const u = new URL(url);
+            const parts = u.pathname.split('/').filter(p => p && !['view','edit','d','file','folders','open'].includes(p));
+            if (parts.length) return decodeURIComponent(parts[parts.length - 1]).substring(0, 40);
+        } catch(e) {}
+        return 'Archivo Google Drive';
+    }
+
+    function _storyActivoChip(s) {
+        const a = s.activo;
+        if (!a || !a.ref) return '';
+        if (a.tipo === 'drive') {
+            const nom = (a.nombre || _driveFileName(a.ref) || 'Drive').substring(0, 22);
+            return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:rgba(0,0,0,.05);color:var(--texto-secundario);border:1px solid var(--color-borde-fuerte);cursor:pointer;" onclick="window.open('${a.ref}','_blank')"><i class="fa-brands fa-google-drive" style="font-size:9px;color:#4285F4;"></i>${nom}${(a.nombre||'').length>22?'…':''}</span>`;
+        }
+        if (a.tipo === 'dam') {
+            const damA = (DB.datos[SUC_ACTIVA].dam || []).find(d => d.id === a.ref);
+            const nom = (damA ? damA.nombre : (a.nombre || 'Activo')).substring(0, 22);
+            const est = damA ? (damA.estado || '') : '';
+            const ok  = est==='Aprobado'||est==='aprobado';
+            const rev = est==='En revisión'||est==='en_revision';
+            const bg  = ok?'rgba(34,197,94,.1)':rev?'rgba(234,179,8,.1)':'rgba(0,0,0,.05)';
+            const col = ok?'#15803D':rev?'#A16207':'var(--texto-secundario)';
+            const brd = ok?'rgba(34,197,94,.3)':rev?'rgba(234,179,8,.3)':'var(--color-borde-fuerte)';
+            return `<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;padding:2px 8px;border-radius:100px;background:${bg};color:${col};border:1px solid ${brd};"><i class="fa-solid fa-paperclip" style="font-size:9px;"></i>${nom}${(damA?damA.nombre:(a.nombre||'')).length>22?'…':''}</span>`;
+        }
+        return '';
+    }
+
+    function _nsActivoPill(tipo) {
+        ['none','drive','dam'].forEach(t => {
+            const b = document.getElementById('ns-act-pill-'+t);
+            if (b) b.className = 'btn btn-xs ' + (t===tipo ? 'btn-primario' : 'btn-fantasma');
+        });
+        const dp   = document.getElementById('ns-act-drive-panel');
+        const damp = document.getElementById('ns-act-dam-panel');
+        const ht   = document.getElementById('ns-activo-tipo');
+        if (dp)   dp.style.display   = tipo==='drive' ? '' : 'none';
+        if (damp) damp.style.display = tipo==='dam'   ? '' : 'none';
+        if (ht)   ht.value           = tipo==='none'  ? '' : tipo;
+    }
+
+    function _nsActDrivePreview() {
+        const url  = (document.getElementById('ns-activo-drive-url')||{}).value||'';
+        const prev = document.getElementById('ns-act-drive-preview');
+        const hn   = document.getElementById('ns-activo-nombre');
+        if (!url.trim()) { if (prev) prev.style.display='none'; return; }
+        const nom = _driveFileName(url.trim());
+        if (hn) hn.value = nom;
+        if (prev) { prev.style.display=''; prev.innerHTML = `<i class="fa-brands fa-google-drive" style="margin-right:4px;color:#4285F4;"></i>${nom}`; }
+    }
+
+    function _nsDamFiltrar(filtro) {
+        const sel = document.getElementById('ns-activo-dam-sel');
+        if (!sel) return;
+        ['todos','aprobado','revision'].forEach(f => {
+            const b = document.getElementById('ns-dam-f-'+f);
+            if (b) b.className = 'btn btn-xs ' + (f===filtro ? 'btn-primario' : 'btn-fantasma');
+        });
+        const dam = DB.datos[SUC_ACTIVA].dam || [];
+        const currentVal = sel.value;
+        let filtered = dam;
+        if (filtro==='aprobado') filtered = dam.filter(a => a.estado==='Aprobado'||a.estado==='aprobado');
+        if (filtro==='revision') filtered = dam.filter(a => a.estado==='En revisión'||a.estado==='en_revision');
+        sel.innerHTML = '<option value="">Selecciona un activo...</option>' +
+            filtered.map(a => `<option value="${a.id}">${a.nombre}${a.estado?' · '+a.estado:''}</option>`).join('');
+        sel.value = filtered.find(a => a.id===currentVal) ? currentVal : '';
+        _nsActDamChange();
+    }
+
+    function _nsActDamChange() {
+        const sel   = document.getElementById('ns-activo-dam-sel');
+        const hidId = document.getElementById('ns-activo-dam-id');
+        const hidNm = document.getElementById('ns-activo-nombre');
+        const estDiv= document.getElementById('ns-act-dam-estado');
+        if (!sel) return;
+        const id = sel.value;
+        if (hidId) hidId.value = id;
+        if (!id) { if (hidNm) hidNm.value=''; if (estDiv) estDiv.style.display='none'; return; }
+        const activo = (DB.datos[SUC_ACTIVA].dam||[]).find(a => a.id===id);
+        if (!activo) return;
+        if (hidNm) hidNm.value = activo.nombre;
+        const ok  = activo.estado==='Aprobado'||activo.estado==='aprobado';
+        const rev = activo.estado==='En revisión'||activo.estado==='en_revision';
+        const bg  = ok?'rgba(34,197,94,.1)':rev?'rgba(234,179,8,.1)':'rgba(0,0,0,.05)';
+        const col = ok?'#15803D':rev?'#A16207':'var(--texto-secundario)';
+        if (estDiv) { estDiv.style.display=''; estDiv.innerHTML=`<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:${bg};color:${col};">${activo.estado||'Sin estado'}</span> ${activo.nombre}`; }
+    }
+
     function renderStories() {
         const d = DB.datos[SUC_ACTIVA];
         const stories = d.stories_ind || [];
         const kanban = d.kanban || [];
         const el = document.getElementById('stories-lista');
         if (!el) return;
+        const canEdit = _getPermisos('stories', 'editar');
 
         // Botón de importación visible solo para Owner y Lanka Team
         const isOwnerOrTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
         const hdrExtra = document.getElementById('stories-header-extra');
-        if (hdrExtra) hdrExtra.innerHTML = isOwnerOrTeam
+        if (hdrExtra) hdrExtra.innerHTML = (isOwnerOrTeam && canEdit)
             ? `<button class="btn btn-fantasma" onclick="document.getElementById('stories-import-json').value='';document.getElementById('modal-importar-stories').classList.add('activo')"><i class="fa-solid fa-file-import"></i> Importar stories</button>`
             : '';
 
@@ -6582,12 +6826,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${postLabel}
                             ${s.cta ? `<span style="background:rgba(0,0,0,0.04); border:1px solid var(--color-borde-fuerte); border-radius:6px; padding:3px 9px; font-size:12px; font-weight:700; color:var(--texto-principal);"><i class="fa-solid fa-arrow-pointer" style="margin-right:4px; color:var(--texto-secundario);"></i>${s.cta}</span>` : ''}
                             ${s.estado ? _storyEstadoBadge(s.estado) : ''}
+                            ${_storyActivoChip(s)}
                         </div>
                         <div style="font-size:11px;color:var(--texto-secundario);display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:2px;">
                             <i class="fa-solid fa-photo-film" style="font-size:9px;opacity:.5;"></i>${_renderActivosStory(s.id)}
                         </div>
                     </div>
-                    ${ROL==='agencia' ? `
+                    ${canEdit ? `
                     <div style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
                         <button class="btn btn-xs btn-fantasma" onclick="editarStory('${s.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
                         <button class="btn btn-xs btn-peligro-suave" onclick="eliminarStory('${s.id}')"><i class="fa-solid fa-trash"></i></button>
@@ -6613,6 +6858,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('ns-copy').value = '';
         document.getElementById('ns-cta').value  = '';
         sel.value = '';
+        document.getElementById('ns-activo-tipo').value  = '';
+        document.getElementById('ns-activo-nombre').value = '';
+        document.getElementById('ns-activo-dam-id').value = '';
+        const _nsdu = document.getElementById('ns-activo-drive-url'); if (_nsdu) _nsdu.value='';
+        const _nsdp = document.getElementById('ns-act-drive-preview'); if (_nsdp) _nsdp.style.display='none';
+        _nsActivoPill('none');
+        _nsDamFiltrar('todos');
         document.getElementById('modal-nueva-story').dataset.editId = '';
         document.getElementById('nueva-story-titulo').innerText = 'Nueva Story Independiente';
         document.getElementById('modal-nueva-story').classList.add('activo');
@@ -6630,11 +6882,33 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('ns-post').value = s.post_vinculado || '';
         document.getElementById('modal-nueva-story').dataset.editId = id;
         document.getElementById('nueva-story-titulo').innerText = 'Editar Story';
+        const _eAct = s.activo || {};
+        if (_eAct.tipo === 'drive') {
+            const _du = document.getElementById('ns-activo-drive-url');
+            if (_du) _du.value = _eAct.ref || '';
+            _nsActDrivePreview();
+            _nsActivoPill('drive');
+        } else if (_eAct.tipo === 'dam') {
+            const _ds = document.getElementById('ns-activo-dam-sel');
+            const _di = document.getElementById('ns-activo-dam-id');
+            if (_ds) _ds.value = _eAct.ref || '';
+            if (_di) _di.value = _eAct.ref || '';
+            _nsActDamChange();
+            _nsActivoPill('dam');
+        }
     }
 
     function guardarNuevaStory() {
         const modal  = document.getElementById('modal-nueva-story');
         const editId = modal.dataset.editId;
+        const _actTipo = document.getElementById('ns-activo-tipo').value;
+        const _actNom  = document.getElementById('ns-activo-nombre').value.trim();
+        const _actRef  = _actTipo==='drive'
+            ? (document.getElementById('ns-activo-drive-url').value.trim())
+            : (document.getElementById('ns-activo-dam-id').value.trim());
+        const _activo  = (_actTipo && _actRef)
+            ? { tipo: _actTipo, ref: _actRef, nombre: _actNom || (_actTipo==='drive' ? _driveFileName(_actRef) : '') }
+            : null;
         const story  = {
             id: editId || 'st'+Date.now(),
             dia:  document.getElementById('ns-dia').value,
@@ -6642,7 +6916,8 @@ document.addEventListener('DOMContentLoaded', function() {
             tipo: document.getElementById('ns-tipo').value,
             copy: document.getElementById('ns-copy').value.trim(),
             cta:  document.getElementById('ns-cta').value.trim(),
-            post_vinculado: document.getElementById('ns-post').value
+            post_vinculado: document.getElementById('ns-post').value,
+            activo: _activo
         };
         const arr = DB.datos[SUC_ACTIVA].stories_ind;
         if (editId) {
@@ -7116,45 +7391,68 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ── Granular Permissions — Control de Accesos ────────────────────
+    // Estado por módulo-rol: 'off' | 'lectura' | 'editar'
     const _PERMISOS_DEFAULTS = {
-        dashboard:   { ver:{owner:1,lanka_team:1,direccion:1,coordinador:1,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} },
-        ejecutor:    { ver:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0}, importar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} },
-        calendario:  { ver:{owner:1,lanka_team:1,direccion:1,coordinador:1,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:1,equipo:0}, aprobar:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0} },
-        tareas:      { ver:{owner:1,lanka_team:1,direccion:1,coordinador:1,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:1,equipo:0}, ejecutar:{owner:1,lanka_team:1,direccion:0,coordinador:1,equipo:1} },
-        dam:         { ver:{owner:1,lanka_team:1,direccion:1,coordinador:1,equipo:1}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0}, aprobar:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, importar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:1} },
-        ads:         { ver:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} },
-        presupuesto: { ver:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} },
-        reporte:     { ver:{owner:1,lanka_team:1,direccion:1,coordinador:0,equipo:0}, editar:{owner:1,lanka_team:1,direccion:0,coordinador:0,equipo:0} }
+        dashboard:   { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'lectura', equipo:'off'     },
+        ejecutor:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     },
+        calendario:  { owner:'editar', lanka_team:'editar', direccion:'editar',   coordinador:'editar',  equipo:'off'     },
+        tareas:      { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'editar',  equipo:'lectura' },
+        dam:         { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'lectura', equipo:'lectura' },
+        ads:         { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     },
+        presupuesto: { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     },
+        reporte:     { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     },
+        mood:        { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     },
+        shooting:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'lectura', equipo:'lectura' },
+        briefing:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'lectura', equipo:'off'     },
+        stories:     { owner:'editar', lanka_team:'editar', direccion:'editar',   coordinador:'editar',  equipo:'off'     }
     };
-    const _AC_TIPO_COLOR = { ver:'#378ADD', editar:'#C4855A', aprobar:'#639922', ejecutar:'#BA7517', importar:'#7F77DD' };
+    const _AC_ESTADO_COLOR = { off:'var(--texto-secundario)', lectura:'#378ADD', editar:'#C4855A' };
     let _acRolActivo = 'owner';
 
     function _cargarPermisosSucRol(rolId) {
         const key = `permisos_${SUC_ACTIVA}_${rolId}`;
-        try { const s = JSON.parse(localStorage.getItem(key)); if (s && typeof s === 'object') return s; } catch(e) {}
+        try {
+            const s = JSON.parse(localStorage.getItem(key));
+            if (s && typeof s === 'object') {
+                // Migrar formato antiguo { modulo: { accion: bool } } → { modulo: string }
+                const needsMigration = Object.values(s).some(v => typeof v === 'object' && v !== null);
+                if (needsMigration) {
+                    const migrated = {};
+                    Object.entries(s).forEach(([mod, val]) => {
+                        if (typeof val === 'string') { migrated[mod] = val; }
+                        else if (typeof val === 'object' && val !== null) {
+                            migrated[mod] = val.editar ? 'editar' : val.ver ? 'lectura' : 'off';
+                        }
+                    });
+                    localStorage.setItem(key, JSON.stringify(migrated));
+                    return migrated;
+                }
+                return s;
+            }
+        } catch(e) {}
         const out = {};
-        Object.keys(_PERMISOS_DEFAULTS).forEach(mod => {
-            out[mod] = {};
-            Object.keys(_PERMISOS_DEFAULTS[mod]).forEach(accion => { out[mod][accion] = !!_PERMISOS_DEFAULTS[mod][accion][rolId]; });
-        });
+        Object.keys(_PERMISOS_DEFAULTS).forEach(mod => { out[mod] = _PERMISOS_DEFAULTS[mod][rolId] || 'off'; });
         return out;
     }
 
+    // 'editar' → cualquier acción = true
+    // 'lectura' → solo 'ver' = true
+    // 'off' → todo false
     function _getPermisos(modulo, accion) {
         const rolId = ROL_SIMULADO || USUARIO_ACTIVO?.rol_id || (ROL === 'agencia' ? 'lanka_team' : 'equipo');
         if (rolId === 'owner') return true;
         const p = _cargarPermisosSucRol(rolId);
-        return !!(p[modulo] && p[modulo][accion]);
+        const estado = p[modulo] || 'off';
+        if (estado === 'editar') return true;
+        if (estado === 'lectura') return accion === 'ver';
+        return false;
     }
 
-    function _setPermisoAccion(rolId, modulo, accion, valor) {
+    function _setPermisoModulo(rolId, modulo, estado) {  // estado: 'off'|'lectura'|'editar'
         if (rolId === 'owner') return;
         const key = `permisos_${SUC_ACTIVA}_${rolId}`;
         const p = _cargarPermisosSucRol(rolId);
-        if (!p[modulo]) p[modulo] = {};
-        p[modulo][accion] = valor;
-        if (valor && accion !== 'ver') p[modulo]['ver'] = true;
-        if (!valor && accion === 'ver') Object.keys(p[modulo]).forEach(a => { p[modulo][a] = false; });
+        p[modulo] = estado;
         localStorage.setItem(key, JSON.stringify(p));
         _syncNavPermisos(rolId);
         renderTabPermisos();
@@ -7162,11 +7460,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function _syncNavPermisos(rolId) {
         if (!DB.permisos) DB.permisos = {};
-        const map = { dashboard:'performance', calendario:'calendario', dam:'dam', ads:'ads', presupuesto:'presupuesto' };
+        const map = { dashboard:'performance', calendario:'calendario', dam:'dam', ads:'ads', presupuesto:'presupuesto', mood:'mood' };
         const p = _cargarPermisosSucRol(rolId);
         Object.entries(map).forEach(([nk, ok]) => {
             if (!DB.permisos[ok]) DB.permisos[ok] = {};
-            DB.permisos[ok][rolId] = !!(p[nk] && p[nk]['ver']);
+            DB.permisos[ok][rolId] = (p[nk] || 'off') !== 'off';
         });
         guardarBD();
         if (USUARIO_ACTIVO) aplicarPermisos(ROL_SIMULADO || USUARIO_ACTIVO.rol_id);
@@ -7176,35 +7474,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('tab-permisos'); if (!el) return;
         const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
         const _isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const _pColor = (DB.sucursales||[]).find(s=>s.id===SUC_ACTIVA)?.color || 'var(--color-primario)';
 
         const ROLES_AC = [
-            { id:'owner',       label:'Owner',           color:'#C4855A' },
-            { id:'lanka_team',  label:'Lanka Team',      color:'#E8A96A' },
-            { id:'direccion',   label:'Dirección',       color:'#4A90D9' },
-            { id:'coordinador', label:'Coordinador',     color:'#8B5CF6' },
-            { id:'equipo',      label:'Equipo Operativo',color:'#34A853' }
+            { id:'owner',       label:'Owner',            color:'#C4855A' },
+            { id:'lanka_team',  label:'Lanka Team',       color:'#E8A96A' },
+            { id:'direccion',   label:'Dirección',        color:'#4A90D9' },
+            { id:'coordinador', label:'Coordinador',      color:'#8B5CF6' },
+            { id:'equipo',      label:'Equipo Operativo', color:'#34A853' }
         ];
         const MODULOS_AC = [
-            { id:'dashboard',   label:'Dashboard',               icon:'fa-solid fa-gauge-high',
-              perms:[{id:'ver',label:'Ver',desc:'Acceso al módulo'},{id:'editar',label:'Editar',desc:'Modificar metas y textos cualitativos'}] },
-            { id:'ejecutor',    label:'Ejecutor de KPIs',        icon:'fa-solid fa-table-cells-large',
-              perms:[{id:'ver',label:'Ver',desc:'Ver datos del Ejecutor'},{id:'editar',label:'Editar',desc:'Agregar y modificar entradas'},{id:'importar',label:'Importar',desc:'Subir Excel de ventas'}] },
-            { id:'calendario',  label:'Calendario de Contenido', icon:'fa-solid fa-table-columns',
-              perms:[{id:'ver',label:'Ver',desc:'Ver todas las tarjetas'},{id:'editar',label:'Editar',desc:'Crear, mover y eliminar tarjetas'},{id:'aprobar',label:'Aprobar',desc:'Aprobar o rechazar contenido'}] },
-            { id:'tareas',      label:'Tareas',                  icon:'fa-solid fa-list-check',
-              perms:[{id:'ver',label:'Ver',desc:'Ver tareas del proyecto'},{id:'editar',label:'Editar',desc:'Crear y asignar tareas'},{id:'ejecutar',label:'Ejecutar',desc:'Hacer check en tareas propias'}] },
-            { id:'dam',         label:'Gestión de Activos DAM',  icon:'fa-solid fa-photo-film',
-              perms:[{id:'ver',label:'Ver',desc:'Ver archivos del proyecto'},{id:'editar',label:'Editar',desc:'Organizar y eliminar archivos'},{id:'aprobar',label:'Aprobar',desc:'Aprobar o pedir cambios'},{id:'importar',label:'Importar',desc:'Cargar fotos y videos'}] },
-            { id:'ads',         label:'Ad Performance',          icon:'fa-solid fa-chart-bar',
-              perms:[{id:'ver',label:'Ver',desc:'Ver métricas de campañas'},{id:'editar',label:'Editar',desc:'Agregar y modificar campañas'}] },
-            { id:'presupuesto', label:'Presupuesto',              icon:'fa-solid fa-dollar-sign',
-              perms:[{id:'ver',label:'Ver',desc:'Ver inversión del proyecto'},{id:'editar',label:'Editar',desc:'Registrar inversiones'}] },
-            { id:'reporte',     label:'Reporte Mensual',          icon:'fa-solid fa-file-lines',
-              perms:[{id:'ver',label:'Ver',desc:'Ver reporte generado'},{id:'editar',label:'Editar',desc:'Generar y exportar reportes'}] }
+            { id:'dashboard',   label:'Dashboard',               icon:'fa-solid fa-gauge-high',        desc:'Métricas y KPIs del proyecto' },
+            { id:'ejecutor',    label:'Ejecutor de KPIs',        icon:'fa-solid fa-table-cells-large',  desc:'Registro semanal/mensual de KPIs' },
+            { id:'calendario',  label:'Calendario de Contenido', icon:'fa-solid fa-table-columns',      desc:'Planificación editorial y kanban' },
+            { id:'tareas',      label:'Tareas',                  icon:'fa-solid fa-list-check',         desc:'Tareas asignadas al equipo' },
+            { id:'dam',         label:'Gestión de Activos DAM',  icon:'fa-solid fa-photo-film',         desc:'Archivos, fotos y videos del proyecto' },
+            { id:'ads',         label:'Ad Performance',          icon:'fa-solid fa-chart-bar',          desc:'Campañas y métricas de pauta' },
+            { id:'mood',        label:'Mood & Ejes',             icon:'fa-solid fa-calendar-week',      desc:'Matriz estacional mensual' },
+            { id:'shooting',    label:'Shooting',                icon:'fa-solid fa-camera',             desc:'Producción de contenido' },
+            { id:'briefing',    label:'Briefing',                icon:'fa-solid fa-book-open',          desc:'Reglas de marca y tono' },
+            { id:'presupuesto', label:'Presupuesto',             icon:'fa-solid fa-dollar-sign',        desc:'Inversión y facturas del proyecto' },
+            { id:'stories',     label:'Stories Independientes',  icon:'fa-solid fa-film',               desc:'Stories planificadas fuera del feed' },
+            { id:'reporte',     label:'Reporte Mensual',         icon:'fa-solid fa-file-lines',         desc:'Reporte ejecutivo exportable' }
         ];
 
         const rolAC = ROLES_AC.find(r => r.id === _acRolActivo) || ROLES_AC[0];
-        const perms = _acRolActivo === 'owner' ? null : _cargarPermisosSucRol(_acRolActivo);
+        const perms = _cargarPermisosSucRol(_acRolActivo);
 
         const chips = ROLES_AC.map(r => {
             const activo = r.id === _acRolActivo;
@@ -7216,48 +7511,55 @@ document.addEventListener('DOMContentLoaded', function() {
                        transition:var(--transicion);white-space:nowrap;">${r.label}</button>`;
         }).join('');
 
-        const legend = Object.entries(_AC_TIPO_COLOR).map(([t,c]) =>
-            `<div style="display:flex;align-items:center;gap:5px;">
-                <div style="width:8px;height:8px;border-radius:50%;background:${c};flex-shrink:0;"></div>
-                <span style="font-size:11px;font-weight:600;color:var(--texto-secundario);text-transform:capitalize;">${t}</span>
-             </div>`).join('');
+        const ESTADOS = ['off','lectura','editar'];
+        const ESTADO_LABELS = { off:'Off', lectura:'Lectura', editar:'Editar' };
+        const ESTADO_DESC   = { off:'Sin acceso al módulo', lectura:'Solo puede ver, sin modificar', editar:'Acceso completo' };
+        const ESTADO_COLORS = { off:'var(--texto-secundario)', lectura:'#378ADD', editar:_pColor };
 
-        const cards = MODULOS_AC.map(m => {
-            const rows = m.perms.map((p, pi) => {
-                const color = _AC_TIPO_COLOR[p.id] || '#888';
-                const isOwnerRole = _acRolActivo === 'owner';
-                const checked = isOwnerRole ? true : !!(perms && perms[m.id] && perms[m.id][p.id]);
-                const isLast = pi === m.perms.length - 1;
-                const right = isOwnerRole
-                    ? `<span style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px;background:${color}18;color:${color};border:1px solid ${color}40;white-space:nowrap;flex-shrink:0;">Siempre</span>`
-                    : `<label class="toggle" style="flex-shrink:0;"><input type="checkbox" ${checked?'checked':''} ${isOwner?'':'disabled'} onchange="_setPermisoAccion('${_acRolActivo}','${m.id}','${p.id}',this.checked)"><span class="toggle-slider"></span></label>`;
-                return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;${isLast?'':'border-bottom:1px solid var(--color-borde);'}">
-                    <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;"></div>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:13px;font-weight:600;color:var(--texto-principal);">${p.label}</div>
-                        <div style="font-size:11px;color:var(--texto-secundario);margin-top:1px;">${p.desc}</div>
-                    </div>
-                    ${right}
-                </div>`;
-            }).join('');
+        const rows = MODULOS_AC.map(m => {
+            const isOwnerRole = _acRolActivo === 'owner';
+            const estadoActual = isOwnerRole ? 'editar' : (perms[m.id] || 'off');
 
-            return `<div style="background:var(--color-tarjeta);border-radius:16px;border:1px solid var(--color-borde);box-shadow:var(--sombra-suave);overflow:hidden;margin-bottom:14px;">
-                <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;background:${_isDark?'rgba(255,255,255,.05)':'rgba(0,0,0,.03)'};border-bottom:1px solid var(--color-borde);">
-                    <i class="${m.icon}" style="font-size:14px;color:var(--color-primario);width:18px;text-align:center;flex-shrink:0;"></i>
-                    <span style="font-weight:800;font-size:13px;font-family:var(--font-display);letter-spacing:.01em;">${m.label}</span>
+            const pills = isOwnerRole
+                ? `<span style="font-size:10px;font-weight:700;padding:4px 14px;border-radius:100px;background:${_pColor}18;color:${_pColor};border:1px solid ${_pColor}40;white-space:nowrap;">Siempre</span>`
+                : ESTADOS.map(e => {
+                    const active = estadoActual === e;
+                    const col = ESTADO_COLORS[e];
+                    return `<button onclick="${isOwner?`_setPermisoModulo('${_acRolActivo}','${m.id}','${e}')`:'void 0'}"
+                        title="${ESTADO_DESC[e]}"
+                        style="padding:5px 13px;border-radius:100px;font-size:11px;font-weight:700;cursor:${isOwner?'pointer':'default'};
+                               border:1.5px solid ${active ? col : 'var(--color-borde-fuerte)'};
+                               background:${active ? col : 'transparent'};
+                               color:${active ? '#fff' : 'var(--texto-secundario)'};
+                               transition:var(--transicion);white-space:nowrap;opacity:${isOwner?'1':'.6'};">
+                        ${ESTADO_LABELS[e]}</button>`;
+                }).join('');
+
+            return `<div style="display:flex;align-items:center;gap:14px;padding:12px 20px;border-bottom:1px solid var(--color-borde);">
+                <i class="${m.icon}" style="font-size:13px;color:${isOwnerRole?_pColor:ESTADO_COLORS[estadoActual]};width:16px;text-align:center;flex-shrink:0;"></i>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:13px;font-weight:600;color:var(--texto-principal);">${m.label}</div>
+                    <div style="font-size:11px;color:var(--texto-secundario);margin-top:1px;">${m.desc}</div>
                 </div>
-                <div style="padding:4px 20px 8px;">${rows}</div>
+                <div style="display:flex;gap:4px;flex-shrink:0;">${pills}</div>
             </div>`;
         }).join('');
 
         el.innerHTML = `
             <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">${chips}</div>
-            <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:center;padding:11px 16px;background:${_isDark?'rgba(255,255,255,.04)':'rgba(0,0,0,.02)'};border-radius:10px;border:1px solid var(--color-borde);margin-bottom:22px;">
-                <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);">Tipos de permiso</span>
-                ${legend}
+            <div style="display:flex;flex-wrap:wrap;gap:16px;align-items:center;padding:11px 16px;background:${_isDark?'rgba(20,18,16,0.65)':'rgba(0,0,0,.02)'};border-radius:10px;border:1px solid var(--color-borde);margin-bottom:20px;">
+                <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);">Estados:</span>
+                ${Object.entries(ESTADO_LABELS).map(([e,l]) => `<div style="display:flex;align-items:center;gap:5px;"><div style="width:8px;height:8px;border-radius:50%;background:${ESTADO_COLORS[e]};flex-shrink:0;"></div><span style="font-size:11px;font-weight:600;color:var(--texto-secundario);">${l} — ${ESTADO_DESC[e]}</span></div>`).join('')}
             </div>
             ${!isOwner ? `<div style="padding:10px 14px;background:rgba(196,133,90,.08);border:1px solid rgba(196,133,90,.2);border-radius:8px;font-size:12px;color:var(--color-primario);font-weight:600;margin-bottom:20px;"><i class="fa-solid fa-lock" style="margin-right:6px;"></i>Solo el Owner puede modificar permisos.</div>` : ''}
-            <div>${cards}</div>`;
+            <div style="background:var(--color-tarjeta);border-radius:16px;border:1px solid var(--color-borde);box-shadow:var(--sombra-suave);overflow:hidden;">
+                <div style="display:flex;align-items:center;gap:10px;padding:13px 20px;background:${_isDark?'rgba(20,18,16,0.65)':'rgba(0,0,0,.03)'};border-bottom:1px solid var(--color-borde);">
+                    <i class="${rolAC.id==='owner'?'fa-solid fa-crown':'fa-solid fa-user-shield'}" style="font-size:14px;color:${rolAC.color};"></i>
+                    <span style="font-weight:800;font-size:13px;font-family:var(--font-display);">${rolAC.label}</span>
+                    ${rolAC.id==='owner' ? '<span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;background:#C4855A18;color:#C4855A;border:1px solid #C4855A40;margin-left:4px;">Acceso total — no editable</span>' : ''}
+                </div>
+                ${rows}
+            </div>`;
     }
 
     function renderTabUbicaciones() {
