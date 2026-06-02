@@ -1080,6 +1080,12 @@
                 </div>
                 <button class="btn btn-fantasma btn-xs req-agencia" onclick="abrirReporteEjecutivo()"><i class="fa-solid fa-file-csv"></i> Exportar</button>
                 <button class="btn-ia req-agencia" onclick="abrirModalIA()"><i class="fa-solid fa-wand-magic-sparkles"></i> LANKA IA</button>
+                <div id="notif-badge-wrap" style="display:none;position:relative;">
+                    <button onclick="_toggleNotifPanel()" title="Notificaciones" style="background:none;border:none;cursor:pointer;position:relative;padding:6px 8px;color:var(--texto-secundario);font-size:17px;line-height:1;border-radius:8px;transition:var(--transicion);" onmouseover="this.style.color='var(--color-primario)'" onmouseout="this.style.color='var(--texto-secundario)'">
+                        <i class="fa-solid fa-bell"></i>
+                        <span id="notif-count-badge" style="display:none;position:absolute;top:-1px;right:-1px;background:#EA4335;color:#fff;font-size:9px;font-weight:800;min-width:15px;height:15px;border-radius:100px;line-height:15px;text-align:center;padding:0 3px;"></span>
+                    </button>
+                </div>
                 <div id="ver-como-wrap" class="oculto" style="display:flex; align-items:center; gap:6px;">
                     <select id="ver-como-select" class="select-moneda" style="font-size:11px; padding:6px 24px 6px 10px;" onchange="if(this.value) simularVista(this.value); else salirVistaSimulada()">
                         <option value="">👁 Ver como...</option>
@@ -1375,6 +1381,8 @@
                 <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
                     <div><h1>Agenda de Shooting</h1><p>Días de producción, brief visual y lista de contenidos a capturar.</p></div>
                     <div style="display:flex; gap:10px;">
+                        <button id="btn-shooting-filtro" class="btn btn-fantasma" onclick="_toggleShootingFiltro()"><i class="fa-solid fa-list"></i> Ver todos</button>
+                        <button id="btn-importar-shooting" class="btn btn-fantasma" style="display:none;" onclick="_abrirImportShooting()"><i class="fa-solid fa-file-import"></i> Importar shooting</button>
                         <button id="btn-generar-shooting" class="btn btn-fantasma req-agencia" onclick="generarShootingDesdeParrilla()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar desde Parrilla</button>
                         <button id="btn-nuevo-shooting" class="btn btn-primario req-agencia" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>
                     </div>
@@ -1384,9 +1392,10 @@
 
             <section id="vista-dam" class="seccion-app oculto">
                 <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><h1>Gestión de Activos</h1><p>Aprobación de activos creativos con control de versiones.</p></div>
-                    <button class="btn btn-primario req-agencia" onclick="agregarElemento('dam')"><i class="fa-solid fa-upload"></i> Nuevo Asset</button>
+                    <div><h1>Gestión de Activos</h1><p>Aprobación y control de versiones · integrado con Google Drive.</p></div>
+                    <button class="btn btn-primario req-agencia" onclick="_abrirModalNuevoActivo()"><i class="fa-solid fa-upload"></i> Agregar activo</button>
                 </div>
+                <div id="dam-filtros" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;"></div>
                 <div class="cuadricula-dam" id="contenedor-dam"></div>
             </section>
 
@@ -1628,6 +1637,51 @@
     </div>
 </div>
 
+<!-- Modal: Agregar activo DAM -->
+<div class="fondo-modal" id="modal-nuevo-activo">
+    <div class="modal-caja" style="max-width:560px;">
+        <div class="modal-header">
+            <h3 id="dam-modal-titulo">Agregar Activo</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:24px;display:flex;flex-direction:column;gap:13px;">
+            <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Nombre</label>
+                <input id="dam-nombre" class="textarea-apple" style="min-height:auto;padding:10px 14px;" placeholder="Head Spa · Reel · Jun2026"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Categoría</label>
+                    <select id="dam-categoria" class="textarea-apple" style="min-height:auto;padding:10px 14px;" onchange="_damUpdSubcat()"></select></div>
+                <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Subcategoría</label>
+                    <select id="dam-subcategoria" class="textarea-apple" style="min-height:auto;padding:10px 14px;"></select></div>
+            </div>
+            <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Tipo</label>
+                <select id="dam-tipo" class="textarea-apple" style="min-height:auto;padding:10px 14px;">
+                    <option value="video">Video</option><option value="foto">Foto</option><option value="audio">Audio</option><option value="documento">Documento</option>
+                </select></div>
+            <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Link de Google Drive</label>
+                <input id="dam-drive-url" class="textarea-apple" style="min-height:auto;padding:10px 14px;" placeholder="https://drive.google.com/file/d/..." oninput="_damAutoExtractId(this)">
+                <div id="dam-drive-id-preview" style="font-size:11px;color:var(--color-primario);margin-top:4px;font-weight:600;"></div></div>
+            <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Vincular a post</label>
+                <select id="dam-post" class="textarea-apple" style="min-height:auto;padding:10px 14px;"><option value="">Sin vinculación</option></select></div>
+            <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Vincular a story</label>
+                <select id="dam-story" class="textarea-apple" style="min-height:auto;padding:10px 14px;"><option value="">Sin vinculación</option></select></div>
+            <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Notas de edición</label>
+                <textarea id="dam-notas" class="textarea-apple" rows="2" placeholder="Instrucciones o contexto..."></textarea></div>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:flex-end;gap:8px;border-radius:0 0 20px 20px;">
+            <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+            <button class="btn btn-primario" onclick="_guardarNuevoActivo()"><i class="fa-solid fa-plus"></i> Agregar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Vista previa Drive -->
+<div class="fondo-modal" id="modal-dam-preview">
+    <div style="background:#111;border-radius:20px;max-width:940px;width:92vw;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;position:relative;">
+        <button onclick="cerrarModales()" style="position:absolute;top:12px;right:14px;z-index:2;background:rgba(255,255,255,.12);border:none;cursor:pointer;color:#fff;font-size:18px;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;">×</button>
+        <div id="dam-preview-content" style="flex:1;overflow:auto;min-height:500px;"></div>
+    </div>
+</div>
+
 <div class="fondo-modal" id="modal-feedback">
     <div class="modal-caja">
         <div class="modal-header"><h3>Solicitar Cambios en DAM</h3><button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button></div>
@@ -1742,6 +1796,25 @@
         <div style="padding:16px 24px; border-top:1px solid var(--color-borde); background:#FAFAFA; display:flex; justify-content:flex-end; gap:8px; border-radius:0 0 20px 20px;">
             <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
             <button class="btn btn-primario" onclick="ejecutarImportStoriesJSON()"><i class="fa-solid fa-file-import"></i> Importar</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Importar Shooting desde JSON -->
+<div class="fondo-modal" id="modal-importar-shooting">
+    <div class="modal-caja" style="max-width:640px;">
+        <div class="modal-header">
+            <h3>Importar Shooting desde JSON</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:24px;display:flex;flex-direction:column;gap:12px;">
+            <p style="font-size:13px;color:var(--texto-secundario);line-height:1.6;margin:0;">Pega el JSON de la sesión de shooting. Si ya existe una sesión con el mismo título y fecha, se pedirá confirmación.</p>
+            <textarea id="shooting-import-json" class="textarea-apple" rows="12" style="font-family:monospace;font-size:11px;line-height:1.5;"
+                placeholder='{"shooting":{"titulo":"Shooting Head Spa · Junio 2026","fecha":"2026-06-15","hora_inicio":"10:00","hora_fin":"14:00","ubicacion":"Cabina 2 · Aitama","servicio":"Head Spa","direccion_drive":"","tomas":[{"id":"T01","descripcion":"Toma frontal cliente en cabina","formato":"Reel","duracion":"15 seg","post_vinculado":"","requiere_guion":true,"guion":"Texto del guión...","asignado_a":"sergio26","completado":false}],"notas_generales":"","estado":"programado"}}'></textarea>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:flex-end;gap:8px;border-radius:0 0 20px 20px;">
+            <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+            <button class="btn btn-primario" onclick="_importarShootingJSON()"><i class="fa-solid fa-file-import"></i> Importar</button>
         </div>
     </div>
 </div>
@@ -2144,6 +2217,46 @@ document.addEventListener('DOMContentLoaded', function() {
             if (_s4migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
+        // Sprint 6 migration — campo real en montos_mes
+        if (DB.datos) {
+            let _s6migrated = false;
+            Object.keys(DB.datos).forEach(sid => {
+                (DB.datos[sid].presupuesto || []).forEach(p => {
+                    (p.montos_mes || []).forEach(m => {
+                        if (m.real === undefined) { m.real = 0; _s6migrated = true; }
+                    });
+                });
+            });
+            if (_s6migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
+        // Sprint 7 migration — DAM campos extendidos + normalización estados/tipos
+        if (DB.datos) {
+            let _s7m = false;
+            Object.keys(DB.datos).forEach(sid => {
+                (DB.datos[sid].dam || []).forEach(a => {
+                    if (a.drive_url === undefined) { a.drive_url = a.url||''; _s7m = true; }
+                    if (a.drive_id === undefined) { a.drive_id = _extractDriveId(a.drive_url); _s7m = true; }
+                    if (a.categoria === undefined) { a.categoria = 'General'; _s7m = true; }
+                    if (a.subcategoria === undefined) { a.subcategoria = ''; _s7m = true; }
+                    if (a.post_vinculado === undefined) { a.post_vinculado = ''; _s7m = true; }
+                    if (a.story_vinculada === undefined) { a.story_vinculada = ''; _s7m = true; }
+                    if (a.shooting_id === undefined) { a.shooting_id = ''; _s7m = true; }
+                    if (a.subido_por === undefined) { a.subido_por = ''; _s7m = true; }
+                    if (a.notas_edicion === undefined) { a.notas_edicion = ''; _s7m = true; }
+                    // Normalizar tipo
+                    const tipoMap = {'fa-film':'video','fa-video':'video','fa-image':'foto','fa-music':'audio','fa-file-pdf':'documento'};
+                    if (tipoMap[a.tipo]) { a.tipo = tipoMap[a.tipo]; _s7m = true; }
+                    else if (!['video','foto','audio','documento'].includes(a.tipo)) { a.tipo='foto'; _s7m=true; }
+                    // Normalizar estado
+                    if (a.estado==='Aprobado') { a.estado='aprobado'; _s7m=true; }
+                    else if (a.estado==='Cambios solicitados') { a.estado='rechazado'; _s7m=true; }
+                    else if (a.estado==='En revisión') { a.estado='en_revision'; _s7m=true; }
+                });
+            });
+            if (_s7m) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
         // Sprint 5 migration — briefing expanded structure
         if (DB.datos) {
             let _s5migrated = false;
@@ -2258,6 +2371,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (target === 'vista-cal-editorial') renderCalEditorial();
                 if (target === 'vista-stories') renderStories();
                 if (target === 'vista-target') renderEstrategia();
+                if (target === 'vista-shooting') renderShootingGrid();
+                if (target === 'vista-dam') { _damFiltro='all'; renderDAM(); }
             }); 
         });
     });
@@ -2441,7 +2556,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'insights') n = { f: new Date().toISOString().split('T')[0], c: "Experimento", r: "Resultado...", a: "Aprendizaje..." };
         if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"" };
         if(lista === 'dam') n = { id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, url:"", historial:[{autor:ROL, fecha:new Date().toLocaleDateString(), accion:"Creado", nota:"V1"}] };
-        if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Pauta digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0})) };
+        if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Pauta digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0, real: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
         if(lista === 'proveedores') { const _pa=_getProveedores(SUC_ACTIVA); _pa.push({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:""}); _saveProveedores(SUC_ACTIVA,_pa); renderAdministracion(); return; }
@@ -2460,6 +2575,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderPresupuesto(); renderFacturas(); renderBriefing(); renderMood(); 
         renderEstrategia(); renderAdministracion();
         _syncKanbanToAds(false); renderAdsTable(); renderOfflineTable(); renderShootingGrid(); renderStories(); renderMisTareas();
+        _renderNotifBadge();
     }
 
     function renderDashboard() {
@@ -3649,6 +3765,90 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('body-insights').innerHTML = d.insights.map((ins, i) => `<tr><td><input type="date" class="input-celda" value="${ins.f}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].f=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:700;" value="${ins.c}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].c=this.value;guardarBD()"></td><td><input class="input-celda" value="${ins.r}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].r=this.value;guardarBD()"></td><td><textarea class="input-celda" style="resize:vertical; min-height:40px;" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].a=this.value;guardarBD()">${ins.a}</textarea></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('insights',${i})"></i></td></tr>`).join('');
     }
 
+    // ── DAM ↔ Kanban / Stories helpers ──────────────────────────────
+    function _damBadgeKanban(postId) {
+        const activos = (DB.datos[SUC_ACTIVA].dam||[]).filter(a=>a.post_vinculado===postId);
+        if (!activos.length) return '';
+        const estados = activos.map(a=>a.estado);
+        if (estados.some(e=>e==='rechazado'||e==='Cambios solicitados'))
+            return `<span title="Activo rechazado" style="font-size:13px;line-height:1;">🔴</span>`;
+        if (estados.some(e=>e==='en_revision'||e==='En revisión'))
+            return `<span title="En revisión" style="font-size:13px;line-height:1;">⏳</span>`;
+        if (estados.every(e=>e==='aprobado'||e==='Aprobado'))
+            return `<span title="Todos aprobados" style="font-size:13px;line-height:1;">✅</span>`;
+        return `<span title="Tiene activos" style="font-size:13px;line-height:1;">📎</span>`;
+    }
+
+    function _renderActivosKanban(postId) {
+        const dam = DB.datos[SUC_ACTIVA].dam || [];
+        const activos = dam.filter(a => a.post_vinculado === postId);
+        const isOT = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+        const vincBtn = isOT ? `<button class="btn btn-xs btn-fantasma" style="font-size:10px;" onclick="event.stopPropagation();_abrirVincularActivo('post','${postId}')"><i class="fa-solid fa-plus" style="font-size:9px;"></i></button>` : '';
+        if (!activos.length) return `<span style="font-size:11px;color:var(--texto-secundario);">Sin activos</span> ${vincBtn}`;
+        const ICON = {video:'fa-film',foto:'fa-image',audio:'fa-music',documento:'fa-file-pdf'};
+        const chips = activos.map(a => {
+            const icon = ICON[a.tipo] || 'fa-file';
+            const driveId = a.drive_id || _extractDriveId(a.drive_url||a.url||'');
+            const fn = driveId ? `_abrirDamPreview('${a.id}')` : `window.open('${a.drive_url||a.url||'#'}','_blank','width=900,height=700')`;
+            return `<span onclick="event.stopPropagation();${fn}" style="display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:100px;font-size:11px;font-weight:600;cursor:pointer;background:rgba(196,133,90,.08);color:var(--color-primario);border:1px solid rgba(196,133,90,.2);">
+                <i class="fa-solid ${icon}" style="font-size:9px;"></i>${a.nombre.substring(0,22)}${a.nombre.length>22?'…':''}
+            </span>`;
+        }).join('');
+        return `<div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;">${chips}${vincBtn}</div>`;
+    }
+
+    function _renderActivosStory(storyId) {
+        const dam = DB.datos[SUC_ACTIVA].dam || [];
+        const activos = dam.filter(a => a.story_vinculada === storyId);
+        const isOT = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+        const vincBtn = isOT ? ` <button class="btn btn-xs btn-fantasma" style="font-size:10px;padding:1px 6px;" onclick="_abrirVincularActivo('story','${storyId}')">Vincular</button>` : '';
+        if (!activos.length) return `Sin activo${vincBtn}`;
+        const ICON = {video:'fa-film',foto:'fa-image',audio:'fa-music',documento:'fa-file-pdf'};
+        return activos.map(a => {
+            const icon = ICON[a.tipo] || 'fa-file';
+            const driveId = a.drive_id || _extractDriveId(a.drive_url||a.url||'');
+            const fn = driveId ? `_abrirDamPreview('${a.id}')` : '';
+            return `<span ${fn?`onclick="${fn}" style="cursor:pointer;`:'style="'}display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:100px;font-size:11px;font-weight:600;background:rgba(196,133,90,.08);color:var(--color-primario);border:1px solid rgba(196,133,90,.2);">
+                <i class="fa-solid ${icon}" style="font-size:9px;"></i>${a.nombre.substring(0,24)}${a.nombre.length>24?'…':''}
+            </span>`;
+        }).join(' ') + vincBtn;
+    }
+
+    function _abrirVincularActivo(tipo, entityId) {
+        const old = document.getElementById('dam-vincular-panel');
+        if (old) old.remove();
+        const dam = DB.datos[SUC_ACTIVA].dam || [];
+        const disponibles = tipo === 'story'
+            ? dam.filter(a => a.categoria==='Historias' || !a.story_vinculada)
+            : dam.filter(a => !a.post_vinculado);
+        if (!disponibles.length) { alert('No hay activos disponibles en el DAM para vincular.'); return; }
+        const panel = document.createElement('div');
+        panel.id = 'dam-vincular-panel';
+        panel.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9500;background:var(--color-tarjeta,#fff);border:1px solid var(--color-borde);border-radius:16px;padding:20px;min-width:300px;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.25);';
+        panel.innerHTML = `<div style="font-weight:800;font-size:14px;margin-bottom:12px;font-family:var(--font-display);">Vincular activo</div>
+            <select id="dam-vincular-sel" style="width:100%;border:1px solid var(--color-borde);border-radius:8px;padding:8px 10px;font-size:13px;margin-bottom:12px;box-sizing:border-box;">
+                <option value="">Selecciona un activo...</option>
+                ${disponibles.map(a=>`<option value="${a.id}">${a.nombre} · ${a.categoria}</option>`).join('')}
+            </select>
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-primario" onclick="_confirmarVincularActivo('${tipo}','${entityId}')">Vincular</button>
+                <button class="btn btn-fantasma" onclick="document.getElementById('dam-vincular-panel').remove()">Cancelar</button>
+            </div>`;
+        document.body.appendChild(panel);
+    }
+
+    function _confirmarVincularActivo(tipo, entityId) {
+        const activoId = document.getElementById('dam-vincular-sel')?.value;
+        if (!activoId) { alert('Selecciona un activo.'); return; }
+        const activo = (DB.datos[SUC_ACTIVA].dam||[]).find(a=>a.id===activoId);
+        if (!activo) return;
+        if (tipo==='post') activo.post_vinculado = entityId;
+        else activo.story_vinculada = entityId;
+        guardarBD();
+        document.getElementById('dam-vincular-panel').remove();
+        if (tipo==='post') renderOrquestacion(); else renderStories();
+    }
+
     function renderOrquestacion() {
         const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
         let kHTML = {'Ideas':'','Producción':'','Revisión':'','Programado':''};
@@ -3668,26 +3868,165 @@ document.addEventListener('DOMContentLoaded', function() {
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
             let t_val = t.target_id || "";
             let selTarget = ROL==='agencia' ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
-            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:16px;">${selEst} <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
+            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:10px;">${selEst} ${_damBadgeKanban(t.id)}<i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div><div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--color-borde);"><h4 style="font-size:11px;color:var(--texto-secundario);margin-bottom:8px;text-transform:uppercase;font-weight:700;letter-spacing:.06em;"><i class="fa-solid fa-photo-film" style="margin-right:4px;opacity:.7;"></i>Activos vinculados</h4>${_renderActivosKanban(t.id)}</div>${ROL==='agencia' ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
         });
         ['Ideas','Producción','Revisión','Programado'].forEach(e => { document.getElementById('k-'+e).innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
         document.querySelectorAll('.req-agencia').forEach(el => el.style.display = ROL === 'cliente' ? 'none' : '');
     }
 
+    // ── DAM: constantes de categorías ────────────────────────────────
+    const _DAM_CATS_WELLNESS = {
+        'Recursos Editados': ['Head Spa','Faciales','Masajes','Body Reset','Productos'],
+        'Historias':         [],
+        'Recursos en Bruto': [],
+        'Entrega Sergio':    []
+    };
+    let _damFiltro = 'all';
+
+    function _getDamCategorias() {
+        const tipo = getTipoProyecto(SUC_ACTIVA);
+        if (tipo === 'wellness') return _DAM_CATS_WELLNESS;
+        const srvs = _getServicios(SUC_ACTIVA);
+        const cats = {};
+        (srvs.length ? srvs : ['General']).forEach(s => { cats[s] = []; });
+        return cats;
+    }
+    function _extractDriveId(url) {
+        if (!url) return '';
+        const m = url.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) ||
+                  url.match(/[?&]id=([a-zA-Z0-9_-]+)/) ||
+                  url.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+        return m ? m[1] : '';
+    }
+    function _damTipoIcon(tipo) {
+        const M = { video:'fa-film', foto:'fa-image', audio:'fa-music', documento:'fa-file-pdf' };
+        if (tipo && tipo.startsWith('fa-')) return tipo;
+        return M[tipo] || 'fa-file';
+    }
+    function _damEstadoInfo(estado) {
+        const M = {
+            pendiente_edicion: { cls:'estado-revision', lbl:'Pendiente edición' },
+            en_revision:       { cls:'estado-revision', lbl:'En revisión' },
+            aprobado:          { cls:'estado-aprobado', lbl:'Aprobado' },
+            rechazado:         { cls:'estado-cambios',  lbl:'Rechazado' },
+            'En revisión':     { cls:'estado-revision', lbl:'En revisión' },
+            'Aprobado':        { cls:'estado-aprobado', lbl:'Aprobado' },
+            'Cambios solicitados': { cls:'estado-cambios', lbl:'Rechazado' },
+        };
+        return M[estado] || { cls:'estado-revision', lbl: estado||'Sin estado' };
+    }
+    function _damPuedeAprobar() {
+        if (!USUARIO_ACTIVO) return ROL === 'agencia';
+        return ['owner','lanka_team','direccion'].includes(USUARIO_ACTIVO.rol_id) && !ROL_SIMULADO;
+    }
+    function _copiarLinkActivo(url) {
+        if (navigator.clipboard?.writeText) navigator.clipboard.writeText(url).then(()=>_showToast('Link copiado'));
+        else { _legacyCopy(url); _showToast('Link copiado'); }
+    }
+
     function renderDAM() {
-        const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly disabled' : '';
-        document.getElementById('contenedor-dam').innerHTML = d.dam.map((a, i) => {
-            let claseEst = a.estado === 'Aprobado' ? 'estado-aprobado' : (a.estado === 'Cambios solicitados' ? 'estado-cambios' : 'estado-revision');
-            let uiBoton = ''; let btnVerArchivo = a.url ? `<a href="${a.url}" target="_blank" class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px; border-color:var(--color-primario); color:var(--color-primario); text-align:center; text-decoration:none;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver</a>` : '';
-            if (ROL === 'cliente' && a.estado === 'En revisión') {
-                uiBoton = `${btnVerArchivo}<button class="btn btn-primario" style="flex:1; padding:10px; font-size:12px;" onclick="aprobarActivo('${a.id}')">Aprobar</button><button class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px; border-color:rgba(234,67,53,0.3); color:var(--color-peligro);" onclick="abrirModalFeedback('${a.id}')">Rechazar</button>`;
-            } else if (ROL === 'agencia' && a.estado === 'Cambios solicitados') {
-                uiBoton = `${btnVerArchivo}<button class="btn btn-primario" style="flex:1; padding:10px; font-size:12px;" onclick="subirV('${a.id}')">Subir V${a.version + 1}</button>`;
-            } else { uiBoton = `${btnVerArchivo}<button class="btn btn-fantasma" style="flex:1; padding:10px; font-size:12px;" onclick="verHistorial('${a.id}')">Historial</button>`; }
-            let inputUrl = ROL === 'agencia' ? `<input class="input-celda" style="font-size:11px; margin-top:8px; border-bottom:1px dashed var(--color-borde); padding-left:0; height:auto;" placeholder="Pega el link de Google Drive aquí..." value="${a.url || ''}" onchange="DB.datos['${SUC_ACTIVA}'].dam[${i}].url=this.value;guardarBD();renderDAM()">` : '';
-            return `<div class="tarjeta-asset" style="flex-direction:row; padding:16px; align-items:center; gap:16px;">${ROL==='agencia'?`<i class="fa-solid fa-trash" style="position:absolute; top:12px; right:12px; color:#ccc; cursor:pointer;" onclick="delObj('dam',${i})"></i>`:''}<div style="font-size:28px; color:var(--color-primario); width:40px; text-align:center;"><i class="fa-solid ${a.tipo}"></i></div><div style="flex:1;"><input class="input-celda" style="font-family:var(--font-display); font-weight:700; font-size:14px; padding:0; height:auto;" value="${a.nombre}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].dam[${i}].nombre=this.value;guardarBD()">${inputUrl}<div style="display:flex; align-items:center; gap:12px; margin-top:12px; flex-wrap:wrap;"><span class="estado-dam ${claseEst}" style="margin:0;">${a.estado} <b style="opacity:0.6; margin-left:4px;">V${a.version}</b></span>${uiBoton}</div></div></div>`;
+        const d = DB.datos[SUC_ACTIVA];
+        const assets = d.dam || [];
+        const cats   = _getDamCategorias();
+        const canEdit = ROL === 'agencia';
+        const puedeAprobar = _damPuedeAprobar();
+        const puedeSubirV  = USUARIO_ACTIVO?.rol_id === 'equipo' || ROL === 'agencia';
+
+        // Filtros
+        const filtrosEl = document.getElementById('dam-filtros');
+        if (filtrosEl) {
+            const catKeys = Object.keys(cats);
+            filtrosEl.innerHTML = [
+                `<button class="ppto-view-btn ${_damFiltro==='all'?'activo':''}" onclick="_damFiltro='all';renderDAM()">Todos (${assets.length})</button>`,
+                ...catKeys.map(cat => {
+                    const n = assets.filter(a=>(a.categoria||'General')===cat).length;
+                    return `<button class="ppto-view-btn ${_damFiltro===cat?'activo':''}" onclick="_damFiltro=\`${cat}\`;renderDAM()">${cat} (${n})</button>`;
+                })
+            ].join('');
+        }
+
+        const filtered = _damFiltro==='all' ? assets : assets.filter(a=>(a.categoria||'General')===_damFiltro);
+        const contenedor = document.getElementById('contenedor-dam');
+        if (!contenedor) return;
+
+        if (!filtered.length) {
+            contenedor.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 40px;color:var(--texto-secundario);">
+                <i class="fa-solid fa-photo-film" style="font-size:36px;opacity:.15;display:block;margin-bottom:16px;color:var(--color-primario);"></i>
+                Sin activos en esta categoría.
+                ${canEdit?`<br><button class="btn btn-primario" style="margin-top:16px;" onclick="_abrirModalNuevoActivo()"><i class="fa-solid fa-upload"></i> Agregar activo</button>`:''}
+            </div>`;
+            return;
+        }
+
+        contenedor.innerHTML = filtered.map(a => {
+            const realIdx  = assets.indexOf(a);
+            const est      = _damEstadoInfo(a.estado);
+            const tipoIcon = _damTipoIcon(a.tipo);
+            const driveUrl = a.drive_url || a.url || '';
+            const driveId  = a.drive_id  || _extractDriveId(driveUrl);
+            const postVinc = a.post_vinculado ? (d.kanban||[]).find(k=>k.id===a.post_vinculado) : null;
+
+            const verBtn      = driveUrl ? `<button class="btn btn-xs btn-fantasma" onclick="window.open('${driveUrl}','_blank','width=900,height=700,left=100,top=80')"><i class="fa-solid fa-arrow-up-right-from-square"></i> Ver en Drive</button>` : '';
+            const copiarBtn   = driveUrl ? `<button class="btn btn-xs btn-fantasma" onclick="_copiarLinkActivo('${driveUrl}')"><i class="fa-solid fa-copy"></i> Copiar link</button>` : '';
+            const previstaBtn = driveId  ? `<button class="btn btn-xs btn-fantasma" onclick="_abrirDamPreview('${a.id}')"><i class="fa-solid fa-eye"></i> Previsualizar</button>` : '';
+            const histBtn     = `<button class="btn btn-xs btn-fantasma" onclick="verHistorial('${a.id}')"><i class="fa-solid fa-clock-rotate-left"></i> Historial</button>`;
+
+            let accionBtn = '';
+            const estaEnRevision = a.estado==='en_revision'||a.estado==='En revisión';
+            const estaRechazado  = a.estado==='rechazado'  ||a.estado==='Cambios solicitados';
+            if (puedeAprobar && estaEnRevision) {
+                accionBtn = `<button class="btn btn-xs btn-primario" style="background:#15803D;border-color:#15803D;" onclick="_aprobarActivoNuevo('${a.id}')"><i class="fa-solid fa-check"></i> Aprobar</button>
+                             <button class="btn btn-xs btn-fantasma" style="color:#EA4335;border-color:rgba(234,67,53,.4);" onclick="_abrirRechazarActivo('${a.id}')"><i class="fa-solid fa-xmark"></i> Rechazar</button>`;
+            } else if (puedeSubirV && estaRechazado) {
+                accionBtn = `<button class="btn btn-xs btn-primario" onclick="_subirVersionCorregida('${a.id}')"><i class="fa-solid fa-rotate"></i> Subir V${(a.version||1)+1}</button>`;
+            }
+
+            return `<div class="tarjeta-asset" style="flex-direction:column;padding:0;overflow:hidden;min-height:0;">
+                ${canEdit?`<button onclick="delObj('dam',${realIdx})" title="Eliminar" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;z-index:1;"><i class="fa-solid fa-trash"></i></button>`:''}
+                <div style="padding:16px 18px 12px;">
+                    <div style="display:flex;align-items:flex-start;gap:12px;">
+                        <div style="font-size:20px;color:var(--color-primario);width:28px;flex-shrink:0;text-align:center;margin-top:3px;"><i class="fa-solid ${tipoIcon}"></i></div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-family:var(--font-display);font-weight:800;font-size:13px;line-height:1.35;margin-bottom:6px;">${a.nombre||'Sin nombre'}</div>
+                            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px;">
+                                <span class="estado-dam ${est.cls}" style="margin:0;padding:3px 9px;">${est.lbl}</span>
+                                ${(a.version||1)>1?`<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:rgba(0,0,0,.06);color:var(--texto-secundario);">V${a.version}</span>`:''}
+                            </div>
+                            <div style="font-size:11px;color:var(--texto-secundario);">${a.categoria||'General'}${a.subcategoria?` · ${a.subcategoria}`:''}</div>
+                            ${postVinc?`<div style="font-size:11px;color:var(--color-primario);margin-top:3px;"><i class="fa-solid fa-link" style="margin-right:3px;"></i>${postVinc.titulo.substring(0,32)}${postVinc.titulo.length>32?'…':''}</div>`:''}
+                        </div>
+                    </div>
+                </div>
+                <div style="padding:10px 14px;border-top:1px solid var(--color-borde);display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                    ${verBtn}${copiarBtn}${previstaBtn}${histBtn}${accionBtn}
+                </div>
+            </div>`;
         }).join('');
+    }
+
+    function _syncAdsToPresupuesto() {
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d || !d.ads || !d.presupuesto) return;
+        // Acumular inversión de campañas Activas por mes
+        const invPorMes = Array(12).fill(0);
+        d.ads.forEach(a => {
+            if ((a.estado === 'Activa' || a.estado === 'activa') && (a.inversion||0) > 0) {
+                const fecha = a.inicio || a.fecha;
+                if (!fecha) return;
+                const mi = new Date(fecha + 'T00:00:00').getMonth();
+                if (mi >= 0 && mi <= 11) invPorMes[mi] += Number(a.inversion)||0;
+            }
+        });
+        // Actualizar campo real del primer ítem de tipo Pauta digital
+        const pautaItem = d.presupuesto.find(p => p.tipo === 'Pauta digital');
+        if (!pautaItem) return;
+        let changed = false;
+        (pautaItem.montos_mes || []).forEach((m, mi) => {
+            const nuevo = Math.round(invPorMes[mi]);
+            if ((m.real||0) !== nuevo) { m.real = nuevo; changed = true; }
+        });
+        if (changed) guardarBD();
     }
 
     function renderPresupuesto() {
@@ -3699,16 +4038,28 @@ document.addEventListener('DOMContentLoaded', function() {
         const _tableWrap    = _contenedor ? _contenedor.querySelector('[style*="overflow-x"]') : null;
         const _savedScrollX = _tableWrap  ? _tableWrap.scrollLeft  : 0;
 
+        _syncAdsToPresupuesto();
         const pres = d.presupuesto || [];
-        let totalInv = 0, totalCol = 0;
-        pres.forEach(p => p.montos_mes.forEach(m => { totalInv += m.inversion||0; totalCol += m.colaboracion||0; }));
+        let totalInv = 0, totalCol = 0, totalReal = 0;
+        pres.forEach(p => p.montos_mes.forEach(m => { totalInv += m.inversion||0; totalCol += m.colaboracion||0; totalReal += m.real||0; }));
         const totalComb = totalInv + totalCol;
-        const promMes = totalComb > 0 ? Math.round(totalComb / 12) : 0;
+        const promMes   = totalComb > 0 ? Math.round(totalComb / 12) : 0;
+        const diff      = totalInv - totalReal;
+        const pctEjec   = totalInv > 0 ? Math.round((totalReal / totalInv) * 100) : 0;
+        const pctColor  = pctEjec > 100 ? '#EA4335' : '#15803D';
         const fmt = v => formatDinero(v);
         let html = `<div class="ppto-kpi-strip">
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(totalInv)}</div><div class="ppto-kpi-lbl">Inversión Anual</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(totalInv)}</div><div class="ppto-kpi-lbl">Presupuestado Anual</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${totalReal>totalInv?'#EA4335':'#15803D'};">${fmt(totalReal)}</div><div class="ppto-kpi-lbl">Ejecutado Real</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${diff<0?'#EA4335':'#15803D'};">${diff<0?'−':''}${fmt(Math.abs(diff))}</div><div class="ppto-kpi-lbl">Diferencia</div></div>
+            <div class="ppto-kpi-card">
+                <div class="ppto-kpi-val" style="color:${pctColor};">${pctEjec}%</div>
+                <div class="ppto-kpi-lbl">Ejecución</div>
+                <div style="height:4px;border-radius:100px;background:var(--color-borde);margin-top:6px;overflow:hidden;">
+                    <div style="height:100%;width:${Math.min(pctEjec,100)}%;background:${pctColor};border-radius:100px;transition:.3s;"></div>
+                </div>
+            </div>
             <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(totalCol)}</div><div class="ppto-kpi-lbl">Colaboración Anual</div></div>
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(totalComb)}</div><div class="ppto-kpi-lbl">Total Combinado</div></div>
             <div class="ppto-kpi-card"><div class="ppto-kpi-val">${fmt(promMes)}</div><div class="ppto-kpi-lbl">Promedio Mensual</div></div>
         </div>
         <div class="ppto-view-btns">
@@ -3728,10 +4079,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function _renderPptoAnual(pres, ro) {
         let h = `<div class="tarjeta" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table class="tabla-editable"><thead>
             <tr><th style="position:sticky;left:0;z-index:2;" class="ppto-sticky-col">Ítem</th>`;
-        MESES.forEach(m => h += `<th colspan="2" style="text-align:center;border-left:1px solid var(--color-borde);white-space:nowrap;">${m.substring(0,3)}</th>`);
+        MESES.forEach(m => h += `<th colspan="3" style="text-align:center;border-left:1px solid var(--color-borde);white-space:nowrap;">${m.substring(0,3)}</th>`);
         h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;">Total</th></tr>
             <tr><th style="position:sticky;left:0;z-index:2;" class="ppto-sticky-col"></th>`;
-        MESES.forEach(() => h += `<th style="font-size:10px;text-align:center;color:var(--color-primario);opacity:.8;">Inv.</th><th style="font-size:10px;text-align:center;color:var(--texto-secundario);">Col.</th>`);
+        MESES.forEach(() => h += `<th style="font-size:10px;text-align:center;color:var(--color-primario);opacity:.8;">Presup.</th><th style="font-size:10px;text-align:center;color:#15803D;">Real</th><th style="font-size:10px;text-align:center;color:var(--texto-secundario);">Col.</th>`);
         h += `<th></th></tr></thead><tbody>`;
         pres.forEach((p, pIdx) => {
             const rowTotal = p.montos_mes.reduce((s,m) => s+(m.inversion||0)+(m.colaboracion||0), 0);
@@ -3742,8 +4093,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="display:flex;gap:6px;align-items:center;margin-top:3px;"><span style="font-size:10px;color:var(--texto-secundario);">${p.categoria}</span>${tipoSel}</div>
             </td>`;
             p.montos_mes.forEach((m, mIdx) => {
-                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:56px;font-weight:600;text-align:right;" value="${m.inversion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
-                h += `<td style="border-right:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="min-width:56px;color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
+                const _real = m.real||0; const _inv = m.inversion||0;
+                const _rc = _real===0?'var(--texto-secundario)':(_real>_inv?'#EA4335':'#15803D');
+                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;font-weight:600;text-align:right;" value="${_inv}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
+                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;font-weight:600;text-align:right;color:${_rc};" value="${_real}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].real=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
+                h += `<td style="border-right:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].colaboracion=Number(this.value)||0;guardarBD();renderPresupuesto()"></td>`;
             });
             h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:700;white-space:nowrap;font-size:13px;">${formatDinero(rowTotal)}</td>`;
             if (!ro) h += `<td style="width:32px;text-align:center;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`;
@@ -3806,12 +4160,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Totales KPI
-        let totalInvR = 0, totalColR = 0;
+        let totalInvR = 0, totalColR = 0, totalRealR = 0;
         pres.forEach(p => {
             meses_rango.forEach(mi => {
                 const mm = p.montos_mes[mi] || {};
-                totalInvR += mm.inversion||0;
-                totalColR += mm.colaboracion||0;
+                totalInvR  += mm.inversion||0;
+                totalColR  += mm.colaboracion||0;
+                totalRealR += mm.real||0;
             });
         });
         const label_rango = meses_rango.length === 1
@@ -3847,25 +4202,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
         h += `
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR)}</div><div class="ppto-kpi-lbl">Inversión — ${label_rango}</div></div>
-            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalColR)}</div><div class="ppto-kpi-lbl">Colaboración — ${label_rango}</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR)}</div><div class="ppto-kpi-lbl">Presupuestado — ${label_rango}</div></div>
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${totalRealR>totalInvR?'#EA4335':'#15803D'};">${formatDinero(totalRealR)}</div><div class="ppto-kpi-lbl">Ejecutado Real</div></div>
+            ${(()=>{const _d=totalInvR-totalRealR;const _p=totalInvR>0?Math.round((totalRealR/totalInvR)*100):0;const _c=_p>100?'#EA4335':'#15803D';return `<div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${_c};">${_p}%</div><div class="ppto-kpi-lbl">Ejecución</div><div style="height:4px;border-radius:100px;background:var(--color-borde);margin-top:6px;overflow:hidden;"><div style="height:100%;width:${Math.min(_p,100)}%;background:${_c};border-radius:100px;"></div></div></div><div class="ppto-kpi-card"><div class="ppto-kpi-val" style="color:${_d<0?'#EA4335':'#15803D'};">${_d<0?'−':''}${formatDinero(Math.abs(_d))}</div><div class="ppto-kpi-lbl">Diferencia</div></div>`;})()}
+            <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalColR)}</div><div class="ppto-kpi-lbl">Colaboración</div></div>
             <div class="ppto-kpi-card"><div class="ppto-kpi-val">${formatDinero(totalInvR+totalColR)}</div><div class="ppto-kpi-lbl">Total periodo</div></div>
         </div>
         <div class="tarjeta" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table class="tabla-editable"><thead><tr>
             <th style="position:sticky;left:0;z-index:2;min-width:160px;" class="ppto-sticky-col">Ítem</th>
             <th>Tipo</th>`;
         meses_rango.forEach(mi => {
-            h += `<th colspan="2" style="text-align:center;border-left:1px solid var(--color-borde);white-space:nowrap;">${MESES[mi].substring(0,3)}</th>`;
+            h += `<th colspan="3" style="text-align:center;border-left:1px solid var(--color-borde);white-space:nowrap;">${MESES[mi].substring(0,3)}</th>`;
         });
         h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;">Total</th>
             ${!ro?'<th></th>':''}</tr>
             <tr><th class="ppto-sticky-col" style="position:sticky;left:0;z-index:2;"></th><th></th>`;
         meses_rango.forEach(() => {
-            h += `<th style="font-size:10px;text-align:center;color:var(--color-primario);opacity:.8;">Inv.</th><th style="font-size:10px;text-align:center;color:var(--texto-secundario);">Col.</th>`;
+            h += `<th style="font-size:10px;text-align:center;color:var(--color-primario);opacity:.8;">Presup.</th><th style="font-size:10px;text-align:center;color:#15803D;">Real</th><th style="font-size:10px;text-align:center;color:var(--texto-secundario);">Col.</th>`;
         });
         h += `<th></th>${!ro?'<th></th>':''}</tr></thead><tbody>`;
 
         let totInvCol = Array(meses_rango.length).fill(0);
+        let totRealCol = Array(meses_rango.length).fill(0);
         let totColCol = Array(meses_rango.length).fill(0);
         pres.forEach((p, pIdx) => {
             let rowTotal = 0;
@@ -3877,13 +4235,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 </td>
                 <td><span style="font-size:11px;font-weight:600;color:var(--texto-secundario);">${p.tipo||'—'}</span></td>`;
             meses_rango.forEach((mi, ci) => {
-                const mm = p.montos_mes[mi] || {inversion:0,colaboracion:0};
-                rowTotal    += (mm.inversion||0) + (mm.colaboracion||0);
-                totInvCol[ci] += mm.inversion||0;
-                totColCol[ci] += mm.colaboracion||0;
+                const mm = p.montos_mes[mi] || {inversion:0,colaboracion:0,real:0};
+                const _r = mm.real||0; const _iv = mm.inversion||0;
+                const _rc = _r===0?'var(--texto-secundario)':(_r>_iv?'#EA4335':'#15803D');
+                rowTotal += _iv + (mm.colaboracion||0);
+                totInvCol[ci]  += _iv;
+                totRealCol[ci] += _r;
+                totColCol[ci]  += mm.colaboracion||0;
                 h += `<td style="border-left:1px solid var(--color-borde);">
-                          <input type="text" inputmode="numeric" class="input-celda" style="font-weight:600;text-align:right;" value="${mm.inversion||0}" ${ro}
+                          <input type="text" inputmode="numeric" class="input-celda" style="font-weight:600;text-align:right;" value="${_iv}" ${ro}
                               onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].inversion=Number(this.value)||0;guardarBD();renderPresupuesto()">
+                      </td>
+                      <td>
+                          <input type="text" inputmode="numeric" class="input-celda" style="font-weight:600;text-align:right;color:${_rc};" value="${_r}" ${ro}
+                              onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mi}].real=Number(this.value)||0;guardarBD();renderPresupuesto()">
                       </td>
                       <td style="border-right:1px solid var(--color-borde);">
                           <input type="text" inputmode="numeric" class="input-celda" style="color:var(--texto-secundario);text-align:right;" value="${mm.colaboracion||0}" ${ro}
@@ -3901,7 +4266,10 @@ document.addEventListener('DOMContentLoaded', function() {
         meses_rango.forEach((_, ci) => {
             const t = totInvCol[ci] + totColCol[ci];
             grandTotal += t;
-            h += `<td style="text-align:right;font-weight:700;color:var(--color-primario);border-left:1px solid var(--color-borde);">${formatDinero(totInvCol[ci])}</td>
+            const _rt = totRealCol[ci]; const _it = totInvCol[ci];
+            const _rtc = _rt===0?'var(--texto-secundario)':(_rt>_it?'#EA4335':'#15803D');
+            h += `<td style="text-align:right;font-weight:700;color:var(--color-primario);border-left:1px solid var(--color-borde);">${formatDinero(_it)}</td>
+                  <td style="text-align:right;font-weight:700;color:${_rtc};">${formatDinero(_rt)}</td>
                   <td style="text-align:right;color:var(--texto-secundario);border-right:1px solid var(--color-borde);">${formatDinero(totColCol[ci])}</td>`;
         });
         h += `<td style="border-left:2px solid var(--color-borde-fuerte);font-weight:800;text-align:right;color:var(--color-primario);white-space:nowrap;">${formatDinero(grandTotal)}</td>
@@ -4670,13 +5038,13 @@ document.addEventListener('DOMContentLoaded', function() {
         // Datos del sistema — exportar / importar
         if (_isOwnerForConfig) {
             confHTML += `<div style="margin-top:8px;padding-top:24px;border-top:1px solid var(--color-borde);">
-                <div style="font-family:var(--font-display);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Datos del sistema</div>
-                <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:16px;line-height:1.6;">Exporta o importa todos los datos para mover el sistema entre dispositivos o navegadores.</p>
+                <div style="font-family:var(--font-display);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Backup de datos</div>
+                <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:16px;line-height:1.6;">El backup incluye todos los datos operativos. Al importar, los <strong>usuarios y roles no se modifican</strong>.</p>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-                    <button class="btn btn-fantasma" onclick="exportarDatosSistema()"><i class="fa-solid fa-download" style="margin-right:6px;"></i>Exportar datos</button>
+                    <button class="btn btn-fantasma" onclick="exportarDatosSistema()"><i class="fa-solid fa-download" style="margin-right:6px;"></i>Exportar backup</button>
                     <label class="btn btn-fantasma" style="cursor:pointer;margin:0;">
-                        <i class="fa-solid fa-upload" style="margin-right:6px;"></i>Importar datos
-                        <input type="file" accept=".json" style="display:none;" onchange="importarDatosSistema(this)">
+                        <i class="fa-solid fa-upload" style="margin-right:6px;"></i>Importar backup
+                        <input type="file" accept=".json" style="display:none;" onchange="_leerBackupArchivo(this)">
                     </label>
                 </div>
             </div>`;
@@ -4718,7 +5086,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function exportarDatosSistema() {
         if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO)) return;
-        const backup = {};
+        const backup = { _meta: { fecha: new Date().toISOString(), version: 'lanka_2027', proyecto_activo: SUC_ACTIVA } };
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
             backup[key] = localStorage.getItem(key);
@@ -4727,33 +5095,118 @@ document.addEventListener('DOMContentLoaded', function() {
         const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `lanka_backup_${fecha}.json`;
+        a.download = `lanka_backup_${SUC_ACTIVA}_${fecha}.json`;
         a.click();
         URL.revokeObjectURL(a.href);
+        _showToast('Backup descargado correctamente');
     }
 
-    function importarDatosSistema(input) {
+    // Importación mejorada con preview y confirmación por texto
+    let _pendingBackup = null;
+
+    function _leerBackupArchivo(input) {
         if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO)) return;
         const file = input.files[0];
         if (!file) return;
         input.value = '';
-        if (!confirm('Esto reemplazará todos los datos actuales. ¿Estás segura?')) return;
-        if (!confirm('¿Confirmas que quieres reemplazar permanentemente todos los datos con el archivo importado?')) return;
         const reader = new FileReader();
         reader.onload = e => {
             try {
                 const backup = JSON.parse(e.target.result);
                 if (typeof backup !== 'object' || Array.isArray(backup)) throw new Error('Formato inválido');
-                localStorage.clear();
-                Object.entries(backup).forEach(([key, val]) => localStorage.setItem(key, val));
-                alert('Datos importados correctamente. El sistema se recargará ahora.');
-                location.reload();
+                _mostrarPreviewBackup(backup);
             } catch(err) {
-                alert('Error al importar: ' + err.message + '\nVerifica que el archivo sea un backup válido de Lanka OS.');
+                alert('Error al leer el archivo: ' + err.message + '\nVerifica que sea un backup válido de Lanka OS.');
             }
         };
         reader.readAsText(file);
     }
+
+    function _mostrarPreviewBackup(backup) {
+        _pendingBackup = backup;
+        const meta = backup._meta || {};
+        const fechaBackup = meta.fecha
+            ? new Date(meta.fecha).toLocaleString('es-MX', {day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})
+            : 'Desconocida';
+        let dbData = null;
+        try { dbData = JSON.parse(backup['LANKA_FINAL_2027_PRO'] || 'null'); } catch(e) {}
+        const proyectos = (dbData?.sucursales||[]).map(s=>s.nombre).join(', ') || 'Desconocidos';
+        let totalK=0, totalA=0, totalD=0, totalS=0;
+        Object.values(dbData?.datos||{}).forEach(d=>{
+            totalK += (d.kanban||[]).length;
+            totalA += (d.ads||[]).length;
+            totalD += (d.dam||[]).length;
+            totalS += (d.shooting||[]).length;
+        });
+        const prev = document.getElementById('import-backup-preview');
+        prev.innerHTML = `
+            <div style="background:rgba(196,133,90,.06);border:1px solid rgba(196,133,90,.25);border-radius:10px;padding:14px 16px;">
+                <div style="font-size:11px;font-weight:800;color:var(--color-primario);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Este backup contiene</div>
+                <div style="font-size:13px;margin-bottom:3px;"><strong>Fecha:</strong> ${fechaBackup}</div>
+                <div style="font-size:13px;margin-bottom:3px;"><strong>Proyectos:</strong> ${proyectos}</div>
+                <div style="font-size:13px;"><strong>Datos:</strong> ${totalK} posts · ${totalA} campañas · ${totalD} activos DAM · ${totalS} shootings</div>
+            </div>
+            <div style="background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.25);border-radius:10px;padding:12px 14px;">
+                <div style="font-size:11px;font-weight:800;color:#15803D;margin-bottom:5px;"><i class="fa-solid fa-shield-halved" style="margin-right:4px;"></i>NO SE MODIFICA</div>
+                <div style="font-size:12px;color:var(--texto-secundario);">Usuarios registrados · Roles del sistema · Permisos de acceso</div>
+            </div>
+            <div style="background:rgba(234,67,53,.05);border:1px solid rgba(234,67,53,.2);border-radius:10px;padding:12px 14px;">
+                <div style="font-size:11px;font-weight:800;color:#EA4335;margin-bottom:5px;"><i class="fa-solid fa-rotate" style="margin-right:4px;"></i>SE REEMPLAZA</div>
+                <div style="font-size:12px;color:var(--texto-secundario);">Kanban · KPIs · Presupuesto · Activos DAM · Campañas · Shootings · Stories · Catálogo · Configuraciones de proyecto</div>
+            </div>`;
+        const txtEl = document.getElementById('import-confirmar-text');
+        const btnEl = document.getElementById('btn-ejecutar-import');
+        if (txtEl) txtEl.value = '';
+        if (btnEl) { btnEl.disabled = true; btnEl.style.opacity = '.4'; btnEl.style.cursor = 'not-allowed'; }
+        document.getElementById('modal-import-backup').classList.add('activo');
+    }
+
+    function _checkImportConfirm() {
+        const ok = document.getElementById('import-confirmar-text')?.value === 'CONFIRMAR';
+        const btn = document.getElementById('btn-ejecutar-import');
+        if (!btn) return;
+        btn.disabled = !ok;
+        btn.style.opacity = ok ? '1' : '.4';
+        btn.style.cursor  = ok ? 'pointer' : 'not-allowed';
+    }
+
+    function _ejecutarImportBackup() {
+        if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO)) return;
+        if (!_pendingBackup) return;
+        if (document.getElementById('import-confirmar-text')?.value !== 'CONFIRMAR') return;
+
+        // Preservar usuarios, roles y permisos actuales
+        let _u=[], _r=[], _p={};
+        try {
+            const curr = JSON.parse(localStorage.getItem('LANKA_FINAL_2027_PRO')||'{}');
+            _u = curr.usuarios      || [];
+            _r = curr.roles_sistema || [];
+            _p = curr.permisos      || {};
+        } catch(e) {}
+
+        // Restaurar todas las claves del backup
+        Object.entries(_pendingBackup).forEach(([key, val]) => {
+            if (key === '_meta') return;
+            try { localStorage.setItem(key, val); } catch(e) {}
+        });
+
+        // Reinyectar usuarios y roles preservados
+        try {
+            const restored = JSON.parse(localStorage.getItem('LANKA_FINAL_2027_PRO')||'{}');
+            if (_u.length) restored.usuarios      = _u;
+            if (_r.length) restored.roles_sistema = _r;
+            if (Object.keys(_p).length) restored.permisos = _p;
+            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(restored));
+        } catch(e) {}
+
+        _pendingBackup = null;
+        cerrarModales();
+        _showToast('Datos restaurados correctamente. Recargando...');
+        setTimeout(() => location.reload(), 1500);
+    }
+
+    // Legacy — mantener compatibilidad si algo llama a la función anterior
+    function importarDatosSistema(input) { _leerBackupArchivo(input); }
 
     /* ── Logo de proyecto — localStorage separado del DB principal ── */
     function _getProyectoLogo(sucId) {
@@ -4850,9 +5303,118 @@ document.addEventListener('DOMContentLoaded', function() {
     function cambiarVistaCalendario(v) { document.querySelectorAll('.btn-vista').forEach(b=>b.classList.remove('activo')); document.getElementById('btn-vista-'+v).classList.add('activo'); if(v==='kanban'){document.getElementById('contenedor-kanban').classList.remove('oculto');document.getElementById('contenedor-parrilla').classList.add('oculto');}else{document.getElementById('contenedor-kanban').classList.add('oculto');document.getElementById('contenedor-parrilla').classList.remove('oculto');} }
 
     /* ====== DAM (ORIGINAL) ====== */
-    function aprobarActivo(id) { const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id); a.estado="Aprobado"; a.historial.unshift({autor:"Cliente",fecha:new Date().toLocaleString(),accion:"Aprobado",nota:"Ok"}); guardarBD(); renderDAM(); }
+    function _abrirModalNuevoActivo() {
+        const cats = _getDamCategorias();
+        const catEl = document.getElementById('dam-categoria');
+        catEl.innerHTML = Object.keys(cats).map(c=>`<option value="${c}">${c}</option>`).join('');
+        _damUpdSubcat();
+        const d = DB.datos[SUC_ACTIVA];
+        const desde = window.dashPeriodo?.desde; const hasta = window.dashPeriodo?.hasta;
+        const posts = (d.kanban||[]).filter(k=>!desde||!hasta||(k.fecha>=desde&&k.fecha<=hasta));
+        document.getElementById('dam-post').innerHTML = '<option value="">Sin vinculación</option>' + posts.map(k=>`<option value="${k.id}">${k.titulo.substring(0,40)} · ${k.fecha}</option>`).join('');
+        const stories = (d.stories_ind||[]).filter(s=>!desde||!hasta||(s.dia>=desde&&s.dia<=hasta));
+        document.getElementById('dam-story').innerHTML = '<option value="">Sin vinculación</option>' + stories.map(s=>`<option value="${s.id}">${(s.copy||'Story').substring(0,30)} · ${s.dia}</option>`).join('');
+        document.getElementById('dam-nombre').value = '';
+        document.getElementById('dam-drive-url').value = '';
+        document.getElementById('dam-drive-id-preview').textContent = '';
+        document.getElementById('dam-notas').value = '';
+        document.getElementById('dam-tipo').value = 'video';
+        document.getElementById('modal-nuevo-activo').classList.add('activo');
+    }
+
+    function _damUpdSubcat() {
+        const cats = _getDamCategorias();
+        const catVal = document.getElementById('dam-categoria')?.value;
+        const subcats = cats[catVal] || [];
+        const el = document.getElementById('dam-subcategoria');
+        if (!el) return;
+        el.innerHTML = subcats.length
+            ? subcats.map(s=>`<option value="${s}">${s}</option>`).join('')
+            : '<option value="">Sin subcategoría</option>';
+    }
+
+    function _damAutoExtractId(inputEl) {
+        const id = _extractDriveId(inputEl.value);
+        const el = document.getElementById('dam-drive-id-preview');
+        if (el) el.textContent = id ? `ID: ${id}` : '';
+    }
+
+    function _guardarNuevoActivo() {
+        const nombre = document.getElementById('dam-nombre').value.trim();
+        if (!nombre) { alert('El nombre del activo es requerido.'); return; }
+        const driveUrl = document.getElementById('dam-drive-url').value.trim();
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d.dam) d.dam = [];
+        d.dam.push({
+            id:               'd'+Date.now(),
+            nombre,
+            categoria:        document.getElementById('dam-categoria').value,
+            subcategoria:     document.getElementById('dam-subcategoria').value,
+            tipo:             document.getElementById('dam-tipo').value,
+            drive_url:        driveUrl,
+            drive_id:         _extractDriveId(driveUrl),
+            url:              driveUrl,
+            thumbnail_url:    '',
+            post_vinculado:   document.getElementById('dam-post').value,
+            story_vinculada:  document.getElementById('dam-story').value,
+            shooting_id:      '',
+            estado:           'en_revision',
+            subido_por:       USUARIO_ACTIVO?.id||'',
+            subido_por_nombre:USUARIO_ACTIVO?.nombre||ROL,
+            fecha_subida:     new Date().toISOString(),
+            notas_edicion:    document.getElementById('dam-notas').value.trim(),
+            version:          1,
+            historial:        [{ autor:USUARIO_ACTIVO?.nombre||ROL, fecha:new Date().toLocaleString(), accion:'Subido', nota:'V1' }]
+        });
+        guardarBD(); cerrarModales(); renderDAM(); _showToast('Activo agregado');
+    }
+
+    function _abrirDamPreview(id) {
+        const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id);
+        if (!a) return;
+        const driveId = a.drive_id || _extractDriveId(a.drive_url||a.url||'');
+        if (!driveId) { alert('Este activo no tiene ID de Drive configurado.'); return; }
+        const el = document.getElementById('dam-preview-content');
+        if (el) el.innerHTML = `<iframe src="https://drive.google.com/file/d/${driveId}/preview" style="width:100%;height:600px;border:none;" allow="autoplay" allowfullscreen></iframe>`;
+        document.getElementById('modal-dam-preview').classList.add('activo');
+    }
+
+    function _aprobarActivoNuevo(id) {
+        const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id);
+        if (!a) return;
+        a.estado = 'aprobado';
+        (a.historial = a.historial||[]).unshift({ autor:USUARIO_ACTIVO?.nombre||ROL, fecha:new Date().toLocaleString(), accion:'Aprobado', nota:'✓' });
+        if (a.subido_por) _addNotif('aprobacion', USUARIO_ACTIVO?.nombre||'Dirección', a.subido_por, `"${a.nombre}" fue aprobado.`, id);
+        guardarBD(); renderDAM(); _showToast('Activo aprobado');
+    }
+
+    function _abrirRechazarActivo(id) {
+        document.getElementById('activo-id-feedback').value = id;
+        document.getElementById('texto-feedback').value = '';
+        document.getElementById('modal-feedback').classList.add('activo');
+    }
+
+    function _subirVersionCorregida(id) {
+        const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id);
+        if (!a) return;
+        a.version = (a.version||1) + 1;
+        a.estado  = 'en_revision';
+        (a.historial = a.historial||[]).unshift({ autor:USUARIO_ACTIVO?.nombre||ROL, fecha:new Date().toLocaleString(), accion:`V${a.version} subida`, nota:'Corregido' });
+        guardarBD(); renderDAM(); _showToast(`V${a.version} enviada a revisión`);
+    }
+
+    function aprobarActivo(id) { const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id); a.estado="aprobado"; (a.historial=a.historial||[]).unshift({autor:USUARIO_ACTIVO?.nombre||'Owner',fecha:new Date().toLocaleString(),accion:"Aprobado",nota:"Ok"}); guardarBD(); renderDAM(); }
     function abrirModalFeedback(id) { document.getElementById('activo-id-feedback').value=id; document.getElementById('texto-feedback').value=''; document.getElementById('modal-feedback').classList.add('activo'); }
-    function guardarFeedback() { const n = document.getElementById('texto-feedback').value; if(!n) return alert("Escribe un comentario."); const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===document.getElementById('activo-id-feedback').value); a.estado="Cambios solicitados"; a.historial.unshift({autor:"Cliente",fecha:new Date().toLocaleString(),accion:"Rechazo",nota:n}); cerrarModales(); guardarBD(); renderDAM(); }
+    function guardarFeedback() {
+        const n = document.getElementById('texto-feedback').value.trim();
+        if (!n) return alert('El motivo de rechazo es obligatorio.');
+        const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===document.getElementById('activo-id-feedback').value);
+        if (!a) return;
+        a.estado = 'rechazado';
+        (a.historial = a.historial||[]).unshift({autor:USUARIO_ACTIVO?.nombre||ROL, fecha:new Date().toLocaleString(), accion:'Rechazado', nota:n});
+        if (a.subido_por) _addNotif('completado', USUARIO_ACTIVO?.nombre||'Dirección', a.subido_por, `"${a.nombre}" fue rechazado: ${n}`, a.id);
+        cerrarModales(); guardarBD(); renderDAM(); _showToast('Rechazo registrado');
+    }
     function subirV(id) { const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id); a.version++; a.estado="En revisión"; a.historial.unshift({autor:"Agencia",fecha:new Date().toLocaleString(),accion:"Carga V"+a.version,nota:"Corregido"}); guardarBD(); renderDAM(); }
     function verHistorial(id) { const a = DB.datos[SUC_ACTIVA].dam.find(x=>x.id===id); document.getElementById('contenedor-audit').innerHTML = a.historial.map(h=>`<div class="audit-item"><div class="audit-dot"><i class="fa-solid fa-clock-rotate-left"></i></div><div><b style="color:var(--texto-principal); font-family:var(--font-display);">${h.autor}</b> <span style="font-size:11px;color:var(--texto-secundario); margin-left:8px;">${h.fecha}</span><br><div style="font-size:13px; margin-top:4px; line-height:1.5;">${h.nota}</div></div></div>`).join(''); document.getElementById('modal-historial').classList.add('activo'); }
     function cerrarModales() { document.querySelectorAll('.fondo-modal').forEach(m => m.classList.remove('activo')); document.getElementById('texto-feedback').value = ''; document.getElementById('activo-id-feedback').value = ''; document.getElementById('input-comando-ia').value = ''; }
@@ -5105,24 +5667,374 @@ document.addEventListener('DOMContentLoaded', function() {
         renderCalEditorial();
     }
 
+    /* ============= TOAST GLOBAL ============= */
+    function _showToast(msg, ms=3000) {
+        const t = document.getElementById('lanka-toast');
+        if (!t) return;
+        t.textContent = msg;
+        t.style.opacity = '1';
+        clearTimeout(t._ti);
+        t._ti = setTimeout(() => { t.style.opacity = '0'; }, ms);
+    }
+
+    /* ============= SISTEMA DE NOTIFICACIONES ============= */
+    function _notifKey() { return 'notificaciones_' + SUC_ACTIVA; }
+    function _loadNotifs() { try { return JSON.parse(localStorage.getItem(_notifKey())||'[]'); } catch(e) { return []; } }
+    function _saveNotifs(arr) { localStorage.setItem(_notifKey(), JSON.stringify(arr)); }
+
+    function _addNotif(tipo, de, para, mensaje, referencia_id) {
+        const arr = _loadNotifs();
+        arr.push({ id: String(Date.now()), tipo, de, para, mensaje, leida: false, fecha: new Date().toISOString(), referencia_id: referencia_id||'' });
+        _saveNotifs(arr);
+        _renderNotifBadge();
+    }
+
+    function _renderNotifBadge() {
+        const wrap = document.getElementById('notif-badge-wrap');
+        if (!wrap) return;
+        const esOwnerOTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+        wrap.style.display = esOwnerOTeam ? '' : 'none';
+        if (!esOwnerOTeam) return;
+        const noLeidas = _loadNotifs().filter(n=>!n.leida).length;
+        const badge = document.getElementById('notif-count-badge');
+        if (!badge) return;
+        badge.textContent = noLeidas > 0 ? String(noLeidas > 99 ? '99+' : noLeidas) : '';
+        badge.style.display = noLeidas > 0 ? '' : 'none';
+    }
+
+    function _toggleNotifPanel() {
+        const panel   = document.getElementById('notif-panel');
+        const overlay = document.getElementById('notif-overlay');
+        if (!panel) return;
+        const open = panel.style.right === '0px';
+        panel.style.right   = open ? '-340px' : '0px';
+        if (overlay) overlay.style.display = open ? 'none' : 'block';
+        if (!open) _renderNotifPanel();
+    }
+
+    function _renderNotifPanel() {
+        const el = document.getElementById('notif-panel-content');
+        if (!el) return;
+        const notifs = _loadNotifs().slice().reverse();
+        const ICONS  = { sugerencia:'fa-lightbulb', aprobacion:'fa-circle-check', completado:'fa-flag-checkered' };
+        if (!notifs.length) {
+            el.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--texto-secundario);">
+                <i class="fa-solid fa-bell-slash" style="font-size:36px;opacity:.2;display:block;margin-bottom:14px;"></i>
+                Sin notificaciones pendientes</div>`;
+            return;
+        }
+        el.innerHTML = notifs.map((n) => {
+            const f = new Date(n.fecha).toLocaleString('es-MX',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+            const verBtn = n.referencia_id ? `<button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="_irANotif('${n.id}','${n.referencia_id}')"><i class="fa-solid fa-arrow-right"></i> Ver</button>` : '';
+            return `<div onclick="_marcarNotifLeida('${n.id}')" style="padding:14px 18px;border-bottom:1px solid var(--color-borde,#eee);cursor:pointer;${n.leida?'opacity:.5;':'background:rgba(196,133,90,.04);'}">
+                <div style="display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fa-solid ${ICONS[n.tipo]||'fa-bell'}" style="color:var(--color-primario,#C4855A);margin-top:2px;font-size:13px;flex-shrink:0;"></i>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:11px;font-weight:700;color:var(--texto-secundario);margin-bottom:3px;">${n.de} · ${f}</div>
+                        <div style="font-size:13px;color:var(--texto-principal);line-height:1.45;">${n.mensaje}</div>
+                        ${verBtn}
+                    </div>
+                    ${!n.leida?'<div style="width:7px;height:7px;border-radius:50%;background:var(--color-primario,#C4855A);flex-shrink:0;margin-top:4px;"></div>':''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function _marcarNotifLeida(id) {
+        const arr = _loadNotifs();
+        const n = arr.find(x=>x.id===String(id));
+        if (n) n.leida = true;
+        _saveNotifs(arr);
+        _renderNotifBadge();
+        _renderNotifPanel();
+    }
+
+    function _marcarTodasLeidas() {
+        const arr = _loadNotifs().map(n=>({...n, leida:true}));
+        _saveNotifs(arr);
+        _renderNotifBadge();
+        _renderNotifPanel();
+    }
+
+    function _irANotif(notifId, refId) {
+        _marcarNotifLeida(notifId);
+        _toggleNotifPanel();
+        irA('vista-shooting');
+        renderShootingGrid();
+    }
+
+    /* ============= PARTE 4 — GUIÓN GENERADO POR IA ============= */
+    function _generarGuionToma(shootingId, tomaId) {
+        const sesion = DB.datos[SUC_ACTIVA].shooting.find(x=>x.id===shootingId);
+        const toma   = sesion?.tomas?.find(x=>x.id===tomaId);
+        if (!toma) return;
+        const NOMBRES = {'sergio26':'Sergio','dulce26':'Dulce','angeles26':'Ángeles'};
+        const nombre  = NOMBRES[toma.asignado_a] || toma.asignado_a || 'el equipo';
+        const durSec  = parseInt((toma.duracion||'').match(/\d+/)?.[0]||'30');
+        const palabras = Math.round(durSec * 2.3);
+        const prompt = `Genera un guión/pitch de ${toma.duracion||'30 seg'} para ${nombre} de Aitama Clinical Wellness.\nLa toma es: ${toma.descripcion}.\nCorresponde al post: ${toma.post_vinculado||'(sin post vinculado)'}.\nTono: cálido, experto, cercano. Sin lenguaje promocional agresivo.\nMáximo ${palabras} palabras para ${toma.duracion||'30 seg'}.`;
+        const _copy = () => { _showToast('Prompt copiado — pégalo en Claude'); };
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(prompt).then(_copy).catch(() => {
+                _legacyCopy(prompt); _copy();
+            });
+        } else { _legacyCopy(prompt); _copy(); }
+    }
+
+    function _legacyCopy(txt) {
+        const ta = document.createElement('textarea');
+        ta.value = txt; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); } finally { document.body.removeChild(ta); }
+    }
+
+    function _renderTomasSection(s, isOwnerTeam) {
+        const tomas = s.tomas || [];
+        if (!tomas.length) return '';
+        const NOMBRES = {'sergio26':'Sergio','dulce26':'Dulce','angeles26':'Ángeles'};
+        return `<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-borde);">
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;"><i class="fa-solid fa-clapperboard" style="margin-right:5px;"></i>Tomas planificadas (${tomas.length})</div>
+            ${tomas.map(t => {
+                const resp   = t.asignado_a ? (NOMBRES[t.asignado_a]||t.asignado_a) : '';
+                const genBtn = isOwnerTeam && t.requiere_guion
+                    ? `<button class="btn btn-xs btn-fantasma" style="margin-top:5px;" onclick="event.stopPropagation();_generarGuionToma('${s.id}','${t.id}')"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:9px;"></i> Generar guión</button>`
+                    : '';
+                return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-borde);">
+                    <label style="cursor:pointer;flex-shrink:0;margin-top:3px;">
+                        <input type="checkbox" ${t.completado?'checked':''} onchange="_toggleTomaCompletada('${s.id}','${t.id}',this.checked)">
+                    </label>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-size:11px;font-weight:800;color:var(--color-primario);">${t.id||''} · ${t.formato||''} ${t.duracion?'· '+t.duracion:''}</div>
+                        <div style="font-size:13px;color:var(--texto-principal);line-height:1.4;">${t.descripcion||''}</div>
+                        ${resp?`<div style="font-size:11px;color:var(--texto-secundario);margin-top:2px;"><i class="fa-solid fa-user"></i> ${resp}</div>`:''}
+                        ${genBtn}
+                    </div>
+                    ${t.completado?`<i class="fa-solid fa-check" style="color:#15803D;font-size:11px;flex-shrink:0;margin-top:4px;"></i>`:''}
+                </div>`;
+            }).join('')}
+        </div>`;
+    }
+
     /* ============= MÓDULO 4: AGENDA DE SHOOTING ============= */
+
+    // Mapea el USUARIO_ACTIVO al identificador usado en tomas.asignado_a
+    function _getShootingIdentifier() {
+        if (!USUARIO_ACTIVO) return null;
+        const MAP = { u_sergio:'sergio26', u_dulce:'dulce26', u_angeles:'angeles26' };
+        return MAP[USUARIO_ACTIVO.id] || null;
+    }
+
+    function _toggleTomaCompletada(shootingId, tomaId, done) {
+        const s = DB.datos[SUC_ACTIVA].shooting.find(x => x.id === shootingId);
+        if (!s || !s.tomas) return;
+        const t = s.tomas.find(t => t.id === String(tomaId));
+        if (t) { t.completado = done; guardarBD(); }
+    }
+
+    function _enviarSugerenciaShooting(shootingId, tomaId, ti) {
+        const txtEl = document.getElementById('sug-txt-' + shootingId + '-' + ti);
+        const texto = txtEl?.value?.trim();
+        if (!texto) { alert('Escribe tu sugerencia antes de enviar.'); return; }
+        _addNotif('sugerencia', USUARIO_ACTIVO?.nombre||'Dirección', 'owner', texto, shootingId);
+        if (txtEl) txtEl.value = '';
+        const panel = document.getElementById('sug-panel-' + shootingId + '-' + tomaId);
+        if (panel) panel.style.display = 'none';
+        _showToast('Sugerencia enviada al Owner');
+    }
+
+    function _renderShootingPersonalView(shootingArr, identifier, isDireccion) {
+        const grid = document.getElementById('shooting-grid');
+        if (!identifier) { grid.innerHTML = `<div style="text-align:center;padding:60px;color:var(--texto-secundario);">No se pudo identificar tu usuario.</div>`; return; }
+
+        // Recopilar tomas asignadas agrupadas por sesión
+        const bySesion = {};
+        shootingArr.forEach(sesion => {
+            (sesion.tomas || []).forEach((t, ti) => {
+                if (t.asignado_a !== identifier) return;
+                if (!bySesion[sesion.id]) bySesion[sesion.id] = { sesion, items: [] };
+                bySesion[sesion.id].items.push({ toma: t, ti });
+            });
+        });
+
+        const grupos = Object.values(bySesion);
+        if (!grupos.length) {
+            grid.innerHTML = `<div style="text-align:center;padding:72px 40px;color:var(--texto-secundario);background:#fff;border-radius:20px;border:1px solid var(--color-borde);box-shadow:var(--sombra-suave);">
+                <i class="fa-solid fa-camera" style="font-size:44px;opacity:.18;display:block;margin-bottom:20px;color:var(--color-primario);"></i>
+                <p style="font-size:15px;font-weight:600;color:var(--texto-principal);margin-bottom:8px;">Sin tomas asignadas en este periodo</p>
+                <p style="font-size:13px;line-height:1.6;">Cuando te asignen tomas aparecerán aquí.</p>
+            </div>`;
+            return;
+        }
+
+        grid.innerHTML = grupos.map(({ sesion, items }) => {
+            const tomasHTML = items.map(({ toma, ti }) => {
+                const guionCard = toma.requiere_guion
+                    ? `<div style="background:rgba(196,133,90,.08);border-left:3px solid var(--color-primario);border-radius:0 8px 8px 0;padding:12px 14px;margin:10px 0;">
+                           <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--color-primario);margin-bottom:6px;">Guión / Pitch</div>
+                           <div style="font-size:13px;line-height:1.65;">${toma.guion||'<em style="opacity:.5;">Sin guión asignado aún</em>'}</div>
+                       </div>` : '';
+
+                const panelId = `sug-panel-${sesion.id}-${toma.id||ti}`;
+                const txtId   = `sug-txt-${sesion.id}-${ti}`;
+                const sugerenciaHTML = isDireccion
+                    ? `<div id="${panelId}" style="display:none;margin-top:10px;">
+                           <textarea id="${txtId}" placeholder="Escribe tu sugerencia o idea..." rows="3"
+                               style="width:100%;border:1px solid var(--color-borde);border-radius:8px;padding:8px;font-size:12px;resize:vertical;box-sizing:border-box;"></textarea>
+                           <div style="display:flex;gap:6px;margin-top:6px;">
+                               <button class="btn btn-xs btn-primario" onclick="_enviarSugerenciaShooting('${sesion.id}','${toma.id||ti}',${ti})"><i class="fa-solid fa-paper-plane"></i> Enviar</button>
+                               <button class="btn btn-xs btn-fantasma" onclick="document.getElementById('${panelId}').style.display='none'">Cancelar</button>
+                           </div>
+                       </div>
+                       <button class="btn btn-xs btn-fantasma" style="margin-top:10px;" onclick="document.getElementById('${panelId}').style.display='block';this.style.display='none'">
+                           <i class="fa-solid fa-lightbulb"></i> Tengo una sugerencia
+                       </button>` : '';
+
+                return `<div style="border:1px solid var(--color-borde);border-radius:12px;padding:14px 16px;margin-bottom:10px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+                        <div style="flex:1;">
+                            <div style="font-size:11px;font-weight:800;color:var(--color-primario);margin-bottom:4px;">${toma.id||''} · ${toma.formato||''} ${toma.duracion?'· '+toma.duracion:''}</div>
+                            <div style="font-size:14px;font-weight:600;color:var(--texto-principal);">${toma.descripcion||''}</div>
+                            ${toma.post_vinculado?`<div style="font-size:11px;color:var(--texto-secundario);margin-top:3px;"><i class="fa-solid fa-link"></i> ${toma.post_vinculado}</div>`:''}
+                        </div>
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;flex-shrink:0;margin-top:2px;">
+                            <input type="checkbox" ${toma.completado?'checked':''} onchange="_toggleTomaCompletada('${sesion.id}','${toma.id||ti}',this.checked)">
+                            <span style="font-size:11px;font-weight:700;white-space:nowrap;">Hecho</span>
+                        </label>
+                    </div>
+                    ${guionCard}${sugerenciaHTML}
+                </div>`;
+            }).join('');
+
+            return `<div class="shooting-card">
+                <div class="shooting-header">
+                    <div>
+                        <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${sesion.fecha} · ${sesion.hora||''}</div>
+                        <div class="shooting-titulo">${sesion.titulo}</div>
+                        ${sesion.locacion?`<div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${sesion.locacion}</div>`:''}
+                    </div>
+                </div>
+                <div class="shooting-body">${tomasHTML}</div>
+            </div>`;
+        }).join('');
+    }
+
+    function _abrirImportShooting() {
+        const ok = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
+        if (!ok) return;
+        document.getElementById('shooting-import-json').value = '';
+        document.getElementById('modal-importar-shooting').classList.add('activo');
+    }
+
+    function _importarShootingJSON() {
+        const txt = (document.getElementById('shooting-import-json')||{}).value || '';
+        let parsed;
+        try { parsed = JSON.parse(txt); } catch(e) { alert('JSON inválido: ' + e.message); return; }
+        const data = parsed.shooting || parsed;
+        if (!data.titulo || !data.fecha) { alert('El JSON necesita al menos "titulo" y "fecha".'); return; }
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d.shooting) d.shooting = [];
+        const idx = d.shooting.findIndex(s => s.titulo === data.titulo && s.fecha === data.fecha);
+        if (idx >= 0) {
+            if (!confirm(`Ya existe "${data.titulo}" el ${data.fecha}. ¿Reemplazarlo?`)) return;
+            d.shooting.splice(idx, 1);
+        }
+        d.shooting.push({
+            id:               'sh_imp_' + Date.now() + '_' + Math.random().toString(36).substr(2,4),
+            titulo:           data.titulo,
+            fecha:            data.fecha,
+            hora:             data.hora_inicio || '10:00',
+            hora_fin:         data.hora_fin || '',
+            locacion:         data.ubicacion || '',
+            servicio:         data.servicio || '',
+            direccion_drive:  data.direccion_drive || '',
+            moodboard:        data.notas_generales || '',
+            equipo:           [],
+            checklist:        (data.tomas||[]).map(t => ({ hecho: t.completado||false, texto: t.descripcion||'' })),
+            tomas:            (data.tomas||[]).map(t => ({
+                id:             String(t.id||('T'+Date.now())),
+                descripcion:    t.descripcion||'',
+                formato:        t.formato||'',
+                duracion:       t.duracion||'',
+                post_vinculado: t.post_vinculado||'',
+                requiere_guion: t.requiere_guion||false,
+                guion:          t.guion||'',
+                asignado_a:     t.asignado_a||'',
+                completado:     t.completado||false
+            })),
+            estado:           data.estado || 'programado',
+            notas_generales:  data.notas_generales || ''
+        });
+        guardarBD(); cerrarModales(); renderShootingGrid();
+        alert('Shooting importado correctamente.');
+    }
+
     function _canEditShooting() {
         if (!USUARIO_ACTIVO) return ROL === 'agencia';
         return ['owner','direccion'].includes(USUARIO_ACTIVO.rol_id) && !ROL_SIMULADO;
     }
 
+        function _toggleShootingFiltro() {
+            const actual = sessionStorage.getItem('shooting_ver_todos') === '1';
+            sessionStorage.setItem('shooting_ver_todos', actual ? '0' : '1');
+            renderShootingGrid();
+        }
+
         function renderShootingGrid() {
         const d = DB.datos[SUC_ACTIVA];
-        const shooting = d.shooting || [];
+        const shootingAll = d.shooting || [];
         const canEdit = _canEditShooting();
+
+        // Filtro por periodo del dashboard
+        const _verTodos = sessionStorage.getItem('shooting_ver_todos') === '1';
+        const _desde = window.dashPeriodo?.desde;
+        const _hasta = window.dashPeriodo?.hasta;
+        const shooting = (_verTodos || !_desde || !_hasta)
+            ? shootingAll
+            : shootingAll.filter(s => s.fecha >= _desde && s.fecha <= _hasta);
+
+        // Botón toggle
+        const btnF = document.getElementById('btn-shooting-filtro');
+        if (btnF) btnF.innerHTML = _verTodos
+            ? '<i class="fa-solid fa-calendar-check"></i> Ver periodo actual'
+            : '<i class="fa-solid fa-list"></i> Ver todos';
+
+        // Roles
+        const _isOwnerOrTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+        const _isDireccion   = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id==='direccion' && !ROL_SIMULADO;
+        const _isEquipo      = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id==='equipo';
 
         // Mostrar/ocultar botones del encabezado según rol
         const btnN = document.getElementById('btn-nuevo-shooting');
         const btnG = document.getElementById('btn-generar-shooting');
+        const btnI = document.getElementById('btn-importar-shooting');
         if (btnN) btnN.style.display  = canEdit ? '' : 'none';
         if (btnG) btnG.style.display  = canEdit ? '' : 'none';
+        if (btnI) btnI.style.display  = _isOwnerOrTeam ? '' : 'none';
 
-        document.getElementById('shooting-grid').innerHTML = shooting.map((s, si) => {
+        // Equipo y Dirección ven solo sus tomas personales
+        if (_isEquipo || _isDireccion) {
+            _renderShootingPersonalView(shootingAll, _getShootingIdentifier(), _isDireccion);
+            return;
+        }
+
+        // Estado vacío
+        if (!shooting.length) {
+            const hayFueraDelPeriodo = !_verTodos && shootingAll.length > 0;
+            document.getElementById('shooting-grid').innerHTML = `
+                <div style="text-align:center;padding:72px 40px;color:var(--texto-secundario);background:#FFFFFF;border-radius:20px;border:1px solid var(--color-borde);box-shadow:var(--sombra-suave);">
+                    <i class="fa-solid fa-camera" style="font-size:44px;opacity:0.18;display:block;margin-bottom:20px;color:var(--color-primario);"></i>
+                    <p style="font-size:15px;font-weight:600;color:var(--texto-principal);margin-bottom:8px;">
+                        ${hayFueraDelPeriodo ? 'No hay shootings programados para este periodo' : 'Sin sesiones de shooting programadas'}
+                    </p>
+                    ${hayFueraDelPeriodo
+                        ? `<button class="btn btn-fantasma" style="margin-top:12px;" onclick="_toggleShootingFiltro()"><i class="fa-solid fa-list"></i> Ver todos los shootings</button>`
+                        : `<p style="font-size:13px;line-height:1.6;">Usa <strong>Nueva Sesión</strong> para comenzar a planificar.</p>`}
+                </div>`;
+            return;
+        }
+
+        document.getElementById('shooting-grid').innerHTML = shooting.map((s, _si) => {
+            const si = shootingAll.indexOf(s); // índice real en d.shooting[] (distinto al filtrado)
             const done  = (s.checklist||[]).filter(c=>c.hecho).length;
             const total = (s.checklist||[]).length;
             const pct   = total > 0 ? Math.round(done/total*100) : 0;
@@ -5196,6 +6108,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:10px;">Contenidos a capturar</div>
                     <ul class="shooting-checklist">${checklistHTML}</ul>
                     <div class="shooting-equipo">${equipoHTML}</div>
+                    ${_renderTomasSection(s, _isOwnerOrTeam)}
                     ${canEdit ? `
                     <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--color-borde);display:flex;gap:8px;flex-wrap:wrap;">
                         <button class="btn btn-xs btn-fantasma" onclick="agregarCheckShooting('${s.id}')"><i class="fa-solid fa-plus"></i> Contenido</button>
@@ -5359,6 +6272,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!a) return;
         a[campo] = ['inversion','alcance','clics','conversiones','cpr'].includes(campo) ? (Number(valor)||0) : valor;
         guardarBD();
+        if (campo === 'inversion' || campo === 'estado') _syncAdsToPresupuesto();
         _refreshAdsKpi();
         setTimeout(renderAdsCharts, 80);
         // Update header card display without full re-render
@@ -5669,6 +6583,9 @@ document.addEventListener('DOMContentLoaded', function() {
                             ${s.cta ? `<span style="background:rgba(0,0,0,0.04); border:1px solid var(--color-borde-fuerte); border-radius:6px; padding:3px 9px; font-size:12px; font-weight:700; color:var(--texto-principal);"><i class="fa-solid fa-arrow-pointer" style="margin-right:4px; color:var(--texto-secundario);"></i>${s.cta}</span>` : ''}
                             ${s.estado ? _storyEstadoBadge(s.estado) : ''}
                         </div>
+                        <div style="font-size:11px;color:var(--texto-secundario);display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:2px;">
+                            <i class="fa-solid fa-photo-film" style="font-size:9px;opacity:.5;"></i>${_renderActivosStory(s.id)}
+                        </div>
                     </div>
                     ${ROL==='agencia' ? `
                     <div style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
@@ -5827,46 +6744,86 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function generarShootingDesdeParrilla() {
-        const kanban = DB.datos[SUC_ACTIVA].kanban || [];
-        const videoTags = kanban.filter(t => {
-            const tags = (t.tags || '').toLowerCase();
-            return tags.includes('reel') || tags.includes('asmr') || tags.includes('video');
-        });
-        if (!videoTags.length) { alert('No hay posts con tags Reel, ASMR o Video en la parrilla.'); return; }
+        const d   = DB.datos[SUC_ACTIVA];
+        const kanban = d.kanban || [];
+        const desde = window.dashPeriodo?.desde;
+        const hasta = window.dashPeriodo?.hasta;
 
-        const byDate = {};
-        videoTags.forEach(t => {
-            const d = t.fecha || 'Sin fecha';
-            if (!byDate[d]) byDate[d] = [];
-            byDate[d].push(t);
+        // Tags que implican material visual nuevo
+        const VISUAL_TAGS = ['reel','video','foto','bts','asmr'];
+        // Tags de formato (para aislar el servicio)
+        const FORMAT_SET  = new Set(['reel','asmr','bts','video','foto','historia','story','post','pauta','urgente','carrusel','countdown','educativo','testimonio','reel','link']);
+        // Títulos que ya están en algún shooting (para no duplicar)
+        const enShooting  = new Set();
+        (d.shooting||[]).forEach(s => {
+            (s.checklist||[]).forEach(c => enShooting.add(c.texto));
+            (s.tomas||[]).forEach(t => { if(t.post_vinculado) enShooting.add(t.post_vinculado); });
+        });
+
+        const elegibles = kanban.filter(t => {
+            if (desde && hasta && t.fecha && (t.fecha < desde || t.fecha > hasta)) return false;
+            const est  = (t.estado||'').toLowerCase();
+            if (!['ideas','producción','produccion'].some(e => est.includes(e))) return false;
+            const tags = (t.tags||'').toLowerCase();
+            if (!VISUAL_TAGS.some(vt => tags.includes(vt))) return false;
+            if (enShooting.has(t.titulo)) return false;
+            return true;
+        });
+
+        if (!elegibles.length) {
+            alert('No hay posts elegibles en el periodo activo.\nRequiere: estado Ideas/Producción · tags Reel/Video/Foto/BTS · no asignados aún a un shooting.');
+            return;
+        }
+
+        // Agrupar por servicio (primer tag que no sea de formato)
+        const byServicio = {};
+        elegibles.forEach(t => {
+            const partes   = (t.tags||'').split(',').map(x=>x.trim()).filter(Boolean);
+            const servicio = partes.find(p => !FORMAT_SET.has(p.toLowerCase())) || 'General';
+            if (!byServicio[servicio]) byServicio[servicio] = [];
+            byServicio[servicio].push(t);
         });
 
         let created = 0, updated = 0;
-        Object.entries(byDate).sort().forEach(([fecha, posts]) => {
-            const existente = DB.datos[SUC_ACTIVA].shooting.find(s => s.fecha === fecha);
-            if (existente) {
-                posts.forEach(p => {
-                    const yaExiste = existente.checklist.some(c => c.texto === p.titulo);
-                    if (!yaExiste) existente.checklist.push({ hecho: false, texto: p.titulo });
-                });
-                updated++;
+        Object.entries(byServicio).forEach(([servicio, posts]) => {
+            const fechas   = posts.map(p=>p.fecha).filter(Boolean).sort();
+            const fecha    = fechas[0] || new Date().toISOString().split('T')[0];
+            const existing = d.shooting.find(s =>
+                s.servicio === servicio && (!desde || !hasta || (s.fecha >= desde && s.fecha <= hasta))
+            );
+
+            if (existing) {
+                const agregar = confirm(
+                    `Ya existe "${existing.titulo}" para el servicio "${servicio}".\n\n¿Agregar los posts a ese shooting?\n(Cancelar = crear nuevo shooting)`
+                );
+                if (agregar) {
+                    posts.forEach(p => {
+                        if (!existing.checklist.some(c=>c.texto===p.titulo))
+                            existing.checklist.push({ hecho:false, texto:p.titulo });
+                    });
+                    updated++;
+                } else {
+                    d.shooting.push({ id:'sh'+Date.now()+'_'+Math.random().toString(36).substr(2,4),
+                        titulo:`Shooting ${servicio} · ${fecha}`, fecha, hora:'10:00', locacion:'Por definir',
+                        servicio, moodboard:posts.map(p=>p.titulo).join(' · '),
+                        equipo:[], checklist:posts.map(p=>({hecho:false,texto:p.titulo})), tomas:[], estado:'programado' });
+                    created++;
+                }
             } else {
-                DB.datos[SUC_ACTIVA].shooting.push({
-                    id: 'sh' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                    titulo: 'Shooting ' + fecha,
-                    fecha: fecha, hora: '10:00', locacion: 'Por definir',
-                    moodboard: posts.map(p => p.titulo).join(' · '),
-                    equipo: [],
-                    checklist: posts.map(p => ({ hecho: false, texto: p.titulo }))
-                });
+                d.shooting.push({ id:'sh'+Date.now()+'_'+Math.random().toString(36).substr(2,4),
+                    titulo:`Shooting ${servicio} · ${fecha}`, fecha, hora:'10:00', locacion:'Por definir',
+                    servicio, moodboard:posts.map(p=>p.titulo).join(' · '),
+                    equipo:[], checklist:posts.map(p=>({hecho:false,texto:p.titulo})), tomas:[], estado:'programado' });
                 created++;
             }
         });
+
         guardarBD(); renderShootingGrid();
-        const msg = `${created} sesión${created !== 1 ? 'es' : ''} creada${created !== 1 ? 's' : ''}, ${updated} actualizada${updated !== 1 ? 's' : ''}.`;
+        const msg = `${created} sesión${created!==1?'es':''} creada${created!==1?'s':''}, ${updated} actualizada${updated!==1?'s':''}.`;
         const s = document.getElementById('status-save');
         s.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
-        s.style.opacity = 1; setTimeout(() => { s.style.opacity = 0; setTimeout(() => { s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado'; }, 300); }, 3000);
+        s.style.opacity = 1;
+        setTimeout(() => { s.style.opacity = 0; setTimeout(() => { s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado'; }, 300); }, 3000);
     }
 
     /* ================================================================
@@ -7433,7 +8390,41 @@ function _xlsConfirmar() {
     setTimeout(() => toast.remove(), 3200);
 }
 </script>
-```
+
+<!-- Modal: Preview importar backup -->
+<div class="fondo-modal" id="modal-import-backup">
+    <div class="modal-caja" style="max-width:540px;">
+        <div class="modal-header">
+            <h3>Importar backup de datos</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="import-backup-preview" style="padding:24px;display:flex;flex-direction:column;gap:12px;"></div>
+        <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;border-radius:0 0 20px 20px;">
+            <label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:6px;">Escribe <strong>CONFIRMAR</strong> para continuar:</label>
+            <input id="import-confirmar-text" class="textarea-apple" style="min-height:auto;padding:10px 14px;margin-bottom:12px;" placeholder="CONFIRMAR" oninput="_checkImportConfirm()">
+            <div style="display:flex;justify-content:flex-end;gap:8px;">
+                <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+                <button id="btn-ejecutar-import" class="btn btn-primario" disabled style="opacity:.4;cursor:not-allowed;" onclick="_ejecutarImportBackup()"><i class="fa-solid fa-rotate"></i> Restaurar datos</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast global -->
+<div id="lanka-toast" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 22px;border-radius:100px;font-size:13px;font-weight:600;z-index:9999;opacity:0;pointer-events:none;white-space:nowrap;transition:opacity .25s;box-shadow:0 4px 16px rgba(0,0,0,.3);"></div>
+
+<!-- Panel lateral de notificaciones -->
+<div id="notif-panel" style="position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--color-tarjeta,#fff);border-left:1px solid var(--color-borde,#eee);box-shadow:-4px 0 24px rgba(0,0,0,.08);z-index:9000;transition:right .25s ease;display:flex;flex-direction:column;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--color-borde,#eee);">
+        <div style="font-family:var(--font-display,sans-serif);font-size:15px;font-weight:800;"><i class="fa-solid fa-bell" style="margin-right:8px;color:var(--color-primario,#C4855A);"></i>Notificaciones</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-xs btn-fantasma" onclick="_marcarTodasLeidas()" style="font-size:11px;">Marcar todo leído</button>
+            <button onclick="_toggleNotifPanel()" style="background:none;border:none;cursor:pointer;color:var(--texto-secundario);font-size:16px;padding:4px;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+    <div id="notif-panel-content" style="flex:1;overflow-y:auto;"></div>
+</div>
+<div id="notif-overlay" onclick="_toggleNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8999;background:rgba(0,0,0,.15);"></div>
 
 </body>
 </html>
