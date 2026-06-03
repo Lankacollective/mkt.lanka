@@ -994,6 +994,13 @@
 </style>
 ```
 
+<!-- Pasos 2-4: Supabase client + credenciales inyectadas en build -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_URL      = '__SUPABASE_URL__';
+  window.SUPABASE_ANON_KEY = '__SUPABASE_ANON_KEY__';
+  window.__supabase = null;
+</script>
 </head>
 <body class="tema-login">
 
@@ -2174,9 +2181,31 @@ document.addEventListener('DOMContentLoaded', function() {
     let _calFecha = new Date();
 
     /* ====== BOOT & LOGIN (ORIGINAL — SIN CAMBIOS) ====== */
-    document.addEventListener("DOMContentLoaded", () => {
-        const guardado = localStorage.getItem('LANKA_FINAL_2027_PRO');
-        DB = guardado ? JSON.parse(guardado) : JSON.parse(JSON.stringify(DATOS_SEMILLA));
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Paso 4: inicializar cliente Supabase
+        if (window.SUPABASE_URL && window.SUPABASE_URL !== '__SUPABASE_URL__') {
+            window.__supabase = supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        }
+        // Paso 6: cargar DB (Supabase → localStorage → semilla)
+        await inicializarDB();
+        // Paso 7: suscripción Realtime — recibir cambios de otros usuarios
+        if (window.__supabase) {
+            window.__supabase
+                .channel('lanka_changes')
+                .on('postgres_changes',
+                    { event: 'UPDATE', schema: 'public', table: 'lanka_db' },
+                    (payload) => {
+                        if (payload.new?.data &&
+                                payload.new.updated_by !== (USUARIO_ACTIVO?.username || 'unknown')) {
+                            DB = payload.new.data;
+                            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                            if (typeof renderTodas === 'function') renderTodas();
+                            console.log('✓ Tiempo real — actualización de:', payload.new.updated_by);
+                        }
+                    }
+                )
+                .subscribe();
+        }
         
         // Migrar datos viejos que no tengan los nuevos arrays
         const _aitamaDefaults = [
@@ -2426,10 +2455,50 @@ document.addEventListener('DOMContentLoaded', function() {
         return formatMoneda(num, moneda);
     }
     
-    function guardarBD() {
+    // Paso 5: guardarBD — guarda en localStorage Y Supabase
+    async function guardarBD() {
         localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         const s = document.getElementById('status-save');
-        s.style.opacity = 1; setTimeout(() => s.style.opacity = 0, 1500);
+        if (s) { s.style.opacity = 1; setTimeout(() => s.style.opacity = 0, 1500); }
+        if (window.__supabase) {
+            try {
+                await window.__supabase.from('lanka_db').upsert({
+                    id: 'main',
+                    data: DB,
+                    updated_at: new Date().toISOString(),
+                    updated_by: USUARIO_ACTIVO?.username || 'unknown'
+                });
+            } catch(e) { console.error('Supabase save error:', e); }
+        }
+    }
+
+    // Paso 6: inicializarDB — carga con prioridad Supabase → localStorage → semilla
+    async function inicializarDB() {
+        if (window.__supabase) {
+            try {
+                const { data, error } = await window.__supabase
+                    .from('lanka_db')
+                    .select('data, updated_at')
+                    .eq('id', 'main')
+                    .single();
+                if (!error && data?.data && Object.keys(data.data).length > 0) {
+                    DB = data.data;
+                    localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                    console.log('✓ Datos cargados desde Supabase:', data.updated_at);
+                    return;
+                }
+            } catch(e) { console.error('Error cargando desde Supabase:', e); }
+        }
+        const guardado = localStorage.getItem('LANKA_FINAL_2027_PRO');
+        if (guardado) {
+            DB = JSON.parse(guardado);
+            console.log('✓ Datos cargados desde localStorage (offline)');
+            // Primera vez con Supabase — subir datos locales
+            if (window.__supabase) guardarBD();
+        } else {
+            DB = JSON.parse(JSON.stringify(DATOS_SEMILLA));
+            console.log('✓ Primera vez — datos semilla');
+        }
     }
 
     async function obtenerTipoCambio() {
