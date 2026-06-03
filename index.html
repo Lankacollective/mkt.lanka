@@ -2066,115 +2066,30 @@ document.addEventListener('DOMContentLoaded', function() {
         ],
         datos: {
             aitama: {
-                highlights: [{ label: "Ventas totales", val: "$12.5k" }, { label: "Seguidores nuevos", val: "+840" }, { label: "Total DMs", val: "1.2k" }],
-                rendimiento: [
-                    { m: "Clientes nuevos",          v1:18,    v2:24,    pre:"",  meta:"30"    },
-                    { m: "Clientes recurrentes",     v1:42,    v2:48,    pre:"",  meta:"50"    },
-                    { m: "Clientes recuperados",     v1:6,     v2:9,     pre:"",  meta:"10"    },
-                    { m: "Ventas",                   v1:10200, v2:12500, pre:"$", meta:"15000" },
-                    { m: "CAC",                      v1:95,    v2:85,    pre:"$", meta:"80"    },
-                    { m: "DMs generados",            v1:950,   v2:1210,  pre:"",  meta:"1500"  },
-                    { m: "Inversión en pauta",       v1:1800,  v2:2400,  pre:"$", meta:"2400"  },
-                    { m: "% Cumplimiento parrilla",  v1:72,    v2:85,    pre:"",  meta:"90"    }
-                ],
-                productos: [{ m: "Facial Rituales", pct: 42 }, { m: "Masajes", pct: 31 }, { m: "Kits Holísticos", pct: 18 }],
-                objetivos: [{ m: "Ventas", o: "$15,000" }, { m: "Clientes nuevos", o: "30" }, { m: "Parrilla", o: "90%" }],
-                txt_working: "Reels con audio ASMR generaron un 40% más de guardados. El CTA directo en stories funciona perfecto a las 8am.",
-                txt_change: "Bajar la frecuencia de carruseles genéricos a la mitad. Eliminar promociones de alto descuento que matan el ticket medio.",
-                insights: [
-                    { f: "2026-05-01", c: "Reel Día de las Madres (Test Pauta)", r: "$500 mxn -> 20 Leads", a: "El CTA de mensaje directo funciona mejor que mandar a landing page. Replicar en campaña de Junio." },
-                    { f: "2026-04-15", c: "Promo Flash Fin de Semana", r: "Ventas +15%, Ticket Medio -5%", a: "El volumen sube pero la rentabilidad cae. Solo usar para limpiar inventario, no como estrategia core." }
-                ],
-                kanban: [ 
-                    { id: "k1", titulo: "Video 1 Día de la Madre", fecha: "2026-05-04", hora: "18:00", estado: "Programado", tags: "Reel, Pauta", target_id: "t1", hook: "hay mujeres que cargan con todo sin pedir nada a cambio. para la tuya — esto.", copy: "este mes le das a ella lo que nunca se da a sí misma. los paquetes del día de las madres ya están listos en aitama.", hashtags: "#AitamaSpa #SpaMorelia", manychat: "MAMÁ", pauta: "★ Pautar directamente. Objetivo: Mensajes. $600 MXN", stories: "6:10 pm - Clip del Reel + sticker enlace\n8:00 pm - no es un facial más.", asignado_a: "Sergio" },
-                    { id: "k2", titulo: "Reel ASMR Masaje", fecha: "2026-05-12", hora: "07:00", estado: "Producción", tags: "ASMR", target_id: "", hook: "Video abre con aceite cayendo sobre espalda en cámara lenta. Sin texto.", copy: "ya cuidaste a todos. ahora le toca a tu cuerpo guardar todo lo que cargó este mes.", hashtags: "#MasajeHolistico #SpaMorelia", manychat: "TENSIÓN", pauta: "Superar 500 vistas orgánicas -> Meta Ads", stories: "", asignado_a: "Ángeles Fernández" }
-                ],
-                dam: [ { id: "d1", nombre: "Video_Madre_V1.mp4", tipo: "fa-film", estado: "Aprobado", version: 1, url: "", historial: [{autor: "Cliente", fecha: "2026-05-02", accion: "Aprobado", nota: "Ok"}, {autor: "Agencia", fecha: "2026-05-01", accion: "Carga", nota: "V1"}] } ],
-                presupuesto: [
-                    { categoria:"Lanka",          item:"Honorarios de agencia", tipo:"Honorarios de agencia",  montos_mes:Array.from({length:12},()=>({inversion:8000,colaboracion:0})) },
-                    { categoria:"Meta Ads",       item:"Pauta Meta/Instagram",  tipo:"Pauta digital",          montos_mes:Array.from({length:12},()=>({inversion:2400,colaboracion:0})) },
-                    { categoria:"Google",          item:"Google Ads",            tipo:"Pauta digital",          montos_mes:Array.from({length:12},()=>({inversion:0,  colaboracion:0})) },
-                    { categoria:"Impresos",        item:"Tent Cards y Menús",    tipo:"Materiales offline",     montos_mes:Array.from({length:12},()=>({inversion:540, colaboracion:0})) },
-                    { categoria:"Producción",      item:"Shooting mensual",      tipo:"Producción de contenido",montos_mes:Array.from({length:12},()=>({inversion:800, colaboracion:0})) },
-                    { categoria:"Herramientas",    item:"Software & Plataformas",tipo:"Infraestructura digital",montos_mes:Array.from({length:12},()=>({inversion:360, colaboracion:0})) },
-                    { categoria:"Colaboraciones",  item:"Influencers / Alianzas",tipo:"Colaboraciones",        montos_mes:Array.from({length:12},()=>({inversion:0,  colaboracion:500})) }
-                ],
-                facturas: [ { folio: "F-01", proveedor: "Google", concepto: "Workspace", monto: 1500, estado: "Pendiente" } ],
-                briefing: {
-                    reglas: ["Cero descuentos públicos.", "Nunca dar precio en el primer DM. Evaluar necesidad primero.", "Re-booking en cabina antes de salir."],
-                    cofepris: true,
-                    cofepris_notas: "No usar términos como 'cura', 'trata' o 'elimina'. Evitar claims clínicos sin respaldo. Los términos de bienestar general están permitidos.",
-                    tono_ejemplos: [
-                        { correcto: "tu cuerpo acumuló tensión esta semana", evitar: "¡Aprovecha nuestras increíbles promociones!" },
-                        { correcto: "un espacio para soltar lo que cargaste", evitar: "Somos los mejores del mercado" },
-                        { correcto: "¿mañana o tarde?", evitar: "¡No te lo pierdas! ¡Últimos lugares!" }
-                    ],
-                    palabras_prohibidas: ["descuento","promoción","gratis","oferta","¡","nosotros","garantizamos","cura","trata","elimina"],
-                    palabras_clave: ["recuperación","sistema nervioso","tensión","soltar","ritual","protocolo clínico"],
-                    manychat: [
-                        { id:"mc_1", keyword:"TENSIÓN", mensaje:"hola, gracias por escribir. el protocolo de tensión muscular de aitama trabaja el sistema nervioso desde el tejido profundo. ¿quieres que te cuente qué incluye según lo que sientes? ¿mañana o tarde?", objetivo:"Agendar", estado:"Activo", activaciones_mes:0 },
-                        { id:"mc_2", keyword:"UPGRADE", mensaje:"esta semana al reservar tu facial incluimos un masaje de piernas cansadas sin costo. ¿te agendamos? ¿mañana o tarde?", objetivo:"Agendar", estado:"Activo", activaciones_mes:0 },
-                        { id:"mc_3", keyword:"RESET", mensaje:"el body reset es un programa de recuperación real, no una sesión suelta. esta semana tiene precio especial. ¿quieres que te explique qué incluye según lo que tu cuerpo necesita?", objetivo:"Cerrar venta", estado:"Activo", activaciones_mes:0 },
-                        { id:"mc_4", keyword:"MAYO", mensaje:"cerramos mayo el viernes. quedan los últimos lugares con upgrade y precio especial de body reset. ¿ya lo decidiste?", objetivo:"Cerrar venta", estado:"Activo", activaciones_mes:0 },
-                        { id:"mc_5", keyword:"MAMÁ", mensaje:"los paquetes del día de las madres están listos. hay tres opciones según lo que quieras regalarle. ¿te cuento cuál va mejor con ella?", objetivo:"Agendar", estado:"Inactivo", activaciones_mes:0 }
-                    ],
-                    horarios: {
-                        grid: { lun_m:"optimo",lun_t:"bueno",lun_n:"", mar_m:"optimo",mar_t:"bueno",mar_n:"", mie_m:"bueno",mie_t:"optimo",mie_n:"", jue_m:"optimo",jue_t:"bueno",jue_n:"", vie_m:"optimo",vie_t:"optimo",vie_n:"bueno", sab_m:"bueno",sab_t:"evitar",sab_n:"", dom_m:"",dom_t:"evitar",dom_n:"" },
-                        por_formato: { reel:"7:00", story:"20:00", post:"12:00", pauta:"6:00" }
-                    }
-                },
-                mood: Array.from({length: 12}, () => ({ emocion: "Relajación", bebida: "Té Matcha", producto: "Facial" })),
-                target: [ { id: "t1", segmento: "Mamás Jóvenes", sexo: "Mujer", nivel: "A/B", ubicacion: "Morelia (10km)" }, { id: "t2", segmento: "Ejecutivos Estrés", sexo: "Ambos", nivel: "C+", ubicacion: "Zona Financiera" } ],
-                // ===== DATOS NUEVOS MÓDULOS =====
-                ads: [
-                    { id: "a1", nombre: "Día de las Madres — Mensajes", plataforma: "Meta", inversion: 600, alcance: 18400, clics: 320, conversiones: 24, cpr: 25, segmento: "Mamás Jóvenes · Morelia", estado: "Activa", inicio: "2026-05-01", fin: "2026-05-10" },
-                    { id: "a2", nombre: "ASMR Facial — Awareness", plataforma: "Meta", inversion: 400, alcance: 22000, clics: 180, conversiones: 11, cpr: 36, segmento: "Ejecutivos Estrés · CDMX", estado: "Pausada", inicio: "2026-04-15", fin: "2026-04-30" },
-                    { id: "a3", nombre: "Masaje Holístico — Leads", plataforma: "Meta", inversion: 800, alcance: 31000, clics: 510, conversiones: 38, cpr: 21, segmento: "Ambos · A/B", estado: "Finalizada", inicio: "2026-03-01", fin: "2026-03-31" }
-                ],
-                offline: [
-                    { id: "o1", nombre: "Menú Tratamientos V3", categoria: "Impreso", cantidad: 50, proveedor: "Imprenta Morelia", costo_unit: 45, estado: "Listo", entrega: "2026-05-01" },
-                    { id: "o2", nombre: "Señalética Entrada", categoria: "Señalética", cantidad: 2, proveedor: "Rótulos Express", costo_unit: 850, estado: "Producción", entrega: "2026-05-15" },
-                    { id: "o3", nombre: "Uniformes Staff (5u)", categoria: "Uniforme", cantidad: 5, proveedor: "Bordados MX", costo_unit: 320, estado: "Pendiente", entrega: "2026-05-20" },
-                    { id: "o4", nombre: "Tent Cards Recepción", categoria: "Impreso", cantidad: 30, proveedor: "Imprenta Morelia", costo_unit: 12, estado: "Revisar", entrega: "2026-05-08" }
-                ],
-                shooting: [
-                    { id: "sh1", titulo: "Shooting Día de la Madre", fecha: "2026-05-03", hora: "10:00", locacion: "Cabina Principal — Aitama", moodboard: "Tonos cálidos, velas encendidas, aceite en piel, slow motion. Colores: crema, terracota, verde salvia.", equipo: ["Fotógrafo: Luis R.", "Modelo: Sofía M.", "Dirección: Paola"], checklist: [{ hecho: true, texto: "Reel cámara lenta — aceite en espalda (Hero Shot)" }, { hecho: true, texto: "Foto pack paquetes Día de Madre (Still)" }, { hecho: false, texto: "Video ritual facial completo 60s" }, { hecho: false, texto: "BTS stories — detrás del shooting" }, { hecho: false, texto: "Fotos ambiente cabina (Arquitectónicas)" }] },
-                    { id: "sh2", titulo: "Contenido Evergreen Junio", fecha: "2026-05-22", hora: "09:00", locacion: "Sala de Masajes + Recepción", moodboard: "Minimalista, tono editorial. Blanco y beige. Detalle de manos, productos en línea. Sin texto en video.", equipo: ["Fotógrafo: Luis R.", "Dirección: Paola"], checklist: [{ hecho: false, texto: "10 fotos producto para feed" }, { hecho: false, texto: "Reel ASMR masaje craneal" }, { hecho: false, texto: "Carrousel 'Ritual semanal'" }, { hecho: false, texto: "Video boomerang — productos" }] }
-                ],
-                stories_ind: [
-                    { id: "st1", dia: "2026-05-27", hora: "08:00", tipo: "DM", copy: "¿Tienes tensión acumulada? Este mes lo resolvemos. Escríbenos la palabra TENSIÓN.", cta: "TENSIÓN", post_vinculado: "k2" },
-                    { id: "st2", dia: "2026-05-31", hora: "20:00", tipo: "encuesta", copy: "¿Qué necesitas más esta semana?", cta: "Vota aquí", post_vinculado: "" }
-                ],
-                kpi_semanal: [
-                    { id:"s1", semana:"Semana 1", fecha:"2026-05-01", clientes_nuevos:8,  clientes_recurrentes:22, clientes_recuperados:4, ventas:5200, dms:480, ticket_medio:1040 },
-                    { id:"s2", semana:"Semana 2", fecha:"2026-05-08", clientes_nuevos:10, clientes_recurrentes:18, clientes_recuperados:3, ventas:4800, dms:420, ticket_medio:960  },
-                    { id:"s3", semana:"Semana 3", fecha:"2026-05-15", clientes_nuevos:6,  clientes_recurrentes:20, clientes_recuperados:2, ventas:6100, dms:580, ticket_medio:1220 }
-                ],
-                engagement_formato: [
-                    { id:"eng_1", semana:"Semana 1", fecha:"2026-05-01", formato:"Reel",     alcance:8200,  interacciones:820  },
-                    { id:"eng_2", semana:"Semana 1", fecha:"2026-05-01", formato:"Historia", alcance:4100,  interacciones:312  },
-                    { id:"eng_3", semana:"Semana 2", fecha:"2026-05-08", formato:"Reel",     alcance:9100,  interacciones:1001 },
-                    { id:"eng_4", semana:"Semana 2", fecha:"2026-05-08", formato:"Carrusel", alcance:3200,  interacciones:288  },
-                    { id:"eng_5", semana:"Semana 3", fecha:"2026-05-15", formato:"Reel",     alcance:12500, interacciones:1500 },
-                    { id:"eng_6", semana:"Semana 3", fecha:"2026-05-15", formato:"Story",    alcance:5400,  interacciones:486  }
-                ],
-                historico_mensual: [
-                    {mes:"Ene",ventas:8200, seguidores:380, dms:600},
-                    {mes:"Feb",ventas:9100, seguidores:490, dms:780},
-                    {mes:"Mar",ventas:10200,seguidores:620, dms:950},
-                    {mes:"Abr",ventas:11000,seguidores:710, dms:1050},
-                    {mes:"May",ventas:12500,seguidores:840, dms:1210},
-                    {mes:"Jun",ventas:0,    seguidores:0,   dms:0},
-                    {mes:"Jul",ventas:0,    seguidores:0,   dms:0},
-                    {mes:"Ago",ventas:0,    seguidores:0,   dms:0},
-                    {mes:"Sep",ventas:0,    seguidores:0,   dms:0},
-                    {mes:"Oct",ventas:0,    seguidores:0,   dms:0},
-                    {mes:"Nov",ventas:0,    seguidores:0,   dms:0},
-                    {mes:"Dic",ventas:0,    seguidores:0,   dms:0}
-                ]
+                highlights: [{ label: "Ventas totales", val: "0" }, { label: "Seguidores nuevos", val: "0" }, { label: "Total DMs", val: "0" }],
+                rendimiento: (PRESETS_METRICAS.wellness||[]).map(p=>({...p})),
+                productos: [],
+                objetivos: [],
+                txt_working: "",
+                txt_change: "",
+                insights: [],
+                kanban: [],
+                dam: [],
+                presupuesto: [],
+                facturas: [],
+                briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } },
+                mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })),
+                target: [],
+                ads: [],
+                offline: [],
+                shooting: [],
+                stories_ind: [],
+                kpi_semanal: [],
+                engagement_formato: [],
+                historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0}))
             },
             mammut: {
-                highlights: [{ label: "Total Sales", val: "$0" }, { label: "New Followers", val: "0" }, { label: "Total DMs", val: "0" }],
+                highlights: [{ label: "Ventas totales", val: "0" }, { label: "Seguidores nuevos", val: "0" }, { label: "Total DMs", val: "0" }],
                 rendimiento: [], productos: [], objetivos: [], txt_working: "", txt_change: "", insights: [],
                 kanban: [], dam: [], presupuesto: [], facturas: [], briefing: { reglas: [], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } },
                 mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: [],
@@ -3714,18 +3629,23 @@ document.addEventListener('DOMContentLoaded', function() {
         const mNuevos = { v2: kpiAcc.clientes_nuevos,      v1: (_findMetrica(rend,['nuevo'])).v1 };
         const mRecurr = { v2: kpiAcc.clientes_recurrentes, v1: (_findMetrica(rend,['recurrent'])).v1 };
         const mRecup  = { v2: kpiAcc.clientes_recuperados, v1: (_findMetrica(rend,['recuper'])).v1 };
-        const cac     = mNuevos.v2 > 0 ? Math.round(invTotal / mNuevos.v2) : null;
-        const cacPrev = mNuevos.v1 > 0 ? Math.round(invTotal / mNuevos.v1) : null;
+        const cac     = (invTotal > 0 && mNuevos.v2 > 0) ? Math.round(invTotal / mNuevos.v2) : null;
+        const cacPrev = (invTotal > 0 && mNuevos.v1 > 0) ? Math.round(invTotal / mNuevos.v1) : null;
+        const cacNullTip = invTotal === 0
+            ? 'Agrega la inversión del mes en Presupuesto'
+            : mNuevos.v2 === 0
+            ? 'Agrega clientas nuevas en el Ejecutor de KPIs'
+            : null;
         const _metas  = _getKpiMetas();
         const _canMeta = _canEditKPIs();
 
-        const kpiMini = (label, icon, color, rgb, val, v1, pre, campo, inverso) => {
+        const kpiMini = (label, icon, color, rgb, val, v1, pre, campo, inverso, nullTip) => {
             const pct = v1 > 0 && val !== null ? +((val-v1)/v1*100).toFixed(1) : null;
             const delta = pct !== null
                 ? `<span class="var-badge ${pct>=0&&!inverso?'var-positive':pct<0&&!inverso?'var-negative':pct<=0&&inverso?'var-positive':'var-negative'}" style="display:inline-flex;font-size:10px;">${pct>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`
                 : '';
             const display = val === null
-                ? `<span style="color:var(--texto-secundario);">—</span>`
+                ? `<span style="color:var(--texto-secundario);${nullTip?'cursor:help;':''}"${nullTip?` title="${nullTip}"`:''}>${nullTip?'<i class="fa-solid fa-circle-info" style="opacity:.35;font-size:10px;margin-right:3px;"></i>':''} —</span>`
                 : pre==='$' ? formatDinero(val) : Number(val).toLocaleString('es-MX');
             const meta = _metas[campo] || 0;
             let bar = '';
@@ -3771,7 +3691,7 @@ document.addEventListener('DOMContentLoaded', function() {
             kpiMini('Clientes nuevos',      'fa-user-plus',       'var(--brand-tone-base)',  'var(--brand-tone-base-rgb)',  mNuevos.v2, mNuevos.v1, '',  'nuevos',      false) +
             kpiMini('Clientes recurrentes', 'fa-rotate',          'var(--brand-tone-light)', 'var(--brand-tone-light-rgb)', mRecurr.v2, mRecurr.v1, '',  'recurrentes', false) +
             (_showRecup ? kpiMini('Clientes recuperados', 'fa-heart-circle-plus','var(--brand-tone-dark)','var(--brand-tone-dark-rgb)', mRecup.v2, mRecup.v1, '', 'recuperados', false) : '') +
-            kpiMini('CAC Real',             'fa-calculator',      'var(--brand-tone-dark)',  'var(--brand-tone-dark-rgb)',  cac,        cacPrev,    '$', 'cac',         true) +
+            kpiMini('CAC Real',             'fa-calculator',      'var(--brand-tone-dark)',  'var(--brand-tone-dark-rgb)',  cac,        cacPrev,    '$', 'cac',         true, cacNullTip) +
             _toggleBtn;
     }
 
@@ -5595,7 +5515,6 @@ document.addEventListener('DOMContentLoaded', function() {
     let _pendingBackup = null;
 
     function _leerBackupArchivo(input) {
-        if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO)) return;
         const file = input.files[0];
         if (!file) return;
         input.value = '';
@@ -5661,7 +5580,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function _ejecutarImportBackup() {
-        if (!(USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO)) return;
         if (!_pendingBackup) return;
         if (document.getElementById('import-confirmar-text')?.value !== 'CONFIRMAR') return;
 
