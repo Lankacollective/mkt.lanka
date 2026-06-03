@@ -82,9 +82,14 @@
     
     nav { width: 260px; padding: 32px 20px; background: var(--color-fondo); border-right: 1px solid var(--color-borde); display: flex; flex-direction: column; z-index: 100; overflow-y: auto; }
     .marca { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--color-primario); margin-bottom: 24px; letter-spacing: -0.04em; transition: color 0.3s ease; }
-    .badge-rol { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 32px; text-align: center; letter-spacing: 0.05em; }
+    .badge-rol { padding: 6px 12px; border-radius: 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; margin-bottom: 8px; text-align: center; letter-spacing: 0.05em; }
     .badge-agencia { background: rgba(196,133,90,0.1); color: var(--color-primario); }
     .badge-cliente { background: rgba(234, 67, 53, 0.1); color: var(--color-peligro); }
+    #perfil-dropdown-menu { display:none; margin: 0 6px 20px; background:var(--color-tarjeta); border:1px solid var(--color-borde); border-radius:12px; padding:6px; box-shadow:0 4px 20px rgba(0,0,0,.1); }
+    #perfil-dropdown-menu.activo { display:block; }
+    .perfil-dd-item { display:flex; align-items:center; gap:9px; padding:9px 10px; border-radius:8px; font-size:12px; font-weight:600; cursor:pointer; color:var(--texto-principal); background:none; border:none; width:100%; text-align:left; transition:background .15s; }
+    .perfil-dd-item:hover { background:rgba(0,0,0,.04); }
+    .perfil-dd-sep { height:1px; background:var(--color-borde); margin:5px 0; }
     
     .menu-titulo { font-size: 11px; text-transform: uppercase; color: var(--texto-secundario); margin: 24px 0 8px 12px; font-weight: 700; letter-spacing: 0.05em; }
     .menu-nav { list-style: none; display: flex; flex-direction: column; gap: 4px; }
@@ -941,6 +946,7 @@
     nav.nav-colapsada .nav-head { justify-content: center; padding: 0 0 14px; }
     nav.nav-colapsada .nav-head .marca { display: none !important; }
     nav.nav-colapsada #badge-rol { display: none !important; }
+    nav.nav-colapsada #perfil-dropdown-menu { display: none !important; }
     nav.nav-colapsada .menu-titulo { display: none !important; }
     nav.nav-colapsada .item-nav { justify-content: center !important; padding: 12px 0 !important; border-left: none !important; }
     nav.nav-colapsada .item-nav .nav-label { display: none !important; }
@@ -1012,7 +1018,29 @@
             <div class="marca">LANKA</div>
             <button class="nav-toggle-btn" id="nav-toggle-btn" onclick="toggleNavCollapse()" title="Colapsar menú"><i class="fa-solid fa-chevron-left"></i></button>
         </div>
-        <div id="badge-rol" class="badge-rol" onclick="cerrarSesion()" title="Cerrar sesión" style="cursor:pointer; position:relative;" onmouseenter="this.style.opacity='0.75'" onmouseleave="this.style.opacity='1'"></div>
+        <div id="badge-rol" class="badge-rol" onclick="_togglePerfilDropdown()" title="Perfil y sesión" style="cursor:pointer;position:relative;display:flex;align-items:center;justify-content:center;gap:6px;" onmouseenter="this.style.opacity='0.8'" onmouseleave="this.style.opacity='1'">
+            <span id="badge-rol-text"></span>
+            <i class="fa-solid fa-chevron-down" style="font-size:8px;opacity:.6;"></i>
+        </div>
+
+        <div id="perfil-dropdown-menu">
+            <div style="padding:10px 10px 6px;">
+                <div id="perfil-dd-nombre" style="font-size:13px;font-weight:700;color:var(--texto-principal);"></div>
+                <div id="perfil-dd-rol" style="font-size:11px;color:var(--texto-secundario);margin-top:1px;"></div>
+            </div>
+            <div class="perfil-dd-sep"></div>
+            <button class="perfil-dd-item" onclick="_togglePerfilDropdown();exportarDatosSistema()">
+                <i class="fa-solid fa-download" style="font-size:11px;color:var(--texto-secundario);width:14px;text-align:center;"></i> Exportar mis datos
+            </button>
+            <label class="perfil-dd-item" style="cursor:pointer;">
+                <i class="fa-solid fa-upload" style="font-size:11px;color:var(--texto-secundario);width:14px;text-align:center;"></i> Importar datos
+                <input type="file" accept=".json" style="display:none;" onchange="_togglePerfilDropdown();_leerBackupArchivo(this)">
+            </label>
+            <div class="perfil-dd-sep"></div>
+            <button class="perfil-dd-item" style="color:var(--color-peligro);" onclick="cerrarSesion()">
+                <i class="fa-solid fa-arrow-right-from-bracket" style="font-size:11px;width:14px;text-align:center;"></i> Cerrar sesión
+            </button>
+        </div>
 
         <div class="menu-titulo req-no-equipo">Inteligencia</div>
         <ul class="menu-nav req-no-equipo">
@@ -2555,7 +2583,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if(ROL === 'agencia') {
             document.getElementById('badge-rol').className = 'badge-rol badge-agencia';
-            document.getElementById('badge-rol').innerText = 'Agencia (Editor)';
+            (document.getElementById('badge-rol-text')||document.getElementById('badge-rol')).innerText = 'Agencia (Editor)';
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = '');
             document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = '');
             document.querySelectorAll('.req-equipo').forEach(el => el.style.display = 'none');
@@ -2566,7 +2594,7 @@ document.addEventListener('DOMContentLoaded', function() {
             sel.value = SUC_ACTIVA;
         } else if (ROL === 'equipo') {
             document.getElementById('badge-rol').className = 'badge-rol badge-equipo';
-            document.getElementById('badge-rol').innerText = USUARIO_EQUIPO + ' · Equipo';
+            (document.getElementById('badge-rol-text')||document.getElementById('badge-rol')).innerText = USUARIO_EQUIPO + ' · Equipo';
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.req-equipo').forEach(el => el.style.display = '');
@@ -2580,7 +2608,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (miTareasNav) miTareasNav.classList.add('activo');
         } else {
             document.getElementById('badge-rol').className = 'badge-rol badge-cliente';
-            document.getElementById('badge-rol').innerText = 'Cliente (Lector)';
+            (document.getElementById('badge-rol-text')||document.getElementById('badge-rol')).innerText = 'Cliente (Lector)';
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = '');
             document.querySelectorAll('.req-equipo').forEach(el => el.style.display = 'none');
@@ -3079,7 +3107,32 @@ document.addEventListener('DOMContentLoaded', function() {
         const yr = new Date(s.fecha+'T00:00:00').getFullYear();
         s.semana = `${fmt(s.fecha)} – ${fmt(hasta)} ${yr}`;
     }
-    document.addEventListener('keydown', function(e) { if (e.key==='Escape') closeEjecutorModal(); });
+    document.addEventListener('keydown', function(e) { if (e.key==='Escape') { closeEjecutorModal(); document.getElementById('perfil-dropdown-menu')?.classList.remove('activo'); } });
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('perfil-dropdown-menu');
+        if (!menu || !menu.classList.contains('activo')) return;
+        const badge = document.getElementById('badge-rol');
+        if (!menu.contains(e.target) && !badge?.contains(e.target)) menu.classList.remove('activo');
+    }, true);
+
+    function _togglePerfilDropdown() {
+        const menu = document.getElementById('perfil-dropdown-menu');
+        if (!menu) return;
+        const open = menu.classList.contains('activo');
+        if (!open) {
+            const nombre = document.getElementById('perfil-dd-nombre');
+            const rolEl  = document.getElementById('perfil-dd-rol');
+            if (USUARIO_ACTIVO) {
+                if (nombre) nombre.textContent = USUARIO_ACTIVO.nombre || '';
+                const rolObj = (DB.roles_sistema||[]).find(r=>r.id===USUARIO_ACTIVO.rol_id);
+                if (rolEl)  rolEl.textContent  = rolObj?.nombre || USUARIO_ACTIVO.rol_id || '';
+            } else {
+                if (nombre) nombre.textContent = 'Agencia (Editor)';
+                if (rolEl)  rolEl.textContent  = '';
+            }
+        }
+        menu.classList.toggle('activo', !open);
+    }
 
     function toggleEjecutor() {
         _ejecutorOpen = !(_ejecutorOpen ?? _canEditKPIs());
@@ -7473,7 +7526,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const badge = document.getElementById('badge-rol');
             badge.style.background = rol.color+'20';
             badge.style.color = rol.color;
-            badge.innerText = USUARIO_ACTIVO.nombre + ' · ' + rol.nombre;
+            (document.getElementById('badge-rol-text')||badge).innerText = USUARIO_ACTIVO.nombre + ' · ' + rol.nombre;
         }
         // Ver como dropdown — visible only for owner (not simulating)
         const vcw = document.getElementById('ver-como-wrap');
