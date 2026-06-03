@@ -1909,16 +1909,16 @@
 </div>
 
 <!-- Modal: Ejecutor de KPIs -->
-<div id="modal-ejecutor" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow-y:auto;padding:20px 12px;display:flex;align-items:flex-start;justify-content:center;" onclick="if(event.target===this)closeEjecutorModal()">
-    <div style="background:var(--color-tarjeta);border-radius:20px;max-width:1400px;width:95vw;margin:0 auto;border:1px solid var(--color-borde);box-shadow:var(--sombra-flotante);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;">
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--color-borde);">
+<div id="modal-ejecutor" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:20px 12px;align-items:flex-start;justify-content:center;" onclick="if(event.target===this)closeEjecutorModal()">
+    <div style="background:var(--color-tarjeta);border-radius:20px;max-width:1400px;width:95vw;margin:0 auto;border:1px solid var(--color-borde);box-shadow:var(--sombra-flotante);overflow:hidden;max-height:92vh;display:flex;flex-direction:column;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--color-borde);flex-shrink:0;">
             <div style="display:flex;align-items:center;gap:10px;">
                 <i class="fa-solid fa-table-cells-large" style="color:var(--color-primario);font-size:14px;"></i>
                 <span style="font-weight:800;font-size:15px;font-family:var(--font-display);">Ejecutor de KPIs</span>
             </div>
             <button onclick="closeEjecutorModal()" style="background:transparent;border:none;cursor:pointer;color:var(--texto-secundario);font-size:18px;padding:4px 8px;border-radius:8px;line-height:1;" title="Cerrar (Esc)"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div id="ejecutor-kpis-wrap" style="padding:0;overflow-y:auto;flex:1;"></div>
+        <div id="ejecutor-kpis-wrap" style="padding:0;overflow-y:auto;overflow-x:auto;flex:1;min-height:0;"></div>
     </div>
 </div>
 
@@ -2467,9 +2467,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Paso 5: guardarBD — guarda en localStorage Y Supabase
     async function guardarBD() {
+        // Guardar siempre en localStorage primero (sync, instantáneo)
         localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         const s = document.getElementById('status-save');
-        if (s) { s.style.opacity = 1; setTimeout(() => s.style.opacity = 0, 1500); }
         if (window.__supabase) {
             try {
                 await window.__supabase.from('lanka_db').upsert({
@@ -2478,7 +2478,31 @@ document.addEventListener('DOMContentLoaded', function() {
                     updated_at: new Date().toISOString(),
                     updated_by: USUARIO_ACTIVO?.username || 'unknown'
                 });
-            } catch(e) { console.error('Supabase save error:', e); }
+                // Éxito: mostrar checkmark verde
+                if (s) {
+                    s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado';
+                    s.style.color = 'var(--color-exito)';
+                    s.style.opacity = 1;
+                    setTimeout(() => s.style.opacity = 0, 1500);
+                }
+            } catch(e) {
+                console.error('Supabase save error:', e);
+                // Error: mostrar advertencia visible
+                if (s) {
+                    s.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sin conexión — guardado local';
+                    s.style.color = '#FBBC05';
+                    s.style.opacity = 1;
+                    setTimeout(() => s.style.opacity = 0, 4000);
+                }
+            }
+        } else {
+            // Sin Supabase configurado: solo local
+            if (s) {
+                s.innerHTML = '<i class="fa-solid fa-check"></i> Guardado';
+                s.style.color = 'var(--texto-secundario)';
+                s.style.opacity = 1;
+                setTimeout(() => s.style.opacity = 0, 1200);
+            }
         }
     }
 
@@ -3060,7 +3084,7 @@ document.addEventListener('DOMContentLoaded', function() {
             acc.ventas               += s.ventas               || 0;
             acc.dms                  += s.dms                  || 0;
             acc.citas_desde_dm       += s.citas_desde_dm       || 0;
-            if (s.seguidores_fin != null || s.seguidores_ini != null) {
+            if ((s.seguidores_fin||0) > 0 || (s.seguidores_ini||0) > 0) {
                 acc.crec_seg = (acc.crec_seg||0) + ((s.seguidores_fin||0)-(s.seguidores_ini||0));
                 if (s.seguidores_fin != null) acc.seguidores_fin = Math.max(acc.seguidores_fin||0, s.seguidores_fin);
             }
@@ -3151,7 +3175,7 @@ document.addEventListener('DOMContentLoaded', function() {
             acc.ventas               += s.ventas               || 0;
             acc.dms                  += s.dms                  || 0;
             acc.citas_desde_dm       += s.citas_desde_dm       || 0;
-            if (s.seguidores_fin != null || s.seguidores_ini != null) {
+            if ((s.seguidores_fin||0) > 0 || (s.seguidores_ini||0) > 0) {
                 acc.crec_seg = (acc.crec_seg||0) + ((s.seguidores_fin||0)-(s.seguidores_ini||0));
                 if (s.seguidores_fin != null) acc.seguidores_fin = Math.max(acc.seguidores_fin||0, s.seguidores_fin);
             }
@@ -3193,7 +3217,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function openEjecutorModal() {
         _ejecutorOpen = true;
         renderEjecutorKPIs();
-        document.getElementById('modal-ejecutor').style.display = '';
+        document.getElementById('modal-ejecutor').style.display = 'flex';
     }
     function closeEjecutorModal() {
         document.getElementById('modal-ejecutor').style.display = 'none';
@@ -3388,8 +3412,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const retC = c.retencion!==null?(parseFloat(c.retencion)>=60?'var(--color-exito)':parseFloat(c.retencion)>=40?'#9A7200':'var(--color-peligro)'):'';
             const bg = 'background:var(--color-fondo);';
             return `<tr>
-                <td style="padding:6px 8px;min-width:120px;">
-                    <input class="ejecutor-input" style="text-align:left;font-weight:700;" value="${s.semana||''}" ${ro}
+                <td style="padding:6px 8px;min-width:120px;overflow:hidden;">
+                    <input class="ejecutor-input" style="text-align:left;font-weight:700;width:100%;overflow:hidden;text-overflow:ellipsis;" value="${s.semana||''}" title="${s.semana||''}" ${ro}
                         oninput="DB.datos['${SUC_ACTIVA}'].kpi_semanal[${i}].semana=this.value;guardarBD();">
                     ${s.fuente==='excel_import'&&s.clientes_fuente?`<div style="margin-top:1px;">${_fb(s.clientes_fuente)}</div>`:''}
                 </td>
@@ -3570,16 +3594,16 @@ document.addEventListener('DOMContentLoaded', function() {
                             <col style="width:90px;"><col style="width:90px;"><col style="width:90px;"><!-- Nuevas Recurrentes Recuperadas -->
                             <col style="width:100px;"><col style="width:100px;"><!-- Ventas Ticket -->
                             <col style="width:90px;"><col style="width:90px;"><!-- DMs CitasDM -->
-                            <col style="width:90px;"><col style="width:90px;"><col style="width:80px;"><!-- Seg ini/fin TK -->
+                            <col style="width:90px;"><col style="width:90px;"><col style="width:80px;"><!-- Seg ini IG / Seg fin IG / Seg TK -->
                             <col style="width:80px;"><col style="width:80px;"><!-- Vistas Alcance -->
                             <col style="width:100px;"><col style="width:100px;"><col style="width:100px;"><col style="width:100px;"><!-- Calculados -->
-                            <col style="width:32px;"><!-- Trash -->
+                            ${canEdit?'<col style="width:32px;">':''}<!-- Trash -->
                         </colgroup>
                         <thead>
                             <tr>
                                 <th colspan="3" style="padding:4px;"></th>
                                 <th colspan="5" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#4A90D9;padding:5px 8px;text-align:center;border-bottom:2px solid rgba(66,133,244,.3);">Clientes</th>
-                                <th colspan="6" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--color-primario);padding:5px 8px;text-align:center;border-bottom:2px solid rgba(196,133,90,.3);">Contenido y redes</th>
+                                <th colspan="7" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--color-primario);padding:5px 8px;text-align:center;border-bottom:2px solid rgba(196,133,90,.3);">Contenido y redes</th>
                                 <th colspan="4" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#34A853;padding:5px 8px;text-align:center;border-bottom:2px solid rgba(52,168,83,.3);">Calculados</th>
                                 ${canEdit?'<th style="width:28px;"></th>':''}
                             </tr>
@@ -6574,8 +6598,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     /* ============= SISTEMA DE NOTIFICACIONES ============= */
     function _notifKey() { return 'notificaciones_' + SUC_ACTIVA; }
-    function _loadNotifs() { try { return JSON.parse(localStorage.getItem(_notifKey())||'[]'); } catch(e) { return []; } }
-    function _saveNotifs(arr) { localStorage.setItem(_notifKey(), JSON.stringify(arr)); }
+    function _loadNotifs() {
+        // Prioridad: DB (Supabase-synced) → localStorage (fallback offline)
+        if (DB && DB.notificaciones && DB.notificaciones[SUC_ACTIVA]) {
+            return DB.notificaciones[SUC_ACTIVA];
+        }
+        try { return JSON.parse(localStorage.getItem(_notifKey())||'[]'); } catch(e) { return []; }
+    }
+    function _saveNotifs(arr) {
+        // Guardar en DB para que se sincronice con Supabase
+        if (!DB.notificaciones) DB.notificaciones = {};
+        DB.notificaciones[SUC_ACTIVA] = arr;
+        guardarBD();
+        // También en localStorage como respaldo offline
+        try { localStorage.setItem(_notifKey(), JSON.stringify(arr)); } catch(e) {}
+    }
 
     function _addNotif(tipo, de, para, mensaje, referencia_id) {
         const arr = _loadNotifs();
