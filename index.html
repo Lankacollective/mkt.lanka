@@ -1066,7 +1066,7 @@
         <div class="menu-titulo">Orquestación</div>
         <ul class="menu-nav">
             <li class="item-nav req-no-equipo" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario Content</li>
-            <li class="item-nav req-no-equipo" data-target="vista-cal-editorial"><i class="fa-solid fa-calendar-check"></i> Calendario Visual</li>
+            <li class="item-nav req-no-equipo" data-target="vista-cal-editorial"><i class="fa-solid fa-table-columns"></i> Kanban</li>
             <li class="item-nav" data-target="vista-shooting"><i class="fa-solid fa-camera"></i> Agenda Shooting</li>
             <li class="item-nav" data-target="vista-dam"><i class="fa-solid fa-photo-film"></i> Gestión de Activos</li>
             <li class="item-nav req-no-equipo" data-target="vista-stories"><i class="fa-solid fa-film"></i> Stories</li>
@@ -1385,6 +1385,7 @@
                     <div class="kanban-col" ondrop="soltar(event, 'Producción')" ondragover="permitirSoltar(event)"><div class="kanban-header">Producción</div><div id="k-Producción"></div></div>
                     <div class="kanban-col" ondrop="soltar(event, 'Revisión')" ondragover="permitirSoltar(event)"><div class="kanban-header">Revisión Cliente</div><div id="k-Revisión"></div></div>
                     <div class="kanban-col" ondrop="soltar(event, 'Programado')" ondragover="permitirSoltar(event)"><div class="kanban-header">Programado</div><div id="k-Programado"></div></div>
+                    <div class="kanban-col" ondrop="soltar(event, 'Publicado')" ondragover="permitirSoltar(event)"><div class="kanban-header" style="color:#15803D;"><i class="fa-solid fa-circle-check" style="font-size:10px;margin-right:4px;"></i>Publicado</div><div id="k-Publicado"></div></div>
                 </div>
                 <div id="contenedor-parrilla" class="oculto"></div>
             </section>
@@ -2072,6 +2073,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         sucursales: [
             { id: "aitama", nombre: "Aitama Wellness", color: "#C4855A", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Aitama26"),
+              categorias_servicio: ["Head Spa","Facial","Masajes","Paquetes","Reductivos","Producto","Otro"],
               equipo_miembros: [
                 { nombre: "Ángeles Fernández", rol: "Fotógrafa", password: btoa("angeles26") },
                 { nombre: "Dulce", rol: "Asistente", password: btoa("dulce26") },
@@ -2079,7 +2081,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
               ]
             },
-            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"), equipo_miembros: [] }
+            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"), categorias_servicio: [], equipo_miembros: [] }
         ],
         datos: {
             aitama: {
@@ -2420,6 +2422,18 @@ document.addEventListener('DOMContentLoaded', function() {
         (DB.sucursales||[]).forEach(s => { if (!s.moneda) { s.moneda = 'MXN'; _monedaMigrated = true; } });
         if (_monedaMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
 
+        // Migrate: categorias_servicio — default wellness list for Aitama, empty for others
+        let _catSvcMigrated = false;
+        (DB.sucursales||[]).forEach(s => {
+            if (!s.categorias_servicio) {
+                s.categorias_servicio = s.tipo === 'wellness'
+                    ? ["Head Spa","Facial","Masajes","Paquetes","Reductivos","Producto","Otro"]
+                    : [];
+                _catSvcMigrated = true;
+            }
+        });
+        if (_catSvcMigrated) guardarBD();
+
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
         
         const items = document.querySelectorAll('.item-nav');
@@ -2508,31 +2522,55 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Paso 6: inicializarDB — carga con prioridad Supabase → localStorage → semilla
     async function inicializarDB() {
-        if (window.__supabase) {
-            try {
-                const { data, error } = await window.__supabase
-                    .from('lanka_db')
-                    .select('data, updated_at')
-                    .eq('id', 'main')
-                    .single();
-                if (!error && data?.data && Object.keys(data.data).length > 0) {
-                    DB = data.data;
-                    localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-                    console.log('✓ Datos cargados desde Supabase:', data.updated_at);
-                    return;
-                }
-            } catch(e) { console.error('Error cargando desde Supabase:', e); }
-        }
+        // ── Paso 1: cargar INMEDIATAMENTE desde localStorage (no bloqueante) ──
         const guardado = localStorage.getItem('LANKA_FINAL_2027_PRO');
         if (guardado) {
-            DB = JSON.parse(guardado);
-            console.log('✓ Datos cargados desde localStorage (offline)');
-            // Primera vez con Supabase — subir datos locales
-            if (window.__supabase) guardarBD();
-        } else {
+            try {
+                DB = JSON.parse(guardado);
+                console.log('✓ Datos cargados desde localStorage');
+            } catch(e) { console.warn('localStorage corrupto, usando semilla'); }
+        }
+        if (!DB || !DB.sucursales) {
             DB = JSON.parse(JSON.stringify(DATOS_SEMILLA));
             console.log('✓ Primera vez — datos semilla');
         }
+
+        // ── Paso 2: sincronizar con Supabase en SEGUNDO PLANO (sin bloquear UI) ──
+        if (window.__supabase) {
+            console.time('supabase-load');
+            const _timeout = setTimeout(() => {
+                console.warn('Supabase load: timeout 3s — app iniciando con datos locales');
+            }, 3000);
+
+            window.__supabase
+                .from('lanka_db')
+                .select('data, updated_at')
+                .eq('id', 'main')
+                .single()
+                .then(({ data, error }) => {
+                    clearTimeout(_timeout);
+                    console.timeEnd('supabase-load');
+                    if (!error && data?.data && Object.keys(data.data).length > 0) {
+                        const yaEnApp = !!SUC_ACTIVA;
+                        DB = data.data;
+                        localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                        console.log('✓ Datos sincronizados desde Supabase:', data.updated_at);
+                        // Si el usuario ya inició sesión, refrescar silenciosamente
+                        if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                    } else if (!guardado) {
+                        // Sin datos locales y Supabase vacío → subir semilla
+                        guardarBD();
+                    }
+                })
+                .catch(e => {
+                    clearTimeout(_timeout);
+                    console.timeEnd('supabase-load');
+                    console.warn('Supabase load error:', e);
+                    // Si no hay datos locales, subir semilla cuando haya conexión
+                    if (!guardado && window.__supabase) guardarBD();
+                });
+        }
+        // Retorna inmediatamente — UI disponible sin esperar Supabase
     }
 
     async function obtenerTipoCambio() {
@@ -2903,13 +2941,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (_dist.items.length === 0) {
                 _prodEl.innerHTML = `<div style="text-align:center;padding:20px 12px;color:var(--texto-secundario);"><i class="fa-solid fa-chart-pie" style="font-size:22px;opacity:.2;display:block;margin-bottom:8px;"></i><p style="font-size:12px;">Sin campañas registradas en este período.</p></div>`;
             } else {
-                _prodEl.innerHTML = _dist.items.map(item => `
-                    <div class="bar-row" style="align-items:center;gap:8px;">
-                        <span style="flex:0 0 120px;text-align:right;font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${item.nombre}">${item.nombre}</span>
-                        <div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:${item.porcentaje}%;box-shadow:0 0 6px rgba(var(--brand-rgb),.3);"></div></div>
-                        <span style="font-size:11px;font-weight:800;min-width:32px;text-align:right;">${item.porcentaje}%</span>
-                        ${item.monto!==null?`<span style="font-size:10px;color:var(--texto-secundario);min-width:60px;text-align:right;">${formatDinero(item.monto)}</span>`:''}
-                    </div>`).join('');
+                const _catPalette = ['var(--brand-tone-base)','var(--brand-tone-light)','var(--brand-tone-dark)','#4A90D9','#34A853','#8B5CF6','#FBBC05','#E8705A'];
+                _prodEl.innerHTML = _dist.items.map((item, ci) => {
+                    const color = _catPalette[ci % _catPalette.length];
+                    const tipCampanas = item.campanas && item.campanas.length ? `${item.campanas.length} campaña${item.campanas.length>1?'s':''}: ${item.campanas.join(', ')}` : '';
+                    return `<div class="bar-row" style="align-items:center;gap:8px;" title="${tipCampanas}">
+                        <span style="flex:0 0 100px;text-align:right;font-size:11px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:default;" title="${item.nombre}${tipCampanas?' — '+tipCampanas:''}">${item.nombre}</span>
+                        <div class="bar-track" style="flex:1;"><div class="bar-fill" style="width:${item.porcentaje}%;background:${color};box-shadow:0 0 6px ${color === 'var(--brand-tone-base)'?'rgba(var(--brand-rgb),.3)':color+'40'};"></div></div>
+                        <span style="font-size:11px;font-weight:800;min-width:32px;text-align:right;color:${color};">${item.porcentaje}%</span>
+                        ${item.monto!==null?`<span style="font-size:10px;color:var(--texto-secundario);min-width:58px;text-align:right;">${formatDinero(item.monto)}</span>`:''}
+                    </div>`;
+                }).join('');
             }
         }
         // txt-working / txt-change
@@ -3816,10 +3858,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (adsConInv.length > 0) {
             const total = adsConInv.reduce((s,a)=>s+(a.inversion||0),0);
-            const items = adsConInv.map(a=>({
-                nombre: a.nombre,
-                monto:  a.inversion||0,
-                porcentaje: total>0 ? +((a.inversion||0)/total*100).toFixed(1) : 0
+            // Agrupar por categoría
+            const grupos = {};
+            adsConInv.forEach(a => {
+                const cat = a.categoria || '';
+                if (!grupos[cat]) grupos[cat] = { monto: 0, campanas: [] };
+                grupos[cat].monto += a.inversion || 0;
+                grupos[cat].campanas.push(a.nombre);
+            });
+            const items = Object.entries(grupos).map(([cat, g]) => ({
+                nombre:     cat || 'Sin categoría',
+                monto:      g.monto,
+                campanas:   g.campanas,
+                porcentaje: total > 0 ? +((g.monto / total) * 100).toFixed(1) : 0
             })).sort((a,b)=>b.monto-a.monto);
             return { items, fuente:'Ad Performance', total };
         }
@@ -4734,7 +4785,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const d = DB.datos[SUC_ACTIVA];
         const canEdit = _getPermisos('calendario', 'editar');
         const ro = canEdit ? '' : 'readonly';
-        let kHTML = {'Ideas':'','Producción':'','Revisión':'','Programado':''};
+        let kHTML = {'Ideas':'','Producción':'','Revisión':'','Programado':'','Publicado':''};
         let pHTML = '';
         let targetOpts = d.target.map(t => `<option value="${t.id}">${t.segmento}</option>`).join('');
         [...d.kanban].sort((a,b) => new Date(a.fecha) - new Date(b.fecha)).forEach((t) => {
@@ -4745,15 +4796,16 @@ document.addEventListener('DOMContentLoaded', function() {
             const asignadoOpts = `<option value="">Sin asignar</option>` + miembros_suc.map(m => `<option value="${m.nombre}" ${t.asignado_a===m.nombre?'selected':''}>${m.nombre}</option>`).join('');
             const asignadoSel = canEdit ? `<select class="select-celda" style="width:160px; border:1px solid var(--color-borde); background:#fafafa; font-size:12px; border-radius:8px;" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].asignado_a=this.value;guardarBD()">${asignadoOpts}</select>` : `<span style="font-size:12px; color:var(--texto-secundario);">${t.asignado_a || 'Sin asignar'}</span>`;
             const asignadoChip = t.asignado_a ? `<div style="margin-top:6px;"><span style="background:rgba(74,144,217,0.1); color:#4A90D9; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;"><i class="fa-solid fa-user-tie" style="margin-right:4px;"></i>${t.asignado_a}</span></div>` : '';
-            kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag}><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div>${asignadoChip}</div>`;
-            let optEst = ['Ideas','Producción','Revisión','Programado'].map(e => `<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
+            const _esPublicado = t.estado === 'Publicado';
+            kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag} style="${_esPublicado?'border-left:3px solid #15803D;':''}"><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${_esPublicado?'<i class="fa-solid fa-circle-check" style="color:#15803D;font-size:11px;margin-right:4px;"></i>':''}${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div>${asignadoChip}</div>`;
+            let optEst = ['Ideas','Producción','Revisión','Programado','Publicado'].map(e => `<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
             let selEst = canEdit ? `<select class="select-celda" style="width:120px; border:1px solid var(--color-borde); background:#fafafa; font-size:11px; text-transform:uppercase;" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value)">${optEst}</select>` : `<span class="tag gris">${t.estado}</span>`;
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
             let t_val = t.target_id || "";
             let selTarget = canEdit ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
             pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:10px;">${selEst} ${_damBadgeKanban(t.id)}<i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div><div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--color-borde);"><h4 style="font-size:11px;color:var(--texto-secundario);margin-bottom:8px;text-transform:uppercase;font-weight:700;letter-spacing:.06em;"><i class="fa-solid fa-photo-film" style="margin-right:4px;opacity:.7;"></i>Activos vinculados</h4>${_renderActivosKanban(t.id)}</div>${canEdit ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
         });
-        ['Ideas','Producción','Revisión','Programado'].forEach(e => { document.getElementById('k-'+e).innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
+        ['Ideas','Producción','Revisión','Programado','Publicado'].forEach(e => { const cel = document.getElementById('k-'+e); if(cel) cel.innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
         document.querySelectorAll('.req-agencia').forEach(el => el.style.display = ROL === 'cliente' ? 'none' : '');
     }
@@ -5693,6 +5745,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     function _saveServicios(sucId,arr) { localStorage.setItem('config_servicios_'+sucId,JSON.stringify(arr)); }
 
+    function _getCategorias(sucId) {
+        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
+        if (suc && Array.isArray(suc.categorias_servicio)) return suc.categorias_servicio;
+        const tipo = (suc||{}).tipo || 'otro';
+        return tipo === 'wellness' ? ["Head Spa","Facial","Masajes","Paquetes","Reductivos","Producto","Otro"] : [];
+    }
+    function _saveCategorias(sucId, arr) {
+        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
+        if (suc) { suc.categorias_servicio = arr; guardarBD(); }
+    }
+
     // ── Config list: drag state ─────────────────────────────────────
     let _cfgDragIdx=null, _cfgDragType=null;
     let _cfgEditIdx=null, _cfgEditType=null;
@@ -5700,33 +5763,35 @@ document.addEventListener('DOMContentLoaded', function() {
     function _cfgDragStart(type,idx){ _cfgDragIdx=idx; _cfgDragType=type; }
     function _cfgDragDrop(type,idx){
         if(_cfgDragIdx===null||_cfgDragType!==type||_cfgDragIdx===idx) return;
-        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):type==='servicios'?_getServicios(SUC_ACTIVA):_getProveedores(SUC_ACTIVA);
+        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):type==='servicios'?_getServicios(SUC_ACTIVA):type==='categorias'?_getCategorias(SUC_ACTIVA):_getProveedores(SUC_ACTIVA);
         const [m]=arr.splice(_cfgDragIdx,1); arr.splice(idx,0,m);
         if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr);
         else if(type==='servicios') _saveServicios(SUC_ACTIVA,arr);
+        else if(type==='categorias') _saveCategorias(SUC_ACTIVA,arr);
         else _saveProveedores(SUC_ACTIVA,arr);
         _cfgDragIdx=null; renderAdministracion();
     }
     function _cfgDeleteItem(type,idx){
         if(!confirm('¿Eliminar este elemento?')) return;
-        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):type==='servicios'?_getServicios(SUC_ACTIVA):_getProveedores(SUC_ACTIVA);
+        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):type==='servicios'?_getServicios(SUC_ACTIVA):type==='categorias'?_getCategorias(SUC_ACTIVA):_getProveedores(SUC_ACTIVA);
         arr.splice(idx,1);
         if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr);
         else if(type==='servicios') _saveServicios(SUC_ACTIVA,arr);
+        else if(type==='categorias') _saveCategorias(SUC_ACTIVA,arr);
         else _saveProveedores(SUC_ACTIVA,arr);
         renderAdministracion();
     }
     function _cfgAddItem(type){
         const el=document.getElementById('cfg-add-input-'+type); if(!el||!el.value.trim()) return;
-        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):_getServicios(SUC_ACTIVA);
+        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):type==='categorias'?_getCategorias(SUC_ACTIVA):_getServicios(SUC_ACTIVA);
         arr.push(el.value.trim());
-        if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr); else _saveServicios(SUC_ACTIVA,arr);
+        if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr); else if(type==='categorias') _saveCategorias(SUC_ACTIVA,arr); else _saveServicios(SUC_ACTIVA,arr);
         renderAdministracion();
     }
     function _cfgSaveEdit(type,idx){
         const el=document.getElementById('cfg-edit-input-'+type+'-'+idx); if(!el) return;
-        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):_getServicios(SUC_ACTIVA);
-        if(arr[idx]!==undefined){ arr[idx]=el.value.trim()||arr[idx]; if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr); else _saveServicios(SUC_ACTIVA,arr); }
+        const arr=type==='formatos'?_getFormatos(SUC_ACTIVA):type==='categorias'?_getCategorias(SUC_ACTIVA):_getServicios(SUC_ACTIVA);
+        if(arr[idx]!==undefined){ arr[idx]=el.value.trim()||arr[idx]; if(type==='formatos') _saveFormatos(SUC_ACTIVA,arr); else if(type==='categorias') _saveCategorias(SUC_ACTIVA,arr); else _saveServicios(SUC_ACTIVA,arr); }
         _cfgEditIdx=null; _cfgEditType=null; renderAdministracion();
     }
     function _cfgCancelEdit(){ _cfgEditIdx=null; _cfgEditType=null; renderAdministracion(); }
@@ -5928,7 +5993,14 @@ document.addEventListener('DOMContentLoaded', function() {
         // Card 2: Servicios / Productos
         confHTML += `<div style="${_cardStyle}">${_renderConfigLista('Servicios / Productos', _servicios, 'servicios', _isOwnerForConfig, _sucNombre)}</div>`;
 
-        // Card 3: Variables globales
+        // Card 3: Categorías de servicios (Ad Performance + Mix de Servicios)
+        const _categorias = _getCategorias(SUC_ACTIVA);
+        confHTML += `<div style="${_cardStyle}">
+            ${_renderConfigLista('Categorías de servicios', _categorias, 'categorias', _isOwnerForConfig, _sucNombre)}
+            <p style="font-size:11px;color:var(--texto-secundario);margin-top:6px;line-height:1.5;">Usadas en <strong>Ad Performance</strong> y <strong>Mix de Servicios</strong>.</p>
+        </div>`;
+
+        // Card 4: Variables globales
         const _GLOBAL_KEYS = ['estado_factura','emociones','cat_proveedor','sexo','nivel'];
         let _globalHTML = `<div style="margin-bottom:16px;"><b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;color:var(--texto-secundario);">Variables globales</b></div>`;
         _GLOBAL_KEYS.forEach(k => {
@@ -7170,8 +7242,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const isOpen    = _adsExpanded.has(i);
             const editPanel = canEdit ? `
             <div id="ad-edit-${i}" style="display:${isOpen?'block':'none'};border-top:1px solid var(--color-borde);padding:20px 24px;background:var(--color-tarjeta);animation:fadeUp .15s ease;">
-                <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;margin-bottom:14px;">
+                <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:14px;margin-bottom:14px;">
                     <div>${lbl('Nombre campaña')}${inp(a.nombre,'nombre',i)}</div>
+                    <div>${lbl('Categoría')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'categoria',this.value)">${(()=>{const cats=_getCategorias(SUC_ACTIVA);const opts=cats.length?cats.map(c=>`<option ${(a.categoria||'')===c?'selected':''}>${c}</option>`).join(''):`<option value="">Configura categorías en Configuración Global</option>`;return `<option value="" ${!a.categoria?'selected':''}>Sin categoría</option>${opts}`;})()}</select></div>
                     <div>${lbl('Plataforma')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'plataforma',this.value)"><option ${a.plataforma==='Meta'?'selected':''}>Meta</option><option ${a.plataforma==='Google'?'selected':''}>Google</option><option ${a.plataforma==='TikTok'?'selected':''}>TikTok</option><option ${!['Meta','Google','TikTok'].includes(a.plataforma)?'selected':''}>Otro</option></select></div>
                     <div>${lbl('Estado')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'estado',this.value)"><option ${a.estado==='Activa'?'selected':''}>Activa</option><option ${a.estado==='Pausada'?'selected':''}>Pausada</option><option ${a.estado==='Finalizada'?'selected':''}>Finalizada</option></select></div>
                 </div>
@@ -7201,6 +7274,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="ad-status ${statusCls}">${statusDot} ${a.estado}</span>
                             ${a.origen==='kanban' && a.pauta_status==='confirmada' ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,.1);color:#15803D;border:1px solid rgba(34,197,94,.25);"><i class="fa-solid fa-check" style="font-size:9px;"></i>Confirmada · desde parrilla</span>` : ''}
                             ${a.origen==='kanban' && a.pauta_status==='condicional' ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(234,179,8,.1);color:#A16207;border:1px solid rgba(234,179,8,.25);"><i class="fa-solid fa-clock" style="font-size:9px;"></i>Pendiente de aprobación</span>` : ''}
+                            <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:${a.categoria?'rgba(196,133,90,.08)':'rgba(0,0,0,.05)'};color:${a.categoria?'var(--color-primario)':'var(--texto-secundario)'};border:1px solid ${a.categoria?'rgba(196,133,90,.2)':'var(--color-borde)'};">📁 ${a.categoria||'Sin categoría'}</span>
                         </div>
                     </div>
                     <div class="ad-cell"><div class="ad-cell-label">Inversión</div><div class="ad-cell-value">$${Number(a.inversion).toLocaleString()}</div></div>
@@ -7282,7 +7356,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function nuevoAd() {
-        const n = { id:'a'+Date.now(), nombre:"Nueva Campaña", plataforma:"Meta", inversion:0, alcance:0, clics:0, conversiones:0, cpr:0, segmento:"Segmento · Ubicación", estado:"Activa", inicio:new Date().toISOString().split('T')[0], fin:"" };
+        const n = { id:'a'+Date.now(), nombre:"Nueva Campaña", categoria:"", plataforma:"Meta", inversion:0, alcance:0, clics:0, conversiones:0, cpr:0, segmento:"Segmento · Ubicación", estado:"Activa", inicio:new Date().toISOString().split('T')[0], fin:"" };
         DB.datos[SUC_ACTIVA].ads.push(n); guardarBD(); renderAdsTable(); setTimeout(renderAdsCharts, 50);
     }
 
@@ -7402,6 +7476,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 id:           'a_k_' + card.id,
                 kanban_id:    card.id,
                 nombre:       card.titulo || 'Sin título',
+                categoria:    '',
                 fecha:        card.fecha  || new Date().toISOString().split('T')[0],
                 inicio:       card.fecha  || new Date().toISOString().split('T')[0],
                 fin:          '',
