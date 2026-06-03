@@ -526,6 +526,8 @@
     [data-theme="dark"] .content-card,
     [data-theme="dark"] .shooting-card,
     [data-theme="dark"] .story-card,
+    #notif-panel { background: #F8F4EF !important; }
+    [data-theme="dark"] #notif-panel { background: #1C1A17 !important; }
     [data-theme="dark"] .tarjeta-asset,
     [data-theme="dark"] .tarjeta-mood,
     [data-theme="dark"] .tarjeta-cliente,
@@ -774,7 +776,7 @@
     .glass-card-solid::before { content:''; position:absolute; top:0; left:0; right:0; height:1px; background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent); pointer-events:none; z-index:1; }
 
     /* ══ Dashboard Layout ═════════════════════════════════════════════════ */
-    .dash-semaforo-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+    .dash-semaforo-row { display:grid; grid-template-columns:repeat(5,1fr); gap:14px; }
     .dash-grid-main { display:grid; grid-template-columns:1fr 1fr 320px; gap:16px; }
     .dash-grid-bottom { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
     .dash-grid-2x2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
@@ -1199,13 +1201,13 @@
                                 <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('rendimiento')"><i class="fa-solid fa-plus"></i> Métrica</button>
                             </div>
                             <div style="overflow-x:auto;">
-                                <table class="tabla-editable" style="min-width:460px;">
+                                <table class="tabla-editable" style="min-width:620px;font-size:12px;">
                                     <thead><tr>
-                                        <th>Métrica</th>
-                                        <th id="th-periodo-anterior" style="white-space:nowrap;">Periodo anterior</th>
-                                        <th id="th-periodo-actual" style="white-space:nowrap;">Periodo actual</th>
-                                        <th>Variación</th><th>Meta</th>
-                                        <th class="req-agencia" style="width:30px;"></th>
+                                        <th style="min-width:170px;white-space:nowrap;">Métrica</th>
+                                        <th id="th-periodo-anterior" style="white-space:nowrap;min-width:80px;text-align:right;">Periodo anterior</th>
+                                        <th id="th-periodo-actual" style="white-space:nowrap;min-width:80px;text-align:right;">Periodo actual</th>
+                                        <th style="min-width:70px;">Variación</th><th style="min-width:80px;">Meta</th>
+                                        <th class="req-agencia" style="width:28px;"></th>
                                     </tr></thead>
                                     <tbody id="dash-rendimiento"></tbody>
                                 </table>
@@ -1261,8 +1263,14 @@
                             <div style="position:relative;height:200px;"><canvas id="dash-chart-seg"></canvas></div>
                         </div>
                         <div class="glass-card" style="padding:20px;">
-                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Engagement histórico</h3>
+                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Engagement histórico · ER% y Alcance</h3>
                             <div style="position:relative;height:200px;"><canvas id="dash-chart-eng"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="dash-grid-2x2" style="margin-bottom:18px;">
+                        <div class="glass-card" style="padding:20px;">
+                            <h3 style="font-size:14px;margin:0 0 14px;position:relative;z-index:2;">Visualizaciones totales</h3>
+                            <div style="position:relative;height:200px;"><canvas id="dash-chart-vistas"></canvas></div>
                         </div>
                     </div>
                 </div>
@@ -1901,8 +1909,8 @@
 </div>
 
 <!-- Modal: Ejecutor de KPIs -->
-<div id="modal-ejecutor" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,0.45);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);overflow-y:auto;padding:24px 16px;" onclick="if(event.target===this)closeEjecutorModal()">
-    <div style="background:var(--color-tarjeta);border-radius:20px;max-width:980px;width:100%;margin:0 auto;border:1px solid var(--color-borde);box-shadow:var(--sombra-flotante);overflow:hidden;">
+<div id="modal-ejecutor" style="display:none;position:fixed;inset:0;z-index:8500;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);overflow-y:auto;padding:20px 12px;display:flex;align-items:flex-start;justify-content:center;" onclick="if(event.target===this)closeEjecutorModal()">
+    <div style="background:var(--color-tarjeta);border-radius:20px;max-width:1400px;width:95vw;margin:0 auto;border:1px solid var(--color-borde);box-shadow:var(--sombra-flotante);overflow:hidden;max-height:90vh;display:flex;flex-direction:column;">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--color-borde);">
             <div style="display:flex;align-items:center;gap:10px;">
                 <i class="fa-solid fa-table-cells-large" style="color:var(--color-primario);font-size:14px;"></i>
@@ -1910,7 +1918,7 @@
             </div>
             <button onclick="closeEjecutorModal()" style="background:transparent;border:none;cursor:pointer;color:var(--texto-secundario);font-size:18px;padding:4px 8px;border-radius:8px;line-height:1;" title="Cerrar (Esc)"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div id="ejecutor-kpis-wrap" style="padding:0;"></div>
+        <div id="ejecutor-kpis-wrap" style="padding:0;overflow-y:auto;flex:1;"></div>
     </div>
 </div>
 
@@ -1941,6 +1949,8 @@ function toggleTema() {
         if (chartsEl && !chartsEl.classList.contains('oculto') && typeof renderCharts === 'function') renderCharts();
         var dashEl = document.getElementById('vista-resumen');
         if (dashEl && !dashEl.classList.contains('oculto') && typeof renderEjecutorKPIs === 'function') renderEjecutorKPIs();
+        var cfgEl = document.getElementById('vista-config');
+        if (cfgEl && !cfgEl.classList.contains('oculto') && typeof renderAdministracion === 'function') renderAdministracion();
     }, 280);
 }
 
@@ -2029,7 +2039,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { m: "Clientes recuperados",     v1:0, v2:0, pre:"",  meta:"" },
             { m: "Ventas",                   v1:0, v2:0, pre:"$", meta:"" },
             { m: "CAC",                      v1:0, v2:0, pre:"$", meta:"" },
-            { m: "DMs generados",            v1:0, v2:0, pre:"",  meta:"" },
+            { m: "DMs recibidos",            v1:0, v2:0, pre:"",  meta:"" },
             { m: "Inversión en pauta",       v1:0, v2:0, pre:"$", meta:"" },
             { m: "% Cumplimiento parrilla",  v1:0, v2:0, pre:"",  meta:"" }
         ],
@@ -2641,6 +2651,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
+        if (lista === 'dam') {
+            const a = (DB.datos[SUC_ACTIVA].dam || [])[idx];
+            if (a) {
+                const linkedStories = (DB.datos[SUC_ACTIVA].stories_ind || []).filter(s => s.activo && s.activo.ref === a.id);
+                const linkedKanban  = (DB.datos[SUC_ACTIVA].kanban || []).filter(k => k.id === a.post_vinculado);
+                const links = [];
+                if (linkedStories.length) links.push(`${linkedStories.length} story vinculada`);
+                if (linkedKanban.length)  links.push(`post "${linkedKanban[0].titulo.substring(0,25)}"`);
+                if (links.length && !confirm(`Este activo está vinculado a: ${links.join(', ')}.\n¿Eliminar de todos modos?`)) return;
+            }
+            DB.datos[SUC_ACTIVA].dam.splice(idx, 1);
+            guardarBD(); renderDAM(); return;
+        }
         DB.datos[SUC_ACTIVA][lista].splice(idx, 1);
         guardarBD(); renderTodas();
     }
@@ -2734,6 +2757,65 @@ document.addEventListener('DOMContentLoaded', function() {
             _pAct.hasta  || new Date().toISOString().split('T')[0]
         );
         const _accAnt = _pAnt ? _acumularKPIsParaPeriodo(_pAnt.desde, _pAnt.hasta) : null;
+
+        // ── Inyectar CAC en los acumuladores (gastoReal presupuesto / clientes nuevas)
+        const _mesesEnRango = (desdeStr, hastaStr) => {
+            if (!desdeStr || !hastaStr) return [];
+            const d0 = new Date(desdeStr+'T00:00:00'), d1 = new Date(hastaStr+'T23:59:59');
+            const yr = d0.getFullYear(), ms = [];
+            for (let i = 0; i <= 11; i++) {
+                if (new Date(yr,i,1) <= d1 && new Date(yr,i+1,0,23,59,59) >= d0) ms.push(i);
+            }
+            return ms;
+        };
+        let _gastoRealAct = 0;
+        _getMonthsInPeriod().forEach(mi => {
+            (d.presupuesto||[]).forEach(p => { _gastoRealAct += p.montos_mes?.[mi]?.real || 0; });
+        });
+        if (_accAct) _accAct.cac = _gastoRealAct > 0 && _accAct.clientes_nuevos > 0
+            ? Math.round(_gastoRealAct / _accAct.clientes_nuevos) : null;
+        if (_pAnt && _accAnt) {
+            let _gastoRealAnt = 0;
+            _mesesEnRango(_pAnt.desde, _pAnt.hasta).forEach(mi => {
+                (d.presupuesto||[]).forEach(p => { _gastoRealAnt += p.montos_mes?.[mi]?.real || 0; });
+            });
+            _accAnt.cac = _gastoRealAnt > 0 && _accAnt.clientes_nuevos > 0
+                ? Math.round(_gastoRealAnt / _accAnt.clientes_nuevos) : null;
+        }
+
+        // ── Inversión en pauta (solo Pauta digital, columna real) ─────
+        let _invPautaAct = 0;
+        _getMonthsInPeriod().forEach(mi => {
+            (d.presupuesto||[]).filter(p => p.tipo === 'Pauta digital').forEach(p => {
+                _invPautaAct += p.montos_mes?.[mi]?.real || 0;
+            });
+        });
+        if (_accAct) _accAct.inversion_pauta = _invPautaAct > 0 ? _invPautaAct : null;
+        if (_pAnt && _accAnt) {
+            let _invPautaAnt = 0;
+            _mesesEnRango(_pAnt.desde, _pAnt.hasta).forEach(mi => {
+                (d.presupuesto||[]).filter(p => p.tipo === 'Pauta digital').forEach(p => {
+                    _invPautaAnt += p.montos_mes?.[mi]?.real || 0;
+                });
+            });
+            _accAnt.inversion_pauta = _invPautaAnt > 0 ? _invPautaAnt : null;
+        }
+
+        // ── % Cumplimiento parrilla (Publicado / Publicado+Programado) ─
+        const _kanbanTodos = d.kanban || [];
+        const _desdeAct = _pAct.desde || new Date().toISOString().split('T')[0];
+        const _hastaAct = _pAct.hasta || new Date().toISOString().split('T')[0];
+        const _postsAct = _kanbanTodos.filter(k => k.fecha >= _desdeAct && k.fecha <= _hastaAct);
+        const _pubAct   = _postsAct.filter(k => k.estado === 'Publicado').length;
+        const _progAct  = _postsAct.filter(k => k.estado === 'Publicado' || k.estado === 'Programado').length;
+        if (_accAct) _accAct.cumplimiento_parrilla = _progAct > 0 ? Math.round(_pubAct / _progAct * 100) : null;
+        if (_pAnt && _accAnt) {
+            const _postsAnt = _kanbanTodos.filter(k => k.fecha >= _pAnt.desde && k.fecha <= _pAnt.hasta);
+            const _pubAnt   = _postsAnt.filter(k => k.estado === 'Publicado').length;
+            const _progAnt  = _postsAnt.filter(k => k.estado === 'Publicado' || k.estado === 'Programado').length;
+            _accAnt.cumplimiento_parrilla = _progAnt > 0 ? Math.round(_pubAnt / _progAnt * 100) : null;
+        }
+
         const _thAnt = document.getElementById('th-periodo-anterior');
         const _thAct = document.getElementById('th-periodo-actual');
         if (_thAnt) _thAnt.textContent = _pAnt ? _labelPeriodoFechas(_pAnt.desde, _pAnt.hasta) : 'Periodo anterior';
@@ -2745,16 +2827,33 @@ document.addEventListener('DOMContentLoaded', function() {
         const _metaRo = !_canEditKPIs();
         const _fmtVal = (v, pre) => v != null ? (pre === '$' ? formatDinero(v) : (pre||'') + Number(v).toLocaleString('es-MX')) : '—';
         const _rend = document.getElementById('dash-rendimiento');
+        // Normalizar etiquetas heredadas en inglés o renombradas
+        const _NORM_REND = {'DMs generados':'DMs recibidos','DMs generated':'DMs recibidos'};
         if (_rend) _rend.innerHTML = d.rendimiento.map((r, i) => {
-            const v2 = _getAutoValor(r.m, _accAct);
-            const v1 = _getAutoValor(r.m, _accAnt);
+            const _rNombre = _NORM_REND[r.m] || r.m;
+            let v2 = _getAutoValor(_rNombre, _accAct);
+            let v1 = _getAutoValor(_rNombre, _accAnt);
+            const _mn2 = _rNombre.toLowerCase();
+            // Fallback directo para CAC cuando _accAct._n no lo resuelve
+            if (_mn2.includes('cac')) {
+                if (v2 == null && _gastoRealAct > 0 && (_accAct?.clientes_nuevos||0) > 0)
+                    v2 = Math.round(_gastoRealAct / _accAct.clientes_nuevos);
+                if (v1 == null && _pAnt && _accAnt) {
+                    let _gAnt = 0;
+                    _mesesEnRango(_pAnt.desde, _pAnt.hasta).forEach(mi => {
+                        (d.presupuesto||[]).forEach(p => { _gAnt += p.montos_mes?.[mi]?.real || 0; });
+                    });
+                    if (_gAnt > 0 && (_accAnt?.clientes_nuevos||0) > 0)
+                        v1 = Math.round(_gAnt / _accAnt.clientes_nuevos);
+                }
+            }
             const pct = (v1 != null && v2 != null && v1 > 0) ? ((v2-v1)/v1*100).toFixed(1) : null;
-            const isTime = r.m.toLowerCase().includes('time') || r.m.toLowerCase().includes('tiempo');
+            const isInverse = _mn2.includes('time') || _mn2.includes('tiempo') || _mn2.includes('cac');
             let badge = pct === null ? (v1 === null
                 ? `<span style="color:var(--texto-secundario);font-size:12px;cursor:help;" title="Sin datos del período anterior para comparar">—</span>`
                 : `<span style="color:var(--texto-secundario);font-size:12px;">—</span>`) :
                 +pct === 0 ? `<span class="var-badge" style="background:var(--color-borde-fuerte);color:var(--texto-secundario);">0%</span>` :
-                isTime ? (+pct<0 ? `<span class="var-badge var-positive">↓ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↑ ${Math.abs(pct)}%</span>`) :
+                isInverse ? (+pct<0 ? `<span class="var-badge var-positive">↓ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↑ ${Math.abs(pct)}%</span>`) :
                 (+pct>0 ? `<span class="var-badge var-positive">↑ ${Math.abs(pct)}%</span>` : `<span class="var-badge var-negative">↓ ${Math.abs(pct)}%</span>`);
             const meta = r.meta;
             const pctMeta = meta && v2 != null && parseFloat(meta) > 0
@@ -2763,9 +2862,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const metaCell = _metaRo ? `<span style="font-weight:600;color:var(--color-azul);">${meta||'—'}</span>` :
                 `<input class="input-celda" style="color:var(--color-azul);font-weight:600;" placeholder="—" value="${meta||''}" onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].meta=this.value;guardarBD()">`;
             return `<tr>
-                <td><input class="input-celda" value="${r.m}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].m=this.value;guardarBD();"></td>
-                <td style="text-align:right;padding:10px 14px;font-weight:700;">${_fmtVal(v1,r.pre)}</td>
-                <td style="text-align:right;padding:10px 14px;font-weight:700;">${_fmtVal(v2,r.pre)}</td>
+                <td style="padding:6px 8px;"><input class="input-celda" value="${_rNombre}" ${ro} style="font-size:12px;" onchange="DB.datos['${SUC_ACTIVA}'].rendimiento[${i}].m=this.value;guardarBD();"></td>
+                <td style="text-align:right;padding:6px 10px;font-weight:700;">${_fmtVal(v1,r.pre)}</td>
+                <td style="text-align:right;padding:6px 10px;font-weight:700;">${_fmtVal(v2,r.pre)}</td>
                 <td>${badge}</td>
                 <td>${metaCell}${pctMeta!==null?`<span style="font-size:10px;font-weight:700;color:${metaColor};margin-left:4px;">${pctMeta}%</span>`:''}</td>
                 <td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('rendimiento',${i})"></i></td>
@@ -2953,13 +3052,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return !mesesC.has(`${d.getFullYear()}-${d.getMonth()}`);
         });
         const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0,
-                      ventas:0, dms:0, ticket_medio:0, _n: lista.length };
+                      ventas:0, dms:0, citas_desde_dm:0, ticket_medio:0, crec_seg:null, seguidores_fin:null, seg_tiktok_fin:null, _n: lista.length };
         lista.forEach(s => {
             acc.clientes_nuevos      += s.clientes_nuevos      || 0;
             acc.clientes_recurrentes += s.clientes_recurrentes || 0;
             acc.clientes_recuperados += s.clientes_recuperados || 0;
             acc.ventas               += s.ventas               || 0;
             acc.dms                  += s.dms                  || 0;
+            acc.citas_desde_dm       += s.citas_desde_dm       || 0;
+            if (s.seguidores_fin != null || s.seguidores_ini != null) {
+                acc.crec_seg = (acc.crec_seg||0) + ((s.seguidores_fin||0)-(s.seguidores_ini||0));
+                if (s.seguidores_fin != null) acc.seguidores_fin = Math.max(acc.seguidores_fin||0, s.seguidores_fin);
+            }
+            if (s.seg_tiktok_fin != null) acc.seg_tiktok_fin = Math.max(acc.seg_tiktok_fin||0, s.seg_tiktok_fin);
         });
         const conTM = lista.filter(s => (s.ticket_medio||0) > 0);
         acc.ticket_medio = conTM.length
@@ -2983,12 +3088,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!acc || acc._n === 0) return null;
         const mn = (metricNombre||'').toLowerCase();
         const MAP = [
-            { keys:['nuevo'],       campo:'clientes_nuevos'      },
-            { keys:['recurrent'],   campo:'clientes_recurrentes' },
-            { keys:['recuper'],     campo:'clientes_recuperados' },
-            { keys:['venta'],       campo:'ventas'               },
-            { keys:['dm'],          campo:'dms'                  },
-            { keys:['ticket'],      campo:'ticket_medio'         }
+            { keys:['nuevo'],                    campo:'clientes_nuevos'      },
+            { keys:['recurrent'],                campo:'clientes_recurrentes' },
+            { keys:['recuper'],                  campo:'clientes_recuperados' },
+            { keys:['venta'],                    campo:'ventas'               },
+            { keys:['dm'],                       campo:'dms'                  },
+            { keys:['ticket'],                   campo:'ticket_medio'         },
+            { keys:['seguidor','follower','seg'], campo:'crec_seg'             },
+            { keys:['cac'],                      campo:'cac'                  },
+            { keys:['pauta'],                    campo:'inversion_pauta'      },
+            { keys:['cumpli'],                   campo:'cumplimiento_parrilla'}
         ];
         for (const { keys, campo } of MAP) {
             if (keys.some(k => mn.includes(k))) return acc[campo];
@@ -3034,13 +3143,19 @@ document.addEventListener('DOMContentLoaded', function() {
             return !mesesCubiertos.has(`${d.getFullYear()}-${d.getMonth()}`);
         });
 
-        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, ticket_medio:0 };
+        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, citas_desde_dm:0, ticket_medio:0, crec_seg:null, seguidores_fin:null, seg_tiktok_fin:null };
         aAcumular.forEach(s => {
             acc.clientes_nuevos      += s.clientes_nuevos      || 0;
             acc.clientes_recurrentes += s.clientes_recurrentes || 0;
             acc.clientes_recuperados += s.clientes_recuperados || 0;
             acc.ventas               += s.ventas               || 0;
             acc.dms                  += s.dms                  || 0;
+            acc.citas_desde_dm       += s.citas_desde_dm       || 0;
+            if (s.seguidores_fin != null || s.seguidores_ini != null) {
+                acc.crec_seg = (acc.crec_seg||0) + ((s.seguidores_fin||0)-(s.seguidores_ini||0));
+                if (s.seguidores_fin != null) acc.seguidores_fin = Math.max(acc.seguidores_fin||0, s.seguidores_fin);
+            }
+            if (s.seg_tiktok_fin != null) acc.seg_tiktok_fin = Math.max(acc.seg_tiktok_fin||0, s.seg_tiktok_fin);
         });
         acc.ventas               = Math.round(acc.ventas);
         acc.clientes_nuevos      = Math.round(acc.clientes_nuevos);
@@ -3056,13 +3171,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Suma TODAS las entradas del ejecutor sin filtro de periodo — para el total de la tabla
     function _acumularTodosKPIs() {
         const todas = DB.datos[SUC_ACTIVA]?.kpi_semanal || [];
-        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, ticket_medio:0 };
+        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, citas_desde_dm:0, ticket_medio:0 };
         todas.forEach(s => {
             acc.clientes_nuevos      += s.clientes_nuevos      || 0;
             acc.clientes_recurrentes += s.clientes_recurrentes || 0;
             acc.clientes_recuperados += s.clientes_recuperados || 0;
             acc.ventas               += s.ventas               || 0;
             acc.dms                  += s.dms                  || 0;
+            acc.citas_desde_dm       += s.citas_desde_dm       || 0;
         });
         acc.ventas               = Math.round(acc.ventas);
         acc.clientes_nuevos      = Math.round(acc.clientes_nuevos);
@@ -3189,6 +3305,7 @@ document.addEventListener('DOMContentLoaded', function() {
         set('ejec-tot-recuperados', acc.clientes_recuperados.toLocaleString('es-MX'));
         set('ejec-tot-ventas',      formatDinero(acc.ventas));
         set('ejec-tot-dms',         acc.dms.toLocaleString('es-MX'));
+        set('ejec-tot-citas-dm',    acc.citas_desde_dm.toLocaleString('es-MX'));
     }
 
     function renderEjecutorKPIs() {
@@ -3209,6 +3326,7 @@ document.addEventListener('DOMContentLoaded', function() {
             recurrentes:'Clientas que ya habían venido antes y regresaron este mes.',
             recuperadas:'Clientas que tenían más de 60 días sin venir y regresaron.\nSon importantes: indican que una campaña las trajo de vuelta.',
             dms:        'Total de mensajes directos recibidos en Instagram\ndurante este período. Consúltalo en Meta Business Suite.',
+            citas_dm:   'Cuántas personas que te escribieron por Instagram\nterminaron agendando una cita.',
             ticket:     'Cuánto gasta en promedio cada clienta por visita.\nVentas totales ÷ número de servicios realizados.',
             seguidores: 'Seguidores en Instagram al inicio y al final del período.\nLa diferencia muestra el crecimiento real.',
             vistas:     'Total de veces que se vieron todos los contenidos\npublicados en el período.',
@@ -3239,7 +3357,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const src = s.origen_clientes||(s.atribucion||[]).map(a=>({origen:a.canal,cantidad:a.cantidad}));
             const igC = ((src||[]).find(a=>(a.origen||'').toLowerCase().includes('instagram'))||{cantidad:null}).cantidad;
             return {
-                conv_dm:   igC!==null&&(s.dms||0)>0?(igC/(s.dms)*100).toFixed(1):null,
+                conv_dm:   (s.citas_desde_dm||0)>0&&(s.dms||0)>0?+((s.citas_desde_dm/s.dms)*100).toFixed(1):null,
                 retencion: tot>0?((s.clientes_recurrentes||0)/tot*100).toFixed(1):null,
                 crec_seg:  s.seguidores_fin!=null&&s.seguidores_ini!=null?(s.seguidores_fin||0)-(s.seguidores_ini||0):null,
                 cac:       invM>0&&(s.clientes_nuevos||0)>0?Math.round(invM/(s.clientes_nuevos||1)):null,
@@ -3282,8 +3400,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td>${inp(s.ventas,'ventas',i,'$')}</td>
                 <td>${inp(s.ticket_medio,'ticket_medio',i,'$')}</td>
                 <td style="border-left:2px solid rgba(196,133,90,.18);">${inpC(s.dms,'dms',i)}</td>
+                <td>${inpC(s.citas_desde_dm,'citas_desde_dm',i)}</td>
                 <td>${inpC(s.seguidores_ini,'seguidores_ini',i)}</td>
                 <td>${inpC(s.seguidores_fin,'seguidores_fin',i)}</td>
+                <td>${inpC(s.seg_tiktok_fin,'seg_tiktok_fin',i)}</td>
                 <td>${inpC(s.visualizaciones,'visualizaciones',i)}</td>
                 <td>${inpC(s.alcance_total,'alcance_total',i)}</td>
                 <td style="border-left:2px solid rgba(52,168,83,.18);text-align:right;padding:8px;${bg}font-size:12px;">${c.conv_dm!==null?`<span style="font-weight:700;">${c.conv_dm}%</span>`:`<span style="font-size:9px;color:var(--texto-secundario);">Llenar Nota Excel</span>`}</td>
@@ -3303,13 +3423,14 @@ document.addEventListener('DOMContentLoaded', function() {
             <td id="ejec-tot-ventas" style="text-align:right;padding:10px 8px;color:var(--color-primario);">${formatDinero(acc.ventas)}</td>
             <td id="ejec-tot-ticket" style="text-align:right;padding:10px 8px;">${acc.ticket_medio?formatDinero(acc.ticket_medio):'—'}</td>
             <td id="ejec-tot-dms" style="text-align:right;padding:10px 8px;">${acc.dms.toLocaleString('es-MX')}</td>
-            <td colspan="4"></td>
+            <td id="ejec-tot-citas-dm" style="text-align:right;padding:10px 8px;">${acc.citas_desde_dm.toLocaleString('es-MX')}</td>
+            <td colspan="3"></td>
             <td colspan="4" style="text-align:center;font-size:9px;color:var(--texto-secundario);padding:8px;background:var(--color-fondo);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Auto · por fila</td>
             ${canEdit?'<td></td>':''}
         </tr>`;
 
         const _newRec = (tipo, semana, fecha, fecha_hasta) =>
-            `{id:'s'+Date.now(),tipo:'${tipo}',semana:'${semana}',fecha:'${fecha}',fecha_hasta:${fecha_hasta?`'${fecha_hasta}'`:'null'},clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,ticket_medio:0,seguidores_ini:0,seguidores_fin:0,visualizaciones:0,alcance_total:0,clientes_fuente:null}`;
+            `{id:'s'+Date.now(),tipo:'${tipo}',semana:'${semana}',fecha:'${fecha}',fecha_hasta:${fecha_hasta?`'${fecha_hasta}'`:'null'},clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,citas_desde_dm:0,ticket_medio:0,seguidores_ini:0,seguidores_fin:0,seg_tiktok_fin:null,visualizaciones:0,alcance_total:0,clientes_fuente:null}`;
 
         const addBtn = (() => {
             if (!canEdit) return '';
@@ -3323,12 +3444,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
                 "><i class="fa-solid fa-plus"></i> Agregar mes</button>`;
             } else {
-                const {desde, hasta} = _ejecutorGetFechasSemana();
-                const label = _ejecutorBuildLabel(desde, hasta, 'semana');
-                return `<button class="btn btn-xs btn-fantasma" style="margin-top:14px;" onclick="
-                    const n=${_newRec('semana',label,desde,hasta)};
-                    DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
-                "><i class="fa-solid fa-plus"></i> Agregar entrada</button>`;
+                const hoy = new Date().toISOString().split('T')[0];
+                return `<div style="margin-top:14px;display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.06em;">Desde</label>
+                    <input type="date" id="ejec-nueva-desde" class="input-celda" style="border:1px solid var(--color-borde);border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;" value="${hoy}">
+                    <button class="btn btn-xs btn-fantasma" onclick="
+                        const _fd=document.getElementById('ejec-nueva-desde').value;
+                        if(!_fd)return;
+                        const _dt=new Date(_fd+'T00:00:00');
+                        const _fh=new Date(_dt.getFullYear(),_dt.getMonth()+1,0).toISOString().split('T')[0];
+                        const _lbl=_ejecutorBuildLabel(_fd,_fh,'semana');
+                        const _n={id:'s'+Date.now(),tipo:'semana',semana:_lbl,fecha:_fd,fecha_hasta:_fh,clientes_nuevos:0,clientes_recurrentes:0,clientes_recuperados:0,ventas:0,dms:0,citas_desde_dm:0,ticket_medio:0,seguidores_ini:0,seguidores_fin:0,seg_tiktok_fin:null,visualizaciones:0,alcance_total:0,clientes_fuente:null};
+                        DB.datos['${SUC_ACTIVA}'].kpi_semanal.push(_n);guardarBD();_kpiSemanalToHistorico();renderEjecutorKPIs();
+                    "><i class="fa-solid fa-plus"></i> Agregar entrada</button>
+                </div>`;
             }
         })();
 
@@ -3433,19 +3562,31 @@ document.addEventListener('DOMContentLoaded', function() {
             <div class="ejecutor-body${isOpen?'':' hidden'}">
                 ${modoToggle}
                 <div style="overflow-x:auto;margin-top:4px;">
-                    <table class="tabla-editable" style="min-width:1400px;">
+                    <table class="tabla-editable" style="min-width:1600px;table-layout:fixed;">
+                        <colgroup>
+                            <col style="width:180px;"><!-- Etiqueta -->
+                            <col style="width:120px;"><!-- Desde -->
+                            <col style="width:120px;"><!-- Hasta -->
+                            <col style="width:90px;"><col style="width:90px;"><col style="width:90px;"><!-- Nuevas Recurrentes Recuperadas -->
+                            <col style="width:100px;"><col style="width:100px;"><!-- Ventas Ticket -->
+                            <col style="width:90px;"><col style="width:90px;"><!-- DMs CitasDM -->
+                            <col style="width:90px;"><col style="width:90px;"><col style="width:80px;"><!-- Seg ini/fin TK -->
+                            <col style="width:80px;"><col style="width:80px;"><!-- Vistas Alcance -->
+                            <col style="width:100px;"><col style="width:100px;"><col style="width:100px;"><col style="width:100px;"><!-- Calculados -->
+                            <col style="width:32px;"><!-- Trash -->
+                        </colgroup>
                         <thead>
                             <tr>
                                 <th colspan="3" style="padding:4px;"></th>
                                 <th colspan="5" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#4A90D9;padding:5px 8px;text-align:center;border-bottom:2px solid rgba(66,133,244,.3);">Clientes</th>
-                                <th colspan="5" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--color-primario);padding:5px 8px;text-align:center;border-bottom:2px solid rgba(196,133,90,.3);">Contenido y redes</th>
+                                <th colspan="6" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--color-primario);padding:5px 8px;text-align:center;border-bottom:2px solid rgba(196,133,90,.3);">Contenido y redes</th>
                                 <th colspan="4" style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:#34A853;padding:5px 8px;text-align:center;border-bottom:2px solid rgba(52,168,83,.3);">Calculados</th>
                                 ${canEdit?'<th style="width:28px;"></th>':''}
                             </tr>
                             <tr>
                                 ${thS('Etiqueta')}${thS('Desde')}${thS('Hasta')}
                                 ${thS('Nuevas','nuevas')}${thS('Recurrentes','recurrentes')}${thS('Recuperadas','recuperadas')}${thS('Ventas')}${thS('Ticket','ticket')}
-                                ${thS('DMs','dms')}${thS('Seg ini','seguidores')}${thS('Seg fin','seguidores')}${thS('Vistas','vistas')}${thS('Alcance')}
+                                ${thS('DMs','dms')}${thS('Citas DM','citas_dm')}${thS('Seg ini IG','seguidores')}${thS('Seg fin IG','seguidores')}${thS('Seg TK','seg_tiktok')}${thS('Vistas','vistas')}${thS('Alcance')}
                                 ${thS('Conv DM','conv_dm')}${thS('Retención','retencion')}${thS('Crec Seg','crec_seg')}${thS('CAC','cac')}
                                 ${canEdit?'<th style="width:28px;"></th>':''}
                             </tr>
@@ -3692,17 +3833,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
             function _renderDashKPIs(d) {
         const rend = d.rendimiento || [];
-        const inv = _inversionPorTipo(d);
-        const invTotal = Object.values(inv).reduce((a,b)=>a+b, 0);
         const kpiAcc = _acumularKPIs();
         const mNuevos = { v2: kpiAcc.clientes_nuevos,      v1: (_findMetrica(rend,['nuevo'])).v1 };
         const mRecurr = { v2: kpiAcc.clientes_recurrentes, v1: (_findMetrica(rend,['recurrent'])).v1 };
         const mRecup  = { v2: kpiAcc.clientes_recuperados, v1: (_findMetrica(rend,['recuper'])).v1 };
-        const cac     = (invTotal > 0 && mNuevos.v2 > 0) ? Math.round(invTotal / mNuevos.v2) : null;
-        const cacPrev = (invTotal > 0 && mNuevos.v1 > 0) ? Math.round(invTotal / mNuevos.v1) : null;
-        const cacNullTip = invTotal === 0
-            ? 'Agrega la inversión del mes en Presupuesto'
-            : mNuevos.v2 === 0
+        // CAC = suma de m.real de TODOS los ítems de Presupuesto del período ÷ clientas nuevas
+        let gastoReal = 0;
+        _getMonthsInPeriod().forEach(mi => {
+            (d.presupuesto||[]).forEach(p => { gastoReal += p.montos_mes?.[mi]?.real || 0; });
+        });
+        const cac     = gastoReal > 0 && kpiAcc.clientes_nuevos > 0 ? Math.round(gastoReal / kpiAcc.clientes_nuevos) : null;
+        const cacPrev = null;
+        const cacNullTip = gastoReal === 0
+            ? 'Agrega el gasto real en Presupuesto para calcular el CAC'
+            : kpiAcc.clientes_nuevos === 0
             ? 'Agrega clientas nuevas en el Ejecutor de KPIs'
             : null;
         const _metas  = _getKpiMetas();
@@ -3715,7 +3859,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 : '';
             const display = val === null
                 ? `<span style="color:var(--texto-secundario);${nullTip?'cursor:help;':''}"${nullTip?` title="${nullTip}"`:''}>${nullTip?'<i class="fa-solid fa-circle-info" style="opacity:.35;font-size:10px;margin-right:3px;"></i>':''} —</span>`
-                : pre==='$' ? formatDinero(val) : Number(val).toLocaleString('es-MX');
+                : pre==='$' ? formatDinero(val) : pre==='%' ? Number(val).toLocaleString('es-MX')+'%' : Number(val).toLocaleString('es-MX');
             const meta = _metas[campo] || 0;
             let bar = '';
             if (meta > 0 && val !== null) {
@@ -3727,7 +3871,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="kpi-progress-fill" style="width:${rawPct}%;background:${semColor};box-shadow:0 0 5px ${semColor}60;"></div>
                 </div>
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-top:3px;">
-                    <span style="font-size:9px;color:var(--texto-secundario);">Meta: ${pre==='$'?formatDinero(meta):Number(meta).toLocaleString('es-MX')}</span>
+                    <span style="font-size:9px;color:var(--texto-secundario);">Meta: ${pre==='$'?formatDinero(meta):pre==='%'?Number(meta).toLocaleString('es-MX')+'%':Number(meta).toLocaleString('es-MX')}</span>
                     <span style="font-size:10px;font-weight:800;color:${semColor};">${rawPct}%</span>
                 </div>`;
             }
@@ -3761,6 +3905,8 @@ document.addEventListener('DOMContentLoaded', function() {
             kpiMini('Clientes recurrentes', 'fa-rotate',          'var(--brand-tone-light)', 'var(--brand-tone-light-rgb)', mRecurr.v2, mRecurr.v1, '',  'recurrentes', false) +
             (_showRecup ? kpiMini('Clientes recuperados', 'fa-heart-circle-plus','var(--brand-tone-dark)','var(--brand-tone-dark-rgb)', mRecup.v2, mRecup.v1, '', 'recuperados', false) : '') +
             kpiMini('CAC Real',             'fa-calculator',      'var(--brand-tone-dark)',  'var(--brand-tone-dark-rgb)',  cac,        cacPrev,    '$', 'cac',         true, cacNullTip) +
+            kpiMini('Seguidores IG <i class="fa-brands fa-instagram" style="font-size:9px;opacity:.6;"></i>', 'fa-users',  'var(--brand-tone-base)',  'var(--brand-tone-base-rgb)',  kpiAcc.seguidores_fin,  null, '', 'seg_ig',   false, 'Registra Seg ini y Seg fin en el Ejecutor de KPIs') +
+            kpiMini('Seguidores TK <i class="fa-brands fa-tiktok" style="font-size:9px;opacity:.6;"></i>',    'fa-users',  'var(--brand-tone-light)', 'var(--brand-tone-light-rgb)', kpiAcc.seg_tiktok_fin,  null, '', 'seg_tk',   false, 'Registra Seg TK en el Ejecutor de KPIs') +
             _toggleBtn;
     }
 
@@ -3846,42 +3992,167 @@ document.addEventListener('DOMContentLoaded', function() {
     function _renderDashSemaforo(d) {
         const el = document.getElementById('dash-semaforo');
         if (!el) return;
-        const acc = _acumularKPIs();
-        const inv = _inversionPorTipo(d);
-        const invTotal = Object.values(inv).reduce((a,b)=>a+b, 0);
+        const acc  = _acumularKPIs();
         const tipo = getTipoProyecto(SUC_ACTIVA);
+        const canEdit = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
         const BENCH = {
-            wellness:    { cac:{good:150,warn:250}, ticket:{good:800,warn:500}, conv:{good:25,warn:12}, ret:{good:60,warn:40} },
-            restaurante: { cac:{good:80,warn:150},  ticket:{good:350,warn:200}, conv:{good:35,warn:18}, ret:{good:50,warn:30} }
+            wellness:    { cac:{good:150,warn:250}, ticket:{good:800,warn:500}, conv:{good:25,warn:12}, ret:{good:60,warn:40}, seg:{good:8,warn:4} },
+            restaurante: { cac:{good:80,warn:150},  ticket:{good:350,warn:200}, conv:{good:35,warn:18}, ret:{good:50,warn:30}, seg:{good:8,warn:4} }
         };
         const b = BENCH[tipo] || BENCH.wellness;
-        const cac    = acc.clientes_nuevos > 0 ? Math.round(invTotal / acc.clientes_nuevos) : null;
-        const total  = acc.clientes_nuevos + acc.clientes_recurrentes + acc.clientes_recuperados;
-        const ticket = acc.ventas > 0 && total > 0 ? Math.round(acc.ventas / total) : null;
-        const conv   = acc.dms > 0 && total > 0 ? Math.round(total / acc.dms * 100) : null;
-        const ret    = total > 0 ? Math.round(acc.clientes_recurrentes / total * 100) : null;
-        const sc = (v, good, warn, inv) => {
+        const manuales = d.semaforo_manuales || {};
+
+        // ── Inversión real del período (m.real de presupuesto) ────────
+        let invReal = 0;
+        _getMonthsInPeriod().forEach(mi => {
+            (d.presupuesto||[]).forEach(p => { invReal += p.montos_mes?.[mi]?.real || 0; });
+        });
+
+        // ── Entradas Excel del período ────────────────────────────────
+        const desde = _dashPeriodoDesde();
+        const hasta  = _dashPeriodoHasta();
+        const excelEntradas = (d.kpi_semanal||[]).filter(s => {
+            if (s.fuente !== 'excel_import' || !s.fecha) return false;
+            const ini = new Date(s.fecha+'T00:00:00');
+            const fin = s.fecha_hasta ? new Date(s.fecha_hasta+'T23:59:59')
+                : new Date(ini.getFullYear(), ini.getMonth()+1, 0, 23, 59, 59);
+            return ini <= hasta && fin >= desde;
+        });
+
+        // ── CAC = gasto real de Presupuesto ÷ clientas nuevas ────────
+        const cacNullTipSem = invReal === 0
+            ? 'Agrega el gasto real en Presupuesto para calcular el CAC'
+            : acc.clientes_nuevos === 0
+            ? 'Agrega clientas nuevas en el Ejecutor de KPIs'
+            : null;
+        const cacCalc  = invReal > 0 && acc.clientes_nuevos > 0
+            ? Math.round(invReal / acc.clientes_nuevos) : null;
+        const cacEsAuto = cacCalc !== null;
+        const cac = cacCalc !== null ? cacCalc : (manuales.cac != null ? manuales.cac : null);
+
+        // ── Ticket Medio = ventas del período / total clientes (Ejecutor) ─
+        const totalClientesTM  = acc.clientes_nuevos + acc.clientes_recurrentes + acc.clientes_recuperados;
+        const ticketCalc   = acc.ventas > 0 && totalClientesTM > 0 ? Math.round(acc.ventas / totalClientesTM) : null;
+        const ticketEsAuto = ticketCalc !== null;
+        const ticket = ticketCalc !== null ? ticketCalc : (manuales.ticket_medio != null ? manuales.ticket_medio : null);
+        const ticketNullTip = acc.ventas === 0
+            ? 'Registra las ventas en el Ejecutor de KPIs'
+            : totalClientesTM === 0
+            ? 'Registra clientes (nuevas, recurrentes o recuperadas) en el Ejecutor'
+            : null;
+
+        // ── Retención = (clientes_fin / clientes_ini_período_ant) × 100
+        const clientesFin = acc.clientes_nuevos + acc.clientes_recurrentes + acc.clientes_recuperados;
+        const durMs    = hasta.getTime() - desde.getTime();
+        const prevHasta = new Date(desde.getTime() - 86400000);
+        const prevDesde = new Date(prevHasta.getTime() - durMs);
+        const prevAcc  = _acumularKPIsParaPeriodo(
+            prevDesde.toISOString().split('T')[0],
+            prevHasta.toISOString().split('T')[0]
+        );
+        const clientesIni = prevAcc._n > 0
+            ? prevAcc.clientes_nuevos + prevAcc.clientes_recurrentes + prevAcc.clientes_recuperados : null;
+        const retCalc  = clientesIni > 0 ? Math.round(clientesFin / clientesIni * 100) : null;
+        const retEsAuto = retCalc !== null;
+        const ret = retCalc !== null ? retCalc : (manuales.retencion != null ? manuales.retencion : null);
+
+        // ── Crecimiento seguidores = (seg_fin - seg_ini) / seg_fin_ant × 100
+        // seg_fin actual viene de acc.seguidores_fin; base = seguidores_fin período anterior
+        const segFinActual = acc.seguidores_fin;
+        const segFinPrev   = (prevAcc._n > 0 && prevAcc.seguidores_fin != null) ? prevAcc.seguidores_fin : null;
+        const segCrecPct   = segFinActual != null && segFinPrev != null && segFinPrev > 0
+            ? +((segFinActual - segFinPrev) / segFinPrev * 100).toFixed(1) : null;
+        const segEsAuto    = segCrecPct !== null;
+        const seg = segEsAuto ? segCrecPct : (manuales.seg_crecimiento != null ? manuales.seg_crecimiento : null);
+        const segNullTip   = segFinActual == null
+            ? 'Registra Seg ini y Seg fin IG en el Ejecutor de KPIs'
+            : segFinPrev == null
+            ? 'Sin datos del mes anterior para calcular el crecimiento'
+            : null;
+
+        // ── Conv DM→Cita = citas_desde_dm / dms × 100 (ambos del Ejecutor)
+        const convCalc  = acc.citas_desde_dm > 0 && acc.dms > 0
+            ? +((acc.citas_desde_dm / acc.dms) * 100).toFixed(1) : null;
+        const convEsAuto = convCalc !== null;
+        const conv = convCalc !== null ? convCalc : (manuales.conversion_dm != null ? manuales.conversion_dm : null);
+        const convNullTip = acc.dms === 0 && acc.citas_desde_dm === 0
+            ? 'Para ver la conversión DM→cita necesitamos:\n· Total de DMs recibidos en el período\n· Cuántos de esos DMs agendaron cita\n→ Llena estos campos en el Ejecutor de KPIs'
+            : acc.dms === 0 ? 'Registra los DMs recibidos en el Ejecutor de KPIs'
+            : 'Registra las Citas desde DM en el Ejecutor de KPIs';
+        // Notificación automática a Ángeles si faltan datos (máx 1 vez por día por proyecto)
+        if (convCalc === null) {
+            const _cdk = `_conv_notif_${SUC_ACTIVA}`;
+            if (Date.now() - parseInt(localStorage.getItem(_cdk)||'0') > 86400000) {
+                localStorage.setItem(_cdk, String(Date.now()));
+                const _ang = (DB.usuarios||[]).find(u=>u.id==='u_angeles'||u.username==='angeles.fernandez');
+                if (_ang) _addNotif('data_faltante', 'Dashboard', _ang.id,
+                    `Para ver la conversión DM→cita necesitamos:\n· Total de DMs recibidos en el período\n· Cuántos de esos DMs agendaron cita\n→ Llena estos campos en el Ejecutor de KPIs`,
+                    'vista-resumen');
+            }
+        }
+
+        // ── Semáforo color ────────────────────────────────────────────
+        const sc = (v, good, warn, isInv) => {
             if (v===null) return '#888';
-            return inv ? (v<=good?'#34A853':v<=warn?'#FBBC05':'#EA4335')
-                       : (v>=good?'#34A853':v>=warn?'#FBBC05':'#EA4335');
+            return isInv ? (v<=good?'#34A853':v<=warn?'#FBBC05':'#EA4335')
+                         : (v>=good?'#34A853':v>=warn?'#FBBC05':'#EA4335');
         };
-        const card = (label, val, unit, good, warn, isInv, bench) => {
-            const color = sc(val, good, warn, isInv);
-            const disp = val===null ? '—' : unit==='$' ? formatDinero(val) : val+(unit||'');
+
+        // ── Card con modo manual ──────────────────────────────────────
+        const card = (label, val, unit, good, warn, isInv, bench, esAuto, campo, autoTip, nullTip) => {
+            const color  = sc(val, good, warn, isInv);
+            const disp   = val===null ? '—' : unit==='$' ? formatDinero(val) : val+(unit||'');
             const status = {['#34A853']:'Óptimo',['#FBBC05']:'Atención',['#EA4335']:'Crítico',['#888']:'Sin datos'}[color]||'';
+            const badgeAuto   = `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:100px;background:rgba(34,197,94,.15);color:#15803D;border:1px solid rgba(34,197,94,.3);cursor:help;" title="${autoTip}">Auto ✓</span>`;
+            const badgeManual = `<span style="font-size:9px;font-weight:700;padding:1px 7px;border-radius:100px;background:rgba(196,133,90,.15);color:#C4855A;border:1px solid rgba(196,133,90,.3);cursor:help;" title="Ingresado manualmente — conecta los datos para calcularlo automáticamente">Manual</span>`;
+            const badge = esAuto ? badgeAuto : (val !== null ? badgeManual : '');
+            const lapizTip = nullTip || 'Ingresar valor manual';
+            const lapiz = (!esAuto && canEdit)
+                ? `<button onclick="_semaforoEditarManual('${campo}')" style="background:none;border:none;cursor:pointer;color:var(--texto-secundario);opacity:.45;font-size:11px;padding:0 0 0 4px;vertical-align:middle;line-height:1;" title="${lapizTip}"><i class="fa-solid fa-pen"></i></button>`
+                : '';
+            const nullHint = (val===null && nullTip)
+                ? `<div style="font-size:10px;color:var(--texto-secundario);opacity:.7;margin-top:4px;line-height:1.4;">${nullTip}</div>` : '';
             return `<div class="glass-card" style="padding:16px;overflow:hidden;">
                 <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${color},${color}55);"></div>
-                <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:8px;">${label}</div>
-                <div style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--texto-principal);letter-spacing:-0.04em;line-height:1;margin-bottom:6px;">${disp}</div>
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);">${label}</div>
+                    ${badge}
+                </div>
+                <div id="semaforo-val-${campo}" style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--texto-principal);letter-spacing:-0.04em;line-height:1;margin-bottom:6px;">${disp}${lapiz}</div>
                 <div style="font-size:10px;color:var(--texto-secundario);margin-bottom:8px;">${bench}</div>
+                ${nullHint}
                 <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;background:${color}22;color:${color};border:1px solid ${color}44;">${status}</span>
             </div>`;
         };
+
         el.innerHTML =
-            card('CAC Real',     cac,    '$', b.cac.good,    b.cac.warn,    true,  `Bench $${b.cac.good} óptimo`) +
-            card('Ticket Medio', ticket, '$', b.ticket.good, b.ticket.warn, false, `Bench $${b.ticket.good} óptimo`) +
-            card('Conv. DM→Cita',conv,   '%', b.conv.good,   b.conv.warn,   false, `Bench ${b.conv.good}% óptimo`) +
-            card('Retención',    ret,    '%', b.ret.good,    b.ret.warn,    false, `Bench ${b.ret.good}% óptimo`);
+            card('CAC Real',     cac,    '$', b.cac.good,    b.cac.warn,    true,  `Bench $${b.cac.good} óptimo`,    cacEsAuto,    'cac',           `Calculado: Gasto real ${formatDinero(invReal)} ÷ Clientas nuevas ${acc.clientes_nuevos}`,       cacNullTipSem) +
+            card('Ticket Medio', ticket, '$', b.ticket.good, b.ticket.warn, false, `Bench $${b.ticket.good} óptimo`, ticketEsAuto, 'ticket_medio',  `Calculado: Ventas ${formatDinero(acc.ventas)} ÷ Total clientes ${totalClientesTM} (Ejecutor)`, ticketNullTip) +
+            card('Conv. DM→Cita',conv,   '%', b.conv.good,   b.conv.warn,   false, `Bench ${b.conv.good}% óptimo`,   convEsAuto,   'conversion_dm', `Calculado: Citas desde DM ${acc.citas_desde_dm} ÷ DMs ${acc.dms} × 100 (Ejecutor)`,           convNullTip) +
+            card('Retención',    ret,    '%', b.ret.good,    b.ret.warn,    false, `Bench ${b.ret.good}% óptimo`,    retEsAuto,    'retencion',     `Calculado: Clientas fin ${clientesFin} ÷ Clientas inicio período anterior ${clientesIni||'—'}`,     'Agrega clientes nuevas y recurrentes en el Ejecutor') +
+            card('Crec. Seg. IG', seg,  '%', b.seg.good,    b.seg.warn,    false, `Bench +${b.seg.good}% vs ant.`, segEsAuto,    'seg_crecimiento', `(Seg fin ${segFinActual??'—'} − Seg fin ant. ${segFinPrev??'—'}) ÷ ${segFinPrev??'—'} × 100`, segNullTip);
+    }
+
+    function _semaforoEditarManual(campo) {
+        const valDiv = document.getElementById('semaforo-val-'+campo);
+        if (!valDiv) return;
+        const manuales = DB.datos[SUC_ACTIVA].semaforo_manuales || {};
+        const current  = manuales[campo] != null ? manuales[campo] : '';
+        const unidad   = (campo==='cac'||campo==='ticket_medio') ? '$' : '%';
+        const ph       = {cac:'200', ticket_medio:'850', retencion:'65', conversion_dm:'30', seg_crecimiento:'8'}[campo]||'';
+        valDiv.innerHTML = `<input type="number" id="semaforo-inp-${campo}" value="${current}" placeholder="${ph}"
+            style="font-family:var(--font-display);font-size:22px;font-weight:900;color:var(--texto-principal);letter-spacing:-0.04em;width:90px;background:transparent;border:none;border-bottom:2px solid var(--color-primario);outline:none;padding:0 0 2px;"
+            onblur="_guardarSemaforoManual('${campo}',this.value)"
+            onkeydown="if(event.key==='Enter')this.blur();if(event.key==='Escape')_renderDashSemaforo(DB.datos[SUC_ACTIVA]);"
+        ><span style="font-size:16px;font-weight:700;color:var(--texto-secundario);margin-left:2px;">${unidad}</span>`;
+        setTimeout(()=>{ const i=document.getElementById('semaforo-inp-'+campo); if(i)i.focus(); },40);
+    }
+
+    function _guardarSemaforoManual(campo, valor) {
+        if (!DB.datos[SUC_ACTIVA].semaforo_manuales) DB.datos[SUC_ACTIVA].semaforo_manuales = {};
+        DB.datos[SUC_ACTIVA].semaforo_manuales[campo] = valor==='' ? null : (Number(valor)||null);
+        guardarBD();
+        _renderDashSemaforo(DB.datos[SUC_ACTIVA]);
     }
 
     /* ── Objetivos ────────────────────────────────────────────── */
@@ -3894,43 +4165,123 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         const acc = _acumularKPIs();
-        const canEdit = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+        const canEdit = (!ROL_SIMULADO && USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team'))
+                     || (!USUARIO_ACTIVO && ROL === 'agencia');
+        // Normalizador de nombres en inglés → español
+        const _NORM_OBJ = {
+            'total sales':'Ventas totales','total sale':'Ventas totales','sales':'Ventas totales',
+            'new followers':'Seguidores nuevos','new follower':'Seguidores nuevos','followers':'Seguidores nuevos','follower':'Seguidores nuevos',
+            'response time':'Tiempo de respuesta','response':'Tiempo de respuesta',
+            'revenue':'Ingresos totales','clients':'Clientes nuevos','new clients':'Clientes nuevos',
+            'conversion':'Conversión DM','dm conversion':'Conversión DM','reach':'Alcance'
+        };
+        const _normObj = m => _NORM_OBJ[(m||'').toLowerCase().trim()] || m;
         const OBJ_TIPS = {
             venta: 'El dato real viene del Excel importado o del Ejecutor de KPIs.',
+            ingreso: 'El dato real viene del Excel importado.',
             nuevo: 'El dato real viene del Ejecutor de KPIs.',
             cliente: 'El dato real viene del Ejecutor de KPIs.',
-            seguidor: 'El dato real viene del Ejecutor de KPIs (campo Seguidores).',
+            seguidor: 'El dato real viene del Ejecutor de KPIs (campo Seg fin IG).',
+            follower: 'El dato real viene del Ejecutor de KPIs (campo Seg fin IG).',
             dm: 'El dato real viene del Ejecutor de KPIs.',
+            tiempo: 'Ingreso manual — no se calcula automáticamente.',
+            response: 'Ingreso manual — no se calcula automáticamente.',
         };
+        // Período anterior para cálculo de variación %
+        const _desde = _dashPeriodoDesde(), _hasta = _dashPeriodoHasta();
+        const _durMs  = _hasta.getTime() - _desde.getTime();
+        const _pH     = new Date(_desde.getTime() - 86400000);
+        const _pD     = new Date(_pH.getTime() - _durMs);
+        const accPrev = _acumularKPIsParaPeriodo(_pD.toISOString().split('T')[0], _pH.toISOString().split('T')[0]);
+
+        const _getCur  = mn => {
+            if (mn.includes('venta')||mn.includes('ingreso'))           return acc.ventas;
+            if (mn.includes('nuevo')||mn.includes('cliente'))           return acc.clientes_nuevos;
+            if (mn.includes('seguidor')||mn.includes('follower'))       return acc.crec_seg;
+            if (mn.includes('dm')&&!mn.includes('tiempo'))             return acc.dms;
+            if (mn.includes('ticket'))                                   return acc.ticket_medio;
+            return null;
+        };
+        const _getPrev = mn => {
+            if (!accPrev || accPrev._n === 0) return null;
+            if (mn.includes('venta')||mn.includes('ingreso'))           return accPrev.ventas;
+            if (mn.includes('nuevo')||mn.includes('cliente'))           return accPrev.clientes_nuevos;
+            // Para seguidores: prev = seguidores_fin del período anterior (base para calcular %)
+            if (mn.includes('seguidor')||mn.includes('follower'))       return accPrev.seguidores_fin;
+            if (mn.includes('dm')&&!mn.includes('tiempo'))             return accPrev.dms;
+            if (mn.includes('ticket'))                                   return accPrev.ticket_medio;
+            return null;
+        };
+
         el.innerHTML = `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);margin-bottom:12px;">Objetivos del Mes</div>` +
             objetivos.map((obj, idx) => {
-                const mn = (obj.m||'').toLowerCase();
-                let cur = null;
-                if (mn.includes('venta'))                     cur = acc.ventas;
-                else if (mn.includes('nuevo')||mn.includes('cliente')) cur = acc.clientes_nuevos;
-                else if (mn.includes('seguidor'))             cur = null;
-                else if (mn.includes('dm'))                   cur = acc.dms;
-                else if (mn.includes('ticket'))               cur = acc.ticket_medio;
-                const target = parseFloat(String(obj.o||'').replace(/[$%,]/g,''))||0;
-                const rawPct = target>0 && cur!==null ? cur/target*100 : null;
-                const pct = rawPct !== null ? Math.min(100, Math.round(rawPct)) : null;
-                const bc = pct===null?'var(--color-primario)':pct>=100?'#34A853':pct>=70?'#34A853':pct>=40?'#FBBC05':'#EA4335';
+                const displayNombre = _normObj(obj.m);
+                const mn = displayNombre.toLowerCase();
+                const cur  = _getCur(mn);
+                const prev = _getPrev(mn);
+
+                // Detectar si la meta es un % de crecimiento ("15%") o valor absoluto ("30000")
+                const rawObjStr = String(obj.o||'');
+                const esMetaCrecimiento = rawObjStr.includes('%');
+                const targetNum = parseFloat(rawObjStr.replace(/[$%,\s]/g,''))||0;
+
+                let barPct = null;      // ancho de la barra (0-100)
+                let lineaInfo = '';     // texto debajo de la barra
+
+                if (esMetaCrecimiento) {
+                    // Meta = % de crecimiento vs mes anterior
+                    if (cur !== null && prev !== null && prev > 0) {
+                        const crecReal = ((cur - prev) / prev * 100);
+                        barPct = targetNum > 0 ? Math.min(100, Math.round(crecReal / targetNum * 100)) : null;
+                        const signo = crecReal >= 0 ? '+' : '';
+                        lineaInfo = `${signo}${crecReal.toFixed(1)}% vs ant. · Meta: +${targetNum}%`;
+                    } else if (cur !== null) {
+                        lineaInfo = `Real: ${mn.includes('venta')||mn.includes('ticket')?formatDinero(cur):Number(cur).toLocaleString('es-MX')} · Sin datos del mes anterior`;
+                    }
+                } else {
+                    // Meta = valor absoluto
+                    if (cur !== null) {
+                        const isFollowerObj = mn.includes('seguidor') || mn.includes('follower');
+                        if (isFollowerObj) {
+                            // Formato especial: "+N nuevos · +X.X% vs ant."
+                            const signo = (cur||0) >= 0 ? '+' : '';
+                            const pctVsAnt = prev != null && prev > 0
+                                ? ` · ${(cur||0)>=0?'+':''}${((cur||0)/prev*100).toFixed(1)}%` : '';
+                            lineaInfo = `${signo}${Number(cur||0).toLocaleString('es-MX')} nuevos${pctVsAnt}`;
+                            if (targetNum > 0) barPct = Math.min(100, Math.round((cur||0) / targetNum * 100));
+                        } else if (targetNum > 0) {
+                            barPct = Math.min(100, Math.round(cur / targetNum * 100));
+                            const realFmt = mn.includes('venta')||mn.includes('ingreso')||mn.includes('ticket')
+                                ? formatDinero(cur) : Number(cur).toLocaleString('es-MX');
+                            lineaInfo = `${barPct}% · Real: ${realFmt}`;
+                        }
+                    }
+                }
+
+                const bc = barPct===null ? 'var(--color-primario)'
+                    : barPct>=100 ? '#34A853' : barPct>=70 ? '#34A853' : barPct>=40 ? '#FBBC05' : '#EA4335';
                 const tipKey = Object.keys(OBJ_TIPS).find(k => mn.includes(k)) || null;
                 const tipIcon = tipKey ? `<i class="fa-solid fa-circle-info" title="${OBJ_TIPS[tipKey]}" style="font-size:9px;opacity:.5;cursor:help;margin-left:4px;vertical-align:middle;"></i>` : '';
+                const nombreInput = canEdit
+                    ? `<input value="${displayNombre.replace(/"/g,'&quot;')}" style="background:transparent;border:none;border-bottom:1px dotted rgba(255,255,255,.25);color:rgba(255,255,255,.9);font-size:13px;font-weight:700;outline:none;padding:1px 2px;max-width:160px;"
+                        onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${idx}].m=this.value;guardarBD();"
+                        onkeydown="if(event.key==='Enter')this.blur();">`
+                    : `<span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">${displayNombre}</span>`;
                 const valorDisplay = canEdit
-                    ? `<input value="${obj.o||''}" style="background:transparent;border:none;border-bottom:1px solid rgba(196,133,90,.4);color:var(--color-primario);font-size:12px;font-weight:700;text-align:right;width:80px;outline:none;padding:1px 2px;"
+                    ? `<input value="${rawObjStr}" style="background:transparent;border:none;border-bottom:1px solid rgba(196,133,90,.5);color:var(--color-primario);font-size:12px;font-weight:700;text-align:right;width:80px;outline:none;padding:1px 2px;" placeholder="Ej: 30000 ó 15%"
                         onchange="DB.datos['${SUC_ACTIVA}'].objetivos[${idx}].o=this.value;guardarBD();_renderDashObjetivos(DB.datos['${SUC_ACTIVA}']);"
                         onkeydown="if(event.key==='Enter')this.blur();">`
-                    : `<span style="font-size:12px;font-weight:700;color:var(--color-primario);">${obj.o}</span>`;
-                const metaBadge = rawPct !== null && rawPct >= 100
+                    : `<span style="font-size:12px;font-weight:700;color:var(--color-primario);">${rawObjStr}</span>`;
+                const metaBadge = barPct !== null && barPct >= 100
                     ? `<span style="font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;background:rgba(52,168,83,.2);color:#34A853;margin-left:4px;">✓ Meta alcanzada</span>`
                     : '';
                 return `<div style="margin-bottom:12px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
-                        <span style="font-size:13px;font-weight:700;color:rgba(255,255,255,.9);">${obj.m}${tipIcon}</span>
+                        <div style="display:flex;align-items:center;gap:2px;">${nombreInput}${tipIcon}</div>
                         <div style="display:flex;align-items:center;gap:4px;">${metaBadge}${valorDisplay}</div>
                     </div>
-                    ${pct!==null?`<div style="height:3px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:3px;"><div style="height:100%;width:${pct}%;background:${bc};box-shadow:0 0 6px ${bc}66;transition:width .5s;border-radius:3px;"></div></div><div style="text-align:right;font-size:10px;font-weight:700;color:${bc};">${pct}%${cur!==null?` · Real: ${mn.includes('venta')||mn.includes('ticket')?formatDinero(cur):Number(cur).toLocaleString('es-MX')}`:''}  </div>`:''}
+                    ${barPct!==null?`<div style="height:3px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:3px;"><div style="height:100%;width:${barPct}%;background:${bc};box-shadow:0 0 6px ${bc}66;transition:width .5s;border-radius:3px;"></div></div>`:``}
+                    ${lineaInfo?`<div style="text-align:right;font-size:10px;font-weight:700;color:${bc};">${lineaInfo}</div>`:``}
                 </div>`;
             }).join('');
     }
@@ -4144,30 +4495,90 @@ document.addEventListener('DOMContentLoaded', function() {
             _charts['dash-chart-inv']=new Chart(c2,{type:'bar',data:{labels:ads.map(a=>(a.nombre||'').substring(0,12)),datasets:[{label:'Inversión ($)',data:ads.map(a=>a.inversion||0),backgroundColor:`rgba(${_CT.base.rgb},.7)`,borderRadius:5},{label:'Conversiones ×100',data:ads.map(a=>(a.conversiones||0)*100),backgroundColor:`rgba(${_CT.light.rgb},.7)`,borderRadius:5}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:legDef}}});
         }
 
-        // Chart 3: Seguidores
-        const hist=d.historico_mensual||[];
+        // Chart 3: Crecimiento de seguidores — desde kpi_semanal.seguidores_fin por mes
+        const segByMes = Array(12).fill(null);
+        (d.kpi_semanal||[]).forEach(s => {
+            if (!s.fecha || s.seguidores_fin == null) return;
+            const mi = new Date(s.fecha+'T00:00:00').getMonth();
+            if (segByMes[mi] === null || s.seguidores_fin > segByMes[mi]) segByMes[mi] = s.seguidores_fin;
+        });
+        const hasSeg = segByMes.some(v => v !== null);
         destroyChart('dash-chart-seg');
-        const c3=document.getElementById('dash-chart-seg');
+        const c3 = document.getElementById('dash-chart-seg');
         if (c3) {
-            _charts['dash-chart-seg']=new Chart(c3,{type:'line',data:{labels:MC,datasets:[{label:'Seguidores',data:hist.map(h=>h.seguidores||0),borderColor:`rgba(${_CT.base.rgb},.9)`,backgroundColor:`rgba(${_CT.base.rgb},.12)`,fill:true,tension:.4,pointRadius:3,pointBackgroundColor:`rgba(${_CT.base.rgb},1)`}]},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:legDef}}});
+            const w3 = c3.parentElement;
+            w3.querySelectorAll('.seg-empty').forEach(e=>e.remove());
+            if (hasSeg) {
+                c3.style.display = '';
+                _charts['dash-chart-seg'] = new Chart(c3, {type:'line', data:{labels:MC, datasets:[{label:'Seguidores', data:segByMes, borderColor:`rgba(${_CT.dark.rgb},.9)`, backgroundColor:`rgba(${_CT.dark.rgb},.12)`, fill:true, tension:.4, pointRadius:3, spanGaps:true}]}, options:{responsive:true, maintainAspectRatio:false, scales:{x:scaleDef,y:scaleDef}, plugins:{legend:legDef}}});
+            } else {
+                c3.style.display = 'none';
+                const em3 = document.createElement('div'); em3.className='seg-empty';
+                em3.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--texto-secundario);font-size:11px;line-height:1.5;padding:12px;';
+                em3.textContent = 'Agrega seguidores en el Ejecutor de KPIs'; w3.appendChild(em3);
+            }
         }
 
-        // Chart 4: Engagement histórico
-        const engD=d.engagement_formato||[];
-        const engByFmt={};
-        engD.forEach(e=>{if(!engByFmt[e.formato])engByFmt[e.formato]=[];engByFmt[e.formato].push(e.alcance>0?+(e.interacciones/e.alcance*100).toFixed(1):0);});
-        const fmts=Object.keys(engByFmt).slice(0,4);
+        // Chart 4: Engagement histórico por mes — ER% línea + Alcance barras
+        const engMes = {};
+        (d.engagement_formato||[]).forEach(e => {
+            if (!e.fecha) return;
+            const mi = new Date(e.fecha+'T00:00:00').getMonth();
+            if (!engMes[mi]) engMes[mi] = { alc:0, inter:0 };
+            engMes[mi].alc   += e.alcance       || 0;
+            engMes[mi].inter += e.interacciones || 0;
+        });
+        const erData  = MC.map((_,mi) => engMes[mi]&&engMes[mi].alc>0 ? +(engMes[mi].inter/engMes[mi].alc*100).toFixed(2) : null);
+        const alcData = MC.map((_,mi) => engMes[mi]?.alc || null);
+        const hasEng  = erData.some(v => v !== null);
         destroyChart('dash-chart-eng');
-        const c4=document.getElementById('dash-chart-eng');
-        if(c4){
-            if(fmts.length>0){
-                c4.style.display='';
-                const maxLen=Math.max(...fmts.map(f=>engByFmt[f].length));
-                _charts['dash-chart-eng']=new Chart(c4,{type:'line',data:{labels:Array.from({length:maxLen},(_,i)=>`S${i+1}`),datasets:fmts.map((fmt,ci)=>({label:fmt,data:engByFmt[fmt],borderColor:COLORS[ci],backgroundColor:'transparent',tension:.4,pointRadius:3}))},options:{responsive:true,maintainAspectRatio:false,scales:{x:scaleDef,y:scaleDef},plugins:{legend:{position:'bottom',labels:legDef.labels}}}});
+        const c4 = document.getElementById('dash-chart-eng');
+        if (c4) {
+            const w4 = c4.parentElement;
+            w4.querySelectorAll('.eng-empty').forEach(e=>e.remove());
+            if (hasEng) {
+                c4.style.display = '';
+                _charts['dash-chart-eng'] = new Chart(c4, {
+                    type: 'bar',
+                    data: { labels: MC, datasets: [
+                        { type:'line', label:'ER%', data:erData, borderColor:`rgba(${_CT.base.rgb},.9)`, backgroundColor:`rgba(${_CT.base.rgb},.12)`, fill:true, tension:.4, pointRadius:3, yAxisID:'yEr', spanGaps:true },
+                        { type:'bar',  label:'Alcance', data:alcData, backgroundColor:`rgba(${_CT.light.rgb},.45)`, borderRadius:3, yAxisID:'yAlc' }
+                    ]},
+                    options: { responsive:true, maintainAspectRatio:false,
+                        scales: { x:scaleDef, yEr:{...scaleDef, position:'left', title:{display:true,text:'ER%',color:txtTer,font:{size:9}}}, yAlc:{...scaleDef, position:'right', grid:{drawOnChartArea:false}, title:{display:true,text:'Alcance',color:txtTer,font:{size:9}}} },
+                        plugins: { legend:{position:'bottom',labels:legDef.labels} }
+                    }
+                });
             } else {
-                c4.style.display='none';
-                const em4=c4.parentElement.querySelector('.eng-empty');
-                if(!em4){const e=document.createElement('div');e.className='eng-empty';e.style.cssText='display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--texto-secundario);font-size:11px;line-height:1.5;padding:12px;';e.textContent='Agrega registros de Engagement en el Ejecutor de KPIs para ver este gráfico';c4.parentElement.appendChild(e);}
+                c4.style.display = 'none';
+                const em4 = document.createElement('div'); em4.className='eng-empty';
+                em4.style.cssText = 'display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--texto-secundario);font-size:11px;line-height:1.5;padding:12px;gap:8px;';
+                em4.innerHTML = 'Agrega registros en Engagement por Formato para ver la evolución histórica<br><button onclick="openEjecutorModal()" style="font-size:10px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--color-borde);background:transparent;cursor:pointer;color:var(--texto-secundario);margin-top:4px;">Ir a Engagement</button>';
+                w4.appendChild(em4);
+            }
+        }
+
+        // Chart 5: Visualizaciones por mes — desde kpi_semanal.visualizaciones
+        const visByMes = Array(12).fill(null);
+        (d.kpi_semanal||[]).forEach(s => {
+            if (!s.fecha || !s.visualizaciones) return;
+            const mi = new Date(s.fecha+'T00:00:00').getMonth();
+            visByMes[mi] = (visByMes[mi] || 0) + s.visualizaciones;
+        });
+        const hasVis = visByMes.some(v => v !== null);
+        destroyChart('dash-chart-vistas');
+        const c5 = document.getElementById('dash-chart-vistas');
+        if (c5) {
+            const w5 = c5.parentElement;
+            w5.querySelectorAll('.vis-empty').forEach(e=>e.remove());
+            if (hasVis) {
+                c5.style.display = '';
+                _charts['dash-chart-vistas'] = new Chart(c5, {type:'bar', data:{labels:MC, datasets:[{label:'Visualizaciones', data:visByMes, backgroundColor:`rgba(${_CT.light.rgb},.6)`, borderRadius:4}]}, options:{responsive:true, maintainAspectRatio:false, scales:{x:scaleDef,y:scaleDef}, plugins:{legend:legDef}}});
+            } else {
+                c5.style.display = 'none';
+                const em5 = document.createElement('div'); em5.className='vis-empty';
+                em5.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;text-align:center;color:var(--texto-secundario);font-size:11px;line-height:1.5;padding:12px;';
+                em5.textContent = 'Agrega visualizaciones en el Ejecutor de KPIs'; w5.appendChild(em5);
             }
         }
     }
@@ -4542,9 +4953,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const rowTotal = p.montos_mes.reduce((s,m) => s+(m.inversion||0)+(m.colaboracion||0), 0);
             const _tipoOpts = INVERSION_CATEGORIAS.map(c=>`<option ${p.tipo===c.tipo?'selected':''}>${c.tipo}</option>`).join('');
             const tipoSel = ro ? '' : `<select class="select-celda" style="font-size:10px;padding:2px 6px;margin-top:3px;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].tipo=this.value;guardarBD()">${_tipoOpts}</select>`;
+            const _honorTip = p.tipo === 'Honorarios de agencia' ? `<i class="fa-solid fa-circle-info" style="color:var(--texto-secundario);opacity:.5;font-size:10px;cursor:help;flex-shrink:0;" title="Lo que cobra LANKA mensualmente por gestionar&#10;el marketing de este cliente."></i>` : '';
             h += `<tr><td style="position:sticky;left:0;font-weight:700;border-right:1px solid var(--color-borde);" class="ppto-sticky-col">
                 <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
-                <div style="display:flex;gap:6px;align-items:center;margin-top:3px;"><span style="font-size:10px;color:var(--texto-secundario);">${p.categoria}</span>${tipoSel}</div>
+                <div style="display:flex;gap:6px;align-items:center;margin-top:3px;"><span style="font-size:10px;color:var(--texto-secundario);">${p.categoria}</span>${tipoSel}${_honorTip}</div>
             </td>`;
             p.montos_mes.forEach((m, mIdx) => {
                 const _real = m.real||0; const _inv = m.inversion||0;
@@ -5430,7 +5842,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             const _bgPreviewCss = _bgTipo==='solido' ? `background:${_bg.color||'#EDEDED'};` : _bgTipo==='preset' ? `background:${_BG_PRESETS[_bg.preset]||'#EDEDED'};` : _bgTipo==='personalizado' ? `background:linear-gradient(${_bg.grad_dir==='horizontal'?'to right':_bg.grad_dir==='vertical'?'to bottom':'135deg'},${_bg.grad_c1||'#EDEDED'},${_bg.grad_c2||'#FFFFFF'});` : 'background:#EDEDED;';
             const _btnTipoFn = (t,lbl) => `<button class="btn btn-xs ${_bgTipo===t?'btn-primario':'btn-fantasma'}" style="flex:1;font-size:9px;padding:4px 2px;" onclick="if(!DB.sucursales[${i}].bg)DB.sucursales[${i}].bg={};DB.sucursales[${i}].bg.tipo='${t}';guardarBD();if('${s.id}'===SUC_ACTIVA)aplicarGradiente();renderAdministracion();">${lbl}</button>`;
-            const _bgSection = !_isOwnerBg ? '' : `<div style="margin-bottom:14px;border:1px solid var(--color-borde);border-radius:10px;padding:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:8px;">BACKGROUND DEL PROYECTO</label><div style="display:flex;gap:5px;margin-bottom:10px;">${_btnTipoFn('solido','Color sólido')}${_btnTipoFn('preset','Preset')}${_btnTipoFn('personalizado','Personalizado')}</div>${_bgBodyHtml}<div style="height:26px;border-radius:7px;border:1px solid var(--color-borde);${_bgPreviewCss}"></div><div style="font-size:10px;color:var(--texto-secundario);margin-top:5px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Fondo de la app cuando este proyecto está activo.</div></div>`;
+            const _isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+            const _bgSection = !_isOwnerBg ? '' : _isDarkMode
+                ? `<div style="margin-bottom:14px;border:1px solid var(--color-borde);border-radius:10px;padding:12px;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:8px;">BACKGROUND DEL PROYECTO</label>
+                    <div style="font-size:11px;color:var(--texto-secundario);display:flex;align-items:center;gap:6px;padding:6px 0;"><i class="fa-solid fa-moon" style="color:var(--color-primario);opacity:.7;"></i>En dark mode el fondo es automático — Noche profunda siempre activo.</div>
+                   </div>`
+                : `<div style="margin-bottom:14px;border:1px solid var(--color-borde);border-radius:10px;padding:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:8px;">BACKGROUND DEL PROYECTO</label><div style="display:flex;gap:5px;margin-bottom:10px;">${_btnTipoFn('solido','Color sólido')}${_btnTipoFn('preset','Preset')}${_btnTipoFn('personalizado','Personalizado')}</div>${_bgBodyHtml}<div style="height:26px;border-radius:7px;border:1px solid var(--color-borde);${_bgPreviewCss}"></div><div style="font-size:10px;color:var(--texto-secundario);margin-top:5px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Fondo de la app cuando este proyecto está activo.</div></div>`;
             return `<div class="tarjeta-cliente">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <input class="input-celda" style="font-weight:800;font-size:18px;padding-left:0;font-family:var(--font-display);" value="${s.nombre}"
@@ -6212,7 +6630,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 ? `<button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="_irANotif('${n.id}','${n.accion_ruta}')"><i class="fa-solid fa-arrow-right"></i> ${n.accion_label||'Ver'}</button>`
                 : (n.accion_label ? `<button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="_marcarNotifLeida('${n.id}');_renderNotifPanel()"><i class="fa-solid fa-check"></i> ${n.accion_label}</button>` : '');
             const descartarBtn = `<button onclick="event.stopPropagation();_descartarNotif('${n.id}')" title="Descartar" style="background:none;border:none;cursor:pointer;color:var(--texto-secundario);font-size:11px;padding:2px 4px;flex-shrink:0;" onmouseover="this.style.color='var(--color-peligro)'" onmouseout="this.style.color='var(--texto-secundario)'"><i class="fa-solid fa-xmark"></i></button>`;
-            return `<div onclick="_marcarNotifLeida('${n.id}')" style="padding:14px 18px;border-bottom:1px solid var(--color-borde,#eee);cursor:pointer;${n.leida?'opacity:.55;':'background:rgba(196,133,90,.04);'}">
+            return `<div onclick="_marcarNotifLeida('${n.id}')" style="padding:14px 18px;border-bottom:1px solid var(--color-borde,#eee);cursor:pointer;${n.leida?'opacity:.8;':'background:rgba(196,133,90,.07);'}">
                 <div style="display:flex;align-items:flex-start;gap:10px;">
                     <i class="fa-solid ${ICONS[n.tipo]||'fa-bell'}" style="color:${iconColor};margin-top:2px;font-size:13px;flex-shrink:0;"></i>
                     <div style="flex:1;min-width:0;">
@@ -9129,7 +9547,7 @@ function _xlsNotificarOrigenManual() {
 
 <!-- Panel lateral de notificaciones -->
 <div id="ejec-tooltip" style="position:fixed;background:rgba(20,18,16,0.92);color:#fff;font-size:11px;font-weight:500;line-height:1.5;padding:8px 12px;border-radius:8px;max-width:220px;z-index:99999;pointer-events:none;display:none;white-space:pre-line;box-shadow:0 4px 16px rgba(0,0,0,.25);"></div>
-<div id="notif-panel" style="position:fixed;top:0;right:-340px;width:320px;height:100vh;background:var(--color-tarjeta,#fff);border-left:1px solid var(--color-borde,#eee);box-shadow:-4px 0 24px rgba(0,0,0,.08);z-index:9000;transition:right .25s ease;display:flex;flex-direction:column;">
+<div id="notif-panel" style="position:fixed;top:0;right:-340px;width:320px;height:100vh;background:#F8F4EF;border-left:1px solid var(--color-borde,#eee);box-shadow:-4px 0 24px rgba(0,0,0,.12);z-index:9000;transition:right .25s ease;display:flex;flex-direction:column;">
     <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--color-borde,#eee);">
         <div style="font-family:var(--font-display,sans-serif);font-size:15px;font-weight:800;"><i class="fa-solid fa-bell" style="margin-right:8px;color:var(--color-primario,#C4855A);"></i>Notificaciones</div>
         <div style="display:flex;gap:8px;align-items:center;">
