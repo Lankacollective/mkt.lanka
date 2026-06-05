@@ -1373,21 +1373,21 @@
                     <div><h1>Calendario de Contenido</h1><p>Pipeline editorial y flujos de automatización.</p></div>
                     <div style="display:flex; gap:12px;">
                         <div class="selector-vista">
-                            <button id="btn-vista-kanban" class="btn-vista activo" onclick="cambiarVistaCalendario('kanban')"><i class="fa-solid fa-columns"></i> Kanban</button>
-                            <button id="btn-vista-parrilla" class="btn-vista" onclick="cambiarVistaCalendario('parrilla')"><i class="fa-solid fa-list"></i> Parrilla</button>
+                            <button id="btn-vista-parrilla" class="btn-vista activo" onclick="cambiarVistaCalendario('parrilla')"><i class="fa-solid fa-list"></i> Parrilla</button>
+                            <button id="btn-vista-kanban" class="btn-vista" onclick="cambiarVistaCalendario('kanban')"><i class="fa-solid fa-columns"></i> Kanban</button>
                         </div>
                         <button class="btn btn-fantasma req-agencia" onclick="abrirImportarJSON()"><i class="fa-solid fa-file-code"></i> Importar semana</button>
                         <button class="btn btn-primario req-agencia" onclick="agregarElemento('kanban')"><i class="fa-solid fa-plus"></i> Nueva Tarea</button>
                     </div>
                 </div>
-                <div class="kanban-board" id="contenedor-kanban">
+                <div class="kanban-board oculto" id="contenedor-kanban">
                     <div class="kanban-col" ondrop="soltar(event, 'Ideas')" ondragover="permitirSoltar(event)"><div class="kanban-header">Ideas</div><div id="k-Ideas"></div></div>
                     <div class="kanban-col" ondrop="soltar(event, 'Producción')" ondragover="permitirSoltar(event)"><div class="kanban-header">Producción</div><div id="k-Producción"></div></div>
                     <div class="kanban-col" ondrop="soltar(event, 'Revisión')" ondragover="permitirSoltar(event)"><div class="kanban-header">Revisión Cliente</div><div id="k-Revisión"></div></div>
                     <div class="kanban-col" ondrop="soltar(event, 'Programado')" ondragover="permitirSoltar(event)"><div class="kanban-header">Programado</div><div id="k-Programado"></div></div>
                     <div class="kanban-col" ondrop="soltar(event, 'Publicado')" ondragover="permitirSoltar(event)"><div class="kanban-header" style="color:#15803D;"><i class="fa-solid fa-circle-check" style="font-size:10px;margin-right:4px;"></i>Publicado</div><div id="k-Publicado"></div></div>
                 </div>
-                <div id="contenedor-parrilla" class="oculto"></div>
+                <div id="contenedor-parrilla"></div>
             </section>
 
             <!-- ============ NUEVO MÓDULO 3: CALENDARIO EDITORIAL VISUAL ============ -->
@@ -2073,7 +2073,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         sucursales: [
             { id: "aitama", nombre: "Aitama Wellness", color: "#C4855A", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Aitama26"),
-              categorias_servicio: ["Head Spa","Facial","Masajes","Paquetes","Reductivos","Producto","Otro"],
+              categorias_servicio: ["Head Spa","Facial","Masajes","Paquetes","Reductivos","Producto","Otro"], drive_contenido_url: "",
               equipo_miembros: [
                 { nombre: "Ángeles Fernández", rol: "Fotógrafa", password: btoa("angeles26") },
                 { nombre: "Dulce", rol: "Asistente", password: btoa("dulce26") },
@@ -2081,7 +2081,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
               ]
             },
-            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"), categorias_servicio: [], equipo_miembros: [] }
+            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"), categorias_servicio: [], drive_contenido_url: "", equipo_miembros: [] }
         ],
         datos: {
             aitama: {
@@ -2105,6 +2105,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 stories_ind: [],
                 kpi_semanal: [],
                 engagement_formato: [],
+                kpi_metas: {},
                 historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0}))
             },
             mammut: {
@@ -2114,7 +2115,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: [],
                 ads: [], offline: [], shooting: [], stories_ind: [],
                 historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0})),
-                kpi_semanal: [], engagement_formato: []
+                kpi_semanal: [], engagement_formato: [], kpi_metas: {}
             }
         },
         proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ],
@@ -2185,6 +2186,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let _mcExpanded  = new Set();
     let _pptoVista = 'anual';
     let _pptoMes   = new Date().getMonth(); // keep for compat
+    let _pptoAnualCols = 'all'; // 'all' | 'inv' | 'real' | 'col'
     // Date strings YYYY-MM-DD — default: este mes
     const _pptoHoy = new Date();
     let _pptoDesde = new Date(_pptoHoy.getFullYear(), _pptoHoy.getMonth(), 1).toISOString().split('T')[0];
@@ -2431,8 +2433,75 @@ document.addEventListener('DOMContentLoaded', function() {
                     : [];
                 _catSvcMigrated = true;
             }
+            // Migrate: servicios — read from localStorage if available, else use preset
+            if (!s.servicios) {
+                try {
+                    const _ls = localStorage.getItem('config_servicios_' + s.id);
+                    s.servicios = _ls ? JSON.parse(_ls) : null;
+                } catch(e) { s.servicios = null; }
+                if (!s.servicios) {
+                    const _preset = { wellness:['Head Spa','Facial Clínico','Masaje Terapéutico','Body Reset','Age Element Mesoestétic','Ainhoa CBD','Consulta'], restaurante:['Pizza','Bebida','Postre','Entrada','Combo','Promoción'], personal:['Consultoría','Conferencia','Mentoría','Contenido patrocinado'], cafeteria:['Café','Bebida','Alimento','Merchandise'], otro:['Servicio','Producto'] };
+                    s.servicios = (_preset[s.tipo] || _preset.otro).slice();
+                }
+                _catSvcMigrated = true;
+            }
+            // Migrate: proveedores_config — read from localStorage if available, else seed from DB.proveedores
+            if (!s.proveedores_config) {
+                try {
+                    const _lsp = localStorage.getItem('proveedores_' + s.id);
+                    s.proveedores_config = _lsp ? JSON.parse(_lsp) : null;
+                } catch(e) { s.proveedores_config = null; }
+                if (!s.proveedores_config) {
+                    s.proveedores_config = (DB.proveedores && DB.proveedores.length) ? JSON.parse(JSON.stringify(DB.proveedores)) : [];
+                }
+                _catSvcMigrated = true;
+            }
         });
         if (_catSvcMigrated) guardarBD();
+
+        // Migrate: kpi_metas — move from localStorage (per-device) to DB (shared, Supabase-synced)
+        let _kpiMetaMigrated = false;
+        const _kpiChips = ['mes', 'sem', '3m', 'anio'];
+        (DB.sucursales||[]).forEach(s => {
+            const d = DB.datos[s.id];
+            if (!d) return;
+            if (!d.kpi_metas) {
+                d.kpi_metas = {};
+                _kpiChips.forEach(chip => {
+                    try {
+                        const raw = localStorage.getItem(`lanka_metas_${s.id}_${chip}`);
+                        if (raw) {
+                            const parsed = JSON.parse(raw);
+                            if (Object.keys(parsed).length) d.kpi_metas[chip] = parsed;
+                        }
+                    } catch(e) {}
+                });
+                _kpiMetaMigrated = true;
+            }
+        });
+        if (_kpiMetaMigrated) guardarBD();
+
+        // Migrate: drive_contenido_url on sucursales + new kanban card fields
+        let _cardMigrated = false;
+        (DB.sucursales||[]).forEach(s => {
+            if (s.drive_contenido_url === undefined) { s.drive_contenido_url = ''; _cardMigrated = true; }
+            const datos = DB.datos[s.id];
+            if (!datos) return;
+            (datos.kanban||[]).forEach(k => {
+                if (k.formato           === undefined) { k.formato           = ''; _cardMigrated = true; }
+                if (k.caption_ig        === undefined) { k.caption_ig        = k.copy       || ''; _cardMigrated = true; }
+                if (k.hashtags_ig       === undefined) { k.hashtags_ig       = k.hashtags   || ''; _cardMigrated = true; }
+                if (k.caption_tiktok    === undefined) { k.caption_tiktok    = ''; _cardMigrated = true; }
+                if (k.hashtags_tiktok   === undefined) { k.hashtags_tiktok   = ''; _cardMigrated = true; }
+                if (k.manychat_flujo    === undefined) { k.manychat_flujo    = ''; _cardMigrated = true; }
+                if (k.pauta_activa      === undefined) { k.pauta_activa      = !!(k.pauta && k.pauta.trim()); _cardMigrated = true; }
+                if (k.pauta_nota        === undefined) { k.pauta_nota        = k.pauta || ''; _cardMigrated = true; }
+                if (k.campana_id        === undefined) { k.campana_id        = ''; _cardMigrated = true; }
+                if (k.stories_vinculadas=== undefined) { k.stories_vinculadas= []; _cardMigrated = true; }
+                if (k.drive_doc_url     === undefined) { k.drive_doc_url      = ''; _cardMigrated = true; }
+            });
+        });
+        if (_cardMigrated) guardarBD();
 
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
         
@@ -2736,7 +2805,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'productos') n = { m: "Producto", pct: 0 };
         if(lista === 'objetivos') n = { m: "Meta", o: "0" };
         if(lista === 'insights') n = { f: new Date().toISOString().split('T')[0], c: "Experimento", r: "Resultado...", a: "Aprendizaje..." };
-        if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"" };
+        if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", formato:"", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"", pauta_activa:false, pauta_nota:"", campana_id:"", stories_vinculadas:[], drive_doc_url:"" };
         if(lista === 'dam') n = { id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, url:"", historial:[{autor:ROL, fecha:new Date().toLocaleDateString(), accion:"Creado", nota:"V1"}] };
         if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Pauta digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0, real: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
@@ -3880,17 +3949,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function _getKpiMetas() {
         const chip = window.dashPeriodo?.chip || 'mes';
-        try { return JSON.parse(localStorage.getItem(`lanka_metas_${SUC_ACTIVA}_${chip}`) || '{}'); }
-        catch(e) { return {}; }
+        const d = DB.datos[SUC_ACTIVA];
+        if (d && d.kpi_metas && d.kpi_metas[chip]) return d.kpi_metas[chip];
+        return {};
     }
 
     function _saveKpiMeta(campo, valor) {
         const chip = window.dashPeriodo?.chip || 'mes';
-        const key  = `lanka_metas_${SUC_ACTIVA}_${chip}`;
-        const metas = _getKpiMetas();
-        metas[campo] = Number(String(valor).replace(/[^0-9.]/g,'')) || 0;
-        localStorage.setItem(key, JSON.stringify(metas));
-        _renderDashKPIs(DB.datos[SUC_ACTIVA]);
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d) return;
+        if (!d.kpi_metas)       d.kpi_metas = {};
+        if (!d.kpi_metas[chip]) d.kpi_metas[chip] = {};
+        d.kpi_metas[chip][campo] = Number(String(valor).replace(/[^0-9.]/g,'')) || 0;
+        guardarBD();
+        _renderDashKPIs(d);
     }
 
     function _semaforoColor(actual, meta, inverso) {
@@ -4154,15 +4226,19 @@ document.addEventListener('DOMContentLoaded', function() {
             ? 'Para ver la conversión DM→cita necesitamos:\n· Total de DMs recibidos en el período\n· Cuántos de esos DMs agendaron cita\n→ Llena estos campos en el Ejecutor de KPIs'
             : acc.dms === 0 ? 'Registra los DMs recibidos en el Ejecutor de KPIs'
             : 'Registra las Citas desde DM en el Ejecutor de KPIs';
-        // Notificación automática a Ángeles si faltan datos (máx 1 vez por día por proyecto)
+        // Notificación automática a usuarios con rol Dirección si faltan datos (máx 1 vez por día por proyecto)
         if (convCalc === null) {
             const _cdk = `_conv_notif_${SUC_ACTIVA}`;
             if (Date.now() - parseInt(localStorage.getItem(_cdk)||'0') > 86400000) {
                 localStorage.setItem(_cdk, String(Date.now()));
-                const _ang = (DB.usuarios||[]).find(u=>u.id==='u_angeles'||u.username==='angeles.fernandez');
-                if (_ang) _addNotif('data_faltante', 'Dashboard', _ang.id,
+                const _dirUsers = (DB.usuarios||[]).filter(u =>
+                    u.rol_id === 'direccion' &&
+                    u.estado === 'activo' &&
+                    (u.proyectos||[]).includes(SUC_ACTIVA)
+                );
+                _dirUsers.forEach(u => _addNotif('data_faltante', 'Dashboard', u.id,
                     `Para ver la conversión DM→cita necesitamos:\n· Total de DMs recibidos en el período\n· Cuántos de esos DMs agendaron cita\n→ Llena estos campos en el Ejecutor de KPIs`,
-                    'vista-resumen');
+                    'vista-resumen'));
             }
         }
 
@@ -4781,6 +4857,156 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tipo==='post') renderOrquestacion(); else renderStories();
     }
 
+    function _buildKanbanCard(t, idx, d, canEdit, ro, suc_info, targetOpts) {
+        const _SUC = SUC_ACTIVA;
+        const _kp  = `DB.datos['${_SUC}'].kanban[${idx}]`;
+
+        // Drive doc adjunto por tarjeta
+        const _projFolderUrl = (suc_info||{}).drive_contenido_url || '';
+        const _docUrl = t.drive_doc_url || '';
+        const _docIcon = _docUrl.includes('document') ? 'fa-file-word' : _docUrl.includes('spreadsheet') ? 'fa-file-excel' : _docUrl.includes('presentation') ? 'fa-file-powerpoint' : _docUrl.includes('drive.google') || _docUrl.includes('docs.google') ? 'fa-brands fa-google-drive' : 'fa-file';
+        const _docIconColor = _docUrl.includes('document') ? '#4285F4' : _docUrl.includes('spreadsheet') ? '#0F9D58' : _docUrl.includes('presentation') ? '#F4B400' : '#4285F4';
+        const _docBadge = _docUrl
+            ? `<div style="display:flex;align-items:center;gap:8px;margin-top:8px;padding:7px 12px;border-radius:8px;background:rgba(66,133,244,.07);border:1px solid rgba(66,133,244,.2);">
+                <i class="fa-solid ${_docIcon}" style="color:${_docIconColor};font-size:13px;flex-shrink:0;"></i>
+                <a href="${_docUrl}" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:var(--color-azul,#4285F4);text-decoration:none;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onclick="event.stopPropagation()" title="${_docUrl}">${_docUrl.replace(/https?:\/\//,'').substring(0,55)}${_docUrl.length>62?'…':''}</a>
+                ${canEdit ? `<i class="fa-solid fa-times" style="cursor:pointer;color:var(--color-peligro);font-size:11px;flex-shrink:0;" onclick="event.stopPropagation();${_kp}.drive_doc_url='';guardarBD();renderOrquestacion()" title="Desvincula el documento"></i>` : ''}
+               </div>`
+            : '';
+
+        // Formato badge/selector
+        const _fmts = _getFormatos(_SUC);
+        const _fmtOpts = `<option value="">Formato...</option>` + _fmts.map(f=>`<option ${(t.formato||'')===f?'selected':''}>${f}</option>`).join('');
+        const _fmtBadge = t.formato ? `<span style="display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 10px;border-radius:100px;background:rgba(196,133,90,.1);color:var(--color-primario);border:1px solid rgba(196,133,90,.2);">${t.formato}</span>` : '';
+        const _fmtEl = canEdit
+            ? `<select class="select-celda" style="font-size:10px;padding:2px 8px;border-radius:100px;height:22px;" onclick="event.stopPropagation()" onchange="${_kp}.formato=this.value;guardarBD()">${_fmtOpts}</select>`
+            : _fmtBadge;
+
+        // Estado
+        const _estOpts = ['Ideas','Producción','Revisión','Programado','Publicado'].map(e=>`<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
+        const _estEl = canEdit
+            ? `<select class="select-celda" style="width:120px;border:1px solid var(--color-borde);background:#fafafa;font-size:11px;text-transform:uppercase;" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value)">${_estOpts}</select>`
+            : `<span class="tag gris">${t.estado}</span>`;
+
+        // Tags
+        const _tagsH = t.tags ? t.tags.split(',').map(tag=>{const l=tag.trim().toLowerCase();let c='gris';if(l.includes('reel'))c='reel';if(l.includes('asmr'))c='asmr';if(l.includes('pauta'))c='pauta';if(l.includes('urgente'))c='urgente';return `<span class="tag ${c}">${tag.trim()}</span>`;}).join('') : '';
+
+        // Asignado
+        const _miembros = (suc_info||{}).equipo_miembros || [];
+        const _asigOpts = `<option value="">Sin asignar</option>` + _miembros.map(m=>`<option value="${m.nombre}" ${t.asignado_a===m.nombre?'selected':''}>${m.nombre}</option>`).join('');
+        const _asigEl = canEdit
+            ? `<select class="select-celda" style="font-size:12px;border:1px solid var(--color-borde);background:#fafafa;" onclick="event.stopPropagation()" onchange="${_kp}.asignado_a=this.value;guardarBD()">${_asigOpts}</select>`
+            : `<span style="font-size:12px;color:var(--texto-secundario);">${t.asignado_a||'Sin asignar'}</span>`;
+
+        // Target
+        const _tVal = t.target_id || '';
+        const _selTarget = canEdit
+            ? `<select class="select-celda" style="padding:0;background:transparent;border:none;outline:none;" onchange="${_kp}.target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${_tVal}"`,`value="${_tVal}" selected`)}</select>`
+            : (d.target.find(x=>x.id===_tVal)?.segmento||'Sin Target');
+
+        // Pauta
+        const _pautaChecked = t.pauta_activa ? 'checked' : '';
+        const _campanaOpts = `<option value="">Sin vincular</option>` + (d.ads||[]).filter(a=>a.estado==='Activa').map(a=>`<option value="${a.id}" ${(t.campana_id||'')===a.id?'selected':''}>${a.nombre}</option>`).join('');
+        const _pautaSection = t.pauta_activa ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;padding:14px;background:rgba(196,133,90,.04);border-radius:10px;border:1px solid rgba(196,133,90,.15);">
+            <div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);margin-bottom:6px;">Nota de pauta</div>
+            <textarea class="copy-block" style="min-height:70px;" ${ro} onchange="${_kp}.pauta_nota=this.value;${_kp}.pauta=this.value;${_kp}.pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta_nota||t.pauta||''}</textarea></div>
+            <div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);margin-bottom:6px;">Vincular a campaña</div>
+            <select class="select-celda" style="border:1px solid var(--color-borde);" onchange="${_kp}.campana_id=this.value;guardarBD()">${_campanaOpts}</select></div>
+        </div>` : '';
+
+        // Shooting
+        const _shootingOpts = `<option value="">Sin vincular</option>` + (d.shooting||[]).map(sh=>`<option value="${sh.id}" ${(t.shooting_id||'')===sh.id?'selected':''}>${sh.titulo||'Sesión'} · ${sh.fecha||''}</option>`).join('');
+        const _shootingBadge = t.shooting_id ? (()=>{const sh=(d.shooting||[]).find(s=>s.id===t.shooting_id);return sh?`<div style="margin-top:6px;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(74,144,217,.1);color:#4A90D9;border:1px solid rgba(74,144,217,.2);"><i class="fa-solid fa-camera" style="font-size:9px;"></i>${sh.titulo||''} · ${sh.fecha||''}</span></div>`:'';})() : '';
+
+        // Stories vinculadas
+        const _storyIds = t.stories_vinculadas||[];
+        const _storyBadges = (d.stories_ind||[]).filter(s=>_storyIds.includes(s.id)).map(s=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;background:rgba(0,0,0,.06);color:var(--texto-secundario);margin-bottom:4px;"><i class="fa-solid fa-play" style="font-size:8px;"></i>${s.dia||'—'}: ${(s.copy||'').substring(0,26)} <i class="fa-solid fa-times" style="cursor:pointer;margin-left:3px;color:var(--color-peligro);" onclick="event.stopPropagation();const _sv=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[];DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=_sv.filter(id=>id!=='${s.id}');guardarBD();renderOrquestacion()"></i></span>`).join(' ');
+        const _storyAddOpts = `<option value="">+ Vincular story...</option>` + (d.stories_ind||[]).filter(s=>!_storyIds.includes(s.id)).map(s=>`<option value="${s.id}">[${s.dia||'—'}] ${(s.copy||'').substring(0,42)}</option>`).join('');
+
+        // Helpers
+        const _lbl = (icon, txt) => `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:8px;display:flex;align-items:center;gap:6px;">${icon}<span>${txt}</span></div>`;
+        const _sep = `<div style="border-top:1px solid var(--color-borde);margin:16px 0;"></div>`;
+
+        return `<div class="content-card" id="card-${t.id}">
+<div class="card-header" onclick="this.parentElement.classList.toggle('open')">
+  <div style="display:flex;flex-direction:column;gap:4px;width:120px;">
+    <input type="date" class="input-celda" style="font-size:12px;font-weight:700;padding:6px;background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="${_kp}.fecha=this.value;guardarBD();renderOrquestacion()">
+    <input type="time" class="input-celda" style="font-size:11px;padding:6px;color:var(--color-primario);font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="${_kp}.hora=this.value;guardarBD();renderOrquestacion()">
+  </div>
+  <div style="min-width:0;overflow:hidden;">
+    <input class="input-celda" style="font-size:15px;font-weight:800;padding-left:0;font-family:var(--font-display);width:100%;" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="${_kp}.titulo=this.value;guardarBD()">
+    <div style="display:flex;gap:6px;align-items:center;margin-top:5px;flex-wrap:wrap;">${_fmtEl} ${_tagsH}</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+    ${_estEl}
+    ${_damBadgeKanban(t.id)}
+    <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);font-size:11px;transition:transform .2s;"></i>
+  </div>
+</div>
+<div class="card-body" onclick="event.stopPropagation()">
+  <div style="margin-bottom:14px;padding:12px 14px;background:rgba(66,133,244,.04);border-radius:10px;border:1px solid rgba(66,133,244,.12);">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
+        <i class="fa-brands fa-google-drive" style="color:#4285F4;font-size:14px;flex-shrink:0;"></i>
+        <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);flex-shrink:0;">Documento Drive</span>
+        ${_projFolderUrl ? `<a href="${_projFolderUrl}" target="_blank" rel="noopener" style="font-size:10px;color:var(--texto-secundario);text-decoration:underline;text-underline-offset:2px;margin-left:6px;" onclick="event.stopPropagation()" title="Abrir carpeta del proyecto">Ver carpeta →</a>` : ''}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--texto-secundario);flex-shrink:0;"><i class="fa-solid fa-user-tie" style="font-size:10px;"></i>${_asigEl}</div>
+    </div>
+    ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
+    ${_docBadge}
+  </div>
+  ${_sep}
+  ${_lbl('<i class="fa-brands fa-instagram" style="color:#E1306C;font-size:12px;"></i>','Contenido Instagram')}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;">
+    <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:4px;">Caption</div><textarea class="copy-block" style="min-height:90px;" ${ro} onchange="${_kp}.caption_ig=this.value;guardarBD()">${t.caption_ig||t.copy||''}</textarea></div>
+    <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:4px;">Hashtags</div><textarea class="copy-block" style="min-height:90px;font-family:monospace;font-size:11px;" placeholder="#hashtag1 #hashtag2 ..." ${ro} onchange="${_kp}.hashtags_ig=this.value;guardarBD()">${t.hashtags_ig||t.hashtags||''}</textarea></div>
+  </div>
+  ${_sep}
+  ${_lbl('<i class="fa-brands fa-tiktok" style="font-size:12px;"></i>','Contenido TikTok')}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;">
+    <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:4px;">Caption</div><textarea class="copy-block" style="min-height:90px;" placeholder="Caption para TikTok..." ${ro} onchange="${_kp}.caption_tiktok=this.value;guardarBD()">${t.caption_tiktok||''}</textarea></div>
+    <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:4px;">Hashtags</div><textarea class="copy-block" style="min-height:90px;font-family:monospace;font-size:11px;" placeholder="#hashtag1 #hashtag2 ..." ${ro} onchange="${_kp}.hashtags_tiktok=this.value;guardarBD()">${t.hashtags_tiktok||''}</textarea></div>
+  </div>
+  ${_sep}
+  ${_lbl('<i class="fa-solid fa-users-viewfinder" style="font-size:12px;"></i>','Distribución y amplificación')}
+  <div class="segment-link" style="margin-top:8px;"><i class="fa-solid fa-users-viewfinder" style="margin-right:6px;"></i>${_selTarget}</div>
+  <div style="margin-top:12px;padding:10px 14px;background:var(--color-fondo);border-radius:8px;border:1px solid var(--color-borde);">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;" onclick="event.stopPropagation()">
+      <input type="checkbox" ${_pautaChecked} onclick="event.stopPropagation()" onchange="const _ki=DB.datos['${_SUC}'].kanban[${idx}];_ki.pauta_activa=this.checked;if(!this.checked){_ki.pauta='';_ki.pauta_status='';_ki.campana_id='';_syncKanbanToAds(false);}guardarBD();renderOrquestacion()">
+      <i class="fa-solid fa-bullhorn" style="color:var(--color-primario);font-size:12px;"></i> Pauta digital
+    </label>
+  </div>
+  ${_pautaSection}
+  ${_sep}
+  ${_lbl('<i class="fa-solid fa-comment-dots" style="font-size:12px;"></i>','ManyChat')}
+  <div style="display:grid;grid-template-columns:220px 1fr;gap:14px;margin-top:8px;">
+    <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:4px;">Keyword</div>
+    <div style="background:#111;color:#fff;border-radius:8px;padding:10px 12px;"><input style="background:transparent;border:none;color:var(--color-primario);font-weight:800;font-family:var(--font-display);font-size:15px;width:100%;outline:none;" placeholder="Keyword..." value="${t.manychat||''}" ${ro} onchange="${_kp}.manychat=this.value;guardarBD()"></div></div>
+    <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:4px;">Desglose del flujo</div>
+    <textarea class="copy-block" style="min-height:80px;" placeholder="Ej: JADE → &apos;Hola! El Head Spa JADE incluye...&apos; → Botón &apos;Quiero info&apos; → Link agenda" ${ro} onchange="${_kp}.manychat_flujo=this.value;guardarBD()">${t.manychat_flujo||''}</textarea></div>
+  </div>
+  ${_sep}
+  ${_lbl('<i class="fa-solid fa-link" style="font-size:12px;"></i>','Vínculos')}
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px;">
+    <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:6px;">Sesión de Shooting</div>
+    ${canEdit?`<select class="select-celda" style="border:1px solid var(--color-borde);font-size:12px;width:100%;" onchange="${_kp}.shooting_id=this.value;guardarBD();renderOrquestacion()">${_shootingOpts}</select>`:''}
+    ${_shootingBadge}</div>
+    <div><div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:6px;">Activos DAM</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">${_renderActivosKanban(t.id)}</div></div>
+  </div>
+  <div style="margin-top:14px;">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:6px;">Stories vinculadas</div>
+    <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;min-height:24px;">
+      ${_storyBadges||'<span style="font-size:11px;color:var(--texto-secundario);">Sin stories vinculadas</span>'}
+    </div>
+    ${canEdit?`<select class="select-celda" style="font-size:11px;margin-top:6px;" onclick="event.stopPropagation()" onchange="if(!this.value)return;const _svArr=(DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[]);if(!_svArr.includes(this.value)){_svArr.push(this.value);}this.value='';guardarBD();renderOrquestacion();">${_storyAddOpts}</select>`:''}
+  </div>
+  ${canEdit?`<div style="text-align:right;margin-top:20px;border-top:1px solid var(--color-borde);padding-top:14px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Eliminar tarea</button></div>`:''}
+</div>
+</div>`;
+    }
+
     function renderOrquestacion() {
         const d = DB.datos[SUC_ACTIVA];
         const canEdit = _getPermisos('calendario', 'editar');
@@ -4803,10 +5029,14 @@ document.addEventListener('DOMContentLoaded', function() {
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
             let t_val = t.target_id || "";
             let selTarget = canEdit ? `<select class="select-celda" style="padding:0; background:transparent; border:none; outline:none;" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].target_id=this.value;guardarBD()"><option value="">Vincular Target...</option>${targetOpts.replace(`value="${t_val}"`, `value="${t_val}" selected`)}</select>` : (d.target.find(x=>x.id===t_val)?.segmento || 'Sin Target');
-            pHTML += `<div class="content-card" id="card-${t.id}"><div class="card-header" onclick="this.parentElement.classList.toggle('open')"><div style="display:flex; flex-direction:column; gap:4px; width:120px;"><input type="date" class="input-celda" style="font-size:12px; font-weight:700; padding:6px; background:#fafafa;" value="${t.fecha}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].fecha=this.value;guardarBD();renderOrquestacion()"><input type="time" class="input-celda" style="font-size:11px; padding:6px; color:var(--color-primario); font-weight:700;" value="${t.hora}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hora=this.value;guardarBD();renderOrquestacion()"></div><div><input class="input-celda" style="font-size:16px; font-weight:800; padding-left:0; font-family:var(--font-display);" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].titulo=this.value;guardarBD()"><div class="card-tags">${tagsH} <input class="input-celda" style="font-size:11px; width:150px; border-bottom:1px dashed #ccc; padding-left:0;" placeholder="+ Tags (Ej. Reel, ASMR)" value="${t.tags||''}" ${ro} onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].tags=this.value;guardarBD();renderOrquestacion()"></div></div><div style="display:flex; align-items:center; gap:10px;">${selEst} ${_damBadgeKanban(t.id)}<i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);"></i></div></div><div class="card-body" onclick="event.stopPropagation()"><div class="dashboard-grid-2"><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Content Strategy</h4><textarea class="hook-block" placeholder="Hook visual o auditivo (Primeros 3 seg)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hook=this.value;guardarBD()">${t.hook||''}</textarea><textarea class="copy-block" placeholder="Copy principal del post..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].copy=this.value;guardarBD()">${t.copy||''}</textarea><textarea class="copy-block" style="min-height:50px; font-family:monospace; margin-top:12px;" placeholder="#Hashtags..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].hashtags=this.value;guardarBD()">${t.hashtags||''}</textarea></div><div><h4 style="font-size:12px; color:var(--texto-secundario); margin-bottom:8px; text-transform:uppercase; font-weight:700;">Distribución & Amplificación</h4><div class="segment-link"><i class="fa-solid fa-users-viewfinder"></i> ${selTarget}</div><textarea class="pauta-block" style="width:100%; min-height:80px; resize:vertical; outline:none; font-family:var(--font-body);" placeholder="Instrucciones de Pauta (Presupuesto, Objetivo)..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta=this.value;DB.datos['${SUC_ACTIVA}'].kanban[${idx}].pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta||''}</textarea><div style="background:#111; color:#fff; border-radius:8px; padding:12px; margin-top:16px;"><div style="font-size:10px; color:#888; font-weight:700; margin-bottom:4px; text-transform:uppercase;">Flujo Manychat (Keyword)</div><input style="background:transparent; border:none; color:var(--color-primario); font-weight:800; font-family:var(--font-display); font-size:16px; width:100%; outline:none;" placeholder="Escribe la Keyword..." value="${t.manychat||''}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].manychat=this.value;guardarBD()"></div><textarea class="copy-block" style="margin-top:16px; min-height:60px;" placeholder="Stories de apoyo..." ${ro} onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].stories=this.value;_sincKanbanStories()">${t.stories||''}</textarea><div style="margin-top:12px;"><label style="font-size:10px; font-weight:700; color:var(--texto-secundario); letter-spacing:0.05em; text-transform:uppercase;">Asignado a</label><div style="margin-top:6px;">${asignadoSel}</div></div></div></div><div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--color-borde);"><h4 style="font-size:11px;color:var(--texto-secundario);margin-bottom:8px;text-transform:uppercase;font-weight:700;letter-spacing:.06em;"><i class="fa-solid fa-photo-film" style="margin-right:4px;opacity:.7;"></i>Activos vinculados</h4>${_renderActivosKanban(t.id)}</div>${canEdit ? `<div style="text-align:right; margin-top:24px; border-top:1px solid var(--color-borde); padding-top:16px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})">Eliminar Tarea</button></div>` : ''}</div></div>`;
+            pHTML += _buildKanbanCard(t, idx, d, canEdit, ro, suc_info, targetOpts);
         });
         ['Ideas','Producción','Revisión','Programado','Publicado'].forEach(e => { const cel = document.getElementById('k-'+e); if(cel) cel.innerHTML = kHTML[e] || `<div style="font-size:12px;color:#ccc;text-align:center;padding:20px;">Vacío</div>`; });
+        // Preserve expanded cards before re-render
+        const _openCardIds = new Set([...document.querySelectorAll('#contenedor-parrilla .content-card.open')].map(el => el.id));
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
+        // Restore expanded state
+        _openCardIds.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('open'); });
         document.querySelectorAll('.req-agencia').forEach(el => el.style.display = ROL === 'cliente' ? 'none' : '');
     }
 
@@ -5018,31 +5248,72 @@ document.addEventListener('DOMContentLoaded', function() {
     function cambiarVistaPpto(v) { _pptoVista = v; renderPresupuesto(); }
 
     function _renderPptoAnual(pres, ro) {
-        let h = `<div class="tarjeta" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table class="tabla-editable"><thead>
-            <tr><th style="position:sticky;left:0;z-index:2;" class="ppto-sticky-col">Ítem</th>`;
-        MESES.forEach(m => h += `<th colspan="3" style="text-align:center;border-left:1px solid var(--color-borde);white-space:nowrap;">${m.substring(0,3)}</th>`);
-        h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;">Total</th></tr>
-            <tr><th style="position:sticky;left:0;z-index:2;" class="ppto-sticky-col"></th>`;
-        MESES.forEach(() => h += `<th style="font-size:10px;text-align:center;color:var(--color-primario);opacity:.8;">Presup.</th><th style="font-size:10px;text-align:center;color:#15803D;">Real</th><th style="font-size:10px;text-align:center;color:var(--texto-secundario);">Col.</th>`);
+        const showInv  = _pptoAnualCols === 'all' || _pptoAnualCols === 'inv';
+        const showReal = _pptoAnualCols === 'all' || _pptoAnualCols === 'real';
+        const showCol  = _pptoAnualCols === 'all' || _pptoAnualCols === 'col';
+        const colSpan  = [showInv, showReal, showCol].filter(Boolean).length;
+
+        // Selector de columnas visibles
+        const _colPills = [
+            { id:'all',  lbl:'Todo' },
+            { id:'inv',  lbl:'Presupuesto' },
+            { id:'real', lbl:'Real' },
+            { id:'col',  lbl:'Colaboración' }
+        ].map(({id, lbl}) =>
+            `<button class="ppto-pill ${_pptoAnualCols===id?'activo':''}" style="font-size:11px;padding:5px 12px;" onclick="_pptoAnualCols='${id}';renderPresupuesto()">${lbl}</button>`
+        ).join('');
+
+        let h = `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+            <span style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Columnas:</span>
+            ${_colPills}
+        </div>`;
+
+        h += `<div class="tarjeta" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        <table class="tabla-editable" style="font-size:12px;border-collapse:collapse;"><thead>
+            <tr>
+                <th style="position:sticky;left:0;z-index:2;min-width:190px;max-width:220px;padding:10px 14px;" class="ppto-sticky-col">Ítem</th>`;
+        MESES.forEach(m => h += `<th colspan="${colSpan}" style="text-align:center;border-left:1px solid var(--color-borde);padding:8px 4px;white-space:nowrap;font-size:11px;">${m.substring(0,3)}</th>`);
+        h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;padding:8px 10px;">Total</th></tr>
+            <tr><th style="position:sticky;left:0;z-index:2;padding:4px 14px;" class="ppto-sticky-col"></th>`;
+        MESES.forEach(() => {
+            if (showInv)  h += `<th style="font-size:9px;text-align:center;color:var(--color-primario);opacity:.85;padding:3px 2px;white-space:nowrap;">Pres.</th>`;
+            if (showReal) h += `<th style="font-size:9px;text-align:center;color:#15803D;padding:3px 2px;white-space:nowrap;">Real</th>`;
+            if (showCol)  h += `<th style="font-size:9px;text-align:center;color:var(--texto-secundario);padding:3px 2px;white-space:nowrap;">Col.</th>`;
+        });
         h += `<th></th></tr></thead><tbody>`;
+
+        // Función para determinar cuál celda de cada mes lleva border-right separador
+        const monthBorder = (isInv, isReal, isCol) => {
+            if (showCol && isCol)   return 'border-right:1px solid var(--color-borde);';
+            if (!showCol && showReal && isReal) return 'border-right:1px solid var(--color-borde);';
+            if (!showCol && !showReal && showInv && isInv) return 'border-right:1px solid var(--color-borde);';
+            return '';
+        };
+
         pres.forEach((p, pIdx) => {
             const rowTotal = p.montos_mes.reduce((s,m) => s+(m.inversion||0)+(m.colaboracion||0), 0);
             const _tipoOpts = INVERSION_CATEGORIAS.map(c=>`<option ${p.tipo===c.tipo?'selected':''}>${c.tipo}</option>`).join('');
-            const tipoSel = ro ? '' : `<select class="select-celda" style="font-size:10px;padding:2px 6px;margin-top:3px;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].tipo=this.value;guardarBD()">${_tipoOpts}</select>`;
+            const tipoSel = ro ? '' : `<select class="select-celda" style="font-size:10px;padding:2px 4px;margin-top:3px;max-width:140px;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].tipo=this.value;guardarBD()">${_tipoOpts}</select>`;
             const _honorTip = p.tipo === 'Honorarios de agencia' ? `<i class="fa-solid fa-circle-info" style="color:var(--texto-secundario);opacity:.5;font-size:10px;cursor:help;flex-shrink:0;" title="Lo que cobra LANKA mensualmente por gestionar&#10;el marketing de este cliente."></i>` : '';
-            h += `<tr><td style="position:sticky;left:0;font-weight:700;border-right:1px solid var(--color-borde);" class="ppto-sticky-col">
-                <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
-                <div style="display:flex;gap:6px;align-items:center;margin-top:3px;"><span style="font-size:10px;color:var(--texto-secundario);">${p.categoria}</span>${tipoSel}${_honorTip}</div>
-            </td>`;
+            h += `<tr>
+                <td style="position:sticky;left:0;border-right:1px solid var(--color-borde);min-width:190px;max-width:220px;padding:8px 14px;vertical-align:top;" class="ppto-sticky-col">
+                    <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;width:100%;min-width:0;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
+                    <div style="display:flex;gap:5px;align-items:center;margin-top:3px;min-width:0;">
+                        <span style="font-size:10px;color:var(--texto-secundario);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;" title="${p.categoria}">${p.categoria}</span>
+                        ${tipoSel}${_honorTip}
+                    </div>
+                </td>`;
             p.montos_mes.forEach((m, mIdx) => {
                 const _real = m.real||0; const _inv = m.inversion||0;
                 const _rc = _real===0?'var(--texto-secundario)':(_real>_inv?'#EA4335':'#15803D');
-                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;font-weight:600;text-align:right;" value="${_inv}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].inversion=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></td>`;
-                h += `<td><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;font-weight:600;text-align:right;color:${_rc};" value="${_real}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].real=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></td>`;
-                h += `<td style="border-right:1px solid var(--color-borde);"><input type="text" inputmode="numeric" class="input-celda" style="min-width:52px;color:var(--texto-secundario);text-align:right;" value="${m.colaboracion||0}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].colaboracion=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></td>`;
+                const inp = (val, campo, extraStyle) =>
+                    `<input type="text" inputmode="numeric" class="input-celda" style="width:62px;font-size:11px;font-weight:600;text-align:right;padding:4px 3px;${extraStyle||''}" value="${val}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].${campo}=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()">`;
+                if (showInv)  h += `<td style="padding:4px 2px;${monthBorder(true,false,false)}">${inp(_inv,  'inversion', '')}</td>`;
+                if (showReal) h += `<td style="padding:4px 2px;${monthBorder(false,true,false)}">${inp(_real, 'real',      'color:'+_rc+';')}</td>`;
+                if (showCol)  h += `<td style="padding:4px 2px;${monthBorder(false,false,true)}">${inp(m.colaboracion||0,'colaboracion','color:var(--texto-secundario);')}</td>`;
             });
-            h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:700;white-space:nowrap;font-size:13px;">${formatDinero(rowTotal)}</td>`;
-            if (!ro) h += `<td style="width:32px;text-align:center;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`;
+            h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:700;white-space:nowrap;font-size:12px;padding:8px 10px;">${formatDinero(rowTotal)}</td>`;
+            if (!ro) h += `<td style="width:32px;text-align:center;padding:4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`;
             h += `</tr>`;
         });
         return h + `</tbody></table></div></div>`;
@@ -5717,15 +5988,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── Per-project data helpers ────────────────────────────────────
     function _getProveedores(sucId) {
-        try { const s=localStorage.getItem('proveedores_'+sucId); if(s) return JSON.parse(s); } catch(e){}
-        if ((DB.proveedores||[]).length>0) {
-            const arr=JSON.parse(JSON.stringify(DB.proveedores));
-            localStorage.setItem('proveedores_'+sucId,JSON.stringify(arr));
-            return arr;
-        }
+        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
+        if (suc && Array.isArray(suc.proveedores_config)) return suc.proveedores_config;
+        if ((DB.proveedores||[]).length>0) return JSON.parse(JSON.stringify(DB.proveedores));
         return [];
     }
-    function _saveProveedores(sucId,arr) { localStorage.setItem('proveedores_'+sucId,JSON.stringify(arr)); }
+    function _saveProveedores(sucId,arr) {
+        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
+        if (suc) { suc.proveedores_config = arr; guardarBD(); }
+    }
 
     function _getFormatos(sucId) {
         try { const s=localStorage.getItem('config_formatos_'+sucId); if(s) return JSON.parse(s); } catch(e){}
@@ -5739,11 +6010,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function _getServicios(sucId) {
-        try { const s=localStorage.getItem('config_servicios_'+sucId); if(s) return JSON.parse(s); } catch(e){}
-        const tipo=getTipoProyecto(sucId);
+        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
+        if (suc && Array.isArray(suc.servicios)) return suc.servicios;
+        const tipo = getTipoProyecto(sucId);
         return (_SERVICIOS_PRESET[tipo]||_SERVICIOS_PRESET.otro).slice();
     }
-    function _saveServicios(sucId,arr) { localStorage.setItem('config_servicios_'+sucId,JSON.stringify(arr)); }
+    function _saveServicios(sucId,arr) {
+        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
+        if (suc) { suc.servicios = arr; guardarBD(); }
+    }
 
     function _getCategorias(sucId) {
         const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
@@ -6024,6 +6299,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span style="font-size:11px;color:var(--texto-secundario);">Global</span>
             </div>
             <div id="cfg-tipos-proyecto"></div>
+        </div>`;
+
+        // Card: Carpeta Drive de contenido (per-project)
+        const _sucDrive = DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{};
+        confHTML += `<div style="${_cardStyle}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Carpeta Drive de contenido</b>
+                <span style="font-size:11px;color:var(--color-primario);font-weight:600;">· ${_sucNombre}</span>
+            </div>
+            <p style="font-size:12px;color:var(--texto-secundario);margin-bottom:12px;line-height:1.5;">URL de la carpeta Drive usada como acceso directo en cada tarjeta del Calendario de Contenido.</p>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:8px 12px;font-size:12px;"
+                    placeholder="https://drive.google.com/drive/folders/..."
+                    value="${_sucDrive.drive_contenido_url||''}"
+                    ${_isOwnerForConfig?'':'readonly'}
+                    onchange="const _si=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');if(_si){_si.drive_contenido_url=this.value;guardarBD();}">
+                ${_sucDrive.drive_contenido_url ? `<a href="${_sucDrive.drive_contenido_url}" target="_blank" rel="noopener" class="btn btn-fantasma btn-xs"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:4px;"></i>Abrir</a>` : ''}
+            </div>
         </div>`;
 
         confHTML += `</div>`; // cierre grid 2×2
@@ -6846,8 +7139,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Mapea el USUARIO_ACTIVO al identificador usado en tomas.asignado_a
     function _getShootingIdentifier() {
         if (!USUARIO_ACTIVO) return null;
-        const MAP = { u_sergio:'sergio26', u_dulce:'dulce26', u_angeles:'angeles26' };
-        return MAP[USUARIO_ACTIVO.id] || null;
+        if (SUC_ACTIVA === 'aitama') {
+            // Aitama legacy: tomas.asignado_a usa identificadores de contraseña del equipo original
+            const MAP = { u_sergio:'sergio26', u_dulce:'dulce26', u_angeles:'angeles26' };
+            if (MAP[USUARIO_ACTIVO.id]) return MAP[USUARIO_ACTIVO.id];
+        }
+        return USUARIO_ACTIVO.id;
     }
 
     function _toggleTomaCompletada(shootingId, tomaId, done) {
