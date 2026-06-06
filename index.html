@@ -7637,7 +7637,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             const bw = document.getElementById('ads-filtro-banner'); if (bw) bw.innerHTML = '';
         }
-        if (_filtroPost.activo) ads = ads.filter(a => a.post_id === _filtroPost.postId);
+        if (_filtroPost.activo) ads = ads.filter(a => a.post_id === _filtroPost.postId || a.kanban_id === _filtroPost.postId);
 
         document.getElementById('ads-lista').innerHTML = ads.map((a, i) => {
             const statusCls = a.estado==='Borrador' ? 'ad-paused' : a.estado==='Activa' ? 'ad-active' : (a.estado==='Pausada' ? 'ad-paused' : 'ad-finished');
