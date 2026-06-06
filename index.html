@@ -2903,8 +2903,7 @@ document.addEventListener('DOMContentLoaded', function() {
         _getMonthsInPeriod().forEach(mi => {
             (d.presupuesto||[]).forEach(p => { _gastoRealAct += p.montos_mes?.[mi]?.real || 0; });
         });
-        if (_accAct) _accAct.cac = _gastoRealAct > 0 && _accAct.clientes_nuevos > 0
-            ? Math.round(_gastoRealAct / _accAct.clientes_nuevos) : null;
+        if (_accAct) _accAct.cac = _calcCAC(_gastoRealAct, _accAct.clientes_nuevos);
         if (_pAnt && _accAnt) {
             let _gastoRealAnt = 0;
             _mesesEnRango(_pAnt.desde, _pAnt.hasta).forEach(mi => {
@@ -2967,15 +2966,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const _mn2 = _rNombre.toLowerCase();
             // Fallback directo para CAC cuando _accAct._n no lo resuelve
             if (_mn2.includes('cac')) {
-                if (v2 == null && _gastoRealAct > 0 && (_accAct?.clientes_nuevos||0) > 0)
-                    v2 = Math.round(_gastoRealAct / _accAct.clientes_nuevos);
+                if (v2 == null) v2 = _calcCAC(_gastoRealAct, _accAct?.clientes_nuevos||0);
                 if (v1 == null && _pAnt && _accAnt) {
                     let _gAnt = 0;
                     _mesesEnRango(_pAnt.desde, _pAnt.hasta).forEach(mi => {
                         (d.presupuesto||[]).forEach(p => { _gAnt += p.montos_mes?.[mi]?.real || 0; });
                     });
-                    if (_gAnt > 0 && (_accAnt?.clientes_nuevos||0) > 0)
-                        v1 = Math.round(_gAnt / _accAnt.clientes_nuevos);
+                    v1 = _calcCAC(_gAnt, _accAnt?.clientes_nuevos||0);
                 }
             }
             const pct = (v1 != null && v2 != null && v1 > 0) ? ((v2-v1)/v1*100).toFixed(1) : null;
@@ -3207,6 +3204,12 @@ document.addEventListener('DOMContentLoaded', function() {
         return acc;
     }
 
+    function _calcCAC(gastoReal, clientesNuevos) {
+        return (gastoReal > 0 && (clientesNuevos||0) > 0)
+            ? Math.round(gastoReal / clientesNuevos)
+            : null;
+    }
+
     function _labelPeriodoFechas(desdeStr, hastaStr) {
         if (!desdeStr || !hastaStr) return '—';
         const MC = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -3220,8 +3223,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function _getAutoValor(metricNombre, acc) {
-        if (!acc || acc._n === 0) return null;
+        if (!acc) return null;
         const mn = (metricNombre||'').toLowerCase();
+        // Campos inyectados desde presupuesto/kanban — no dependen de _n (kpi_semanal)
+        const _INJECTED = new Set(['cac','inversion_pauta','cumplimiento_parrilla']);
         const MAP = [
             { keys:['nuevo'],                    campo:'clientes_nuevos'      },
             { keys:['recurrent'],                campo:'clientes_recurrentes' },
@@ -3235,7 +3240,11 @@ document.addEventListener('DOMContentLoaded', function() {
             { keys:['cumpli'],                   campo:'cumplimiento_parrilla'}
         ];
         for (const { keys, campo } of MAP) {
-            if (keys.some(k => mn.includes(k))) return acc[campo];
+            if (keys.some(k => mn.includes(k))) {
+                // Solo bloquear por _n si el campo viene de kpi_semanal
+                if (!_INJECTED.has(campo) && acc._n === 0) return null;
+                return acc[campo] ?? null;
+            }
         }
         return null;
     }
@@ -3306,8 +3315,22 @@ document.addEventListener('DOMContentLoaded', function() {
     // Suma TODAS las entradas del ejecutor sin filtro de periodo — para el total de la tabla
     function _acumularTodosKPIs() {
         const todas = DB.datos[SUC_ACTIVA]?.kpi_semanal || [];
-        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, citas_desde_dm:0, ticket_medio:0 };
+        // Deduplicar: entradas mensuales tienen prioridad sobre semanales del mismo mes
+        const mesesC = new Set();
         todas.forEach(s => {
+            if (s.tipo === 'mensual' || s.fuente === 'excel_import') {
+                const d = new Date((s.fecha||'2000-01-01') + 'T00:00:00');
+                mesesC.add(`${d.getFullYear()}-${d.getMonth()}`);
+            }
+        });
+        const lista = todas.filter(s => {
+            if (s.tipo === 'mensual' || s.fuente === 'excel_import') return true;
+            if (!s.fecha) return true;
+            const d = new Date(s.fecha + 'T00:00:00');
+            return !mesesC.has(`${d.getFullYear()}-${d.getMonth()}`);
+        });
+        const acc = { clientes_nuevos:0, clientes_recurrentes:0, clientes_recuperados:0, ventas:0, dms:0, citas_desde_dm:0, ticket_medio:0 };
+        lista.forEach(s => {
             acc.clientes_nuevos      += s.clientes_nuevos      || 0;
             acc.clientes_recurrentes += s.clientes_recurrentes || 0;
             acc.clientes_recuperados += s.clientes_recuperados || 0;
@@ -3320,7 +3343,7 @@ document.addEventListener('DOMContentLoaded', function() {
         acc.clientes_recurrentes = Math.round(acc.clientes_recurrentes);
         acc.clientes_recuperados = Math.round(acc.clientes_recuperados);
         acc.dms                  = Math.round(acc.dms);
-        const conTM = todas.filter(s => (s.ticket_medio||0) > 0);
+        const conTM = lista.filter(s => (s.ticket_medio||0) > 0);
         acc.ticket_medio = conTM.length ? Math.round(conTM.reduce((a,s)=>a+(s.ticket_medio||0),0)/conTM.length) : 0;
         return acc;
     }
@@ -3495,7 +3518,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 conv_dm:   (s.citas_desde_dm||0)>0&&(s.dms||0)>0?+((s.citas_desde_dm/s.dms)*100).toFixed(1):null,
                 retencion: tot>0?((s.clientes_recurrentes||0)/tot*100).toFixed(1):null,
                 crec_seg:  s.seguidores_fin!=null&&s.seguidores_ini!=null?(s.seguidores_fin||0)-(s.seguidores_ini||0):null,
-                cac:       invM>0&&(s.clientes_nuevos||0)>0?Math.round(invM/(s.clientes_nuevos||1)):null,
+                cac:       _calcCAC(invM, s.clientes_nuevos||0),
             };
         };
 
@@ -3760,17 +3783,24 @@ document.addEventListener('DOMContentLoaded', function() {
         function _syncKPIsToRendimiento() {
         const d = DB.datos[SUC_ACTIVA];
         const acc = _acumularKPIs();
+        // Calcular CAC con gasto real del presupuesto en el período activo
+        let _gastoRealSync = 0;
+        _getMonthsInPeriod().forEach(mi => {
+            (d.presupuesto||[]).forEach(p => { _gastoRealSync += p.montos_mes?.[mi]?.real || 0; });
+        });
+        acc.cac = _calcCAC(_gastoRealSync, acc.clientes_nuevos);
         const SYNC = [
             { keys:['nuevo'],       campo:'clientes_nuevos'      },
             { keys:['recurrent'],   campo:'clientes_recurrentes' },
             { keys:['recuper'],     campo:'clientes_recuperados' },
             { keys:['venta'],       campo:'ventas'               },
             { keys:['dm'],          campo:'dms'                  },
-            { keys:['ticket'],      campo:'ticket_medio'         }
+            { keys:['ticket'],      campo:'ticket_medio'         },
+            { keys:['cac'],         campo:'cac'                  }
         ];
         SYNC.forEach(({ keys, campo }) => {
             const r = (d.rendimiento||[]).find(r => keys.some(k => r.m.toLowerCase().includes(k)));
-            if (r) r.v2 = acc[campo];
+            if (r) r.v2 = acc[campo] ?? null;
         });
         guardarBD();
     }
@@ -3989,7 +4019,7 @@ document.addEventListener('DOMContentLoaded', function() {
         _getMonthsInPeriod().forEach(mi => {
             (d.presupuesto||[]).forEach(p => { gastoReal += p.montos_mes?.[mi]?.real || 0; });
         });
-        const cac     = gastoReal > 0 && kpiAcc.clientes_nuevos > 0 ? Math.round(gastoReal / kpiAcc.clientes_nuevos) : null;
+        const cac     = _calcCAC(gastoReal, kpiAcc.clientes_nuevos);
         const cacPrev = null;
         const cacNullTip = gastoReal === 0
             ? 'Agrega el gasto real en Presupuesto para calcular el CAC'
@@ -4172,8 +4202,7 @@ document.addEventListener('DOMContentLoaded', function() {
             : acc.clientes_nuevos === 0
             ? 'Agrega clientas nuevas en el Ejecutor de KPIs'
             : null;
-        const cacCalc  = invReal > 0 && acc.clientes_nuevos > 0
-            ? Math.round(invReal / acc.clientes_nuevos) : null;
+        const cacCalc  = _calcCAC(invReal, acc.clientes_nuevos);
         const cacEsAuto = cacCalc !== null;
         const cac = cacCalc !== null ? cacCalc : (manuales.cac != null ? manuales.cac : null);
 
@@ -4479,14 +4508,37 @@ document.addEventListener('DOMContentLoaded', function() {
     function _renderDashMixServicios(d) {
         const el = document.getElementById('dash-mix-servicios');
         if (!el) return;
-        const imports = (d.kpi_semanal||[]).filter(s=>s.fuente==='excel_import'||s.tipo==='mensual')
-            .sort((a,b)=>((b.año||0)*12+(b.mesIdx||0))-((a.año||0)*12+(a.mesIdx||0)));
-        let cats = [], label = '';
-        for (const s of imports) {
-            if (s.categorias?.length) { cats = s.categorias; label = `${MESES[s.mesIdx]||''} ${s.año||''}`; break; }
+        const desde = _dashPeriodoDesde();
+        const hasta  = _dashPeriodoHasta();
+        // Filtrar entradas que se solapan con el período activo del dashboard
+        const imports = (d.kpi_semanal||[]).filter(s => {
+            if (s.fuente !== 'excel_import' && s.tipo !== 'mensual') return false;
+            if (!s.fecha) return false;
+            const ini = new Date(s.fecha + 'T00:00:00');
+            const fin = s.fecha_hasta ? new Date(s.fecha_hasta + 'T23:59:59')
+                : new Date(ini.getFullYear(), ini.getMonth() + 1, 0, 23, 59, 59);
+            return ini <= hasta && fin >= desde;
+        }).sort((a,b) => ((b.año||0)*12+(b.mesIdx||0)) - ((a.año||0)*12+(a.mesIdx||0)));
+        // Agregar categorías sumando todos los meses del período
+        const catMap = {};
+        imports.forEach(s => {
+            (s.categorias||[]).forEach(c => { catMap[c.nombre] = (catMap[c.nombre]||0) + (c.monto||0); });
+        });
+        const cats = Object.entries(catMap).map(([nombre, monto]) => ({nombre, monto}))
+            .sort((a,b) => b.monto - a.monto);
+        // Etiqueta del período cubierto
+        const _MC = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        let label = '';
+        if (imports.length > 1) {
+            const mL = new Date((imports[imports.length-1].fecha||'')+'T00:00:00').getMonth();
+            const mF = new Date((imports[0].fecha||'')+'T00:00:00').getMonth();
+            label = `${_MC[mL]||''} – ${_MC[mF]||''}`;
+        } else if (imports.length === 1) {
+            const s = imports[0];
+            label = `${MESES[s.mesIdx] || _MC[new Date((s.fecha||'')+'T00:00:00').getMonth()] || ''} ${s.año||''}`;
         }
         if (!cats.length) {
-            el.innerHTML = `<div style="font-size:13px;font-weight:800;margin-bottom:8px;">Mix de Servicios</div><div style="text-align:center;padding:20px;color:var(--texto-secundario);font-size:12px;">Importa Excel de ventas para ver el mix.</div>`;
+            el.innerHTML = `<div style="font-size:13px;font-weight:800;margin-bottom:8px;">Mix de Servicios</div><div style="text-align:center;padding:20px;color:var(--texto-secundario);font-size:12px;">Sin datos para el período seleccionado. Importa Excel de ventas.</div>`;
             return;
         }
         const fmtMXN = v => '$' + Number(v).toLocaleString('es-MX',{minimumFractionDigits:0});
@@ -8981,24 +9033,40 @@ document.addEventListener('DOMContentLoaded', function() {
         let importados = 0;
         data.posts.forEach(p => {
             DB.datos[SUC_ACTIVA].kanban.push({
-                id:     'k' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-                titulo: p.titulo    || 'Sin título',
-                fecha:  p.fecha     || new Date().toISOString().split('T')[0],
-                hora:   p.hora      || '12:00',
-                estado: p.estado    || 'Ideas',
-                tags:   p.tags      || '',
-                target_id: '',
-                hook:       p.hook      || '',
-                copy:       p.copy      || '',
-                hashtags:   p.hashtags  || '',
-                manychat:   p.manychat  || '',
-                pauta:      p.pauta     || '',
-                stories:    p.stories   || ''
+                id:               'k' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                titulo:           p.titulo          || 'Sin título',
+                fecha:            p.fecha           || new Date().toISOString().split('T')[0],
+                hora:             p.hora            || '12:00',
+                estado:           p.estado          || 'Ideas',
+                formato:          p.formato         || '',
+                tags:             p.tags            || '',
+                target_id:        '',
+                asignado_a:       p.asignado_a      || '',
+                // Campos legacy (compatibilidad)
+                hook:             p.hook            || '',
+                copy:             p.copy            || '',
+                hashtags:         p.hashtags        || '',
+                pauta:            p.pauta_nota || p.pauta || '',
+                pauta_status:     '',
+                stories:          p.stories         || '',
+                // Campos nuevos
+                caption_ig:       p.caption_ig      || p.copy  || p.hook || '',
+                hashtags_ig:      p.hashtags_ig     || p.hashtags || '',
+                caption_tiktok:   p.caption_tiktok  || '',
+                hashtags_tiktok:  p.hashtags_tiktok || '',
+                manychat:         p.manychat        || '',
+                manychat_flujo:   p.manychat_flujo  || '',
+                pauta_activa:     p.pauta_activa     === true,
+                pauta_nota:       p.pauta_nota       || p.pauta || '',
+                campana_id:       '',
+                shooting_id:      '',
+                stories_vinculadas: [],
+                drive_doc_url:    p.drive_doc_url   || ''
             });
             importados++;
         });
 
-        _sincKanbanStories(); _syncKanbanToAds(); cerrarModales(); renderOrquestacion();
+        guardarBD(); _sincKanbanStories(); _syncKanbanToAds(); cerrarModales(); renderOrquestacion();
 
         const s = document.getElementById('status-save');
         s.innerHTML = `<i class="fa-solid fa-check"></i> ${importados} post${importados !== 1 ? 's' : ''} importados`;
