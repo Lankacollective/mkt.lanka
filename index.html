@@ -4990,16 +4990,19 @@ document.addEventListener('DOMContentLoaded', function() {
             <div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);margin-bottom:6px;">Nota de pauta</div>
             <textarea class="copy-block" style="min-height:70px;" ${ro} onchange="${_kp}.pauta_nota=this.value;${_kp}.pauta=this.value;${_kp}.pauta_status=_detectarPautaStatus(this.value);guardarBD();_syncKanbanToAds()">${t.pauta_nota||t.pauta||''}</textarea></div>
             <div><div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);margin-bottom:6px;">Vincular a campaña</div>
-            <select class="select-celda" style="border:1px solid var(--color-borde);" onchange="${_kp}.campana_id=this.value;guardarBD()">${_campanaOpts}</select></div>
+            <div style="display:flex;gap:6px;align-items:center;">
+            <select class="select-celda" style="border:1px solid var(--color-borde);flex:1;" onclick="event.stopPropagation()" onchange="${_kp}.campana_id=this.value;guardarBD()">${_campanaOpts}</select>
+            ${t.campana_id ? `<button class="btn btn-xs btn-fantasma" style="flex-shrink:0;white-space:nowrap;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-ads','${t.id}')" title="Ver campaña"><i class="fa-solid fa-arrow-up-right-from-square" style="font-size:10px;"></i></button>` : ''}
+            </div></div>
         </div>` : '';
 
         // Shooting
         const _shootingOpts = `<option value="">Sin vincular</option>` + (d.shooting||[]).map(sh=>`<option value="${sh.id}" ${(t.shooting_id||'')===sh.id?'selected':''}>${sh.titulo||'Sesión'} · ${sh.fecha||''}</option>`).join('');
-        const _shootingBadge = t.shooting_id ? (()=>{const sh=(d.shooting||[]).find(s=>s.id===t.shooting_id);return sh?`<div style="margin-top:6px;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(74,144,217,.1);color:#4A90D9;border:1px solid rgba(74,144,217,.2);"><i class="fa-solid fa-camera" style="font-size:9px;"></i>${sh.titulo||''} · ${sh.fecha||''}</span></div>`:'';})() : '';
+        const _shootingBadge = t.shooting_id ? (()=>{const sh=(d.shooting||[]).find(s=>s.id===t.shooting_id);return sh?`<div style="margin-top:6px;"><span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(74,144,217,.1);color:#4A90D9;border:1px solid rgba(74,144,217,.2);cursor:pointer;" onclick="event.stopPropagation();irA('vista-shooting');renderShootingGrid()" title="Ver en Agenda Shooting"><i class="fa-solid fa-camera" style="font-size:9px;"></i>${sh.titulo||''} · ${sh.fecha||''} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:8px;opacity:.6;"></i></span></div>`:'';})() : '';
 
         // Stories vinculadas
         const _storyIds = t.stories_vinculadas||[];
-        const _storyBadges = (d.stories_ind||[]).filter(s=>_storyIds.includes(s.id)).map(s=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;background:rgba(0,0,0,.06);color:var(--texto-secundario);margin-bottom:4px;"><i class="fa-solid fa-play" style="font-size:8px;"></i>${s.dia||'—'}: ${(s.copy||'').substring(0,26)} <i class="fa-solid fa-times" style="cursor:pointer;margin-left:3px;color:var(--color-peligro);" onclick="event.stopPropagation();const _sv=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[];DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=_sv.filter(id=>id!=='${s.id}');guardarBD();renderOrquestacion()"></i></span>`).join(' ');
+        const _storyBadges = (d.stories_ind||[]).filter(s=>_storyIds.includes(s.id)).map(s=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;background:rgba(0,0,0,.06);color:var(--texto-secundario);margin-bottom:4px;cursor:pointer;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-stories','${t.id}')" title="Ver stories de esta publicación"><i class="fa-solid fa-play" style="font-size:8px;"></i>${s.dia||'—'}: ${(s.copy||'').substring(0,26)} <i class="fa-solid fa-times" style="cursor:pointer;margin-left:3px;color:var(--color-peligro);" onclick="event.stopPropagation();const _sv=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[];DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=_sv.filter(id=>id!=='${s.id}');guardarBD();renderOrquestacion()"></i></span>`).join(' ');
         const _storyAddOpts = `<option value="">+ Vincular story...</option>` + (d.stories_ind||[]).filter(s=>!_storyIds.includes(s.id)).map(s=>`<option value="${s.id}">[${s.dia||'—'}] ${(s.copy||'').substring(0,42)}</option>`).join('');
 
         // Helpers
@@ -8059,7 +8062,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Banner y filtro por post
         const _storiesBannerEl = document.getElementById('stories-filtro-banner') || (() => { const b=document.createElement('div');b.id='stories-filtro-banner';el.parentNode.insertBefore(b,el);return b; })();
         _storiesBannerEl.innerHTML = _filtroPost.activo ? _bannerFiltroPost('stories') : '';
-        if (_filtroPost.activo) stories = stories.filter(s => s.post_vinculado === _filtroPost.postId);
+        if (_filtroPost.activo) {
+            const _postVinc = (DB.datos[SUC_ACTIVA]?.kanban||[]).find(k=>k.id===_filtroPost.postId);
+            const _svIds = _postVinc?.stories_vinculadas || [];
+            stories = stories.filter(s => s.post_vinculado === _filtroPost.postId || _svIds.includes(s.id));
+        }
 
         // Botón de importación visible solo para Owner y Lanka Team
         const isOwnerOrTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
@@ -9067,8 +9074,10 @@ document.addEventListener('DOMContentLoaded', function() {
        ================================================================ */
     let _filtroPost = { activo: false, postId: null, titulo: '' };
 
-    function _irAModuloFiltrado(vista, postId, titulo) {
-        _filtroPost = { activo: true, postId, titulo };
+    function _irAModuloFiltrado(vista, postId) {
+        // Busca el título internamente — evita pasar strings en atributos HTML
+        const _post = (DB.datos[SUC_ACTIVA]?.kanban||[]).find(k => k.id === postId);
+        _filtroPost = { activo: true, postId, titulo: _post?.titulo || '' };
         navegarVista(vista);
         if (vista === 'vista-stories')  renderStories();
         if (vista === 'vista-ads')      { _syncKanbanToAds(false); renderAdsTable(); setTimeout(renderAdsCharts, 80); }
@@ -9326,22 +9335,22 @@ document.addEventListener('DOMContentLoaded', function() {
     function _renderVinculosPost(t) {
         const v = t?.vinculos;
         if (!v || (!v.stories?.length && !v.campana_ad && !v.escenas_shooting?.length)) return '';
-        const d  = DB.datos[SUC_ACTIVA];
-        const tit = JSON.stringify((t.titulo||'').substring(0, 45));
+        const d   = DB.datos[SUC_ACTIVA];
+        const pid = t.id; // solo IDs seguros en atributos onclick — sin strings con caracteres especiales
         const chips = [];
 
         if (v.stories?.length) {
-            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-stories','${t.id}',${tit})"><i class="fa-solid fa-film" style="color:#E1306C;font-size:11px;"></i>${v.stories.length} story${v.stories.length!==1?'s':''}</button>`);
+            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-stories','${pid}')"><i class="fa-solid fa-film" style="color:#E1306C;font-size:11px;"></i>${v.stories.length} story${v.stories.length!==1?'s':''}</button>`);
         }
         if (v.campana_ad) {
             const ad = (d.ads||[]).find(a => a.id === v.campana_ad);
-            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-ads','${t.id}',${tit})"><i class="fa-solid fa-bullhorn" style="color:var(--color-primario);font-size:11px;"></i>1 campaña${ad?.estado==='Borrador'?' · borrador':''}</button>`);
+            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-ads','${pid}')"><i class="fa-solid fa-bullhorn" style="color:var(--color-primario);font-size:11px;"></i>1 campaña${ad?.estado==='Borrador'?' · borrador':''}</button>`);
         }
         if (v.escenas_shooting?.length) {
             const sesion = (d.shooting||[]).find(s => s.id === t.shooting_id);
             const total  = v.escenas_shooting.length;
             const comp   = sesion ? (sesion.tomas||[]).filter(tt => v.escenas_shooting.includes(tt.id) && tt.completado).length : 0;
-            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-shooting','${t.id}',${tit})"><i class="fa-solid fa-camera" style="color:#4A90D9;font-size:11px;"></i>${total} toma${total!==1?'s':''} · ${comp}/${total} ✓</button>`);
+            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-shooting','${pid}')"><i class="fa-solid fa-camera" style="color:#4A90D9;font-size:11px;"></i>${total} toma${total!==1?'s':''} · ${comp}/${total} ✓</button>`);
         }
 
         return `<div style="margin-top:10px;padding:10px 14px;background:rgba(139,92,246,.05);border-radius:8px;border:1px solid rgba(139,92,246,.15);">
