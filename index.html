@@ -1377,6 +1377,7 @@
                             <button id="btn-vista-kanban" class="btn-vista" onclick="cambiarVistaCalendario('kanban')"><i class="fa-solid fa-columns"></i> Kanban</button>
                         </div>
                         <button class="btn btn-fantasma req-agencia" onclick="abrirImportarJSON()"><i class="fa-solid fa-file-code"></i> Importar semana</button>
+                        <button class="btn btn-fantasma req-agencia" onclick="_abrirImportarPostIA()"><i class="fa-solid fa-wand-magic-sparkles"></i> Importar post IA</button>
                         <button class="btn btn-primario req-agencia" onclick="agregarElemento('kanban')"><i class="fa-solid fa-plus"></i> Nueva Tarea</button>
                     </div>
                 </div>
@@ -1778,6 +1779,29 @@
             <div style="display:flex; gap:8px;">
                 <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
                 <button class="btn btn-primario" onclick="procesarImportJSON()"><i class="fa-solid fa-bolt"></i> Cargar Posts</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Importar Post desde LANKA IA -->
+<div class="fondo-modal" id="modal-importar-post-ia">
+    <div class="modal-caja" style="max-width:700px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-wand-magic-sparkles" style="color:var(--color-primario);margin-right:10px;"></i>Importar Post desde LANKA IA</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:24px;">
+            <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:16px;line-height:1.6;">Pega el JSON generado por LANKA IA. Se crearán automáticamente el post, las stories, la campaña borrador y las escenas de shooting.</p>
+            <textarea id="post-ia-json-textarea" class="json-textarea" rows="13" placeholder='{ "post": { "titulo": "...", "fecha": "2026-06-09", "hora": "18:00", "tipo": "Reel", ... } }'></textarea>
+            <div id="post-ia-error" style="display:none;color:var(--color-peligro);font-size:13px;font-weight:600;margin-top:12px;padding:10px 14px;background:rgba(234,67,53,0.06);border-radius:8px;"></div>
+            <div id="post-ia-resultado" style="display:none;margin-top:12px;padding:14px;background:rgba(34,197,94,.06);border-radius:10px;border:1px solid rgba(34,197,94,.25);font-size:13px;line-height:1.8;color:#15803D;font-weight:500;"></div>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 20px 20px;">
+            <span style="font-size:12px;color:var(--texto-secundario);">Los datos existentes no se modifican.</span>
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn btn-primario" onclick="importarPostIA()"><i class="fa-solid fa-bolt"></i> Importar y vincular</button>
             </div>
         </div>
     </div>
@@ -2498,7 +2522,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (k.pauta_nota        === undefined) { k.pauta_nota        = k.pauta || ''; _cardMigrated = true; }
                 if (k.campana_id        === undefined) { k.campana_id        = ''; _cardMigrated = true; }
                 if (k.stories_vinculadas=== undefined) { k.stories_vinculadas= []; _cardMigrated = true; }
-                if (k.drive_doc_url     === undefined) { k.drive_doc_url      = ''; _cardMigrated = true; }
+                if (k.drive_doc_url       === undefined) { k.drive_doc_url       = '';   _cardMigrated = true; }
+                if (k.vinculos            === undefined) { k.vinculos            = { stories:[], campana_ad:null, escenas_shooting:[] }; _cardMigrated = true; }
+                if (k.contenido_tecnico   === undefined) { k.contenido_tecnico   = null; _cardMigrated = true; }
+                if (k.manychat_mensajes   === undefined) { k.manychat_mensajes   = [];   _cardMigrated = true; }
             });
         });
         if (_cardMigrated) guardarBD();
@@ -2805,7 +2832,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'productos') n = { m: "Producto", pct: 0 };
         if(lista === 'objetivos') n = { m: "Meta", o: "0" };
         if(lista === 'insights') n = { f: new Date().toISOString().split('T')[0], c: "Experimento", r: "Resultado...", a: "Aprendizaje..." };
-        if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", formato:"", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"", pauta_activa:false, pauta_nota:"", campana_id:"", stories_vinculadas:[], drive_doc_url:"" };
+        if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", formato:"", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"", pauta_activa:false, pauta_nota:"", campana_id:"", stories_vinculadas:[], drive_doc_url:"", vinculos:{ stories:[], campana_ad:null, escenas_shooting:[] }, contenido_tecnico:null, manychat_mensajes:[] };
         if(lista === 'dam') n = { id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, url:"", historial:[{autor:ROL, fecha:new Date().toLocaleDateString(), accion:"Creado", nota:"V1"}] };
         if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Pauta digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0, real: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
@@ -5054,6 +5081,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit?`<select class="select-celda" style="font-size:11px;margin-top:6px;" onclick="event.stopPropagation()" onchange="if(!this.value)return;const _svArr=(DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[]);if(!_svArr.includes(this.value)){_svArr.push(this.value);}this.value='';guardarBD();renderOrquestacion();">${_storyAddOpts}</select>`:''}
   </div>
+  ${_renderVinculosPost(t)}
   ${canEdit?`<div style="text-align:right;margin-top:20px;border-top:1px solid var(--color-borde);padding-top:14px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Eliminar tarea</button></div>`:''}
 </div>
 </div>`;
@@ -7358,13 +7386,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const shootingAll = d.shooting || [];
         const canEdit = _canEditShooting();
 
+        // Banner filtro por post
+        const _shGrid = document.getElementById('shooting-grid');
+        if (_shGrid) {
+            const _shBannerEl = document.getElementById('shooting-filtro-banner') || (() => { const b=document.createElement('div');b.id='shooting-filtro-banner';_shGrid.parentNode.insertBefore(b,_shGrid);return b; })();
+            _shBannerEl.innerHTML = _filtroPost.activo ? _bannerFiltroPost('shooting') : '';
+        }
+
         // Filtro por periodo del dashboard
         const _verTodos = sessionStorage.getItem('shooting_ver_todos') === '1';
         const _desde = window.dashPeriodo?.desde;
         const _hasta = window.dashPeriodo?.hasta;
-        const shooting = (_verTodos || !_desde || !_hasta)
+        let shooting = (_verTodos || !_desde || !_hasta)
             ? shootingAll
             : shootingAll.filter(s => s.fecha >= _desde && s.fecha <= _hasta);
+
+        // Si filtro por post activo: mantener solo sesiones que tengan tomas del post
+        if (_filtroPost.activo) {
+            shooting = shooting.filter(s => (s.tomas||[]).some(t => t.post_vinculado === _filtroPost.postId));
+        }
 
         // Botón toggle
         const btnF = document.getElementById('btn-shooting-filtro');
@@ -7578,16 +7618,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderAdsTable() {
         const d = DB.datos[SUC_ACTIVA];
-        const ads = d.ads || [];
+        let ads = d.ads || [];
         const canEdit = _getPermisos('ads', 'editar');
         const lbl = t => `<label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">${t}</label>`;
         const inp = (v, campo, i, type) => `<input class="input-celda" type="${type||'text'}" inputmode="${['number','inversion','alcance','clics','conversiones','cpr'].includes(type)?'numeric':'text'}" value="${v}" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'${campo}',this.value)">`;
 
         _refreshAdsKpi();
 
+        // Banner filtro por post
+        const _adsBanner = _filtroPost.activo ? _bannerFiltroPost('ads') : '';
+        const _adsListaEl = document.getElementById('ads-lista');
+        if (_adsListaEl && _adsBanner) {
+            const _bannerWrap = document.getElementById('ads-filtro-banner') || (() => { const el = document.createElement('div'); el.id = 'ads-filtro-banner'; _adsListaEl.parentNode.insertBefore(el, _adsListaEl); return el; })();
+            _bannerWrap.innerHTML = _adsBanner;
+        } else {
+            const bw = document.getElementById('ads-filtro-banner'); if (bw) bw.innerHTML = '';
+        }
+        if (_filtroPost.activo) ads = ads.filter(a => a.post_id === _filtroPost.postId);
+
         document.getElementById('ads-lista').innerHTML = ads.map((a, i) => {
-            const statusCls = a.estado==='Activa' ? 'ad-active' : (a.estado==='Pausada' ? 'ad-paused' : 'ad-finished');
-            const statusDot = a.estado==='Activa' ? '🟢' : (a.estado==='Pausada' ? '🟡' : '⚫');
+            const statusCls = a.estado==='Borrador' ? 'ad-paused' : a.estado==='Activa' ? 'ad-active' : (a.estado==='Pausada' ? 'ad-paused' : 'ad-finished');
+            const statusDot = a.estado==='Borrador' ? '⬜' : a.estado==='Activa' ? '🟢' : (a.estado==='Pausada' ? '🟡' : '⚫');
             const isOpen    = _adsExpanded.has(i);
             const editPanel = canEdit ? `
             <div id="ad-edit-${i}" style="display:${isOpen?'block':'none'};border-top:1px solid var(--color-borde);padding:20px 24px;background:var(--color-tarjeta);animation:fadeUp .15s ease;">
@@ -7595,7 +7646,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div>${lbl('Nombre campaña')}${inp(a.nombre,'nombre',i)}</div>
                     <div>${lbl('Categoría')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'categoria',this.value)">${(()=>{const cats=_getCategorias(SUC_ACTIVA);const opts=cats.length?cats.map(c=>`<option ${(a.categoria||'')===c?'selected':''}>${c}</option>`).join(''):`<option value="">Configura categorías en Configuración Global</option>`;return `<option value="" ${!a.categoria?'selected':''}>Sin categoría</option>${opts}`;})()}</select></div>
                     <div>${lbl('Plataforma')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'plataforma',this.value)"><option ${a.plataforma==='Meta'?'selected':''}>Meta</option><option ${a.plataforma==='Google'?'selected':''}>Google</option><option ${a.plataforma==='TikTok'?'selected':''}>TikTok</option><option ${!['Meta','Google','TikTok'].includes(a.plataforma)?'selected':''}>Otro</option></select></div>
-                    <div>${lbl('Estado')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'estado',this.value)"><option ${a.estado==='Activa'?'selected':''}>Activa</option><option ${a.estado==='Pausada'?'selected':''}>Pausada</option><option ${a.estado==='Finalizada'?'selected':''}>Finalizada</option></select></div>
+                    <div>${lbl('Estado')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'estado',this.value)"><option ${a.estado==='Borrador'?'selected':''}>Borrador</option><option ${a.estado==='Activa'?'selected':''}>Activa</option><option ${a.estado==='Pausada'?'selected':''}>Pausada</option><option ${a.estado==='Finalizada'?'selected':''}>Finalizada</option></select></div>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;">
                     <div>${lbl('Inversión $')}${inp(a.inversion,'inversion',i,'number')}</div>
@@ -7623,6 +7674,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="ad-status ${statusCls}">${statusDot} ${a.estado}</span>
                             ${a.origen==='kanban' && a.pauta_status==='confirmada' ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(34,197,94,.1);color:#15803D;border:1px solid rgba(34,197,94,.25);"><i class="fa-solid fa-check" style="font-size:9px;"></i>Confirmada · desde parrilla</span>` : ''}
                             ${a.origen==='kanban' && a.pauta_status==='condicional' ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(234,179,8,.1);color:#A16207;border:1px solid rgba(234,179,8,.25);"><i class="fa-solid fa-clock" style="font-size:9px;"></i>Pendiente de aprobación</span>` : ''}
+                            ${a.origen==='post_import' ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(139,92,246,.1);color:#6D28D9;border:1px solid rgba(139,92,246,.25);"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:9px;"></i>Desde LANKA IA</span>` : ''}
                             <span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:${a.categoria?'rgba(196,133,90,.08)':'rgba(0,0,0,.05)'};color:${a.categoria?'var(--color-primario)':'var(--texto-secundario)'};border:1px solid ${a.categoria?'rgba(196,133,90,.2)':'var(--color-borde)'};">📁 ${a.categoria||'Sin categoría'}</span>
                         </div>
                     </div>
@@ -7998,11 +8050,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderStories() {
         const d = DB.datos[SUC_ACTIVA];
-        const stories = d.stories_ind || [];
+        let stories = d.stories_ind || [];
         const kanban = d.kanban || [];
         const el = document.getElementById('stories-lista');
         if (!el) return;
         const canEdit = _getPermisos('stories', 'editar');
+
+        // Banner y filtro por post
+        const _storiesBannerEl = document.getElementById('stories-filtro-banner') || (() => { const b=document.createElement('div');b.id='stories-filtro-banner';el.parentNode.insertBefore(b,el);return b; })();
+        _storiesBannerEl.innerHTML = _filtroPost.activo ? _bannerFiltroPost('stories') : '';
+        if (_filtroPost.activo) stories = stories.filter(s => s.post_vinculado === _filtroPost.postId);
 
         // Botón de importación visible solo para Owner y Lanka Team
         const isOwnerOrTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
@@ -9003,6 +9060,294 @@ document.addEventListener('DOMContentLoaded', function() {
         link.setAttribute('href', encodeURI(csv));
         link.setAttribute('download', `Lanka_Auditoria_${desde}_${hasta}.csv`);
         document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    }
+
+    /* ================================================================
+       FILTRO GLOBAL POR POST + NAVEGACIÓN CRUZADA
+       ================================================================ */
+    let _filtroPost = { activo: false, postId: null, titulo: '' };
+
+    function _irAModuloFiltrado(vista, postId, titulo) {
+        _filtroPost = { activo: true, postId, titulo };
+        navegarVista(vista);
+        if (vista === 'vista-stories')  renderStories();
+        if (vista === 'vista-ads')      { _syncKanbanToAds(false); renderAdsTable(); setTimeout(renderAdsCharts, 80); }
+        if (vista === 'vista-shooting') renderShootingGrid();
+        // Actualizar nav activo
+        document.querySelectorAll('.item-nav').forEach(el => {
+            el.classList.toggle('activo', el.getAttribute('data-target') === vista);
+        });
+    }
+
+    function _limpiarFiltroPost(modulo) {
+        _filtroPost = { activo: false, postId: null, titulo: '' };
+        if (modulo === 'stories')  renderStories();
+        if (modulo === 'ads')      renderAdsTable();
+        if (modulo === 'shooting') renderShootingGrid();
+    }
+
+    function _bannerFiltroPost(modulo) {
+        if (!_filtroPost.activo) return '';
+        const tit = (_filtroPost.titulo||'').substring(0,45) + ((_filtroPost.titulo||'').length > 45 ? '…' : '');
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(196,133,90,.08);border:1px solid rgba(196,133,90,.2);border-radius:10px;margin-bottom:16px;font-size:12px;font-weight:600;">
+            <i class="fa-solid fa-filter" style="color:var(--color-primario);flex-shrink:0;"></i>
+            <span>Mostrando solo contenido del post: <strong>${tit}</strong></span>
+            <button class="btn btn-xs btn-fantasma" style="margin-left:auto;white-space:nowrap;" onclick="_limpiarFiltroPost('${modulo}')"><i class="fa-solid fa-xmark" style="margin-right:3px;"></i>Ver todo</button>
+        </div>`;
+    }
+
+    /* ================================================================
+       IMPORTADOR POST IA — VINCULACIÓN AUTOMÁTICA
+       ================================================================ */
+    function _abrirImportarPostIA() {
+        document.getElementById('post-ia-json-textarea').value = '';
+        document.getElementById('post-ia-error').style.display = 'none';
+        document.getElementById('post-ia-resultado').style.display = 'none';
+        document.getElementById('modal-importar-post-ia').classList.add('activo');
+        setTimeout(() => document.getElementById('post-ia-json-textarea').focus(), 200);
+    }
+
+    function _formatManychatFlujo(mc) {
+        if (!mc) return '';
+        if (!mc.mensajes || !mc.mensajes.length) return mc.keyword || '';
+        return (mc.mensajes||[]).map(m => {
+            let txt = `[${m.orden}] ${m.texto}`;
+            if (m.opciones?.length) txt += '\n' + m.opciones.map(o => `  ${o.letra}) ${o.texto} → ${o.resultado}`).join('\n');
+            return txt;
+        }).join('\n\n');
+    }
+
+    async function importarPostIA() {
+        const raw   = (document.getElementById('post-ia-json-textarea').value || '').trim();
+        const errEl = document.getElementById('post-ia-error');
+        const resEl = document.getElementById('post-ia-resultado');
+        errEl.style.display = 'none'; resEl.style.display = 'none';
+
+        // ── PASO 1: VALIDACIÓN ─────────────────────────────────────────
+        let data;
+        try { data = JSON.parse(raw); } catch(e) {
+            errEl.textContent = 'JSON inválido: ' + e.message; errEl.style.display = 'block'; return;
+        }
+        const p = data.post;
+        if (!p) { errEl.textContent = 'Falta el campo "post" en el JSON'; errEl.style.display = 'block'; return; }
+        for (const f of ['titulo','fecha','hora','tipo']) {
+            if (!p[f]) { errEl.textContent = `Falta el campo "${f}" en el post`; errEl.style.display = 'block'; return; }
+        }
+        const tiposOk = ['carrusel','reel','historia','asmr'];
+        if (!tiposOk.includes((p.tipo||'').toLowerCase())) {
+            errEl.textContent = `Tipo no válido: "${p.tipo}". Válidos: Carrusel, Reel, Historia, ASMR`;
+            errEl.style.display = 'block'; return;
+        }
+
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d) { errEl.textContent = 'Proyecto activo no encontrado'; errEl.style.display = 'block'; return; }
+        const postId = `post_${SUC_ACTIVA}_${(p.fecha||'').replace(/-/g,'')}_${Date.now()}`;
+        const created = { postId, stories: [], campana_ad: null, escenas: [] };
+
+        try {
+            // ── PASO 2: CREAR POST EN KANBAN ───────────────────────────
+            const pautaActiva = !!(p.pauta?.presupuesto_dia > 0);
+            const pautaNota   = pautaActiva
+                ? [p.pauta.objetivo, `$${p.pauta.presupuesto_dia} ${p.pauta.moneda||'MXN'}/día`,
+                   `${p.pauta.duracion_dias||'?'} días`, p.pauta.condicion_pausa ? 'Pausa si: ' + p.pauta.condicion_pausa : null]
+                  .filter(Boolean).join(' · ')
+                : '';
+            const newPost = {
+                id:               postId,
+                titulo:           p.titulo,
+                fecha:            p.fecha,
+                hora:             p.hora,
+                formato:          p.tipo,
+                estado:           'Revisión',
+                tags:             [p.tipo, p.capa].filter(Boolean).join(', '),
+                target_id:        '',
+                hook:             p.hook || '',
+                copy:             p.caption_instagram || '',
+                hashtags:         '',
+                caption_ig:       p.caption_instagram || '',
+                hashtags_ig:      '',
+                caption_tiktok:   p.caption_tiktok || '',
+                hashtags_tiktok:  '',
+                manychat:         p.keyword || p.manychat?.keyword || '',
+                manychat_flujo:   _formatManychatFlujo(p.manychat),
+                manychat_mensajes: p.manychat?.mensajes || [],
+                pauta:            pautaNota,
+                pauta_status:     pautaActiva ? 'confirmada' : '',
+                pauta_activa:     pautaActiva,
+                pauta_nota:       pautaNota,
+                campana_id:       '',
+                stories_vinculadas: [],
+                shooting_id:      '',
+                asignado_a:       '',
+                drive_doc_url:    '',
+                contenido_tecnico: p.contenido || null,
+                manychat_mensajes: p.manychat?.mensajes || [],
+                vinculos:         { stories:[], campana_ad:null, escenas_shooting:[] }
+            };
+            if (!d.kanban) d.kanban = [];
+            d.kanban.push(newPost);
+
+            // ── PASO 3: CREAR STORIES ──────────────────────────────────
+            if (!d.stories_ind) d.stories_ind = [];
+            (p.stories || []).forEach((s, si) => {
+                const stId = `st_ia_${postId}_${si}`;
+                d.stories_ind.push({
+                    id:                  stId,
+                    dia:                 s.fecha || p.fecha,
+                    hora:                s.hora  || '08:00',
+                    tipo:                (s.tipo || 'foto').toLowerCase(),
+                    copy:                s.texto || '',
+                    cta:                 s.keyword || '',
+                    descripcion_visual:  s.descripcion_visual || '',
+                    tiene_cta:           s.tiene_cta || false,
+                    post_vinculado:      s.es_campana_independiente ? '' : postId,
+                    categoria:           s.es_campana_independiente ? 'campaña' : 'apoya_post',
+                    vinculada:           !s.es_campana_independiente,
+                    estado:              'Ideas',
+                    _from_ia:            true
+                });
+                if (!s.es_campana_independiente) created.stories.push(stId);
+            });
+            newPost.stories_vinculadas = [...created.stories];
+            newPost.vinculos.stories   = [...created.stories];
+
+            // ── PASO 4: CREAR CAMPAÑA BORRADOR ────────────────────────
+            if (pautaActiva) {
+                if (!d.ads) d.ads = [];
+                const adId    = `ad_ia_${postId}`;
+                const durDias = p.pauta.duracion_dias || 7;
+                const fFin    = new Date(p.fecha + 'T00:00:00'); fFin.setDate(fFin.getDate() + durDias);
+                const adItem  = {
+                    id:          adId,
+                    nombre:      p.titulo.substring(0, 50),
+                    categoria:   '',
+                    plataforma:  'Meta',
+                    inversion:   (p.pauta.presupuesto_dia || 0) * durDias,
+                    alcance:0, clics:0, conversiones:0, cpr:0,
+                    segmento:    p.segmentacion || 'Por definir',
+                    estado:      'Borrador',
+                    inicio:      p.fecha,
+                    fin:         fFin.toISOString().split('T')[0],
+                    origen:      'post_import',
+                    post_id:     postId,
+                    notas:       'Activar manualmente cuando arranque la pauta.' +
+                                 (p.pauta.condicion_pausa ? '\nCondición de pausa: ' + p.pauta.condicion_pausa : '')
+                };
+                d.ads.push(adItem);
+                created.campana_ad       = adId;
+                newPost.campana_id       = adId;
+                newPost.vinculos.campana_ad = adId;
+            }
+
+            // ── PASO 5: CREAR ESCENAS EN SHOOTING ─────────────────────
+            let escenasCount = 0;
+            if (p.shooting?.escenas?.length) {
+                if (!d.shooting) d.shooting = [];
+                const postMes = new Date(p.fecha + 'T00:00:00');
+                const mesKey  = `${postMes.getFullYear()}-${postMes.getMonth()}`;
+                let sesion = d.shooting.find(s => {
+                    if (!s.fecha) return false;
+                    const sm = new Date(s.fecha + 'T00:00:00');
+                    return `${sm.getFullYear()}-${sm.getMonth()}` === mesKey;
+                });
+                if (!sesion) {
+                    const _MES_LABELS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                    sesion = {
+                        id: `sh_ia_${mesKey}_${Date.now()}`,
+                        titulo: `Shooting ${_MES_LABELS[postMes.getMonth()]} ${postMes.getFullYear()}`,
+                        fecha: p.fecha, hora: '10:00', hora_fin: '',
+                        locacion:'', servicio:'', moodboard: p.shooting.nota_general||'',
+                        equipo:[], checklist:[], tomas:[], estado:'programado',
+                        notas_generales: p.shooting.nota_general || ''
+                    };
+                    d.shooting.push(sesion);
+                }
+                if (!sesion.tomas) sesion.tomas = [];
+                const ordenEscenas = p.shooting.orden_recomendado?.length
+                    ? p.shooting.orden_recomendado.map(eid => p.shooting.escenas.find(e => e.id === eid)).filter(Boolean)
+                    : p.shooting.escenas;
+                const tomaIds = [];
+                ordenEscenas.forEach(escena => {
+                    (escena.tomas || []).forEach((toma, ti) => {
+                        const tomaId = `T_ia_${escena.id}_${ti}_${Date.now() + ti}`;
+                        sesion.tomas.push({
+                            id:              tomaId,
+                            descripcion:     `[${escena.nombre}] ${toma.descripcion||''}`,
+                            formato:         p.tipo || '',
+                            duracion:        toma.duracion_seg ? `${toma.duracion_seg}s` : '',
+                            post_vinculado:  postId,
+                            escena_nombre:   escena.nombre,
+                            escena_id:       escena.id,
+                            prioridad:       escena.prioridad || 1,
+                            requiere_guion:  false,
+                            guion:           toma.tecnica || '',
+                            asignado_a:      '',
+                            completado:      false,
+                            nota_produccion: escena.nota_produccion || ''
+                        });
+                        tomaIds.push(tomaId);
+                        escenasCount++;
+                    });
+                });
+                created.escenas = tomaIds;
+                newPost.vinculos.escenas_shooting = tomaIds;
+                newPost.shooting_id = sesion.id;
+            }
+
+            // ── PASO 6: GUARDAR Y MOSTRAR RESULTADO ───────────────────
+            await guardarBD();
+            renderOrquestacion();
+            if (created.campana_ad) { _syncKanbanToAds(false); renderAdsTable(); setTimeout(renderAdsCharts, 80); }
+
+            const resLineas = [
+                `<i class="fa-solid fa-check-circle" style="margin-right:6px;"></i><strong>Post importado correctamente</strong>`,
+                p.contenido?.slides?.length ? `· ${p.contenido.slides.length} slides de contenido` : (p.contenido?.clips?.length ? `· ${p.contenido.clips.length} clips de contenido` : null),
+                created.stories.length ? `· ${created.stories.length} story${created.stories.length!==1?'s':''} creada${created.stories.length!==1?'s':''} en Stories` : null,
+                created.campana_ad  ? `· 1 campaña borrador creada en Ad Performance` : null,
+                escenasCount > 0    ? `· ${escenasCount} toma${escenasCount!==1?'s':''} de shooting agregada${escenasCount!==1?'s':''}` : null
+            ].filter(Boolean).join('<br>');
+            resEl.innerHTML = resLineas;
+            resEl.style.display = 'block';
+
+        } catch(err) {
+            // ── ROLLBACK ──────────────────────────────────────────────
+            if (d.kanban)     d.kanban     = d.kanban.filter(k => k.id !== created.postId);
+            if (d.stories_ind) d.stories_ind = d.stories_ind.filter(s => !created.stories.includes(s.id));
+            if (d.ads)        d.ads        = d.ads.filter(a => a.id !== created.campana_ad);
+            if (created.escenas.length && d.shooting) {
+                d.shooting.forEach(s => { s.tomas = (s.tomas||[]).filter(t => !created.escenas.includes(t.id)); });
+            }
+            errEl.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>Error al importar — cambios revertidos.<br><code style="font-size:11px;">${err.message}</code>`;
+            errEl.style.display = 'block';
+        }
+    }
+
+    /* ── Chips de vínculos en la ficha del post ─────────────────── */
+    function _renderVinculosPost(t) {
+        const v = t?.vinculos;
+        if (!v || (!v.stories?.length && !v.campana_ad && !v.escenas_shooting?.length)) return '';
+        const d  = DB.datos[SUC_ACTIVA];
+        const tit = JSON.stringify((t.titulo||'').substring(0, 45));
+        const chips = [];
+
+        if (v.stories?.length) {
+            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-stories','${t.id}',${tit})"><i class="fa-solid fa-film" style="color:#E1306C;font-size:11px;"></i>${v.stories.length} story${v.stories.length!==1?'s':''}</button>`);
+        }
+        if (v.campana_ad) {
+            const ad = (d.ads||[]).find(a => a.id === v.campana_ad);
+            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-ads','${t.id}',${tit})"><i class="fa-solid fa-bullhorn" style="color:var(--color-primario);font-size:11px;"></i>1 campaña${ad?.estado==='Borrador'?' · borrador':''}</button>`);
+        }
+        if (v.escenas_shooting?.length) {
+            const sesion = (d.shooting||[]).find(s => s.id === t.shooting_id);
+            const total  = v.escenas_shooting.length;
+            const comp   = sesion ? (sesion.tomas||[]).filter(tt => v.escenas_shooting.includes(tt.id) && tt.completado).length : 0;
+            chips.push(`<button class="btn btn-xs btn-fantasma" style="display:inline-flex;align-items:center;gap:5px;font-weight:700;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-shooting','${t.id}',${tit})"><i class="fa-solid fa-camera" style="color:#4A90D9;font-size:11px;"></i>${total} toma${total!==1?'s':''} · ${comp}/${total} ✓</button>`);
+        }
+
+        return `<div style="margin-top:10px;padding:10px 14px;background:rgba(139,92,246,.05);border-radius:8px;border:1px solid rgba(139,92,246,.15);">
+            <div style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:#6D28D9;margin-bottom:8px;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:5px;"></i>Vínculos LANKA IA</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">${chips.join('')}</div>
+        </div>`;
     }
 
     /* ================================================================
