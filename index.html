@@ -296,12 +296,101 @@
     .shooting-mood { font-size: 13px; color: var(--texto-secundario); line-height: 1.5; margin-bottom: 16px; font-style: italic; border-left: 3px solid var(--color-primario); padding-left: 12px; }
     .shooting-checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .shooting-item { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; }
-    .shooting-check { width: 18px; height: 18px; border: 2px solid var(--color-borde-fuerte); border-radius: 5px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transicion); }
+    .shooting-check { width: 20px; height: 20px; border: 2px solid var(--color-borde-fuerte); border-radius: 6px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transicion); }
     .shooting-check.done { background: var(--color-primario); border-color: var(--color-primario); color: white; font-size: 10px; }
     .shooting-check.done + span { text-decoration: line-through; color: var(--texto-secundario); }
     .shooting-equipo { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--color-borde); }
     .equipo-tag { background: #FAFAFA; border: 1px solid var(--color-borde-fuerte); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--texto-secundario); }
     .equipo-tag i { margin-right: 4px; }
+
+    /* En desktop: ocultar elementos exclusivos de mobile */
+    .shooting-card-mobile { display: none; }
+    .show-xs { display: none; }
+
+    /* ── Shooting: panel de detalle mobile ──────────────────────────── */
+    .shooting-panel {
+        position: fixed;
+        top: 0; right: -100%; bottom: 0; left: 0;
+        width: 100%;
+        background: var(--color-fondo);
+        z-index: 400;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        transition: right 0.3s cubic-bezier(0.25,0.8,0.25,1);
+        display: none;
+    }
+    .shooting-panel.activo {
+        right: 0;
+        display: block;
+    }
+    .shooting-panel-topbar {
+        position: sticky;
+        top: 0;
+        left: 0; right: 0;
+        height: 56px;
+        background: var(--color-tarjeta);
+        border-bottom: 1px solid var(--color-borde);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        gap: 12px;
+        z-index: 10;
+    }
+    .shooting-panel-back {
+        display: flex; align-items: center; gap: 8px;
+        background: none; border: none;
+        color: var(--color-primario);
+        font-size: 15px; font-weight: 700;
+        cursor: pointer; padding: 8px 0;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .shooting-panel-back i { font-size: 14px; }
+    .shooting-panel-titulo {
+        font-family: var(--font-display);
+        font-size: 14px; font-weight: 800;
+        color: var(--texto-principal);
+        flex: 1;
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .shooting-panel-content {
+        padding: 20px 16px calc(90px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Tarjeta compacta mobile (lista) */
+    .shooting-card-mobile {
+        background: var(--color-tarjeta);
+        border-radius: 16px;
+        border: 1px solid var(--color-borde);
+        box-shadow: var(--sombra-suave);
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        transition: var(--transicion);
+        margin-bottom: 12px;
+    }
+    .shooting-card-mobile:active { transform: scale(0.985); opacity: 0.9; }
+    .shooting-card-pct {
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        background: rgba(196,133,90,0.1);
+        flex-shrink: 0;
+        border: 2px solid rgba(196,133,90,0.2);
+    }
+    .shooting-card-pct-num { font-family: var(--font-display); font-size: 15px; font-weight: 900; color: var(--color-primario); line-height: 1; }
+    .shooting-card-pct-lbl { font-size: 7px; font-weight: 800; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 0.04em; }
+    .shooting-card-info { flex: 1; min-width: 0; }
+    .shooting-card-nombre { font-family: var(--font-display); font-size: 15px; font-weight: 800; color: var(--texto-principal); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .shooting-card-meta { font-size: 11px; color: var(--texto-secundario); margin-top: 3px; font-weight: 500; }
+    .shooting-card-barra-wrap { margin-top: 8px; height: 4px; background: var(--color-borde); border-radius: 2px; overflow: hidden; }
+    .shooting-card-barra { height: 100%; border-radius: 2px; background: var(--color-primario); transition: width 0.4s ease; }
+    .shooting-card-chevron { color: var(--color-borde-fuerte); font-size: 13px; flex-shrink: 0; }
 
     /* 5. Ad Performance */
     .ads-kpi { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
@@ -609,6 +698,14 @@
     [data-theme="dark"] .manychat-block { background: rgba(0,0,0,0.45) !important; border: 1px solid rgba(255,255,255,0.08); }
     [data-theme="dark"] .shooting-fecha { color: var(--color-primario) !important; }
     [data-theme="dark"] .shooting-titulo { color: #F0EDE8 !important; }
+    [data-theme="dark"] .shooting-card-mobile { background: rgba(26,22,18,0.82) !important; border-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="dark"] .shooting-card-nombre { color: #F0EDE8 !important; }
+    [data-theme="dark"] .shooting-panel { background: #0D0D0B !important; }
+    [data-theme="dark"] .shooting-panel-topbar { background: rgba(20,18,16,0.95) !important; border-bottom-color: rgba(255,255,255,0.08) !important; }
+    [data-theme="dark"] .shooting-panel-titulo { color: #F0EDE8 !important; }
+    [data-theme="light"] .shooting-card-mobile { background: rgba(255,255,255,0.82) !important; }
+    [data-theme="light"] .shooting-panel { background: rgba(245,240,234,0.99) !important; }
+    [data-theme="light"] .shooting-panel-topbar { background: rgba(245,240,234,0.96) !important; }
     [data-theme="dark"] .ad-cell-name, [data-theme="dark"] .ad-cell-value { color: #F0EDE8 !important; }
     [data-theme="dark"] .ad-cell-label, [data-theme="dark"] .ad-cell-seg { color: rgba(240,237,232,0.45) !important; }
     /* Login dark */
@@ -1012,8 +1109,10 @@
             transform: none !important;
         }
 
-        /* Shooting: una columna */
-        .shooting-grid { grid-template-columns: 1fr !important; }
+        /* Shooting mobile */
+        .shooting-card { display: none !important; }
+        .hide-xs { display: none !important; }
+        .show-xs { display: inline !important; }
 
         /* Kanban: scroll horizontal táctil */
         .kanban-board { -webkit-overflow-scrolling: touch; padding-bottom: 8px !important; }
@@ -1594,16 +1693,28 @@
 
             <!-- ============ NUEVO MÓDULO 4: AGENDA DE SHOOTING ============ -->
             <section id="vista-shooting" class="seccion-app oculto">
-                <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><h1>Agenda de Shooting</h1><p>Días de producción, brief visual y lista de contenidos a capturar.</p></div>
-                    <div style="display:flex; gap:10px;">
-                        <button id="btn-shooting-filtro" class="btn btn-fantasma" onclick="_toggleShootingFiltro()"><i class="fa-solid fa-list"></i> Ver todos</button>
-                        <button id="btn-importar-shooting" class="btn btn-fantasma" style="display:none;" onclick="_abrirImportShooting()"><i class="fa-solid fa-file-import"></i> Importar shooting</button>
-                        <button id="btn-generar-shooting" class="btn btn-fantasma req-agencia" onclick="generarShootingDesdeParrilla()"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar desde Parrilla</button>
-                        <button id="btn-nuevo-shooting" class="btn btn-primario req-agencia" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>
+                <div style="margin-bottom:24px;">
+                    <h1 style="font-size:26px;font-weight:900;margin-bottom:6px;">Agenda de Shooting</h1>
+                    <p style="font-size:14px;color:var(--texto-secundario);">Días de producción, brief visual y lista de contenidos a capturar.</p>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;">
+                        <button id="btn-shooting-filtro" class="btn btn-fantasma btn-sm" onclick="_toggleShootingFiltro()"><i class="fa-solid fa-list"></i> <span class="btn-shooting-filtro-txt">Ver todos</span></button>
+                        <button id="btn-importar-shooting" class="btn btn-fantasma btn-sm" style="display:none;" onclick="_abrirImportShooting()"><i class="fa-solid fa-file-import"></i> Importar</button>
+                        <button id="btn-generar-shooting" class="btn btn-fantasma btn-sm req-agencia" onclick="generarShootingDesdeParrilla()"><i class="fa-solid fa-wand-magic-sparkles"></i> <span class="hide-xs">Generar desde Parrilla</span><span class="show-xs">Generar</span></button>
+                        <button id="btn-nuevo-shooting" class="btn btn-primario btn-sm req-agencia" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>
                     </div>
                 </div>
-                <div class="shooting-grid" id="shooting-grid"></div>
+                <div id="shooting-grid"></div>
+
+                <!-- Panel de detalle (mobile) -->
+                <div class="shooting-panel" id="shooting-panel">
+                    <div class="shooting-panel-topbar">
+                        <button class="shooting-panel-back" onclick="cerrarDetallesShooting()">
+                            <i class="fa-solid fa-chevron-left"></i> Shooting
+                        </button>
+                        <div class="shooting-panel-titulo" id="shooting-panel-titulo"></div>
+                    </div>
+                    <div class="shooting-panel-content" id="shooting-panel-content"></div>
+                </div>
             </section>
 
             <section id="vista-dam" class="seccion-app oculto">
@@ -7642,96 +7753,258 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        document.getElementById('shooting-grid').innerHTML = shooting.map((s, _si) => {
-            const si = shootingAll.indexOf(s); // índice real en d.shooting[] (distinto al filtrado)
-            const done  = (s.checklist||[]).filter(c=>c.hecho).length;
-            const total = (s.checklist||[]).length;
-            const pct   = total > 0 ? Math.round(done/total*100) : 0;
+        const isMobile = window.innerWidth <= 768;
 
-            // ── Checklist ─────────────────────────────────────────────────
-            const checklistHTML = (s.checklist||[]).map((c, ci) => `
-                <li class="shooting-item">
-                    <div class="shooting-check ${c.hecho?'done':''}" style="cursor:pointer;"
-                        onclick="toggleCheck('${s.id}',${ci})">
-                        ${c.hecho?'<i class="fa-solid fa-check"></i>':''}
+        if (isMobile) {
+            // ── Vista mobile: tarjetas compactas ─────────────────────────
+            const emptyEl = shooting.length === 0 ? _shootingEmptyHTML(shootingAll, canEdit) : '';
+            document.getElementById('shooting-grid').innerHTML = emptyEl || shooting.map(s => {
+                const done  = (s.checklist||[]).filter(c=>c.hecho).length;
+                const total = (s.checklist||[]).length;
+                const pct   = total > 0 ? Math.round(done/total*100) : 0;
+                const fechaFmt = s.fecha ? new Date(s.fecha+'T12:00:00').toLocaleDateString('es-MX',{weekday:'short',day:'numeric',month:'short'}) : '—';
+                return `
+                <div class="shooting-card-mobile" onclick="abrirDetallesShooting('${s.id}')">
+                    <div class="shooting-card-pct">
+                        <div class="shooting-card-pct-num">${pct}%</div>
+                        <div class="shooting-card-pct-lbl">listo</div>
                     </div>
-                    ${canEdit
-                        ? `<input class="input-celda" style="flex:1;padding:4px 6px;" value="${c.texto.replace(/"/g,'&quot;')}"
-                              onchange="const _s=DB.datos['${SUC_ACTIVA}'].shooting.find(x=>x.id==='${s.id}');if(_s)_s.checklist[${ci}].texto=this.value;guardarBD();">
-                           <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:10px;margin-left:4px;flex-shrink:0;"
-                              onclick="const _s=DB.datos['${SUC_ACTIVA}'].shooting.find(x=>x.id==='${s.id}');if(_s){_s.checklist.splice(${ci},1);guardarBD();renderShootingGrid();}"></i>`
-                        : `<span>${c.texto}</span>`}
-                </li>`).join('');
-
-            // ── Equipo ────────────────────────────────────────────────────
-            const equipoHTML = canEdit
-                ? (s.equipo||[]).map((e,ei) => `
-                    <span class="equipo-tag" style="display:inline-flex;align-items:center;gap:4px;">
-                        <input class="input-celda" style="padding:2px 4px;font-size:11px;width:140px;font-weight:600;"
-                            value="${e.replace(/"/g,'&quot;')}"
-                            onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo[${ei}]=this.value;guardarBD();">
-                        <i class="fa-solid fa-times" style="color:#bbb;cursor:pointer;font-size:9px;"
-                            onclick="DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo.splice(${ei},1);guardarBD();renderShootingGrid();"></i>
-                    </span>`).join('')
-                : (s.equipo||[]).map(e=>`<span class="equipo-tag"><i class="fa-solid fa-user"></i>${e}</span>`).join('');
-
-            // ── Header: editable o lectura ────────────────────────────────
-            const header = canEdit ? `
-                <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
-                    <div style="display:flex;gap:8px;">
-                        <input type="date" class="input-celda" style="font-size:12px;font-weight:700;color:var(--color-primario);padding:4px 8px;"
-                            value="${s.fecha}" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].fecha=this.value;guardarBD();">
-                        <input type="time" class="input-celda" style="font-size:12px;font-weight:700;padding:4px 8px;"
-                            value="${s.hora}" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].hora=this.value;guardarBD();">
+                    <div class="shooting-card-info">
+                        <div class="shooting-card-nombre">${s.titulo||'Sin título'}</div>
+                        <div class="shooting-card-meta">
+                            <i class="fa-regular fa-calendar" style="margin-right:3px;"></i>${fechaFmt} · ${s.hora||''}
+                            ${s.locacion ? ` &nbsp;·&nbsp; <i class="fa-solid fa-location-dot" style="margin-right:2px;"></i>${s.locacion}` : ''}
+                        </div>
+                        ${total > 0 ? `
+                        <div class="shooting-card-barra-wrap">
+                            <div class="shooting-card-barra" style="width:${pct}%;"></div>
+                        </div>` : ''}
+                        ${total > 0 ? `<div style="font-size:10px;color:var(--texto-secundario);margin-top:4px;font-weight:600;">${done} de ${total} contenidos</div>` : ''}
                     </div>
-                    <input class="input-celda" style="font-size:17px;font-weight:800;font-family:var(--font-display);padding:4px 6px;"
-                        value="${s.titulo.replace(/"/g,'&quot;')}"
-                        onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].titulo=this.value;guardarBD();">
-                    <input class="input-celda" style="font-size:12px;padding:4px 6px;"
-                        value="${s.locacion.replace(/"/g,'&quot;')}"
-                        onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].locacion=this.value;guardarBD();">
-                </div>` : `
-                <div>
-                    <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${s.fecha} · ${s.hora}</div>
-                    <div class="shooting-titulo">${s.titulo}</div>
-                    <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${s.locacion}</div>
+                    <i class="fa-solid fa-chevron-right shooting-card-chevron"></i>
                 </div>`;
+            }).join('');
+            return;
+        }
 
-            // ── Moodboard ─────────────────────────────────────────────────
-            const mood = canEdit
-                ? `<textarea class="shooting-mood copy-block" style="min-height:60px;font-style:italic;border-left:3px solid var(--color-primario);border-radius:0;background:transparent;border-top:none;border-right:none;border-bottom:none;"
-                    onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].moodboard=this.value;guardarBD();">${s.moodboard}</textarea>`
-                : `<div class="shooting-mood">${s.moodboard}</div>`;
+        // ── Vista desktop: cards expandidas ──────────────────────────────
+        if (!shooting.length) {
+            document.getElementById('shooting-grid').innerHTML = _shootingEmptyHTML(shootingAll, canEdit);
+            return;
+        }
 
-            return `
-            <div class="shooting-card">
-                <div class="shooting-header">
-                    ${header}
-                    <div style="text-align:center;background:rgba(196,133,90,0.08);border-radius:12px;padding:10px 16px;min-width:70px;flex-shrink:0;">
-                        <div style="font-family:var(--font-display);font-size:26px;font-weight:900;color:var(--color-primario);">${pct}%</div>
-                        <div style="font-size:9px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;">Listo</div>
-                    </div>
+        document.getElementById('shooting-grid').innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;">` +
+        shooting.map((s, _si) => {
+            const si = shootingAll.indexOf(s);
+            return _shootingCardDesktopHTML(s, si, canEdit, _isOwnerOrTeam);
+        }).join('') + '</div>';
+    }
+
+    function _shootingEmptyHTML(shootingAll, canEdit) {
+        const _verTodos = sessionStorage.getItem('shooting_ver_todos') === '1';
+        const hayFuera  = !_verTodos && shootingAll.length > 0;
+        return `<div style="text-align:center;padding:60px 32px;color:var(--texto-secundario);background:var(--color-tarjeta);border-radius:20px;border:1px solid var(--color-borde);box-shadow:var(--sombra-suave);">
+            <i class="fa-solid fa-camera" style="font-size:40px;opacity:0.18;display:block;margin-bottom:16px;color:var(--color-primario);"></i>
+            <p style="font-size:15px;font-weight:600;color:var(--texto-principal);margin-bottom:8px;">${hayFuera?'No hay shootings en este periodo':'Sin sesiones programadas'}</p>
+            ${hayFuera ? `<button class="btn btn-fantasma" style="margin-top:10px;" onclick="_toggleShootingFiltro()"><i class="fa-solid fa-list"></i> Ver todos</button>`
+                       : (canEdit ? `<button class="btn btn-primario" style="margin-top:10px;" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>` : '')}
+        </div>`;
+    }
+
+    function _shootingCardDesktopHTML(s, si, canEdit, _isOwnerOrTeam) {
+        const done  = (s.checklist||[]).filter(c=>c.hecho).length;
+        const total = (s.checklist||[]).length;
+        const pct   = total > 0 ? Math.round(done/total*100) : 0;
+        const checklistHTML = _shootingChecklistHTML(s, si, canEdit);
+        const equipoHTML    = _shootingEquipoHTML(s, si, canEdit);
+        const header = canEdit ? `
+            <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+                <div style="display:flex;gap:8px;">
+                    <input type="date" class="input-celda" style="font-size:12px;font-weight:700;color:var(--color-primario);padding:4px 8px;"
+                        value="${s.fecha}" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].fecha=this.value;guardarBD();">
+                    <input type="time" class="input-celda" style="font-size:12px;font-weight:700;padding:4px 8px;"
+                        value="${s.hora}" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].hora=this.value;guardarBD();">
                 </div>
-                <div class="shooting-body">
-                    ${mood}
-                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:10px;">Contenidos a capturar</div>
-                    <ul class="shooting-checklist">${checklistHTML}</ul>
-                    <div class="shooting-equipo">${equipoHTML}</div>
-                    ${_renderTomasSection(s, _isOwnerOrTeam)}
-                    ${canEdit ? `
-                    <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--color-borde);display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn btn-xs btn-fantasma" onclick="agregarCheckShooting('${s.id}')"><i class="fa-solid fa-plus"></i> Contenido</button>
-                        <button class="btn btn-xs btn-fantasma" onclick="agregarMiembroEquipo('${s.id}',${si})"><i class="fa-solid fa-user-plus"></i> Miembro</button>
-                        <button class="btn btn-xs btn-peligro-suave" style="margin-left:auto;" onclick="eliminarShooting('${s.id}')"><i class="fa-solid fa-trash"></i> Eliminar sesión</button>
-                    </div>` : ''}
-                </div>
+                <input class="input-celda" style="font-size:17px;font-weight:800;font-family:var(--font-display);padding:4px 6px;"
+                    value="${s.titulo.replace(/"/g,'&quot;')}"
+                    onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].titulo=this.value;guardarBD();">
+                <input class="input-celda" style="font-size:12px;padding:4px 6px;"
+                    value="${(s.locacion||'').replace(/"/g,'&quot;')}"
+                    onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].locacion=this.value;guardarBD();">
+            </div>` : `
+            <div>
+                <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${s.fecha} · ${s.hora||''}</div>
+                <div class="shooting-titulo">${s.titulo}</div>
+                <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${s.locacion||''}</div>
             </div>`;
-        }).join('') || `<div style="color:var(--texto-secundario);font-size:14px;padding:40px;text-align:center;grid-column:1/-1;"><i class="fa-solid fa-camera" style="font-size:32px;margin-bottom:12px;display:block;opacity:0.3;"></i>No hay sesiones de shooting programadas.<br>${canEdit?'<button class="btn btn-primario" style="margin-top:16px;" onclick="nuevoShooting()"><i class="fa-solid fa-plus"></i> Nueva Sesión</button>':''}</div>`;
+        const mood = canEdit
+            ? `<textarea class="shooting-mood copy-block" style="min-height:60px;font-style:italic;border-left:3px solid var(--color-primario);border-radius:0;background:transparent;border-top:none;border-right:none;border-bottom:none;"
+                onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].moodboard=this.value;guardarBD();">${s.moodboard||''}</textarea>`
+            : `<div class="shooting-mood">${s.moodboard||''}</div>`;
+        return `
+        <div class="shooting-card">
+            <div class="shooting-header">
+                ${header}
+                <div style="text-align:center;background:rgba(196,133,90,0.08);border-radius:12px;padding:10px 16px;min-width:70px;flex-shrink:0;">
+                    <div style="font-family:var(--font-display);font-size:26px;font-weight:900;color:var(--color-primario);">${pct}%</div>
+                    <div style="font-size:9px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;">Listo</div>
+                </div>
+            </div>
+            <div class="shooting-body">
+                ${mood}
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:10px;">Contenidos a capturar</div>
+                <ul class="shooting-checklist">${checklistHTML}</ul>
+                <div class="shooting-equipo">${equipoHTML}</div>
+                ${_renderTomasSection(s, _isOwnerOrTeam)}
+                ${canEdit ? `
+                <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--color-borde);display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-xs btn-fantasma" onclick="agregarCheckShooting('${s.id}')"><i class="fa-solid fa-plus"></i> Contenido</button>
+                    <button class="btn btn-xs btn-fantasma" onclick="agregarMiembroEquipo('${s.id}',${si})"><i class="fa-solid fa-user-plus"></i> Miembro</button>
+                    <button class="btn btn-xs btn-peligro-suave" style="margin-left:auto;" onclick="eliminarShooting('${s.id}')"><i class="fa-solid fa-trash"></i> Eliminar</button>
+                </div>` : ''}
+            </div>
+        </div>`;
+    }
+
+    function _shootingChecklistHTML(s, si, canEdit) {
+        return (s.checklist||[]).map((c, ci) => `
+            <li class="shooting-item">
+                <div class="shooting-check ${c.hecho?'done':''}" onclick="toggleCheck('${s.id}',${ci})">
+                    ${c.hecho?'<i class="fa-solid fa-check"></i>':''}
+                </div>
+                ${canEdit
+                    ? `<input class="input-celda" style="flex:1;padding:4px 6px;" value="${c.texto.replace(/"/g,'&quot;')}"
+                          onchange="const _s=DB.datos['${SUC_ACTIVA}'].shooting.find(x=>x.id==='${s.id}');if(_s)_s.checklist[${ci}].texto=this.value;guardarBD();">
+                       <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:10px;margin-left:4px;flex-shrink:0;"
+                          onclick="const _s=DB.datos['${SUC_ACTIVA}'].shooting.find(x=>x.id==='${s.id}');if(_s){_s.checklist.splice(${ci},1);guardarBD();renderShootingGrid();}"></i>`
+                    : `<span>${c.texto}</span>`}
+            </li>`).join('');
+    }
+
+    function _shootingEquipoHTML(s, si, canEdit) {
+        if (!canEdit) return (s.equipo||[]).map(e=>`<span class="equipo-tag"><i class="fa-solid fa-user"></i>${e}</span>`).join('');
+        return (s.equipo||[]).map((e,ei) => `
+            <span class="equipo-tag" style="display:inline-flex;align-items:center;gap:4px;">
+                <input class="input-celda" style="padding:2px 4px;font-size:11px;width:140px;font-weight:600;"
+                    value="${e.replace(/"/g,'&quot;')}"
+                    onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo[${ei}]=this.value;guardarBD();">
+                <i class="fa-solid fa-times" style="color:#bbb;cursor:pointer;font-size:9px;"
+                    onclick="DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo.splice(${ei},1);guardarBD();renderShootingGrid();"></i>
+            </span>`).join('');
+    }
+
+    // ── Panel de detalle mobile ───────────────────────────────────────
+    function abrirDetallesShooting(id) {
+        const d  = DB.datos[SUC_ACTIVA];
+        const s  = (d.shooting||[]).find(x=>x.id===id);
+        if (!s) return;
+        const si = d.shooting.indexOf(s);
+        const canEdit = _canEditShooting();
+        const _isOwnerOrTeam = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+
+        const done  = (s.checklist||[]).filter(c=>c.hecho).length;
+        const total = (s.checklist||[]).length;
+        const pct   = total > 0 ? Math.round(done/total*100) : 0;
+        const fechaFmt = s.fecha ? new Date(s.fecha+'T12:00:00').toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'}) : '—';
+
+        // Encabezado del panel
+        const tituloEl = document.getElementById('shooting-panel-titulo');
+        if (tituloEl) tituloEl.textContent = s.titulo||'Shooting';
+
+        // Contenido
+        const checklistHTML = _shootingChecklistHTML(s, si, canEdit);
+        const equipoHTML    = _shootingEquipoHTML(s, si, canEdit);
+        const mood = canEdit
+            ? `<textarea class="shooting-mood copy-block" style="width:100%;box-sizing:border-box;min-height:70px;font-style:italic;border-left:3px solid var(--color-primario);border-radius:0;background:transparent;border-top:none;border-right:none;border-bottom:none;resize:vertical;"
+                onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].moodboard=this.value;guardarBD();">${s.moodboard||''}</textarea>`
+            : (s.moodboard ? `<div class="shooting-mood">${s.moodboard}</div>` : '');
+
+        document.getElementById('shooting-panel-content').innerHTML = `
+            <!-- Meta -->
+            <div style="margin-bottom:20px;">
+                <div style="font-size:22px;font-weight:900;font-family:var(--font-display);color:var(--texto-principal);line-height:1.2;margin-bottom:6px;">${s.titulo||'Sin título'}</div>
+                <div style="font-size:13px;color:var(--texto-secundario);margin-bottom:4px;"><i class="fa-regular fa-calendar" style="color:var(--color-primario);margin-right:6px;"></i>${fechaFmt}${s.hora ? ' · ' + s.hora : ''}</div>
+                ${s.locacion ? `<div style="font-size:13px;color:var(--texto-secundario);"><i class="fa-solid fa-location-dot" style="color:var(--color-primario);margin-right:6px;"></i>${s.locacion}</div>` : ''}
+            </div>
+
+            <!-- Progreso -->
+            ${total > 0 ? `
+            <div style="background:rgba(196,133,90,0.07);border-radius:14px;padding:14px 16px;margin-bottom:20px;border:1px solid rgba(196,133,90,0.15);">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:12px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Progreso</span>
+                    <span style="font-family:var(--font-display);font-size:20px;font-weight:900;color:var(--color-primario);">${pct}%</span>
+                </div>
+                <div style="height:6px;background:rgba(196,133,90,0.15);border-radius:3px;overflow:hidden;">
+                    <div style="height:100%;width:${pct}%;background:var(--color-primario);border-radius:3px;"></div>
+                </div>
+                <div style="font-size:11px;color:var(--texto-secundario);margin-top:6px;">${done} de ${total} contenidos completados</div>
+            </div>` : ''}
+
+            <!-- Mood -->
+            ${mood ? `
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:8px;">Mood & Concepto</div>
+                ${mood}
+            </div>` : ''}
+
+            <!-- Checklist -->
+            ${total > 0 ? `
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:10px;">Contenidos a capturar</div>
+                <ul class="shooting-checklist" style="gap:10px;">${checklistHTML}</ul>
+                ${canEdit ? `<button class="btn btn-xs btn-fantasma" style="margin-top:12px;" onclick="agregarCheckShooting('${s.id}')"><i class="fa-solid fa-plus"></i> Agregar contenido</button>` : ''}
+            </div>` : (canEdit ? `
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:10px;">Contenidos a capturar</div>
+                <button class="btn btn-xs btn-fantasma" onclick="agregarCheckShooting('${s.id}')"><i class="fa-solid fa-plus"></i> Agregar contenido</button>
+            </div>` : '')}
+
+            <!-- Equipo -->
+            ${(s.equipo||[]).length > 0 || canEdit ? `
+            <div style="margin-bottom:20px;">
+                <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:10px;">Equipo</div>
+                <div class="shooting-equipo" style="border-top:none;padding-top:0;margin-top:0;">${equipoHTML}</div>
+                ${canEdit ? `<button class="btn btn-xs btn-fantasma" style="margin-top:8px;" onclick="agregarMiembroEquipo('${s.id}',${si})"><i class="fa-solid fa-user-plus"></i> Agregar miembro</button>` : ''}
+            </div>` : ''}
+
+            <!-- Tomas -->
+            ${_renderTomasSection(s, _isOwnerOrTeam)}
+
+            <!-- Acciones -->
+            ${canEdit ? `
+            <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--color-borde);">
+                <button class="btn btn-peligro-suave btn-sm" style="width:100%;" onclick="if(confirm('¿Eliminar esta sesión?')){eliminarShooting('${s.id}');cerrarDetallesShooting();}">
+                    <i class="fa-solid fa-trash"></i> Eliminar sesión
+                </button>
+            </div>` : ''}
+        `;
+
+        const panel = document.getElementById('shooting-panel');
+        panel.style.display = 'block';
+        requestAnimationFrame(() => panel.classList.add('activo'));
+        document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarDetallesShooting() {
+        const panel = document.getElementById('shooting-panel');
+        if (!panel) return;
+        panel.classList.remove('activo');
+        document.body.style.overflow = '';
+        setTimeout(() => { panel.style.display = 'none'; }, 320);
     }
 
     function toggleCheck(shootingId, ci) {
         const s = DB.datos[SUC_ACTIVA].shooting.find(x=>x.id===shootingId);
-        if(s) { s.checklist[ci].hecho = !s.checklist[ci].hecho; guardarBD(); renderShootingGrid(); }
+        if (!s) return;
+        s.checklist[ci].hecho = !s.checklist[ci].hecho;
+        guardarBD();
+        // Si el panel está abierto, re-renderizar el panel; si no, el grid
+        const panel = document.getElementById('shooting-panel');
+        if (panel && panel.classList.contains('activo')) {
+            abrirDetallesShooting(shootingId);
+        } else {
+            renderShootingGrid();
+        }
     }
 
     function nuevoShooting() {
