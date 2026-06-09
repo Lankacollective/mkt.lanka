@@ -988,11 +988,177 @@
         }
         nav.mobile-abierta { left: 0 !important; }
         nav.nav-colapsada { left: -280px !important; width: 260px !important; overflow-y: auto !important; }
-        .btn-hamburguesa { display: flex; }
+        .btn-hamburguesa { display: none !important; }
         main { width: 100%; }
-        .barra-superior { padding: 14px 16px 14px 64px !important; }
-        .area-desplazable { padding: 24px 20px !important; }
+        .barra-superior { padding: 10px 16px !important; }
+        .area-desplazable { padding: 16px 16px calc(80px + env(safe-area-inset-bottom, 0px)) !important; }
+
+        /* Barra superior: ocultar elementos no esenciales */
+        #ver-como-wrap { display: none !important; }
+        .btn-ia.req-agencia { font-size: 11px !important; padding: 7px 10px !important; }
+        .barra-superior .req-agencia.btn.btn-xs { display: none !important; }
+        #selector-moneda { display: none !important; }
+        #tc-fecha { display: none !important; }
+
+        /* Toast por encima del bottom nav */
+        #lanka-toast { bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
+
+        /* Modales en pantalla completa desde abajo */
+        .fondo-modal { align-items: flex-end !important; padding: 0 !important; }
+        .modal-caja {
+            max-width: 100% !important; width: 100% !important;
+            border-radius: 20px 20px 0 0 !important;
+            max-height: 92vh !important; overflow-y: auto !important;
+            transform: none !important;
+        }
+
+        /* Shooting: una columna */
+        .shooting-grid { grid-template-columns: 1fr !important; }
+
+        /* Kanban: scroll horizontal táctil */
+        .kanban-board { -webkit-overflow-scrolling: touch; padding-bottom: 8px !important; }
+        .kanban-col { min-width: 260px !important; }
+
+        /* Dashboard: una columna */
+        .dash-semaforo-row { grid-template-columns: 1fr 1fr !important; }
+        .dash-grid-main, .dash-grid-bottom, .dash-grid-2x2 { grid-template-columns: 1fr !important; }
+        .dash-grid-main > *:nth-child(3) { display: flex !important; flex-direction: column !important; }
+
+        /* Tablas: card view en mobile */
+        .tabla-editable thead { display: none; }
+        .tabla-editable,
+        .tabla-editable tbody { display: block; width: 100%; }
+        .tabla-editable tbody tr {
+            display: block;
+            border-radius: 12px;
+            border: 1px solid var(--color-borde);
+            margin-bottom: 12px;
+            padding: 10px 14px;
+            background: var(--color-tarjeta);
+        }
+        .tabla-editable tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border: none;
+            font-size: 13px;
+            gap: 8px;
+            min-height: 32px;
+        }
+        .tabla-editable tbody td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            font-size: 10px;
+            color: var(--texto-secundario);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            flex-shrink: 0;
+            min-width: 80px;
+        }
+        /* Excepción: tablas con scroll horizontal (presupuesto, parrilla larga) */
+        .tabla-scroll-mobile table,
+        .tabla-scroll-mobile .tabla-editable { display: table !important; }
+        .tabla-scroll-mobile .tabla-editable thead { display: table-header-group !important; }
+        .tabla-scroll-mobile .tabla-editable tbody { display: table-row-group !important; }
+        .tabla-scroll-mobile .tabla-editable tbody tr { display: table-row !important; border: none !important; border-bottom: 1px solid var(--color-borde) !important; border-radius: 0 !important; padding: 0 !important; background: none !important; margin: 0 !important; }
+        .tabla-scroll-mobile .tabla-editable tbody td { display: table-cell !important; padding: 12px 16px !important; min-height: auto !important; }
+        .tabla-scroll-mobile .tabla-editable tbody td::before { display: none !important; }
+
+        /* Mis Tareas compact */
+        .mis-tareas-fecha { min-width: 70px !important; padding-right: 12px !important; }
+
+        /* Selector de sucursal compacto */
+        #selector-sucursal { max-width: 130px; font-size: 12px; }
+
+        /* Títulos compactos */
+        h1 { font-size: 20px !important; }
     }
+
+    /* ── Bottom Navigation Bar ─────────────────────────────────────── */
+    .bottom-nav {
+        display: none;
+        position: fixed;
+        bottom: 0; left: 0; right: 0;
+        height: calc(60px + env(safe-area-inset-bottom, 0px));
+        background: var(--color-tarjeta);
+        border-top: 1px solid var(--color-borde);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        z-index: 200;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    .bottom-nav-inner {
+        display: flex;
+        height: 60px;
+        align-items: center;
+        justify-content: space-around;
+        padding: 0 4px;
+    }
+    .bottom-tab {
+        display: flex; flex-direction: column; align-items: center; gap: 3px;
+        padding: 8px 10px;
+        border: none; background: none; cursor: pointer;
+        border-radius: 12px; transition: var(--transicion);
+        color: var(--texto-secundario);
+        min-width: 52px; font-family: var(--font-body);
+        -webkit-tap-highlight-color: transparent;
+    }
+    .bottom-tab i { font-size: 19px; transition: transform 0.2s ease; }
+    .bottom-tab span { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+    .bottom-tab.activo { color: var(--color-primario); }
+    .bottom-tab.activo i { transform: translateY(-2px); }
+
+    /* Drawer "Más" */
+    .mas-drawer-overlay {
+        display: none; position: fixed; inset: 0;
+        background: rgba(0,0,0,0.4); z-index: 250;
+    }
+    .mas-drawer-overlay.activo { display: block; }
+    .mas-drawer {
+        position: fixed;
+        bottom: calc(-100% - 60px); left: 0; right: 0;
+        background: var(--color-tarjeta);
+        border-radius: 20px 20px 0 0;
+        z-index: 260;
+        padding: 0 0 calc(16px + env(safe-area-inset-bottom, 0px));
+        transition: bottom 0.32s cubic-bezier(0.25,0.8,0.25,1);
+        max-height: 80vh; overflow-y: auto;
+    }
+    .mas-drawer.activo { bottom: 0; }
+    .mas-drawer-handle {
+        width: 36px; height: 4px;
+        background: var(--color-borde-fuerte);
+        border-radius: 2px; margin: 10px auto 12px;
+    }
+    .mas-drawer-section {
+        font-size: 10px; font-weight: 800; text-transform: uppercase;
+        letter-spacing: 0.08em; color: var(--texto-secundario);
+        padding: 10px 24px 6px;
+    }
+    .mas-drawer-item {
+        display: flex; align-items: center; gap: 14px;
+        padding: 13px 24px; cursor: pointer;
+        font-size: 15px; font-weight: 600;
+        color: var(--texto-principal);
+        transition: background 0.15s;
+        border: none; background: none;
+        width: 100%; text-align: left;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .mas-drawer-item i { width: 20px; text-align: center; color: var(--color-primario); font-size: 15px; }
+    .mas-drawer-item:active { background: rgba(0,0,0,0.05); }
+
+    @media (max-width: 768px) {
+        .bottom-nav { display: block; }
+    }
+
+    /* Temas para bottom nav y drawer */
+    [data-theme="dark"] .bottom-nav { background: rgba(13,11,9,0.95) !important; border-top-color: rgba(255,255,255,0.07) !important; }
+    [data-theme="dark"] .mas-drawer { background: #1A1612 !important; }
+    [data-theme="dark"] .mas-drawer-item:active { background: rgba(255,255,255,0.06) !important; }
+    [data-theme="light"] .bottom-nav { background: rgba(245,240,234,0.96) !important; border-top-color: rgba(196,133,90,0.15) !important; }
+    [data-theme="light"] .mas-drawer { background: rgba(245,240,234,0.99) !important; }
 </style>
 ```
 
@@ -1200,7 +1366,7 @@
                                 </div>
                                 <button class="btn btn-xs btn-fantasma req-agencia" onclick="agregarElemento('rendimiento')"><i class="fa-solid fa-plus"></i> Métrica</button>
                             </div>
-                            <div style="overflow-x:auto;">
+                            <div class="tabla-scroll-mobile" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
                                 <table class="tabla-editable" style="min-width:620px;font-size:12px;">
                                     <thead><tr>
                                         <th style="min-width:170px;white-space:nowrap;">Métrica</th>
@@ -1299,7 +1465,7 @@
                         <button class="btn btn-xs btn-fantasma" onclick="this.closest('.chart-box').querySelector('#historico-tabla').classList.toggle('oculto');this.querySelector('i').classList.toggle('fa-chevron-down');this.querySelector('i').classList.toggle('fa-chevron-up');"><i class="fa-solid fa-chevron-down"></i></button>
                     </div>
                     <div id="historico-tabla" class="oculto">
-                        <div style="overflow-x:auto;">
+                        <div class="tabla-scroll-mobile" style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
                             <table class="tabla-editable" id="tabla-historico-mensual" style="min-width:700px;"></table>
                         </div>
                     </div>
@@ -2866,10 +3032,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if(ROL === 'cliente' || ROL === 'equipo') document.getElementById('etiqueta-cliente').innerText = inf.nombre;
         _actualizarLogoHeader();
         renderDashboard(); renderInsights(); renderOrquestacion(); renderDAM();
-        renderPresupuesto(); renderFacturas(); renderBriefing(); renderMood(); 
+        renderPresupuesto(); renderFacturas(); renderBriefing(); renderMood();
         renderEstrategia(); renderAdministracion();
         _syncKanbanToAds(false); renderAdsTable(); renderOfflineTable(); renderShootingGrid(); renderStories(); renderMisTareas();
         _renderNotifBadge();
+        setTimeout(() => { _labelTablasMobile(); _initTablaObserver(); }, 300);
     }
 
     function renderDashboard() {
@@ -3746,7 +3913,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="ejecutor-body${isOpen?'':' hidden'}">
                 ${modoToggle}
-                <div style="overflow-x:auto;margin-top:4px;">
+                <div class="tabla-scroll-mobile" style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:4px;">
                     <table class="tabla-editable" style="min-width:1600px;table-layout:fixed;">
                         <colgroup>
                             <col style="width:180px;"><!-- Etiqueta -->
@@ -5351,7 +5518,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ${_colPills}
         </div>`;
 
-        h += `<div class="tarjeta" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+        h += `<div class="tarjeta tabla-scroll-mobile" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
         <table class="tabla-editable" style="font-size:12px;border-collapse:collapse;"><thead>
             <tr>
                 <th style="position:sticky;left:0;z-index:2;min-width:190px;max-width:220px;padding:10px 14px;" class="ppto-sticky-col">Ítem</th>`;
@@ -7016,10 +7183,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 else if(tags.includes('asmr')) tipo = 'asmr';
                 else if(tags.includes('pauta')) tipo = 'pauta';
                 else if(tags.includes('story') || tags.includes('stories')) tipo = 'story';
-                return `<span class="cal-chip tipo-${tipo}" title="${t.titulo}">${t.titulo.substring(0,18)}</span>`;
+                return `<span class="cal-chip tipo-${tipo}" style="cursor:pointer;" title="${t.titulo}" onclick="_abrirCardDesdeCalendario('${t.id}')">${t.titulo.substring(0,18)}</span>`;
             }).join('');
-            const masHTML = items.length > maxShow ? `<span class="cal-mas">+${items.length - maxShow} más</span>` : '';
-            html += `<div class="cal-cell ${isToday?'today':''}"><div class="cal-day-num">${day}</div>${chipsHTML}${masHTML}</div>`;
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+            const masHTML = items.length > maxShow ? `<span class="cal-mas" style="cursor:pointer;" onclick="_irAFechaEnParrilla('${dateStr}')">+${items.length - maxShow} más</span>` : '';
+            html += `<div class="cal-cell ${isToday?'today':''}"><div class="cal-day-num" style="${items.length?'cursor:pointer;':''}" onclick="${items.length?`_irAFechaEnParrilla('${dateStr}')`:''}">${day}</div>${chipsHTML}${masHTML}</div>`;
         }
         // Completar últimas filas
         const totalCells = Math.ceil((firstDay + daysInMonth) / 7) * 7;
@@ -7032,6 +7200,26 @@ document.addEventListener('DOMContentLoaded', function() {
     function calMes(dir) {
         _calFecha.setMonth(_calFecha.getMonth() + dir);
         renderCalEditorial();
+    }
+
+    function _abrirCardDesdeCalendario(postId) {
+        irA('vista-calendario');
+        cambiarVistaCalendario('parrilla');
+        renderOrquestacion();
+        setTimeout(() => {
+            const el = document.getElementById('card-' + postId);
+            if (el) { el.classList.add('open'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        }, 80);
+    }
+
+    function _irAFechaEnParrilla(fecha) {
+        irA('vista-calendario');
+        cambiarVistaCalendario('parrilla');
+        renderOrquestacion();
+        setTimeout(() => {
+            const el = document.querySelector(`#contenedor-parrilla .content-card [value="${fecha}"]`);
+            if (el) el.closest('.content-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 80);
     }
 
     /* ============= TOAST GLOBAL ============= */
@@ -8418,6 +8606,82 @@ document.addEventListener('DOMContentLoaded', function() {
         if (nav) nav.classList.add('activo');
         const sec = document.getElementById(target);
         if (sec) sec.classList.remove('oculto');
+        if (window.innerWidth <= 768) {
+            _syncBottomNav(target);
+            setTimeout(_labelTablasMobile, 150);
+        }
+    }
+
+    // ── Bottom nav helpers ──────────────────────────────────────────
+    const _BOTTOM_TABS = ['vista-resumen','vista-shooting','vista-cal-editorial','vista-mis-tareas'];
+
+    function _syncBottomNav(target) {
+        document.querySelectorAll('.bottom-tab[data-vista]').forEach(tab => {
+            tab.classList.toggle('activo', tab.dataset.vista === target);
+        });
+        const masTab = document.getElementById('btab-mas');
+        if (!_BOTTOM_TABS.includes(target)) {
+            document.querySelectorAll('.bottom-tab').forEach(t => t.classList.remove('activo'));
+            if (masTab) masTab.classList.add('activo');
+        } else {
+            if (masTab) masTab.classList.remove('activo');
+        }
+    }
+
+    function _toggleMasDrawer() {
+        const overlay = document.getElementById('mas-drawer-overlay');
+        const drawer  = document.getElementById('mas-drawer');
+        if (!drawer) return;
+        const abrir = !drawer.classList.contains('activo');
+        if (abrir) _renderMasDrawer();
+        overlay.classList.toggle('activo', abrir);
+        drawer.classList.toggle('activo', abrir);
+    }
+
+    function _renderMasDrawer() {
+        const container = document.getElementById('mas-drawer-items');
+        if (!container) return;
+        const grupos = [
+            { label: 'Contenido', targets: ['vista-calendario','vista-stories','vista-dam'] },
+            { label: 'Estrategia', targets: ['vista-briefing','vista-mood','vista-target','vista-insights'] },
+            { label: 'Negocio',   targets: ['vista-presupuesto','vista-facturas','vista-ads','vista-offline','vista-catalogo'] },
+            { label: 'Gestión',   targets: ['vista-clientes','vista-proveedores','vista-usuarios','vista-control-accesos','vista-config','vista-auditoria'] }
+        ];
+        let html = '';
+        grupos.forEach(grupo => {
+            const items = grupo.targets.map(t => {
+                const el = document.querySelector(`.item-nav[data-target="${t}"]`);
+                if (!el || el.style.display === 'none') return '';
+                const icon = el.querySelector('i') ? el.querySelector('i').outerHTML : '';
+                const label = el.textContent.trim();
+                return `<button class="mas-drawer-item" onclick="irA('${t}');_toggleMasDrawer();">${icon} ${label}</button>`;
+            }).join('');
+            if (items) html += `<div class="mas-drawer-section">${grupo.label}</div>${items}`;
+        });
+        container.innerHTML = html || '<div style="padding:20px 24px;color:var(--texto-secundario);font-size:13px;">Sin secciones disponibles.</div>';
+    }
+
+    // Etiqueta celdas de tabla para card view mobile
+    function _labelTablasMobile() {
+        if (window.innerWidth > 768) return;
+        document.querySelectorAll('.tabla-editable').forEach(table => {
+            if (table.closest('.tabla-scroll-mobile')) return;
+            const ths = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            table.querySelectorAll('tbody tr').forEach(tr => {
+                Array.from(tr.querySelectorAll('td')).forEach((td, i) => {
+                    if (ths[i]) td.setAttribute('data-label', ths[i]);
+                });
+            });
+        });
+    }
+
+    // Observa cambios en tbodies para re-etiquetar en mobile automáticamente
+    function _initTablaObserver() {
+        if (window.innerWidth > 768) return;
+        const observer = new MutationObserver(() => _labelTablasMobile());
+        document.querySelectorAll('.tabla-editable tbody').forEach(tbody => {
+            observer.observe(tbody, { childList: true, subtree: false });
+        });
     }
 
     function generarPassword(len) {
@@ -10371,6 +10635,34 @@ function _xlsNotificarOrigenManual() {
             </div>
         </div>
     </div>
+</div>
+
+<!-- ── Bottom Navigation Bar (mobile only) ─────────────────────── -->
+<div class="bottom-nav" id="bottom-nav">
+    <div class="bottom-nav-inner">
+        <button class="bottom-tab activo" id="btab-resumen" onclick="irA('vista-resumen')" data-vista="vista-resumen">
+            <i class="fa-solid fa-gauge-high"></i><span>Inicio</span>
+        </button>
+        <button class="bottom-tab" id="btab-shooting" onclick="irA('vista-shooting')" data-vista="vista-shooting">
+            <i class="fa-solid fa-camera"></i><span>Shooting</span>
+        </button>
+        <button class="bottom-tab" id="btab-kanban" onclick="irA('vista-cal-editorial')" data-vista="vista-cal-editorial">
+            <i class="fa-solid fa-table-columns"></i><span>Kanban</span>
+        </button>
+        <button class="bottom-tab" id="btab-tareas" onclick="irA('vista-mis-tareas')" data-vista="vista-mis-tareas">
+            <i class="fa-solid fa-list-check"></i><span>Tareas</span>
+        </button>
+        <button class="bottom-tab" id="btab-mas" onclick="_toggleMasDrawer()">
+            <i class="fa-solid fa-ellipsis"></i><span>Más</span>
+        </button>
+    </div>
+</div>
+
+<!-- Drawer "Más" -->
+<div class="mas-drawer-overlay" id="mas-drawer-overlay" onclick="_toggleMasDrawer()"></div>
+<div class="mas-drawer" id="mas-drawer">
+    <div class="mas-drawer-handle"></div>
+    <div id="mas-drawer-items"></div>
 </div>
 
 <!-- Toast global -->
