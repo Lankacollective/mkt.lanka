@@ -2878,95 +2878,104 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Paso 5: guardarBD — guarda en localStorage Y Supabase
+    // Protege Supabase: solo se escribe después de confirmar qué hay allá.
+    // Evita que un navegador nuevo sin localStorage sobreescriba datos reales.
+    let _supabaseVerificado = false;
+
     async function guardarBD() {
-        // Guardar siempre en localStorage primero (sync, instantáneo)
+        // Siempre guardar en localStorage (instantáneo, nunca bloquear)
         localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         const s = document.getElementById('status-save');
-        if (window.__supabase) {
-            try {
-                await window.__supabase.from('lanka_db').upsert({
-                    id: 'main',
-                    data: DB,
-                    updated_at: new Date().toISOString(),
-                    updated_by: USUARIO_ACTIVO?.username || 'unknown'
-                });
-                // Éxito: mostrar checkmark verde
-                if (s) {
-                    s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado';
-                    s.style.color = 'var(--color-exito)';
-                    s.style.opacity = 1;
-                    setTimeout(() => s.style.opacity = 0, 1500);
-                }
-            } catch(e) {
-                console.error('Supabase save error:', e);
-                // Error: mostrar advertencia visible
-                if (s) {
-                    s.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sin conexión — guardado local';
-                    s.style.color = '#FBBC05';
-                    s.style.opacity = 1;
-                    setTimeout(() => s.style.opacity = 0, 4000);
-                }
-            }
-        } else {
-            // Sin Supabase configurado: solo local
+
+        // Solo escribir a Supabase si ya sabemos que es seguro hacerlo
+        if (!window.__supabase || !_supabaseVerificado) {
             if (s) {
-                s.innerHTML = '<i class="fa-solid fa-check"></i> Guardado';
+                s.innerHTML = '<i class="fa-solid fa-check"></i> Guardado local';
                 s.style.color = 'var(--texto-secundario)';
                 s.style.opacity = 1;
                 setTimeout(() => s.style.opacity = 0, 1200);
+            }
+            return;
+        }
+
+        try {
+            await window.__supabase.from('lanka_db').upsert({
+                id: 'main',
+                data: DB,
+                updated_at: new Date().toISOString(),
+                updated_by: USUARIO_ACTIVO?.username || 'unknown'
+            });
+            if (s) {
+                s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado';
+                s.style.color = 'var(--color-exito)';
+                s.style.opacity = 1;
+                setTimeout(() => s.style.opacity = 0, 1500);
+            }
+        } catch(e) {
+            console.error('Supabase save error:', e);
+            if (s) {
+                s.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sin conexión — guardado local';
+                s.style.color = '#FBBC05';
+                s.style.opacity = 1;
+                setTimeout(() => s.style.opacity = 0, 4000);
             }
         }
     }
 
     // Paso 6: inicializarDB — carga con prioridad Supabase → localStorage → semilla
     async function inicializarDB() {
-        // ── Paso 1: cargar INMEDIATAMENTE desde localStorage (no bloqueante) ──
+        // ── Paso 1: localStorage inmediato ─────────────────────────────
         const guardado = localStorage.getItem('LANKA_FINAL_2027_PRO');
         if (guardado) {
             try {
                 DB = JSON.parse(guardado);
+                // Usuario existente con datos locales: ya es seguro guardar en Supabase
+                _supabaseVerificado = true;
                 console.log('✓ Datos cargados desde localStorage');
             } catch(e) { console.warn('localStorage corrupto, usando semilla'); }
         }
         if (!DB || !DB.sucursales) {
             DB = JSON.parse(JSON.stringify(DATOS_SEMILLA));
-            console.log('✓ Primera vez — datos semilla');
+            console.log('✓ Primera vez — datos semilla (esperando Supabase)');
         }
 
-        // ── Paso 2: sincronizar con Supabase en SEGUNDO PLANO (sin bloquear UI) ──
+        // ── Paso 2: Supabase en segundo plano ──────────────────────────
         if (window.__supabase) {
             console.time('supabase-load');
-            const _timeout = setTimeout(() => {
-                console.warn('Supabase load: timeout 3s — app iniciando con datos locales');
-            }, 3000);
-
             window.__supabase
                 .from('lanka_db')
                 .select('data, updated_at')
                 .eq('id', 'main')
                 .single()
                 .then(({ data, error }) => {
-                    clearTimeout(_timeout);
                     console.timeEnd('supabase-load');
                     if (!error && data?.data && Object.keys(data.data).length > 0) {
+                        // Supabase tiene datos reales → tomar como fuente de verdad
                         const yaEnApp = !!SUC_ACTIVA;
                         DB = data.data;
                         localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                        _supabaseVerificado = true;
                         console.log('✓ Datos sincronizados desde Supabase:', data.updated_at);
-                        // Si el usuario ya inició sesión, refrescar silenciosamente
                         if (yaEnApp && typeof renderTodas === 'function') renderTodas();
-                    } else if (!guardado) {
-                        // Sin datos locales y Supabase vacío → subir semilla
-                        guardarBD();
+                    } else if (!error) {
+                        // Supabase respondió OK pero está vacío → usuario nuevo real
+                        _supabaseVerificado = true;
+                        console.log('✓ Supabase vacío — usuario nuevo, listo para guardar');
+                        guardarBD(); // única vez que subimos semilla: Supabase confirmó que no hay nada
+                    } else {
+                        // Error de Supabase → NO tocar Supabase, proteger datos remotos
+                        console.warn('Supabase load error — modo solo-local activado:', error.message);
+                        // _supabaseVerificado queda false: guardarBD() solo usará localStorage
                     }
                 })
                 .catch(e => {
-                    clearTimeout(_timeout);
                     console.timeEnd('supabase-load');
-                    console.warn('Supabase load error:', e);
-                    // Si no hay datos locales, subir semilla cuando haya conexión
-                    if (!guardado && window.__supabase) guardarBD();
+                    console.warn('Supabase load exception — modo solo-local:', e);
+                    // NO llamar guardarBD() aquí — podría sobreescribir datos remotos
                 });
+        } else {
+            // Sin Supabase configurado: modo completamente local
+            _supabaseVerificado = true;
         }
         // Retorna inmediatamente — UI disponible sin esperar Supabase
     }
