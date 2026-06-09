@@ -459,6 +459,10 @@
     .tipo-dm { background: rgba(196,133,90,0.1); color: var(--color-primario); }
     .tipo-link { background: rgba(74,144,217,0.1); color: #2B6CB0; }
     .tipo-encuesta { background: rgba(139,92,246,0.1); color: #6D28D9; }
+    .tipo-countdown { background: rgba(234,67,53,0.08); color: #C0392B; }
+    .tipo-foto { background: rgba(34,197,94,0.08); color: #15803D; }
+    .tipo-video { background: rgba(16,185,129,0.08); color: #065F46; }
+    .tipo-texto { background: rgba(107,114,128,0.08); color: #374151; }
 
     /* JSON import textarea */
     .json-textarea { width: 100%; border: 1px solid var(--color-borde-fuerte); border-radius: 12px; padding: 14px; font-size: 12px; outline: none; min-height: 200px; background: #0D0D0D; color: #E5E5E5; font-family: monospace; resize: vertical; transition: var(--transicion); line-height: 1.7; }
@@ -2123,6 +2127,10 @@
                     <option value="DM">DM (Mensaje directo)</option>
                     <option value="link">Link (Enlace externo)</option>
                     <option value="encuesta">Encuesta</option>
+                    <option value="countdown">Countdown</option>
+                    <option value="foto">Foto</option>
+                    <option value="video">Video</option>
+                    <option value="texto">Texto</option>
                 </select>
             </div>
             <div>
@@ -8564,7 +8572,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'DM':'fa-comment-dots', 'link':'fa-link', 'encuesta':'fa-square-poll-vertical',
             'foto':'fa-image', 'video':'fa-video', 'countdown':'fa-hourglass-half', 'texto':'fa-font'
         };
-        const tipoCls = { 'DM':'tipo-dm', 'link':'tipo-link', 'encuesta':'tipo-encuesta' };
+        const tipoCls = { 'DM':'tipo-dm', 'link':'tipo-link', 'encuesta':'tipo-encuesta', 'countdown':'tipo-countdown', 'foto':'tipo-foto', 'video':'tipo-video', 'texto':'tipo-texto' };
 
         // Ordenar y agrupar por fecha
         const sorted = [...stories].sort((a, b) =>
