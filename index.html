@@ -9742,12 +9742,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function _formatManychatFlujo(mc) {
         if (!mc) return '';
-        if (!mc.mensajes || !mc.mensajes.length) return mc.keyword || '';
-        return (mc.mensajes||[]).map(m => {
-            let txt = `[${m.orden}] ${m.texto}`;
-            if (m.opciones?.length) txt += '\n' + m.opciones.map(o => `  ${o.letra}) ${o.texto} → ${o.resultado}`).join('\n');
-            return txt;
-        }).join('\n\n');
+        const parts = [];
+        if (mc.flujo) parts.push(mc.flujo);
+        if (mc.mensajes?.length) {
+            parts.push(mc.mensajes.map((m, i) => {
+                if (typeof m === 'string') return `[${i+1}] ${m}`;
+                let txt = `[${m.orden ?? i+1}] ${m.texto || ''}`;
+                if (m.opciones?.length) txt += '\n' + m.opciones.map(o => `  ${o.letra}) ${o.texto} → ${o.resultado}`).join('\n');
+                return txt;
+            }).join('\n\n'));
+        }
+        return parts.join('\n\n') || mc.keyword || '';
     }
 
     let _pendingImportData = null;
