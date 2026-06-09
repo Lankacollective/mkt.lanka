@@ -290,11 +290,15 @@
     /* 4. Agenda de Shooting */
     .shooting-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
     .shooting-card { background: #FFFFFF; border-radius: 20px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); overflow: hidden; transition: var(--transicion); }
-    .shooting-card:hover { box-shadow: var(--sombra-flotante); transform: translateY(-2px); }
-    .shooting-header { padding: 20px 24px; border-bottom: 1px solid var(--color-borde); display: flex; justify-content: space-between; align-items: flex-start; }
+    .shooting-card:hover { box-shadow: var(--sombra-flotante); }
+    .shooting-header { padding: 20px 24px; display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer; user-select: none; }
+    .shooting-card.open .shooting-header { border-bottom: 1px solid var(--color-borde); }
+    .shooting-card.open .sh-chevron { transform: rotate(180deg); }
+    .sh-chevron { transition: transform .2s; color: var(--texto-secundario); font-size: 11px; flex-shrink: 0; align-self: center; margin-left: 8px; }
     .shooting-fecha { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--color-primario); text-transform: uppercase; letter-spacing: 0.08em; }
     .shooting-titulo { font-family: var(--font-display); font-size: 17px; font-weight: 800; margin-top: 4px; line-height: 1.3; }
-    .shooting-body { padding: 20px 24px; }
+    .shooting-body { padding: 20px 24px; display: none; }
+    .shooting-card.open .shooting-body { display: block; }
     .shooting-mood { font-size: 13px; color: var(--texto-secundario); line-height: 1.5; margin-bottom: 16px; font-style: italic; border-left: 3px solid var(--color-primario); padding-left: 12px; }
     .shooting-checklist { list-style: none; display: flex; flex-direction: column; gap: 8px; }
     .shooting-item { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; }
@@ -7544,7 +7548,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const NOMBRES = {'sergio26':'Sergio','dulce26':'Dulce','angeles26':'Ángeles'};
         return `<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-borde);">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;"><i class="fa-solid fa-clapperboard" style="margin-right:5px;"></i>Tomas planificadas (${tomas.length})</div>
-            ${tomas.map(t => {
+            ${tomas.map((t, ti) => {
                 const resp   = t.asignado_a ? (NOMBRES[t.asignado_a]||t.asignado_a) : '';
                 const genBtn = isOwnerTeam && t.requiere_guion
                     ? `<button class="btn btn-xs btn-fantasma" style="margin-top:5px;" onclick="event.stopPropagation();_generarGuionToma('${s.id}','${t.id}')"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:9px;"></i> Generar guión</button>`
@@ -7552,12 +7556,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const delBtn = isOwnerTeam
                     ? `<button class="btn btn-xs btn-peligro-suave" style="flex-shrink:0;padding:2px 6px;" title="Eliminar toma" onclick="event.stopPropagation();_eliminarToma('${s.id}','${t.id}')"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button>`
                     : '';
+                const _tomaLabel = `T${String(ti+1).padStart(2,'0')}`;
+                const _fmt = t.formato ? t.formato.charAt(0).toUpperCase()+t.formato.slice(1).toLowerCase() : '';
                 return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-borde);">
                     <label style="cursor:pointer;flex-shrink:0;margin-top:3px;">
                         <input type="checkbox" ${t.completado?'checked':''} onchange="_toggleTomaCompletada('${s.id}','${t.id}',this.checked)">
                     </label>
                     <div style="flex:1;min-width:0;">
-                        <div style="font-size:11px;font-weight:800;color:var(--color-primario);">${t.id||''} · ${t.formato||''} ${t.duracion?'· '+t.duracion:''}</div>
+                        <div style="font-size:11px;font-weight:800;color:var(--color-primario);">${_tomaLabel}${_fmt?' · '+_fmt:''}${t.duracion?' · '+t.duracion:''}</div>
                         <div style="font-size:13px;color:var(--texto-principal);line-height:1.4;">${t.descripcion||''}</div>
                         ${resp?`<div style="font-size:11px;color:var(--texto-secundario);margin-top:2px;"><i class="fa-solid fa-user"></i> ${resp}</div>`:''}
                         ${genBtn}
@@ -7879,16 +7885,16 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
                 <div style="display:flex;gap:8px;">
                     <input type="date" class="input-celda" style="font-size:12px;font-weight:700;color:var(--color-primario);padding:4px 8px;"
-                        value="${s.fecha}" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].fecha=this.value;guardarBD();">
+                        value="${s.fecha}" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].fecha=this.value;guardarBD();">
                     <input type="time" class="input-celda" style="font-size:12px;font-weight:700;padding:4px 8px;"
-                        value="${s.hora}" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].hora=this.value;guardarBD();">
+                        value="${s.hora}" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].hora=this.value;guardarBD();">
                 </div>
                 <input class="input-celda" style="font-size:17px;font-weight:800;font-family:var(--font-display);padding:4px 6px;"
                     value="${s.titulo.replace(/"/g,'&quot;')}"
-                    onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].titulo=this.value;guardarBD();">
+                    onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].titulo=this.value;guardarBD();">
                 <input class="input-celda" style="font-size:12px;padding:4px 6px;"
                     value="${(s.locacion||'').replace(/"/g,'&quot;')}"
-                    onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].locacion=this.value;guardarBD();">
+                    onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].locacion=this.value;guardarBD();">
             </div>` : `
             <div>
                 <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${s.fecha} · ${s.hora||''}</div>
@@ -7901,12 +7907,13 @@ document.addEventListener('DOMContentLoaded', function() {
             : `<div class="shooting-mood">${s.moodboard||''}</div>`;
         return `
         <div class="shooting-card">
-            <div class="shooting-header">
+            <div class="shooting-header" onclick="this.closest('.shooting-card').classList.toggle('open')">
                 ${header}
                 <div style="text-align:center;background:rgba(196,133,90,0.08);border-radius:12px;padding:10px 16px;min-width:70px;flex-shrink:0;">
                     <div style="font-family:var(--font-display);font-size:26px;font-weight:900;color:var(--color-primario);">${pct}%</div>
                     <div style="font-size:9px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;">Listo</div>
                 </div>
+                <i class="fa-solid fa-chevron-down sh-chevron"></i>
             </div>
             <div class="shooting-body">
                 ${mood}
@@ -7941,14 +7948,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function _shootingEquipoHTML(s, si, canEdit) {
         if (!canEdit) return (s.equipo||[]).map(e=>`<span class="equipo-tag"><i class="fa-solid fa-user"></i>${e}</span>`).join('');
-        return (s.equipo||[]).map((e,ei) => `
+        const _sucInfo = DB.sucursales.find(x => x.id === SUC_ACTIVA);
+        const _todosMiembros = (_sucInfo?.equipo_miembros || []).map(m => m.nombre);
+        const _yaAgregados = new Set(s.equipo || []);
+        const _disponibles = _todosMiembros.filter(m => !_yaAgregados.has(m));
+        const items = (s.equipo||[]).map((e,ei) => `
             <span class="equipo-tag" style="display:inline-flex;align-items:center;gap:4px;">
-                <input class="input-celda" style="padding:2px 4px;font-size:11px;width:140px;font-weight:600;"
-                    value="${e.replace(/"/g,'&quot;')}"
-                    onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo[${ei}]=this.value;guardarBD();">
+                <i class="fa-solid fa-user" style="font-size:9px;"></i>
+                <span style="font-size:11px;font-weight:600;">${e}</span>
                 <i class="fa-solid fa-times" style="color:#bbb;cursor:pointer;font-size:9px;"
-                    onclick="DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo.splice(${ei},1);guardarBD();renderShootingGrid();"></i>
+                    onclick="event.stopPropagation();DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo.splice(${ei},1);guardarBD();renderShootingGrid();"></i>
             </span>`).join('');
+        const addControl = _disponibles.length
+            ? `<select style="font-size:11px;border:1px dashed var(--color-borde);border-radius:8px;padding:3px 8px;background:transparent;cursor:pointer;" onclick="event.stopPropagation()"
+                   onchange="if(!this.value)return;event.stopPropagation();DB.datos['${SUC_ACTIVA}'].shooting[${si}].equipo.push(this.value);guardarBD();renderShootingGrid();this.value=''">
+                   <option value="">+ Agregar miembro...</option>
+                   ${_disponibles.map(m=>`<option value="${m}">${m}</option>`).join('')}
+               </select>`
+            : `<button class="btn btn-xs btn-fantasma" onclick="event.stopPropagation();agregarMiembroEquipo('${s.id}',${si})"><i class="fa-solid fa-user-plus"></i> Agregar</button>`;
+        return items + addControl;
     }
 
     // ── Panel de detalle mobile ───────────────────────────────────────
@@ -9996,6 +10014,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const ordenEscenas = p.shooting.orden_recomendado?.length
                     ? p.shooting.orden_recomendado.map(eid => p.shooting.escenas.find(e => e.id === eid)).filter(Boolean)
                     : p.shooting.escenas;
+                // Poblar checklist con una entrada por escena
+                sesion.checklist = ordenEscenas.map(escena => ({
+                    hecho: false,
+                    texto: escena.nombre || escena.id || ''
+                }));
                 const tomaIds = [];
                 const tsEscenas = Date.now();
                 ordenEscenas.forEach(escena => {
