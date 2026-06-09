@@ -7591,7 +7591,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!s || !s.tomas) return;
         s.tomas = s.tomas.filter(t => t.id !== String(tomaId));
         guardarBD();
-        renderShooting();
+        renderShootingGrid();
     }
 
     function _enviarSugerenciaShooting(shootingId, tomaId, ti) {
