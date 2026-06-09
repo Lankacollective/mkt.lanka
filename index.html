@@ -7768,8 +7768,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const _desde = window.dashPeriodo?.desde;
         const _hasta = window.dashPeriodo?.hasta;
         let shooting = (_verTodos || !_desde || !_hasta)
-            ? shootingAll
+            ? [...shootingAll]
             : shootingAll.filter(s => s.fecha >= _desde && s.fecha <= _hasta);
+
+        // Ordenar por fecha ascendente
+        shooting.sort((a, b) => (a.fecha || '') < (b.fecha || '') ? -1 : (a.fecha || '') > (b.fecha || '') ? 1 : 0);
 
         // Si filtro por post activo: mantener solo sesiones que tengan tomas del post
         if (_filtroPost.activo) {
@@ -7857,10 +7860,11 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        document.getElementById('shooting-grid').innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;">` +
+        const _openShIds = new Set([...document.querySelectorAll('#shooting-grid .shooting-card.open')].map(el => el.id));
+        document.getElementById('shooting-grid').innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;align-items:start;">` +
         shooting.map((s, _si) => {
             const si = shootingAll.indexOf(s);
-            return _shootingCardDesktopHTML(s, si, canEdit, _isOwnerOrTeam);
+            return _shootingCardDesktopHTML(s, si, canEdit, _isOwnerOrTeam, _openShIds.has('sh-card-'+s.id));
         }).join('') + '</div>';
     }
 
@@ -7875,7 +7879,7 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>`;
     }
 
-    function _shootingCardDesktopHTML(s, si, canEdit, _isOwnerOrTeam) {
+    function _shootingCardDesktopHTML(s, si, canEdit, _isOwnerOrTeam, _startOpen) {
         const done  = (s.checklist||[]).filter(c=>c.hecho).length;
         const total = (s.checklist||[]).length;
         const pct   = total > 0 ? Math.round(done/total*100) : 0;
@@ -7896,9 +7900,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     value="${(s.locacion||'').replace(/"/g,'&quot;')}"
                     onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].locacion=this.value;guardarBD();">
             </div>` : `
-            <div>
+            <div style="flex:1;min-width:0;">
                 <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${s.fecha} · ${s.hora||''}</div>
-                <div class="shooting-titulo">${s.titulo}</div>
+                <div class="shooting-titulo" style="overflow-wrap:break-word;word-break:break-word;">${s.titulo}</div>
                 <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${s.locacion||''}</div>
             </div>`;
         const mood = canEdit
@@ -7906,7 +7910,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 onchange="DB.datos['${SUC_ACTIVA}'].shooting[${si}].moodboard=this.value;guardarBD();">${s.moodboard||''}</textarea>`
             : `<div class="shooting-mood">${s.moodboard||''}</div>`;
         return `
-        <div class="shooting-card">
+        <div class="shooting-card${_startOpen?' open':''}" id="sh-card-${s.id}">
             <div class="shooting-header" onclick="this.closest('.shooting-card').classList.toggle('open')">
                 ${header}
                 <div style="text-align:center;background:rgba(196,133,90,0.08);border-radius:12px;padding:10px 16px;min-width:70px;flex-shrink:0;">
@@ -8085,10 +8089,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function nuevoShooting() {
         const n = {
-            id: 'sh'+Date.now(), titulo: "Nuevo Shooting", fecha: new Date().toISOString().split('T')[0], hora: "10:00",
-            locacion: "Estudio / Locación", moodboard: "Descripción del mood y estética visual del shooting...",
-            equipo: ["Fotógrafo: ", "Dirección: "],
-            checklist: [{ hecho: false, texto: "Contenido 1" }, { hecho: false, texto: "Contenido 2" }]
+            id: 'sh'+Date.now(), titulo: "Nuevo Shooting", fecha: new Date().toISOString().split('T')[0], hora: "",
+            locacion: "", moodboard: "",
+            equipo: [],
+            checklist: []
         };
         DB.datos[SUC_ACTIVA].shooting.push(n); guardarBD(); renderShootingGrid();
     }
@@ -10004,7 +10008,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const sesion = {
                     id: `sh_ia_${postId}_${Date.now()}`,
                     titulo: `${p.titulo ? p.titulo + ' · ' : ''}${_MES_LABELS_SH[postMes.getMonth()]} ${postMes.getFullYear()}`,
-                    fecha: p.fecha, hora: '10:00', hora_fin: '',
+                    fecha: p.fecha, hora: '', hora_fin: '',
                     locacion:'', servicio:'', moodboard: p.shooting.nota_general||'',
                     equipo:[], checklist:[], tomas:[], estado:'programado',
                     notas_generales: p.shooting.nota_general || ''
