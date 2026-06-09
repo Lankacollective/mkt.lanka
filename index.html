@@ -68,6 +68,8 @@
     .btn-fantasma { background: transparent; color: var(--texto-secundario); border: 1px solid var(--color-borde-fuerte); }
     .btn-fantasma:hover { background: #FFFFFF; color: var(--texto-principal); box-shadow: var(--sombra-suave); border-color: transparent;}
     .btn-peligro-suave { background: rgba(234, 67, 53, 0.1); color: var(--color-peligro); }
+    .btn-exito { background: rgba(34,197,94,0.12); color: #14532D; border: 1px solid rgba(34,197,94,0.3); font-weight: 700; }
+    .btn-exito:hover { background: rgba(34,197,94,0.22); }
     .btn-xs { padding: 6px 12px; font-size: 11px; border-radius: 8px; }
 
     /* Login */
@@ -3263,19 +3265,26 @@ document.addEventListener('DOMContentLoaded', function() {
             _accAnt.inversion_pauta = _invPautaAnt > 0 ? _invPautaAnt : null;
         }
 
-        // ── % Cumplimiento parrilla (Publicado / Publicado+Programado) ─
-        const _kanbanTodos = d.kanban || [];
+        // ── % Cumplimiento parrilla (posts + stories Publicado / Publicado+Programado) ─
+        const _kanbanTodos  = d.kanban || [];
+        const _storiesTodas = d.stories_ind || [];
         const _desdeAct = _pAct.desde || new Date().toISOString().split('T')[0];
         const _hastaAct = _pAct.hasta || new Date().toISOString().split('T')[0];
-        const _postsAct = _kanbanTodos.filter(k => k.fecha >= _desdeAct && k.fecha <= _hastaAct);
-        const _pubAct   = _postsAct.filter(k => k.estado === 'Publicado').length;
-        const _progAct  = _postsAct.filter(k => k.estado === 'Publicado' || k.estado === 'Programado').length;
+        const _postsAct   = _kanbanTodos.filter(k  => k.fecha >= _desdeAct && k.fecha <= _hastaAct);
+        const _storiesAct = _storiesTodas.filter(s => s.dia   >= _desdeAct && s.dia   <= _hastaAct);
+        const _pubAct  = _postsAct.filter(k => k.estado === 'Publicado').length
+                       + _storiesAct.filter(s => s.estado === 'Publicado').length;
+        const _progAct = _postsAct.filter(k => k.estado === 'Publicado' || k.estado === 'Programado').length
+                       + _storiesAct.filter(s => s.estado === 'Publicado' || s.estado === 'Programado').length;
         if (_accAct) _accAct.cumplimiento_parrilla = _progAct > 0 ? Math.round(_pubAct / _progAct * 100) : null;
         if (_pAnt && _accAnt) {
-            const _postsAnt = _kanbanTodos.filter(k => k.fecha >= _pAnt.desde && k.fecha <= _pAnt.hasta);
-            const _pubAnt   = _postsAnt.filter(k => k.estado === 'Publicado').length;
-            const _progAnt  = _postsAnt.filter(k => k.estado === 'Publicado' || k.estado === 'Programado').length;
-            _accAnt.cumplimiento_parrilla = _progAnt > 0 ? Math.round(_pubAnt / _progAnt * 100) : null;
+            const _postsAnt   = _kanbanTodos.filter(k  => k.fecha >= _pAnt.desde && k.fecha <= _pAnt.hasta);
+            const _storiesAnt = _storiesTodas.filter(s => s.dia   >= _pAnt.desde && s.dia   <= _pAnt.hasta);
+            const _pubAnt  = _postsAnt.filter(k => k.estado === 'Publicado').length
+                           + _storiesAnt.filter(s => s.estado === 'Publicado').length;
+            const _progAnt = _postsAnt.filter(k => k.estado === 'Publicado' || k.estado === 'Programado').length
+                           + _storiesAnt.filter(s => s.estado === 'Publicado' || s.estado === 'Programado').length;
+            _accAnt.cumplimiento_parrilla = _progAnt > 0 ? Math.round(_pubAnt / _progAnt) : null;
         }
 
         const _thAnt = document.getElementById('th-periodo-anterior');
@@ -8443,9 +8452,21 @@ document.addEventListener('DOMContentLoaded', function() {
             'Ideas':      { bg:'rgba(234,179,8,.1)',   color:'#A16207', label:'Ideas' },
             'Producción': { bg:'rgba(59,130,246,.1)',  color:'#1D4ED8', label:'Producción' },
             'Programado': { bg:'rgba(34,197,94,.1)',   color:'#15803D', label:'Programado' },
+            'Publicado':  { bg:'rgba(34,197,94,.18)',  color:'#14532D', label:'✓ Publicado', bold: true },
         };
         const c = cfg[estado] || cfg['Ideas'];
-        return `<span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:100px;background:${c.bg};color:${c.color};">${c.label}</span>`;
+        return `<span style="font-size:10px;font-weight:${c.bold?'800':'700'};padding:2px 9px;border-radius:100px;background:${c.bg};color:${c.color};">${c.label}</span>`;
+    }
+
+    function _publicarStory(id) {
+        const d = DB.datos[SUC_ACTIVA];
+        const s = (d.stories_ind||[]).find(x => x.id === id);
+        if (!s) return;
+        s.estado = s.estado === 'Publicado' ? 'Programado' : 'Publicado';
+        guardarBD();
+        renderStories();
+        // Recalcular métricas para actualizar cumplimiento de parrilla
+        if (typeof renderResumen === 'function') renderResumen();
     }
 
     function _driveFileName(url) {
@@ -8616,6 +8637,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     ${canEdit ? `
                     <div style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
+                        <button class="btn btn-xs ${s.estado==='Publicado' ? 'btn-exito' : 'btn-fantasma'}" onclick="_publicarStory('${s.id}')" title="${s.estado==='Publicado' ? 'Marcar como no publicada' : 'Marcar como publicada'}">
+                            <i class="fa-solid ${s.estado==='Publicado' ? 'fa-circle-check' : 'fa-check'}"></i> ${s.estado==='Publicado' ? 'Publicada' : 'Publicar'}
+                        </button>
                         <button class="btn btn-xs btn-fantasma" onclick="editarStory('${s.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
                         <button class="btn btn-xs btn-peligro-suave" onclick="eliminarStory('${s.id}')"><i class="fa-solid fa-trash"></i></button>
                     </div>` : ''}
