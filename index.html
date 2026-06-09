@@ -2073,12 +2073,27 @@
             <textarea id="post-ia-json-textarea" class="json-textarea" rows="13" placeholder='{ "post": { "titulo": "...", "fecha": "2026-06-09", "hora": "18:00", "tipo": "Reel", ... } }'></textarea>
             <div id="post-ia-error" style="display:none;color:var(--color-peligro);font-size:13px;font-weight:600;margin-top:12px;padding:10px 14px;background:rgba(234,67,53,0.06);border-radius:8px;"></div>
             <div id="post-ia-resultado" style="display:none;margin-top:12px;padding:14px;background:rgba(34,197,94,.06);border-radius:10px;border:1px solid rgba(34,197,94,.25);font-size:13px;line-height:1.8;color:#15803D;font-weight:500;"></div>
+            <!-- Panel de conflicto upsert -->
+            <div id="post-ia-conflict" style="display:none;margin-top:12px;padding:14px 16px;background:rgba(251,188,5,.07);border-radius:10px;border:1px solid rgba(251,188,5,.35);">
+                <div style="display:flex;align-items:flex-start;gap:10px;">
+                    <i class="fa-solid fa-triangle-exclamation" style="color:#D4A800;font-size:16px;margin-top:2px;flex-shrink:0;"></i>
+                    <div>
+                        <div style="font-size:13px;font-weight:700;color:var(--texto-principal);margin-bottom:4px;">Ya existe un post para esta fecha y tipo</div>
+                        <div id="post-ia-conflict-info" style="font-size:12px;color:var(--texto-secundario);margin-bottom:12px;line-height:1.5;"></div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-primario btn-sm" onclick="_resolverConflictoPost('reemplazar')"><i class="fa-solid fa-rotate"></i> Reemplazar</button>
+                            <button class="btn btn-fantasma btn-sm" onclick="_resolverConflictoPost('nuevo')"><i class="fa-solid fa-plus"></i> Crear nuevo</button>
+                            <button class="btn btn-fantasma btn-sm" onclick="_cancelarConflictoPost()" style="margin-left:auto;"><i class="fa-solid fa-xmark"></i> Cancelar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 20px 20px;">
             <span style="font-size:12px;color:var(--texto-secundario);">Los datos existentes no se modifican.</span>
             <div style="display:flex;gap:8px;">
                 <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
-                <button class="btn btn-primario" onclick="importarPostIA()"><i class="fa-solid fa-bolt"></i> Importar y vincular</button>
+                <button class="btn btn-primario" id="btn-importar-post-ia" onclick="importarPostIA()"><i class="fa-solid fa-bolt"></i> Importar y vincular</button>
             </div>
         </div>
     </div>
@@ -9694,11 +9709,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }).join('\n\n');
     }
 
+    let _pendingImportData = null;
+    let _pendingImportConflict = null;
+
     async function importarPostIA() {
         const raw   = (document.getElementById('post-ia-json-textarea').value || '').trim();
         const errEl = document.getElementById('post-ia-error');
         const resEl = document.getElementById('post-ia-resultado');
-        errEl.style.display = 'none'; resEl.style.display = 'none';
+        const conflEl = document.getElementById('post-ia-conflict');
+        errEl.style.display = 'none'; resEl.style.display = 'none'; conflEl.style.display = 'none';
 
         // ── PASO 1: VALIDACIÓN ─────────────────────────────────────────
         let data;
@@ -9715,29 +9734,88 @@ document.addEventListener('DOMContentLoaded', function() {
             errEl.textContent = `Tipo no válido: "${p.tipo}". Válidos: Carrusel, Reel, Historia, ASMR`;
             errEl.style.display = 'block'; return;
         }
-
         const d = DB.datos[SUC_ACTIVA];
         if (!d) { errEl.textContent = 'Proyecto activo no encontrado'; errEl.style.display = 'block'; return; }
-        const postId = `post_${SUC_ACTIVA}_${(p.fecha||'').replace(/-/g,'')}_${Date.now()}`;
+
+        // ── PASO 1B: DETECCIÓN DE CONFLICTO ────────────────────────────
+        const existente = (d.kanban||[]).find(k =>
+            k.fecha === p.fecha &&
+            (k.formato||'').toLowerCase() === (p.tipo||'').toLowerCase()
+        );
+        if (existente) {
+            _pendingImportData     = data;
+            _pendingImportConflict = existente;
+            document.getElementById('post-ia-conflict-info').textContent =
+                `"${existente.titulo}" · ${existente.fecha} · ${existente.formato}`;
+            conflEl.style.display = 'block';
+            document.getElementById('btn-importar-post-ia').style.display = 'none';
+            return;
+        }
+
+        await _ejecutarImportPost(data, null);
+    }
+
+    async function _resolverConflictoPost(modo) {
+        const data      = _pendingImportData;
+        const existente = _pendingImportConflict;
+        _pendingImportData     = null;
+        _pendingImportConflict = null;
+        document.getElementById('post-ia-conflict').style.display = 'none';
+        document.getElementById('btn-importar-post-ia').style.display = '';
+        if (!data) return;
+        await _ejecutarImportPost(data, modo === 'reemplazar' ? existente : null);
+    }
+
+    function _cancelarConflictoPost() {
+        _pendingImportData     = null;
+        _pendingImportConflict = null;
+        document.getElementById('post-ia-conflict').style.display = 'none';
+        document.getElementById('btn-importar-post-ia').style.display = '';
+    }
+
+    async function _ejecutarImportPost(data, postExistente) {
+        const errEl = document.getElementById('post-ia-error');
+        const resEl = document.getElementById('post-ia-resultado');
+        errEl.style.display = 'none'; resEl.style.display = 'none';
+
+        const p           = data.post;
+        const d           = DB.datos[SUC_ACTIVA];
+        const reemplazando = !!postExistente;
+        const postId      = reemplazando
+            ? postExistente.id
+            : `post_${SUC_ACTIVA}_${(p.fecha||'').replace(/-/g,'')}_${Date.now()}`;
         const created = { postId, stories: [], campana_ad: null, escenas: [] };
 
         try {
-            // ── PASO 2: CREAR POST EN KANBAN ───────────────────────────
+            // ── PASO 2: LIMPIAR VÍNCULOS VIEJOS (solo modo reemplazar) ─
+            if (reemplazando) {
+                const oldV = postExistente.vinculos || {};
+                if (d.stories_ind && oldV.stories?.length) {
+                    d.stories_ind = d.stories_ind.filter(s => !oldV.stories.includes(s.id));
+                }
+                if (d.shooting && oldV.escenas_shooting?.length) {
+                    d.shooting.forEach(ses => {
+                        ses.tomas = (ses.tomas||[]).filter(t => !oldV.escenas_shooting.includes(t.id));
+                    });
+                }
+            }
+
+            // ── PASO 3: CREAR / ACTUALIZAR POST EN KANBAN ─────────────
             const pautaActiva = !!(p.pauta?.presupuesto_dia > 0);
             const pautaNota   = pautaActiva
                 ? [p.pauta.objetivo, `$${p.pauta.presupuesto_dia} ${p.pauta.moneda||'MXN'}/día`,
                    `${p.pauta.duracion_dias||'?'} días`, p.pauta.condicion_pausa ? 'Pausa si: ' + p.pauta.condicion_pausa : null]
                   .filter(Boolean).join(' · ')
                 : '';
-            const newPost = {
+            const postFields = {
                 id:               postId,
                 titulo:           p.titulo,
                 fecha:            p.fecha,
                 hora:             p.hora,
                 formato:          p.tipo,
-                estado:           'Revisión',
+                estado:           reemplazando ? (postExistente.estado || 'Revisión') : 'Revisión',
                 tags:             [p.tipo, p.capa].filter(Boolean).join(', '),
-                target_id:        '',
+                target_id:        reemplazando ? (postExistente.target_id || '') : '',
                 hook:             p.hook || '',
                 copy:             p.caption_instagram || '',
                 hashtags:         '',
@@ -9752,22 +9830,33 @@ document.addEventListener('DOMContentLoaded', function() {
                 pauta_status:     pautaActiva ? 'confirmada' : '',
                 pauta_activa:     pautaActiva,
                 pauta_nota:       pautaNota,
-                campana_id:       '',
+                campana_id:       reemplazando ? (postExistente.campana_id || '') : '',
                 stories_vinculadas: [],
-                shooting_id:      '',
-                asignado_a:       '',
-                drive_doc_url:    '',
+                shooting_id:      reemplazando ? (postExistente.shooting_id || '') : '',
+                asignado_a:       reemplazando ? (postExistente.asignado_a || '') : '',
+                drive_doc_url:    reemplazando ? (postExistente.drive_doc_url || '') : '',
                 contenido_tecnico: p.contenido || null,
-                manychat_mensajes: p.manychat?.mensajes || [],
-                vinculos:         { stories:[], campana_ad:null, escenas_shooting:[] }
+                vinculos:         {
+                    stories: [],
+                    campana_ad: reemplazando ? (postExistente.vinculos?.campana_ad || null) : null,
+                    escenas_shooting: []
+                }
             };
             if (!d.kanban) d.kanban = [];
-            d.kanban.push(newPost);
+            if (reemplazando) {
+                const idx = d.kanban.findIndex(k => k.id === postId);
+                if (idx !== -1) d.kanban[idx] = postFields;
+                else d.kanban.push(postFields);
+            } else {
+                d.kanban.push(postFields);
+            }
+            const newPost = d.kanban.find(k => k.id === postId) || postFields;
 
-            // ── PASO 3: CREAR STORIES ──────────────────────────────────
+            // ── PASO 4: CREAR STORIES ──────────────────────────────────
             if (!d.stories_ind) d.stories_ind = [];
+            const tsBase = Date.now();
             (p.stories || []).forEach((s, si) => {
-                const stId = `st_ia_${postId}_${si}`;
+                const stId = `st_ia_${postId}_${si}_${tsBase + si}`;
                 d.stories_ind.push({
                     id:                  stId,
                     dia:                 s.fecha || p.fecha,
@@ -9788,35 +9877,44 @@ document.addEventListener('DOMContentLoaded', function() {
             newPost.stories_vinculadas = [...created.stories];
             newPost.vinculos.stories   = [...created.stories];
 
-            // ── PASO 4: CREAR CAMPAÑA BORRADOR ────────────────────────
+            // ── PASO 5: CREAR / ACTUALIZAR CAMPAÑA ────────────────────
             if (pautaActiva) {
                 if (!d.ads) d.ads = [];
-                const adId    = `ad_ia_${postId}`;
-                const durDias = p.pauta.duracion_dias || 7;
-                const fFin    = new Date(p.fecha + 'T00:00:00'); fFin.setDate(fFin.getDate() + durDias);
-                const adItem  = {
-                    id:          adId,
-                    nombre:      p.titulo.substring(0, 50),
-                    categoria:   '',
-                    plataforma:  'Meta',
-                    inversion:   (p.pauta.presupuesto_dia || 0) * durDias,
+                const durDias  = p.pauta.duracion_dias || 7;
+                const fFin     = new Date(p.fecha + 'T00:00:00'); fFin.setDate(fFin.getDate() + durDias);
+                const oldAdId  = reemplazando ? (postExistente.vinculos?.campana_ad || null) : null;
+                const adId     = oldAdId || `ad_ia_${postId}`;
+                const adFields = {
+                    id:         adId,
+                    nombre:     p.titulo.substring(0, 50),
+                    categoria:  '',
+                    plataforma: 'Meta',
+                    inversion:  (p.pauta.presupuesto_dia || 0) * durDias,
                     alcance:0, clics:0, conversiones:0, cpr:0,
-                    segmento:    p.segmentacion || 'Por definir',
-                    estado:      'Borrador',
-                    inicio:      p.fecha,
-                    fin:         fFin.toISOString().split('T')[0],
-                    origen:      'post_import',
-                    post_id:     postId,
-                    notas:       'Activar manualmente cuando arranque la pauta.' +
-                                 (p.pauta.condicion_pausa ? '\nCondición de pausa: ' + p.pauta.condicion_pausa : '')
+                    segmento:   p.segmentacion || 'Por definir',
+                    inicio:     p.fecha,
+                    fin:        fFin.toISOString().split('T')[0],
+                    origen:     'post_import',
+                    post_id:    postId,
+                    notas:      'Activar manualmente cuando arranque la pauta.' +
+                                (p.pauta.condicion_pausa ? '\nCondición de pausa: ' + p.pauta.condicion_pausa : '')
                 };
-                d.ads.push(adItem);
-                created.campana_ad       = adId;
-                newPost.campana_id       = adId;
+                if (oldAdId) {
+                    const adIdx = d.ads.findIndex(a => a.id === oldAdId);
+                    if (adIdx !== -1) {
+                        d.ads[adIdx] = { ...d.ads[adIdx], ...adFields, estado: d.ads[adIdx].estado };
+                    } else {
+                        d.ads.push({ ...adFields, estado: 'Borrador' });
+                    }
+                } else {
+                    d.ads.push({ ...adFields, estado: 'Borrador' });
+                }
+                created.campana_ad          = adId;
+                newPost.campana_id          = adId;
                 newPost.vinculos.campana_ad = adId;
             }
 
-            // ── PASO 5: CREAR ESCENAS EN SHOOTING ─────────────────────
+            // ── PASO 6: CREAR ESCENAS EN SHOOTING ─────────────────────
             let escenasCount = 0;
             if (p.shooting?.escenas?.length) {
                 if (!d.shooting) d.shooting = [];
@@ -9844,9 +9942,10 @@ document.addEventListener('DOMContentLoaded', function() {
                     ? p.shooting.orden_recomendado.map(eid => p.shooting.escenas.find(e => e.id === eid)).filter(Boolean)
                     : p.shooting.escenas;
                 const tomaIds = [];
+                const tsEscenas = Date.now();
                 ordenEscenas.forEach(escena => {
                     (escena.tomas || []).forEach((toma, ti) => {
-                        const tomaId = `T_ia_${escena.id}_${ti}_${Date.now() + ti}`;
+                        const tomaId = `T_ia_${escena.id}_${ti}_${tsEscenas + ti}`;
                         sesion.tomas.push({
                             id:              tomaId,
                             descripcion:     `[${escena.nombre}] ${toma.descripcion||''}`,
@@ -9871,28 +9970,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 newPost.shooting_id = sesion.id;
             }
 
-            // ── PASO 6: GUARDAR Y MOSTRAR RESULTADO ───────────────────
+            // ── PASO 7: GUARDAR Y MOSTRAR RESULTADO ───────────────────
             await guardarBD();
             renderOrquestacion();
             if (created.campana_ad) { _syncKanbanToAds(false); renderAdsTable(); setTimeout(renderAdsCharts, 80); }
 
+            const accion   = reemplazando ? 'actualizado' : 'importado';
+            const adAccion = (reemplazando && postExistente?.vinculos?.campana_ad) ? 'actualizada' : 'borrador creada';
             const resLineas = [
-                `<i class="fa-solid fa-check-circle" style="margin-right:6px;"></i><strong>Post importado correctamente</strong>`,
+                `<i class="fa-solid fa-check-circle" style="margin-right:6px;"></i><strong>Post ${accion} correctamente</strong>`,
                 p.contenido?.slides?.length ? `· ${p.contenido.slides.length} slides de contenido` : (p.contenido?.clips?.length ? `· ${p.contenido.clips.length} clips de contenido` : null),
-                created.stories.length ? `· ${created.stories.length} story${created.stories.length!==1?'s':''} creada${created.stories.length!==1?'s':''} en Stories` : null,
-                created.campana_ad  ? `· 1 campaña borrador creada en Ad Performance` : null,
-                escenasCount > 0    ? `· ${escenasCount} toma${escenasCount!==1?'s':''} de shooting agregada${escenasCount!==1?'s':''}` : null
+                created.stories.length ? `· ${created.stories.length} story${created.stories.length!==1?'s':''} ${reemplazando?'recreada':'creada'}${created.stories.length!==1?'s':''} en Stories` : null,
+                created.campana_ad  ? `· Campaña ${adAccion} en Ad Performance` : null,
+                escenasCount > 0    ? `· ${escenasCount} toma${escenasCount!==1?'s':''} de shooting ${reemplazando?'actualizadas':'agregadas'}` : null
             ].filter(Boolean).join('<br>');
             resEl.innerHTML = resLineas;
             resEl.style.display = 'block';
 
         } catch(err) {
-            // ── ROLLBACK ──────────────────────────────────────────────
-            if (d.kanban)     d.kanban     = d.kanban.filter(k => k.id !== created.postId);
-            if (d.stories_ind) d.stories_ind = d.stories_ind.filter(s => !created.stories.includes(s.id));
-            if (d.ads)        d.ads        = d.ads.filter(a => a.id !== created.campana_ad);
-            if (created.escenas.length && d.shooting) {
-                d.shooting.forEach(s => { s.tomas = (s.tomas||[]).filter(t => !created.escenas.includes(t.id)); });
+            // ── ROLLBACK (solo en creación nueva; reemplazo puede quedar a medias) ──
+            if (!reemplazando) {
+                if (d.kanban)      d.kanban      = d.kanban.filter(k => k.id !== created.postId);
+                if (d.stories_ind) d.stories_ind = d.stories_ind.filter(s => !created.stories.includes(s.id));
+                if (d.ads)         d.ads         = d.ads.filter(a => a.id !== created.campana_ad);
+                if (created.escenas.length && d.shooting) {
+                    d.shooting.forEach(s => { s.tomas = (s.tomas||[]).filter(t => !created.escenas.includes(t.id)); });
+                }
             }
             errEl.innerHTML = `<i class="fa-solid fa-circle-exclamation" style="margin-right:6px;"></i>Error al importar — cambios revertidos.<br><code style="font-size:11px;">${err.message}</code>`;
             errEl.style.display = 'block';
