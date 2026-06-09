@@ -623,9 +623,9 @@
        ================================================================ */
     .badge-equipo { background: rgba(74,144,217,0.1); color: #4A90D9; }
     .req-equipo { display: none; }
-    .mis-tareas-card { background: #FFFFFF; border-radius: 16px; padding: 20px 24px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); display: flex; align-items: center; gap: 20px; transition: var(--transicion); }
+    .mis-tareas-card { background: #FFFFFF; border-radius: 16px; padding: 20px 24px; border: 1px solid var(--color-borde); box-shadow: var(--sombra-suave); display: flex; align-items: flex-start; gap: 16px; transition: var(--transicion); flex-wrap: wrap; }
     .mis-tareas-card:hover { box-shadow: var(--sombra-flotante); transform: translateY(-1px); }
-    .mis-tareas-fecha { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--color-borde); padding-right: 20px; min-width: 90px; }
+    .mis-tareas-fecha { display: flex; flex-direction: column; gap: 4px; border-right: 1px solid var(--color-borde); padding-right: 16px; min-width: 80px; flex-shrink: 0; }
     .mis-tareas-dia-val { font-family: var(--font-display); font-size: 22px; font-weight: 900; color: var(--color-primario); letter-spacing: -0.04em; line-height: 1; }
     .mis-tareas-hora { font-size: 11px; font-weight: 700; color: var(--texto-secundario); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
     [data-theme="dark"] .mis-tareas-card { background: rgba(20,18,16,0.82) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 4px 28px rgba(0,0,0,0.4) !important; }
@@ -3036,7 +3036,11 @@ document.addEventListener('DOMContentLoaded', function() {
         renderEstrategia(); renderAdministracion();
         _syncKanbanToAds(false); renderAdsTable(); renderOfflineTable(); renderShootingGrid(); renderStories(); renderMisTareas();
         _renderNotifBadge();
-        setTimeout(() => { _labelTablasMobile(); _initTablaObserver(); }, 300);
+        setTimeout(() => {
+            _adaptarBottomNav(USUARIO_ACTIVO ? USUARIO_ACTIVO.rol_id : ROL);
+            _labelTablasMobile();
+            _initTablaObserver();
+        }, 300);
     }
 
     function renderDashboard() {
@@ -8613,7 +8617,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // ── Bottom nav helpers ──────────────────────────────────────────
-    const _BOTTOM_TABS = ['vista-resumen','vista-shooting','vista-cal-editorial','vista-mis-tareas'];
+    let _BOTTOM_TABS = ['vista-resumen','vista-shooting','vista-cal-editorial','vista-mis-tareas'];
+
+    // Tabs por rol: [vista, icono, etiqueta]
+    const _BOTTOM_NAV_ROLES = {
+        equipo:     [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-mis-tareas','fa-list-check','Tareas']],
+        cliente:    [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-calendario','fa-calendar-days','Calendario'],['vista-stories','fa-film','Stories']],
+        direccion:  [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-cal-editorial','fa-table-columns','Kanban'],['vista-calendario','fa-calendar-days','Calendario']],
+        _default:   [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-cal-editorial','fa-table-columns','Kanban'],['vista-calendario','fa-calendar-days','Calendario']]
+    };
+
+    function _adaptarBottomNav(rol_id) {
+        const nav = document.getElementById('bottom-nav');
+        if (!nav) return;
+        const tabs = _BOTTOM_NAV_ROLES[rol_id] || _BOTTOM_NAV_ROLES._default;
+        _BOTTOM_TABS = tabs.map(t => t[0]);
+        const inner = nav.querySelector('.bottom-nav-inner');
+        inner.innerHTML = tabs.map(([vista, icon, label]) =>
+            `<button class="bottom-tab" onclick="irA('${vista}')" data-vista="${vista}">
+                <i class="fa-solid ${icon}"></i><span>${label}</span>
+            </button>`
+        ).join('') +
+        `<button class="bottom-tab" id="btab-mas" onclick="_toggleMasDrawer()">
+            <i class="fa-solid fa-ellipsis"></i><span>Más</span>
+        </button>`;
+        // Marca la sección activa actual
+        const activeSection = document.querySelector('.seccion-app:not(.oculto)');
+        if (activeSection) _syncBottomNav(activeSection.id);
+    }
 
     function _syncBottomNav(target) {
         document.querySelectorAll('.bottom-tab[data-vista]').forEach(tab => {
