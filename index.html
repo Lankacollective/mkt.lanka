@@ -5349,6 +5349,10 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
 </div>
 <div class="card-body" onclick="event.stopPropagation()">
+  ${canEdit ? `<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <i class="fa-solid fa-tags" style="color:var(--texto-secundario);font-size:12px;flex-shrink:0;"></i>
+    <input class="input-celda" style="flex:1;font-size:12px;border:1px solid var(--color-borde);border-radius:8px;padding:5px 10px;" placeholder="Etiquetas separadas por coma: Carrusel, Head Spa, Pauta, Conversión..." value="${(t.tags||'').replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onchange="${_kp}.tags=this.value;guardarBD();renderOrquestacion()">
+  </div>` : ''}
   <div style="margin-bottom:14px;padding:12px 14px;background:rgba(66,133,244,.04);border-radius:10px;border:1px solid rgba(66,133,244,.12);">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
       <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0;">
