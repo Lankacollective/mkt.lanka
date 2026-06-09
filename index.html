@@ -7545,6 +7545,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const genBtn = isOwnerTeam && t.requiere_guion
                     ? `<button class="btn btn-xs btn-fantasma" style="margin-top:5px;" onclick="event.stopPropagation();_generarGuionToma('${s.id}','${t.id}')"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:9px;"></i> Generar guión</button>`
                     : '';
+                const delBtn = isOwnerTeam
+                    ? `<button class="btn btn-xs btn-peligro-suave" style="flex-shrink:0;padding:2px 6px;" title="Eliminar toma" onclick="event.stopPropagation();_eliminarToma('${s.id}','${t.id}')"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button>`
+                    : '';
                 return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-borde);">
                     <label style="cursor:pointer;flex-shrink:0;margin-top:3px;">
                         <input type="checkbox" ${t.completado?'checked':''} onchange="_toggleTomaCompletada('${s.id}','${t.id}',this.checked)">
@@ -7556,6 +7559,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${genBtn}
                     </div>
                     ${t.completado?`<i class="fa-solid fa-check" style="color:#15803D;font-size:11px;flex-shrink:0;margin-top:4px;"></i>`:''}
+                    ${delBtn}
                 </div>`;
             }).join('')}
         </div>`;
@@ -7579,6 +7583,15 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!s || !s.tomas) return;
         const t = s.tomas.find(t => t.id === String(tomaId));
         if (t) { t.completado = done; guardarBD(); }
+    }
+
+    function _eliminarToma(shootingId, tomaId) {
+        if (!confirm('¿Eliminar esta toma?')) return;
+        const s = DB.datos[SUC_ACTIVA].shooting.find(x => x.id === shootingId);
+        if (!s || !s.tomas) return;
+        s.tomas = s.tomas.filter(t => t.id !== String(tomaId));
+        guardarBD();
+        renderShooting();
     }
 
     function _enviarSugerenciaShooting(shootingId, tomaId, ti) {
@@ -9965,24 +9978,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (p.shooting?.escenas?.length) {
                 if (!d.shooting) d.shooting = [];
                 const postMes = new Date(p.fecha + 'T00:00:00');
-                const mesKey  = `${postMes.getFullYear()}-${postMes.getMonth()}`;
-                let sesion = d.shooting.find(s => {
-                    if (!s.fecha) return false;
-                    const sm = new Date(s.fecha + 'T00:00:00');
-                    return `${sm.getFullYear()}-${sm.getMonth()}` === mesKey;
-                });
-                if (!sesion) {
-                    const _MES_LABELS = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-                    sesion = {
-                        id: `sh_ia_${mesKey}_${Date.now()}`,
-                        titulo: `Shooting ${_MES_LABELS[postMes.getMonth()]} ${postMes.getFullYear()}`,
-                        fecha: p.fecha, hora: '10:00', hora_fin: '',
-                        locacion:'', servicio:'', moodboard: p.shooting.nota_general||'',
-                        equipo:[], checklist:[], tomas:[], estado:'programado',
-                        notas_generales: p.shooting.nota_general || ''
-                    };
-                    d.shooting.push(sesion);
-                }
+                const _MES_LABELS_SH = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                const sesion = {
+                    id: `sh_ia_${postId}_${Date.now()}`,
+                    titulo: `${p.titulo ? p.titulo + ' · ' : ''}${_MES_LABELS_SH[postMes.getMonth()]} ${postMes.getFullYear()}`,
+                    fecha: p.fecha, hora: '10:00', hora_fin: '',
+                    locacion:'', servicio:'', moodboard: p.shooting.nota_general||'',
+                    equipo:[], checklist:[], tomas:[], estado:'programado',
+                    notas_generales: p.shooting.nota_general || ''
+                };
+                d.shooting.push(sesion);
                 if (!sesion.tomas) sesion.tomas = [];
                 const ordenEscenas = p.shooting.orden_recomendado?.length
                     ? p.shooting.orden_recomendado.map(eid => p.shooting.escenas.find(e => e.id === eid)).filter(Boolean)
