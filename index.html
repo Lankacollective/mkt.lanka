@@ -3246,10 +3246,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             return ms;
         };
-        let _gastoRealAct = 0;
-        _getMonthsInPeriod().forEach(mi => {
-            (d.presupuesto||[]).forEach(p => { _gastoRealAct += p.montos_mes?.[mi]?.real || 0; });
-        });
+        const _gastoRealAct = _gastoRealProrrateado();
         if (_accAct) _accAct.cac = _calcCAC(_gastoRealAct, _accAct.clientes_nuevos);
         if (_pAnt && _accAnt) {
             let _gastoRealAnt = 0;
@@ -3562,6 +3559,24 @@ document.addEventListener('DOMContentLoaded', function() {
         return (gastoReal > 0 && (clientesNuevos||0) > 0)
             ? Math.round(gastoReal / clientesNuevos)
             : null;
+    }
+
+    // Suma el gasto real del presupuesto para los meses dados,
+    // prorrateando el mes en curso según los días transcurridos.
+    function _gastoRealProrrateado(meses) {
+        const d = DB.datos[SUC_ACTIVA];
+        const hoy = new Date();
+        const miActual = hoy.getMonth();
+        const diasHoy  = hoy.getDate();
+        let total = 0;
+        (meses || _getMonthsInPeriod()).forEach(mi => {
+            const diasMes = new Date(hoy.getFullYear(), mi + 1, 0).getDate();
+            const factor  = (mi === miActual) ? diasHoy / diasMes : 1;
+            (d.presupuesto || []).forEach(p => {
+                total += (p.montos_mes?.[mi]?.real || 0) * factor;
+            });
+        });
+        return Math.round(total);
     }
 
     function _labelPeriodoFechas(desdeStr, hastaStr) {
@@ -4368,11 +4383,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const mNuevos = { v2: kpiAcc.clientes_nuevos,      v1: (_findMetrica(rend,['nuevo'])).v1 };
         const mRecurr = { v2: kpiAcc.clientes_recurrentes, v1: (_findMetrica(rend,['recurrent'])).v1 };
         const mRecup  = { v2: kpiAcc.clientes_recuperados, v1: (_findMetrica(rend,['recuper'])).v1 };
-        // CAC = suma de m.real de TODOS los ítems de Presupuesto del período ÷ clientas nuevas
-        let gastoReal = 0;
-        _getMonthsInPeriod().forEach(mi => {
-            (d.presupuesto||[]).forEach(p => { gastoReal += p.montos_mes?.[mi]?.real || 0; });
-        });
+        // CAC = gasto real prorrateado del período ÷ clientas nuevas
+        const gastoReal = _gastoRealProrrateado();
         const cac     = _calcCAC(gastoReal, kpiAcc.clientes_nuevos);
         const cacPrev = null;
         const cacNullTip = gastoReal === 0
@@ -4533,11 +4545,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const b = BENCH[tipo] || BENCH.wellness;
         const manuales = d.semaforo_manuales || {};
 
-        // ── Inversión real del período (m.real de presupuesto) ────────
-        let invReal = 0;
-        _getMonthsInPeriod().forEach(mi => {
-            (d.presupuesto||[]).forEach(p => { invReal += p.montos_mes?.[mi]?.real || 0; });
-        });
+        // ── Inversión real del período (prorrateada si el mes está en curso) ─
+        const invReal = _gastoRealProrrateado();
 
         // ── Entradas Excel del período ────────────────────────────────
         const desde = _dashPeriodoDesde();
@@ -4649,7 +4658,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return `<div class="glass-card" style="padding:16px;overflow:hidden;">
                 <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,${color},${color}55);"></div>
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);">${label}</div>
+                    <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);display:flex;align-items:center;gap:5px;">
+                        ${label}
+                        <i class="fa-solid fa-circle-info" style="font-size:9px;opacity:.4;cursor:help;flex-shrink:0;" title="${autoTip||''}"></i>
+                    </div>
                     ${badge}
                 </div>
                 <div id="semaforo-val-${campo}" style="font-family:var(--font-display);font-size:28px;font-weight:900;color:var(--texto-principal);letter-spacing:-0.04em;line-height:1;margin-bottom:6px;">${disp}${lapiz}</div>
