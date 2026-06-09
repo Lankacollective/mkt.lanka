@@ -8184,6 +8184,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (_filtroPost.activo) ads = ads.filter(a => a.post_id === _filtroPost.postId || a.kanban_id === _filtroPost.postId);
 
+        // Ordenar por fecha del post vinculado (o inicio si manual), ascendente
+        ads = [...ads].sort((a, b) => {
+            const fa = a.fecha || a.inicio || '';
+            const fb = b.fecha || b.inicio || '';
+            return fa < fb ? -1 : fa > fb ? 1 : 0;
+        });
+
         document.getElementById('ads-lista').innerHTML = ads.map((a, i) => {
             const statusCls = a.estado==='Borrador' ? 'ad-paused' : a.estado==='Activa' ? 'ad-active' : (a.estado==='Pausada' ? 'ad-paused' : 'ad-finished');
             const statusDot = a.estado==='Borrador' ? '⬜' : a.estado==='Activa' ? '🟢' : (a.estado==='Pausada' ? '🟡' : '⚫');
