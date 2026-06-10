@@ -2940,44 +2940,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // Evita que un navegador nuevo sin localStorage sobreescriba datos reales.
     let _supabaseVerificado = false;
 
+    let _guardarBDTimer = null;
+
     async function guardarBD() {
-        // Siempre guardar en localStorage (instantáneo, nunca bloquear)
+        // 1. localStorage siempre inmediato (síncrono, sin red)
         localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         const s = document.getElementById('status-save');
-
-        // Solo escribir a Supabase si ya sabemos que es seguro hacerlo
-        if (!window.__supabase || !_supabaseVerificado) {
-            if (s) {
-                s.innerHTML = '<i class="fa-solid fa-check"></i> Guardado local';
-                s.style.color = 'var(--texto-secundario)';
-                s.style.opacity = 1;
-                setTimeout(() => s.style.opacity = 0, 1200);
-            }
-            return;
+        if (s) {
+            s.innerHTML = '<i class="fa-solid fa-check"></i> Guardado';
+            s.style.color = 'var(--texto-secundario)';
+            s.style.opacity = 1;
         }
 
-        try {
-            await window.__supabase.from('lanka_db').upsert({
-                id: 'main',
-                data: DB,
-                updated_at: new Date().toISOString(),
-                updated_by: USUARIO_ACTIVO?.username || 'unknown'
-            });
-            if (s) {
-                s.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado';
-                s.style.color = 'var(--color-exito)';
-                s.style.opacity = 1;
-                setTimeout(() => s.style.opacity = 0, 1500);
+        if (!window.__supabase || !_supabaseVerificado) return;
+
+        // 2. Supabase: debounce 900ms — cancela writes anteriores si el usuario sigue escribiendo
+        clearTimeout(_guardarBDTimer);
+        _guardarBDTimer = setTimeout(async () => {
+            try {
+                await window.__supabase.from('lanka_db').upsert({
+                    id: 'main',
+                    data: DB,
+                    updated_at: new Date().toISOString(),
+                    updated_by: USUARIO_ACTIVO?.username || 'unknown'
+                });
+                const s2 = document.getElementById('status-save');
+                if (s2) {
+                    s2.innerHTML = '<i class="fa-solid fa-check"></i> Sincronizado';
+                    s2.style.color = 'var(--color-exito)';
+                    s2.style.opacity = 1;
+                    setTimeout(() => s2.style.opacity = 0, 1500);
+                }
+            } catch(e) {
+                console.error('Supabase save error:', e);
+                const s2 = document.getElementById('status-save');
+                if (s2) {
+                    s2.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sin conexión — guardado local';
+                    s2.style.color = '#FBBC05';
+                    s2.style.opacity = 1;
+                    setTimeout(() => s2.style.opacity = 0, 4000);
+                }
             }
-        } catch(e) {
-            console.error('Supabase save error:', e);
-            if (s) {
-                s.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sin conexión — guardado local';
-                s.style.color = '#FBBC05';
-                s.style.opacity = 1;
-                setTimeout(() => s.style.opacity = 0, 4000);
-            }
-        }
+        }, 900);
     }
 
     // Paso 6: inicializarDB — carga con prioridad Supabase → localStorage → semilla
