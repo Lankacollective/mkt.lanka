@@ -2227,6 +2227,56 @@
     </div>
 </div>
 
+<!-- Modal: Editar Toma -->
+<div class="fondo-modal" id="modal-editar-toma">
+    <div class="modal-caja" style="max-width:520px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-clapperboard" style="margin-right:8px;color:var(--color-primario);"></i>Editar Toma</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:24px;display:flex;flex-direction:column;gap:14px;">
+            <input type="hidden" id="et-shooting-id">
+            <input type="hidden" id="et-toma-id">
+            <div>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);display:block;margin-bottom:5px;">Descripción</label>
+                <textarea id="et-descripcion" class="textarea-apple" rows="3" style="font-size:13px;"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);display:block;margin-bottom:5px;">Formato</label>
+                    <select id="et-formato" class="input-celda" style="width:100%;padding:7px 10px;border-radius:8px;">
+                        <option value="">— Sin formato —</option>
+                        <option value="Reel">Reel</option>
+                        <option value="Carrusel">Carrusel</option>
+                        <option value="Foto">Foto</option>
+                        <option value="ASMR">ASMR</option>
+                        <option value="Story">Story</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);display:block;margin-bottom:5px;">Duración</label>
+                    <input id="et-duracion" type="text" class="input-celda" style="width:100%;padding:7px 10px;border-radius:8px;" placeholder="ej. 30 seg, 1 min">
+                </div>
+            </div>
+            <div>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
+                    <input type="checkbox" id="et-requiere-guion" onchange="document.getElementById('et-guion-wrap').style.display=this.checked?'':'none'">
+                    Requiere guión / pitch
+                </label>
+            </div>
+            <div id="et-guion-wrap">
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);display:block;margin-bottom:5px;">Guión / Pitch</label>
+                <textarea id="et-guion" class="textarea-apple" rows="4" style="font-size:13px;" placeholder="Texto del guión o instrucciones para la toma..."></textarea>
+            </div>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:flex-end;gap:8px;border-radius:0 0 20px 20px;">
+            <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+            <button class="btn btn-primario" onclick="_guardarEditorToma()"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+        </div>
+    </div>
+</div>
+
 <!-- Modal: Importar Reporte Excel (Wellness/Spa) -->
 <div class="fondo-modal" id="modal-excel-import">
     <div class="modal-caja" style="max-width:680px;">
@@ -7581,6 +7631,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const genBtn = isOwnerTeam && t.requiere_guion
                     ? `<button class="btn btn-xs btn-fantasma" style="margin-top:5px;" onclick="event.stopPropagation();_generarGuionToma('${s.id}','${t.id}')"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:9px;"></i> Generar guión</button>`
                     : '';
+                const editBtn = isOwnerTeam
+                    ? `<button class="btn btn-xs btn-fantasma" style="flex-shrink:0;padding:2px 6px;" title="Editar toma" onclick="event.stopPropagation();_abrirEditorToma('${s.id}','${t.id}')"><i class="fa-solid fa-pen" style="font-size:9px;"></i></button>`
+                    : '';
                 const delBtn = isOwnerTeam
                     ? `<button class="btn btn-xs btn-peligro-suave" style="flex-shrink:0;padding:2px 6px;" title="Eliminar toma" onclick="event.stopPropagation();_eliminarToma('${s.id}','${t.id}')"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button>`
                     : '';
@@ -7597,7 +7650,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         ${genBtn}
                     </div>
                     ${t.completado?`<i class="fa-solid fa-check" style="color:#15803D;font-size:11px;flex-shrink:0;margin-top:4px;"></i>`:''}
-                    ${delBtn}
+                    <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">${editBtn}${delBtn}</div>
                 </div>`;
             }).join('')}
         </div>`;
@@ -7621,6 +7674,40 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!s || !s.tomas) return;
         const t = s.tomas.find(t => t.id === String(tomaId));
         if (t) { t.completado = done; guardarBD(); }
+    }
+
+    function _abrirEditorToma(shootingId, tomaId) {
+        const s = DB.datos[SUC_ACTIVA].shooting.find(x => x.id === shootingId);
+        if (!s) return;
+        const t = s.tomas.find(x => x.id === String(tomaId));
+        if (!t) return;
+        document.getElementById('et-shooting-id').value = shootingId;
+        document.getElementById('et-toma-id').value     = tomaId;
+        document.getElementById('et-descripcion').value = t.descripcion || '';
+        document.getElementById('et-formato').value     = t.formato || '';
+        document.getElementById('et-duracion').value    = t.duracion || '';
+        const rg = !!t.requiere_guion;
+        document.getElementById('et-requiere-guion').checked = rg;
+        document.getElementById('et-guion').value       = t.guion || '';
+        document.getElementById('et-guion-wrap').style.display = rg ? '' : 'none';
+        document.getElementById('modal-editar-toma').classList.add('activo');
+    }
+
+    function _guardarEditorToma() {
+        const shootingId = document.getElementById('et-shooting-id').value;
+        const tomaId     = document.getElementById('et-toma-id').value;
+        const s = DB.datos[SUC_ACTIVA].shooting.find(x => x.id === shootingId);
+        if (!s) return;
+        const t = s.tomas.find(x => x.id === String(tomaId));
+        if (!t) return;
+        t.descripcion    = document.getElementById('et-descripcion').value.trim();
+        t.formato        = document.getElementById('et-formato').value;
+        t.duracion       = document.getElementById('et-duracion').value.trim();
+        t.requiere_guion = document.getElementById('et-requiere-guion').checked;
+        t.guion          = document.getElementById('et-guion').value.trim();
+        guardarBD();
+        cerrarModales();
+        renderShootingGrid();
     }
 
     function _eliminarToma(shootingId, tomaId) {
