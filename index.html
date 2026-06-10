@@ -7696,7 +7696,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function _buildMiembrosParaAsignacion() {
         const sucInfo = DB.sucursales.find(x => x.id === SUC_ACTIVA);
         const AITAMA_MAP = { u_sergio:'sergio26', u_dulce:'dulce26', u_angeles:'angeles26' };
-        return (sucInfo?.equipo_miembros || []).map(m => {
+        const result = [];
+        const seen = new Set();
+
+        // Fuente 1: equipo_miembros legacy de la sucursal
+        (sucInfo?.equipo_miembros || []).forEach(m => {
+            if (seen.has(m.nombre)) return;
+            seen.add(m.nombre);
             const u = (DB.usuarios || []).find(u => u.nombre === m.nombre && u.estado === 'activo');
             let identifier;
             if (u && SUC_ACTIVA === 'aitama' && AITAMA_MAP[u.id]) {
@@ -7706,8 +7712,22 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 identifier = m.password ? atob(m.password) : m.nombre;
             }
-            return { nombre: m.nombre, identifier };
+            result.push({ nombre: m.nombre, identifier });
         });
+
+        // Fuente 2: DB.usuarios con rol equipo/coordinador asignados a este proyecto
+        (DB.usuarios || []).filter(u =>
+            u.estado === 'activo' &&
+            (u.rol_id === 'equipo' || u.rol_id === 'coordinador') &&
+            (u.proyectos || []).includes(SUC_ACTIVA) &&
+            !seen.has(u.nombre)
+        ).forEach(u => {
+            seen.add(u.nombre);
+            const identifier = (SUC_ACTIVA === 'aitama' && AITAMA_MAP[u.id]) ? AITAMA_MAP[u.id] : u.id;
+            result.push({ nombre: u.nombre, identifier });
+        });
+
+        return result;
     }
 
     function _abrirEditorToma(shootingId, tomaId) {
@@ -8145,7 +8165,14 @@ document.addEventListener('DOMContentLoaded', function() {
     function _shootingEquipoHTML(s, si, canEdit) {
         if (!canEdit) return (s.equipo||[]).map(e=>`<span class="equipo-tag"><i class="fa-solid fa-user"></i>${e}</span>`).join('');
         const _sucInfo = DB.sucursales.find(x => x.id === SUC_ACTIVA);
-        const _todosMiembros = (_sucInfo?.equipo_miembros || []).map(m => m.nombre);
+        // Unir equipo_miembros legacy + DB.usuarios asignados al proyecto
+        const _nombresLegacy = (_sucInfo?.equipo_miembros || []).map(m => m.nombre);
+        const _nombresDB = (DB.usuarios || []).filter(u =>
+            u.estado === 'activo' &&
+            (u.rol_id === 'equipo' || u.rol_id === 'coordinador') &&
+            (u.proyectos || []).includes(SUC_ACTIVA)
+        ).map(u => u.nombre);
+        const _todosMiembros = [...new Set([..._nombresLegacy, ..._nombresDB])];
         const _yaAgregados = new Set(s.equipo || []);
         const _disponibles = _todosMiembros.filter(m => !_yaAgregados.has(m));
         const items = (s.equipo||[]).map((e,ei) => `
