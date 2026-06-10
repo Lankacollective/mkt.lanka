@@ -7332,14 +7332,24 @@ document.addEventListener('DOMContentLoaded', function() {
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const today = new Date();
 
-        // Mapear contenidos a fechas
+        // Mapear contenidos a fechas (posts + stories)
         const contentMap = {};
         (d.kanban || []).forEach(t => {
+            if (!t.fecha) return;
             const td = new Date(t.fecha + 'T00:00:00');
             if (td.getFullYear() === year && td.getMonth() === month) {
                 const day = td.getDate();
                 if (!contentMap[day]) contentMap[day] = [];
-                contentMap[day].push(t);
+                contentMap[day].push({ _tipo: 'post', data: t });
+            }
+        });
+        (d.stories_ind || []).forEach(s => {
+            if (!s.dia) return;
+            const sd = new Date(s.dia + 'T00:00:00');
+            if (sd.getFullYear() === year && sd.getMonth() === month) {
+                const day = sd.getDate();
+                if (!contentMap[day]) contentMap[day] = [];
+                contentMap[day].push({ _tipo: 'story', data: s });
             }
         });
 
@@ -7352,7 +7362,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const isToday = today.getDate() === day && today.getMonth() === month && today.getFullYear() === year;
             const items = contentMap[day] || [];
             const maxShow = 3;
-            const chipsHTML = items.slice(0, maxShow).map(t => {
+            const chipsHTML = items.slice(0, maxShow).map(item => {
+                if (item._tipo === 'story') {
+                    const s = item.data;
+                    const label = (s.copy || s.tipo || 'Story').substring(0, 16);
+                    return `<span class="cal-chip tipo-story" title="${(s.copy||'Story').replace(/"/g,'&quot;')}" onclick="irA('vista-stories')" style="cursor:pointer;display:flex;align-items:center;gap:3px;"><i class="fa-solid fa-play" style="font-size:7px;flex-shrink:0;opacity:.8;"></i>${label}</span>`;
+                }
+                const t = item.data;
                 const tags = (t.tags||'').toLowerCase();
                 let tipo = 'otro';
                 if(tags.includes('reel')) tipo = 'reel';
