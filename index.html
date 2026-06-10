@@ -7626,37 +7626,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function _renderTomasSection(s, isOwnerTeam) {
         const tomas = s.tomas || [];
-        if (!tomas.length) return '';
         const _miembrosMap = Object.fromEntries(_buildMiembrosParaAsignacion().map(m => [m.identifier, m.nombre]));
+        const tomasHTML = tomas.map((t, ti) => {
+            const resp   = t.asignado_a ? (_miembrosMap[t.asignado_a]||t.asignado_a) : '';
+            const genBtn = isOwnerTeam && t.requiere_guion
+                ? `<button class="btn btn-xs btn-fantasma" style="margin-top:5px;" onclick="event.stopPropagation();_generarGuionToma('${s.id}','${t.id}')"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:9px;"></i> Generar guión</button>`
+                : '';
+            const upBtn = isOwnerTeam && ti > 0
+                ? `<button class="btn btn-xs btn-fantasma" style="flex-shrink:0;padding:2px 5px;" title="Subir" onclick="event.stopPropagation();_moverToma('${s.id}','${t.id}',-1)"><i class="fa-solid fa-chevron-up" style="font-size:8px;"></i></button>`
+                : (isOwnerTeam ? `<button class="btn btn-xs btn-fantasma" style="flex-shrink:0;padding:2px 5px;opacity:.2;" disabled><i class="fa-solid fa-chevron-up" style="font-size:8px;"></i></button>` : '');
+            const downBtn = isOwnerTeam && ti < tomas.length - 1
+                ? `<button class="btn btn-xs btn-fantasma" style="flex-shrink:0;padding:2px 5px;" title="Bajar" onclick="event.stopPropagation();_moverToma('${s.id}','${t.id}',1)"><i class="fa-solid fa-chevron-down" style="font-size:8px;"></i></button>`
+                : (isOwnerTeam ? `<button class="btn btn-xs btn-fantasma" style="flex-shrink:0;padding:2px 5px;opacity:.2;" disabled><i class="fa-solid fa-chevron-down" style="font-size:8px;"></i></button>` : '');
+            const editBtn = isOwnerTeam
+                ? `<button class="btn btn-xs btn-fantasma" style="flex-shrink:0;padding:2px 6px;" title="Editar toma" onclick="event.stopPropagation();_abrirEditorToma('${s.id}','${t.id}')"><i class="fa-solid fa-pen" style="font-size:9px;"></i></button>`
+                : '';
+            const delBtn = isOwnerTeam
+                ? `<button class="btn btn-xs btn-peligro-suave" style="flex-shrink:0;padding:2px 6px;" title="Eliminar toma" onclick="event.stopPropagation();_eliminarToma('${s.id}','${t.id}')"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button>`
+                : '';
+            const _tomaLabel = `T${String(ti+1).padStart(2,'0')}`;
+            const _fmt = t.formato ? t.formato.charAt(0).toUpperCase()+t.formato.slice(1).toLowerCase() : '';
+            return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-borde);">
+                <label style="cursor:pointer;flex-shrink:0;margin-top:3px;">
+                    <input type="checkbox" ${t.completado?'checked':''} onchange="_toggleTomaCompletada('${s.id}','${t.id}',this.checked)">
+                </label>
+                <div style="flex:1;min-width:0;">
+                    <div style="font-size:11px;font-weight:800;color:var(--color-primario);">${_tomaLabel}${_fmt?' · '+_fmt:''}${t.duracion?' · '+t.duracion:''}</div>
+                    <div style="font-size:13px;color:var(--texto-principal);line-height:1.4;word-break:break-word;overflow-wrap:anywhere;">${t.descripcion||''}</div>
+                    ${resp?`<div style="font-size:11px;color:var(--texto-secundario);margin-top:2px;"><i class="fa-solid fa-user"></i> ${resp}</div>`:''}
+                    ${genBtn}
+                </div>
+                ${t.completado?`<i class="fa-solid fa-check" style="color:#15803D;font-size:11px;flex-shrink:0;margin-top:4px;"></i>`:''}
+                ${isOwnerTeam ? `<div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">${upBtn}${downBtn}</div>` : ''}
+                <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">${editBtn}${delBtn}</div>
+            </div>`;
+        }).join('');
+
+        const addBtn = isOwnerTeam
+            ? `<button class="btn btn-xs btn-fantasma" style="margin-top:10px;width:100%;" onclick="event.stopPropagation();_agregarToma('${s.id}')"><i class="fa-solid fa-plus" style="font-size:9px;"></i> Agregar toma</button>`
+            : '';
+
         return `<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-borde);">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;"><i class="fa-solid fa-clapperboard" style="margin-right:5px;"></i>Tomas planificadas (${tomas.length})</div>
-            ${tomas.map((t, ti) => {
-                const resp   = t.asignado_a ? (_miembrosMap[t.asignado_a]||t.asignado_a) : '';
-                const genBtn = isOwnerTeam && t.requiere_guion
-                    ? `<button class="btn btn-xs btn-fantasma" style="margin-top:5px;" onclick="event.stopPropagation();_generarGuionToma('${s.id}','${t.id}')"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:9px;"></i> Generar guión</button>`
-                    : '';
-                const editBtn = isOwnerTeam
-                    ? `<button class="btn btn-xs btn-fantasma" style="flex-shrink:0;padding:2px 6px;" title="Editar toma" onclick="event.stopPropagation();_abrirEditorToma('${s.id}','${t.id}')"><i class="fa-solid fa-pen" style="font-size:9px;"></i></button>`
-                    : '';
-                const delBtn = isOwnerTeam
-                    ? `<button class="btn btn-xs btn-peligro-suave" style="flex-shrink:0;padding:2px 6px;" title="Eliminar toma" onclick="event.stopPropagation();_eliminarToma('${s.id}','${t.id}')"><i class="fa-solid fa-trash" style="font-size:9px;"></i></button>`
-                    : '';
-                const _tomaLabel = `T${String(ti+1).padStart(2,'0')}`;
-                const _fmt = t.formato ? t.formato.charAt(0).toUpperCase()+t.formato.slice(1).toLowerCase() : '';
-                return `<div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-borde);">
-                    <label style="cursor:pointer;flex-shrink:0;margin-top:3px;">
-                        <input type="checkbox" ${t.completado?'checked':''} onchange="_toggleTomaCompletada('${s.id}','${t.id}',this.checked)">
-                    </label>
-                    <div style="flex:1;min-width:0;">
-                        <div style="font-size:11px;font-weight:800;color:var(--color-primario);">${_tomaLabel}${_fmt?' · '+_fmt:''}${t.duracion?' · '+t.duracion:''}</div>
-                        <div style="font-size:13px;color:var(--texto-principal);line-height:1.4;word-break:break-word;overflow-wrap:anywhere;">${t.descripcion||''}</div>
-                        ${resp?`<div style="font-size:11px;color:var(--texto-secundario);margin-top:2px;"><i class="fa-solid fa-user"></i> ${resp}</div>`:''}
-                        ${genBtn}
-                    </div>
-                    ${t.completado?`<i class="fa-solid fa-check" style="color:#15803D;font-size:11px;flex-shrink:0;margin-top:4px;"></i>`:''}
-                    <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">${editBtn}${delBtn}</div>
-                </div>`;
-            }).join('')}
+            ${tomasHTML}
+            ${addBtn}
         </div>`;
     }
 
@@ -7734,6 +7747,32 @@ document.addEventListener('DOMContentLoaded', function() {
         t.asignado_a     = document.getElementById('et-asignado-a').value || null;
         guardarBD();
         cerrarModales();
+        renderShootingGrid();
+    }
+
+    function _agregarToma(shootingId) {
+        const s = DB.datos[SUC_ACTIVA].shooting.find(x => x.id === shootingId);
+        if (!s) return;
+        if (!s.tomas) s.tomas = [];
+        const newId = 't' + Date.now();
+        s.tomas.push({ id: newId, descripcion: '', formato: '', duracion: '', requiere_guion: false, guion: '', asignado_a: null, completado: false });
+        guardarBD();
+        renderShootingGrid();
+        // Abrir editor de la nueva toma inmediatamente
+        setTimeout(() => _abrirEditorToma(shootingId, newId), 80);
+    }
+
+    function _moverToma(shootingId, tomaId, dir) {
+        const s = DB.datos[SUC_ACTIVA].shooting.find(x => x.id === shootingId);
+        if (!s || !s.tomas) return;
+        const idx = s.tomas.findIndex(t => t.id === String(tomaId));
+        if (idx < 0) return;
+        const newIdx = idx + dir;
+        if (newIdx < 0 || newIdx >= s.tomas.length) return;
+        const tmp = s.tomas[idx];
+        s.tomas[idx] = s.tomas[newIdx];
+        s.tomas[newIdx] = tmp;
+        guardarBD();
         renderShootingGrid();
     }
 
