@@ -4592,11 +4592,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const acc  = _acumularKPIs();
         const tipo = getTipoProyecto(SUC_ACTIVA);
         const canEdit = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
-        const BENCH = {
+        const BENCH_DEFAULTS = {
             wellness:    { cac:{good:150,warn:250}, ticket:{good:800,warn:500}, conv:{good:25,warn:12}, ret:{good:60,warn:40}, seg:{good:8,warn:4} },
             restaurante: { cac:{good:80,warn:150},  ticket:{good:350,warn:200}, conv:{good:35,warn:18}, ret:{good:50,warn:30}, seg:{good:8,warn:4} }
         };
-        const b = BENCH[tipo] || BENCH.wellness;
+        const _sucBench = (DB.sucursales.find(s => s.id === SUC_ACTIVA) || {}).benchmarks;
+        const _bDef = BENCH_DEFAULTS[tipo] || BENCH_DEFAULTS.wellness;
+        // Merge: por métrica usa el valor del proyecto si existe, si no el default por tipo
+        const b = ['cac','ticket','conv','ret','seg'].reduce((acc, k) => {
+            acc[k] = (_sucBench && _sucBench[k]) ? _sucBench[k] : _bDef[k];
+            return acc;
+        }, {});
         const manuales = d.semaforo_manuales || {};
 
         // ── Inversión real del período (prorrateada si el mes está en curso) ─
@@ -5220,6 +5226,16 @@ document.addEventListener('DOMContentLoaded', function() {
             return exist ? { ...p, v1: exist.v1, v2: exist.v2, meta: exist.meta||'' } : { ...p };
         });
         guardarBD();
+    }
+
+    function _guardarBenchmark(sucId, metrica, campo, valor) {
+        const suc = DB.sucursales.find(s => s.id === sucId);
+        if (!suc) return;
+        if (!suc.benchmarks) suc.benchmarks = {};
+        if (!suc.benchmarks[metrica]) suc.benchmarks[metrica] = {};
+        suc.benchmarks[metrica][campo] = valor;
+        guardarBD();
+        if (sucId === SUC_ACTIVA) renderDashboard();
     }
 
     function cambiarTipoProyecto(idx, tipo) {
@@ -6779,6 +6795,65 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span style="font-size:11px;color:var(--texto-secundario);">Global</span>
             </div>
             <div id="cfg-tipos-proyecto"></div>
+        </div>`;
+
+        // Card: Benchmarks del Dashboard (per-project)
+        const _benchDefaults = { cac:{good:150,warn:250}, ticket:{good:800,warn:500}, conv:{good:25,warn:12}, ret:{good:60,warn:40}, seg:{good:8,warn:4} };
+        const _sucIdx = DB.sucursales.findIndex(s => s.id === SUC_ACTIVA);
+        const _benchActual = DB.sucursales[_sucIdx]?.benchmarks || _benchDefaults;
+        const _benchRows = [
+            { key:'cac',    label:'CAC Real',         unit:'$',  inv:true,  tipO:'Máximo deseado (menor = mejor)',  tipW:'Umbral de alerta' },
+            { key:'ticket', label:'Ticket Medio',      unit:'$',  inv:false, tipO:'Mínimo deseado (mayor = mejor)',  tipW:'Umbral de alerta' },
+            { key:'conv',   label:'Conv. DM→Cita',     unit:'%',  inv:false, tipO:'Mínimo deseado',                  tipW:'Umbral de alerta' },
+            { key:'ret',    label:'Retención',          unit:'%',  inv:false, tipO:'Mínimo deseado',                  tipW:'Umbral de alerta' },
+            { key:'seg',    label:'Crec. Seg. IG',      unit:'%',  inv:false, tipO:'Mínimo deseado',                  tipW:'Umbral de alerta' },
+        ];
+        confHTML += `<div style="${_cardStyle} grid-column:span 2;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <div>
+                    <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Benchmarks del Dashboard</b>
+                    <span style="font-size:11px;color:var(--color-primario);font-weight:600;margin-left:8px;">· ${_sucNombre}</span>
+                </div>
+                <span style="font-size:11px;color:var(--texto-secundario);">Los semáforos se comparan contra estos valores</span>
+            </div>
+            <div style="overflow-x:auto;">
+            <table style="width:100%;border-collapse:collapse;">
+                <thead>
+                    <tr>
+                        <th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);text-align:left;padding:6px 10px;border-bottom:1px solid var(--color-borde);">Métrica</th>
+                        <th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#15803D;text-align:center;padding:6px 10px;border-bottom:1px solid var(--color-borde);white-space:nowrap;">Óptimo <i class="fa-solid fa-circle-check" style="opacity:.6;"></i></th>
+                        <th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#D97706;text-align:center;padding:6px 10px;border-bottom:1px solid var(--color-borde);white-space:nowrap;">Alerta <i class="fa-solid fa-triangle-exclamation" style="opacity:.6;"></i></th>
+                        <th style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);text-align:left;padding:6px 10px;border-bottom:1px solid var(--color-borde);">Lógica</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${_benchRows.map(r => {
+                        const cur = _benchActual[r.key] || _benchDefaults[r.key];
+                        const disabled = _isOwnerForConfig ? '' : 'readonly style="pointer-events:none;opacity:.5;"';
+                        return `<tr>
+                            <td style="padding:8px 10px;font-size:13px;font-weight:600;">${r.label}</td>
+                            <td style="padding:8px 10px;text-align:center;">
+                                <div style="display:inline-flex;align-items:center;gap:4px;">
+                                    <input type="number" ${disabled} value="${cur.good}" min="0"
+                                        style="width:70px;border:1px solid #86efac;border-radius:8px;padding:5px 8px;font-size:13px;font-weight:700;text-align:center;color:#15803D;background:#f0fdf4;"
+                                        onchange="_guardarBenchmark('${SUC_ACTIVA}','${r.key}','good',+this.value)">
+                                    <span style="font-size:11px;color:var(--texto-secundario);">${r.unit}</span>
+                                </div>
+                            </td>
+                            <td style="padding:8px 10px;text-align:center;">
+                                <div style="display:inline-flex;align-items:center;gap:4px;">
+                                    <input type="number" ${disabled} value="${cur.warn}" min="0"
+                                        style="width:70px;border:1px solid #fde68a;border-radius:8px;padding:5px 8px;font-size:13px;font-weight:700;text-align:center;color:#D97706;background:#fffbeb;"
+                                        onchange="_guardarBenchmark('${SUC_ACTIVA}','${r.key}','warn',+this.value)">
+                                    <span style="font-size:11px;color:var(--texto-secundario);">${r.unit}</span>
+                                </div>
+                            </td>
+                            <td style="padding:8px 10px;font-size:11px;color:var(--texto-secundario);">${r.inv?'Menor es mejor':'Mayor es mejor'}</td>
+                        </tr>`;
+                    }).join('')}
+                </tbody>
+            </table>
+            </div>
         </div>`;
 
         // Card: Carpeta Drive de contenido (per-project)
