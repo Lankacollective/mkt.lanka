@@ -4660,7 +4660,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
                     <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);display:flex;align-items:center;gap:5px;">
                         ${label}
-                        <i class="fa-solid fa-circle-info" style="font-size:9px;opacity:.4;cursor:help;flex-shrink:0;" title="${autoTip||''}"></i>
+                        <i class="fa-solid fa-circle-info" data-tip="${autoTip||''}" onmouseenter="_ejTip(this)" onmouseleave="_ejTipHide()" onclick="event.stopPropagation();_ejTip(this)" style="font-size:9px;opacity:.6;cursor:pointer;flex-shrink:0;color:var(--acento);"></i>
                     </div>
                     ${badge}
                 </div>
