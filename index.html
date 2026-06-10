@@ -3945,7 +3945,11 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         };
 
-        const rows = semanas.map((s, i) => {
+        const _semanasSorted = semanas
+            .map((s, i) => ({ s, i }))
+            .sort((a, b) => (a.s.fecha || '') < (b.s.fecha || '') ? -1 : (a.s.fecha || '') > (b.s.fecha || '') ? 1 : 0);
+
+        const rows = _semanasSorted.map(({ s, i }) => {
             const esMensual = s.tipo === 'mensual' || s.fuente === 'excel_import';
             const _mIdx = s.fecha ? parseInt(s.fecha.substring(5,7))-1 : new Date().getMonth();
             const _anio = s.fecha ? parseInt(s.fecha.substring(0,4)) : new Date().getFullYear();
