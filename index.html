@@ -7647,14 +7647,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const grid = document.getElementById('shooting-grid');
         if (!identifier) { grid.innerHTML = `<div style="text-align:center;padding:60px;color:var(--texto-secundario);">No se pudo identificar tu usuario.</div>`; return; }
 
-        // Recopilar tomas asignadas agrupadas por sesión
+        // Recopilar tomas agrupadas por sesión:
+        // - toma específica asignada (asignado_a === identifier), O
+        // - todas las tomas si el usuario está en sesion.equipo
         const bySesion = {};
         shootingArr.forEach(sesion => {
+            const enEquipo = (sesion.equipo || []).includes(USUARIO_ACTIVO?.nombre);
             (sesion.tomas || []).forEach((t, ti) => {
-                if (t.asignado_a !== identifier) return;
+                if (t.asignado_a !== identifier && !enEquipo) return;
                 if (!bySesion[sesion.id]) bySesion[sesion.id] = { sesion, items: [] };
                 bySesion[sesion.id].items.push({ toma: t, ti });
             });
+            // Sesión asignada sin tomas aún: mostrar igualmente
+            if (enEquipo && !bySesion[sesion.id]) {
+                bySesion[sesion.id] = { sesion, items: [] };
+            }
         });
 
         const grupos = Object.values(bySesion);
@@ -7706,15 +7713,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>`;
             }).join('');
 
-            return `<div class="shooting-card">
-                <div class="shooting-header">
-                    <div>
-                        <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${sesion.fecha} · ${sesion.hora||''}</div>
+            const _noTomasMsg = !items.length
+                ? `<div style="font-size:13px;color:var(--texto-secundario);text-align:center;padding:16px 0;opacity:.7;"><i class="fa-solid fa-camera" style="margin-right:6px;opacity:.5;"></i>Las tomas se publicarán pronto</div>`
+                : '';
+            return `<div class="shooting-card open">
+                <div class="shooting-header" onclick="this.closest('.shooting-card').classList.toggle('open')">
+                    <div style="flex:1;">
+                        <div class="shooting-fecha"><i class="fa-regular fa-calendar"></i> ${sesion.fecha}${sesion.hora?' · '+sesion.hora:''}</div>
                         <div class="shooting-titulo">${sesion.titulo}</div>
                         ${sesion.locacion?`<div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-location-dot"></i> ${sesion.locacion}</div>`:''}
                     </div>
+                    <i class="fa-solid fa-chevron-down sh-chevron"></i>
                 </div>
-                <div class="shooting-body">${tomasHTML}</div>
+                <div class="shooting-body">${_noTomasMsg}${tomasHTML}</div>
             </div>`;
         }).join('');
     }
