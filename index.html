@@ -2260,6 +2260,10 @@
                 </div>
             </div>
             <div>
+                <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);display:block;margin-bottom:5px;">Asignado a</label>
+                <select id="et-asignado-a" class="input-celda" style="width:100%;padding:7px 10px;border-radius:8px;"></select>
+            </div>
+            <div>
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;">
                     <input type="checkbox" id="et-requiere-guion" onchange="document.getElementById('et-guion-wrap').style.display=this.checked?'':'none'">
                     Requiere guión / pitch
@@ -7623,11 +7627,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function _renderTomasSection(s, isOwnerTeam) {
         const tomas = s.tomas || [];
         if (!tomas.length) return '';
-        const NOMBRES = {'sergio26':'Sergio','dulce26':'Dulce','angeles26':'Ángeles'};
+        const _miembrosMap = Object.fromEntries(_buildMiembrosParaAsignacion().map(m => [m.identifier, m.nombre]));
         return `<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--color-borde);">
             <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;"><i class="fa-solid fa-clapperboard" style="margin-right:5px;"></i>Tomas planificadas (${tomas.length})</div>
             ${tomas.map((t, ti) => {
-                const resp   = t.asignado_a ? (NOMBRES[t.asignado_a]||t.asignado_a) : '';
+                const resp   = t.asignado_a ? (_miembrosMap[t.asignado_a]||t.asignado_a) : '';
                 const genBtn = isOwnerTeam && t.requiere_guion
                     ? `<button class="btn btn-xs btn-fantasma" style="margin-top:5px;" onclick="event.stopPropagation();_generarGuionToma('${s.id}','${t.id}')"><i class="fa-solid fa-wand-magic-sparkles" style="font-size:9px;"></i> Generar guión</button>`
                     : '';
@@ -7676,6 +7680,23 @@ document.addEventListener('DOMContentLoaded', function() {
         if (t) { t.completado = done; guardarBD(); }
     }
 
+    function _buildMiembrosParaAsignacion() {
+        const sucInfo = DB.sucursales.find(x => x.id === SUC_ACTIVA);
+        const AITAMA_MAP = { u_sergio:'sergio26', u_dulce:'dulce26', u_angeles:'angeles26' };
+        return (sucInfo?.equipo_miembros || []).map(m => {
+            const u = (DB.usuarios || []).find(u => u.nombre === m.nombre && u.estado === 'activo');
+            let identifier;
+            if (u && SUC_ACTIVA === 'aitama' && AITAMA_MAP[u.id]) {
+                identifier = AITAMA_MAP[u.id];
+            } else if (u) {
+                identifier = u.id;
+            } else {
+                identifier = m.password ? atob(m.password) : m.nombre;
+            }
+            return { nombre: m.nombre, identifier };
+        });
+    }
+
     function _abrirEditorToma(shootingId, tomaId) {
         const s = DB.datos[SUC_ACTIVA].shooting.find(x => x.id === shootingId);
         if (!s) return;
@@ -7690,6 +7711,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('et-requiere-guion').checked = rg;
         document.getElementById('et-guion').value       = t.guion || '';
         document.getElementById('et-guion-wrap').style.display = rg ? '' : 'none';
+        // Poblar dropdown de asignación
+        const miembros = _buildMiembrosParaAsignacion();
+        const sel = document.getElementById('et-asignado-a');
+        sel.innerHTML = `<option value="">— Sin asignar —</option>` +
+            miembros.map(m => `<option value="${m.identifier}"${t.asignado_a===m.identifier?' selected':''}>${m.nombre}</option>`).join('');
         document.getElementById('modal-editar-toma').classList.add('activo');
     }
 
@@ -7705,6 +7731,7 @@ document.addEventListener('DOMContentLoaded', function() {
         t.duracion       = document.getElementById('et-duracion').value.trim();
         t.requiere_guion = document.getElementById('et-requiere-guion').checked;
         t.guion          = document.getElementById('et-guion').value.trim();
+        t.asignado_a     = document.getElementById('et-asignado-a').value || null;
         guardarBD();
         cerrarModales();
         renderShootingGrid();
