@@ -3105,6 +3105,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (_cardMigrated) guardarBD();
 
+        // ── Migración DEMO: rellenar Mammut con datos demo si está vacío ──
+        {
+            const _md = DB.datos && DB.datos.mammut;
+            const _forceReset = new URLSearchParams(window.location.search).get('reset_mammut') === '1';
+            const _mammutVacio = _forceReset || (_md
+                && (!_md.productos || _md.productos.length === 0)
+                && (!_md.kanban    || _md.kanban.length    === 0)
+                && (!_md.ads       || _md.ads.length       === 0)
+                && !DB._mammut_demo_v1);
+            if (_mammutVacio) {
+                DB.datos.mammut = JSON.parse(JSON.stringify(DATOS_SEMILLA.datos.mammut));
+                const _suc = (DB.sucursales||[]).find(s => s.id === 'mammut');
+                if (_suc) {
+                    if (!_suc.equipo_miembros || _suc.equipo_miembros.length === 0)
+                        _suc.equipo_miembros = JSON.parse(JSON.stringify(DATOS_SEMILLA.sucursales.find(s=>s.id==='mammut').equipo_miembros));
+                    if (!_suc.categorias_servicio || _suc.categorias_servicio.length === 0)
+                        _suc.categorias_servicio = ["Pizza","Bebida","Postre","Entrada","Combo","Promoción"];
+                }
+                const _nuevosMammut = DATOS_SEMILLA.usuarios.filter(u => ['u_carlos','u_sofia','u_diego','u_ana'].includes(u.id));
+                _nuevosMammut.forEach(nu => { if (!DB.usuarios.find(u => u.id === nu.id)) DB.usuarios.push(JSON.parse(JSON.stringify(nu))); });
+                if (!DB.proveedores || DB.proveedores.length <= 1)
+                    DB.proveedores = JSON.parse(JSON.stringify(DATOS_SEMILLA.proveedores));
+                DB._mammut_demo_v1 = true;
+                localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                console.log('✓ Demo Mammut: datos de presentación cargados');
+            }
+        }
+
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
         
         const items = document.querySelectorAll('.item-nav');
