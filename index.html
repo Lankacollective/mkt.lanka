@@ -10883,7 +10883,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function _catalogoCategoriasPorTipo() {
         const tipo = getTipoProyecto(SUC_ACTIVA);
-        if (tipo === 'restaurante') return ['Comida', 'Bebida', 'Eventos'];
+        if (tipo === 'restaurante') return ['Pizza', 'Entrada', 'Postre', 'Bebida', 'Combo', 'Promoción'];
         if (tipo === 'cafeteria')   return ['Productos', 'Eventos'];
         if (tipo === 'personal')    return ['Servicios', 'Contenido patrocinado'];
         return ['Servicios', 'Productos']; // wellness + otro
@@ -10897,16 +10897,27 @@ document.addEventListener('DOMContentLoaded', function() {
     function _getCatalogo(sucId) {
         try {
             const s = localStorage.getItem('catalogo_' + sucId);
-            if (s) return JSON.parse(s);
+            if (s) {
+                const parsed = JSON.parse(s);
+                // Validar que no sea una lista de wellness metida en un proyecto restaurante
+                const suc = (DB.sucursales || []).find(x => x.id === sucId) || {};
+                const esRest = suc.tipo === 'restaurante' || suc.tipo === 'cafeteria';
+                const tieneWellness = parsed.some(i => ['Head Spa','Facial Clínico','Masaje Terapéutico','Body Reset','Consulta'].includes(i.nombre));
+                if (!esRest || !tieneWellness) return parsed;
+                // Si es restaurante pero tiene ítems de wellness, borrar y regenerar
+                localStorage.removeItem('catalogo_' + sucId);
+                localStorage.removeItem('config_servicios_' + sucId);
+            }
         } catch(e) {}
-        // Migrar desde config_servicios si existe
-        const serviciosExistentes = _getServicios(sucId);
-        if (serviciosExistentes && serviciosExistentes.length > 0) {
-            const migrados = serviciosExistentes.map(nombre => ({
-                nombre, descripcion: '', precio: null, duracion: '', categoria: 'Servicios', activo: true
+        // Usar productos de DB (Supabase) como fuente si existen
+        const dbProductos = DB.datos?.[sucId]?.productos;
+        if (dbProductos && dbProductos.length > 0) {
+            const items = dbProductos.map(p => ({
+                nombre: p.nombre, descripcion: p.descripcion || '', precio: p.precio || null,
+                duracion: '', categoria: p.categoria || 'General', activo: true
             }));
-            _saveCatalogo(sucId, migrados);
-            return migrados;
+            _saveCatalogo(sucId, items);
+            return items;
         }
         // Pre-cargar defaults por proyecto/tipo
         const suc = (DB.sucursales || []).find(s => s.id === sucId) || {};
