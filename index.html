@@ -2466,7 +2466,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
               ]
             },
-            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"), categorias_servicio: [], drive_contenido_url: "", equipo_miembros: [] }
+            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"),
+              categorias_servicio: ["Pizza","Bebida","Postre","Entrada","Combo","Promoción"],
+              drive_contenido_url: "",
+              equipo_miembros: [
+                { nombre: "Carlos Vega",      rol: "Director General",  password: btoa("carlos26") },
+                { nombre: "Sofía Herrera",    rol: "Coordinadora",      password: btoa("sofia26") },
+                { nombre: "Diego Ramírez",    rol: "Videógrafo",        password: btoa("diego26") },
+                { nombre: "Ana Torres",       rol: "Fotógrafa",         password: btoa("ana26") }
+              ]
+            }
         ],
         datos: {
             aitama: {
@@ -2494,16 +2503,217 @@ document.addEventListener('DOMContentLoaded', function() {
                 historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0}))
             },
             mammut: {
-                highlights: [{ label: "Ventas totales", val: "0" }, { label: "Seguidores nuevos", val: "0" }, { label: "Total DMs", val: "0" }],
-                rendimiento: [], productos: [], objetivos: [], txt_working: "", txt_change: "", insights: [],
-                kanban: [], dam: [], presupuesto: [], facturas: [], briefing: { reglas: [], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } },
-                mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), target: [],
-                ads: [], offline: [], shooting: [], stories_ind: [],
-                historico_mensual: Array.from({length:12},(_,i)=>({mes:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][i],ventas:0,seguidores:0,dms:0})),
-                kpi_semanal: [], engagement_formato: [], kpi_metas: {}
+                highlights: [
+                    { label: "Ventas totales",   val: "$218,400" },
+                    { label: "Seguidores nuevos", val: "+2,140" },
+                    { label: "Total DMs",         val: "487" }
+                ],
+                rendimiento: [
+                    { m: "Clientes nuevos",        v1: 312,    v2: 245,    pre: "",  meta: "350" },
+                    { m: "Clientes recurrentes",   v1: 528,    v2: 480,    pre: "",  meta: "600" },
+                    { m: "Clientes recuperados",   v1: 67,     v2: 41,     pre: "",  meta: "80"  },
+                    { m: "Ventas",                 v1: 218400, v2: 178900, pre: "$", meta: "250000" },
+                    { m: "CAC",                    v1: 78,     v2: 112,    pre: "$", meta: "70"  },
+                    { m: "Ticket medio",           v1: 420,    v2: 370,    pre: "$", meta: "480" },
+                    { m: "Cobertura de contenido", v1: 94,     v2: 81,     pre: "",  meta: "100" },
+                    { m: "Inversión total",        v1: 24300,  v2: 19800,  pre: "$", meta: "28000" }
+                ],
+                productos: [
+                    { id:"p1", nombre:"Pizza Mammut Clásica",      categoria:"Pizza",   precio:285, descripcion:"Salsa de tomate artesanal, mozzarella, albahaca fresca" },
+                    { id:"p2", nombre:"Pizza Trufa Negra",          categoria:"Pizza",   precio:420, descripcion:"Base crema de trufa, hongos portobello, parmesano" },
+                    { id:"p3", nombre:"Pizza BBQ Chicken",          categoria:"Pizza",   precio:320, descripcion:"Pollo ahumado, cebolla morada, salsa BBQ casera" },
+                    { id:"p4", nombre:"Pizza 4 Quesos",             categoria:"Pizza",   precio:310, descripcion:"Mozzarella, gorgonzola, manchego, parmesano" },
+                    { id:"p5", nombre:"Pizza Vegana del Huerto",    categoria:"Pizza",   precio:290, descripcion:"Verduras de temporada, salsa pesto, queso vegano" },
+                    { id:"p6", nombre:"Entrada Bruschetta Mammut",  categoria:"Entrada", precio:120, descripcion:"Pan artesanal, tomate cherry, aceite de oliva extra virgen" },
+                    { id:"p7", nombre:"Tabla de Embutidos",         categoria:"Entrada", precio:195, descripcion:"Selección de charcutería italiana, aceitunas, quesos" },
+                    { id:"p8", nombre:"Tiramisú Clásico",           categoria:"Postre",  precio:95,  descripcion:"Mascarpone, café espresso, cacao amargo" },
+                    { id:"p9", nombre:"Panna Cotta de Frutos Rojos",categoria:"Postre",  precio:85,  descripcion:"Crema italiana con coulis de frutos rojos frescos" },
+                    { id:"p10",nombre:"Combo Romántico x2",         categoria:"Combo",   precio:680, descripcion:"2 pizzas a elegir + 2 postres + 2 bebidas artesanales" },
+                    { id:"p11",nombre:"Agua Mineral San Pellegrino", categoria:"Bebida",  precio:65,  descripcion:"500ml" },
+                    { id:"p12",nombre:"Sangría de la Casa",          categoria:"Bebida",  precio:145, descripcion:"Vino tinto, frutas frescas, especias" },
+                    { id:"p13",nombre:"Promo Jueves Pizza 2x1",     categoria:"Promoción",precio:285,descripcion:"Todos los jueves: paga 1 pizza y lleva 2 del mismo tamaño" }
+                ],
+                objetivos: [
+                    { id:"o1", titulo:"Llegar a 15,000 seguidores en Instagram", fecha:"2026-09-30", estado:"En progreso", progreso: 68 },
+                    { id:"o2", titulo:"Aumentar ticket promedio a $480 MXN",      fecha:"2026-08-31", estado:"En progreso", progreso: 87 },
+                    { id:"o3", titulo:"Abrir sucursal Mammut Chapultepec",        fecha:"2026-12-01", estado:"Por iniciar",  progreso: 15 },
+                    { id:"o4", titulo:"Alcanzar 1,000 clientes únicos por mes",   fecha:"2026-10-31", estado:"En progreso", progreso: 52 },
+                    { id:"o5", titulo:"Lanzar programa de lealtad Mammut Club",   fecha:"2026-07-15", estado:"Completado",  progreso:100 }
+                ],
+                txt_working: "✅ Campaña 'Pizza de Temporada Verano' activa en Meta Ads con excelente rendimiento (CTR 4.2%). Contenido de reels mostrando el proceso artesanal está generando alto engagement orgánico. Estrategia de stories con encuestas para definir nuevos sabores funcionando muy bien.",
+                txt_change: "⚡ Ajustando presupuesto de pauta hacia TikTok — audiencia 25-35 responde mejor. Rediseñando parrilla editorial para incluir más UGC (contenido generado por clientes). Implementando campaña de reactivación por WhatsApp para clientes que no han visitado en 60+ días.",
+                insights: [
+                    { id:"i1", fecha:"2026-06-10", texto:"Los reels mostrando el proceso de amasado manual tienen 3.8x más alcance que el contenido estático. Priorizar formato video en la parrilla." },
+                    { id:"i2", fecha:"2026-06-05", texto:"El jueves es el día con mayor tráfico en el restaurante (37% del total semanal). Optimizar publicaciones para miércoles 7pm para capitalizar esta tendencia." },
+                    { id:"i3", fecha:"2026-05-28", texto:"Las historias con encuestas de 'nuevo sabor' generan 2.1x más DMs que el contenido promocional directo. Mantener esta mecánica mensualmente." },
+                    { id:"i4", fecha:"2026-05-20", texto:"Campaña de Meta Ads con segmentación foodie + ubicación 5km logró CAC de $62 MXN — record histórico. Documentar audiencia y replicar en próximas campañas." },
+                    { id:"i5", fecha:"2026-05-15", texto:"La Pizza Trufa Negra es el producto más compartido en Instagram (45% de los posts de clientes). Usarla como protagonista en próximas campañas de pauta." }
+                ],
+                kanban: [
+                    { id:"k_m1", titulo:"Reel: Proceso artesanal de la masa", hora:"18:00", formato:"Reel", tags:"Orgánico,BTS", target_id:"t_m1", hook:"¿Sabías que nuestra masa fermenta 48 horas?", copy:"El secreto de Mammut está en el tiempo ⏱️ Masa madre fermentada 48 horas, ingredientes frescos del día. Así nace cada pizza que llega a tu mesa. 🍕", hashtags:"#MammutPizza #PizzaArtesanal #Morelia #PizzaLovers #FoodieMorelia", manychat:"", pauta:"No", stories:"Sí", fecha:"2026-06-24", estado:"Aprobado", asignado_a:"Diego Ramírez", shooting_id:"sh_m1", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"", pauta_activa:false, pauta_nota:"", campana_id:"", stories_vinculadas:[], drive_doc_url:"", vinculos:{stories:[],campana_ad:null,escenas_shooting:[]}, contenido_tecnico:null, manychat_mensajes:[] },
+                    { id:"k_m2", titulo:"Carrusel: Los 5 ingredientes que nos hacen únicos", hora:"13:00", formato:"Carrusel", tags:"Educativo,Ingredientes", target_id:"t_m1", hook:"5 ingredientes que nunca verás en una pizza industrializada", copy:"Porque la diferencia está en los detalles 🌿 Desliza para conocer qué hace especial a cada mordida de Mammut.", hashtags:"#Mammut #PizzaArtesanal #IngredientesFrescos", manychat:"", pauta:"Sí", stories:"No", fecha:"2026-06-26", estado:"Producción", asignado_a:"Ana Torres", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"", pauta_activa:true, pauta_nota:"Boost $500 MXN por 5 días", campana_id:"a_m1", stories_vinculadas:[], drive_doc_url:"", vinculos:{stories:[],campana_ad:"a_m1",escenas_shooting:[]}, contenido_tecnico:null, manychat_mensajes:[] },
+                    { id:"k_m3", titulo:"Story: Encuesta — ¿Cuál es tu pizza favorita?", hora:"19:30", formato:"Historia", tags:"Engagement,Encuesta", target_id:"", hook:"", copy:"🍕 ¿Team Clásica o Team Trufa Negra? Vota y el ganador tendrá descuento este fin de semana 👇", hashtags:"", manychat:"Flujo_encuesta_pizza", pauta:"No", stories:"No", fecha:"2026-06-23", estado:"Publicado", asignado_a:"Sofía Herrera", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"Flujo_encuesta_pizza", pauta_activa:false, pauta_nota:"", campana_id:"", stories_vinculadas:[], drive_doc_url:"", vinculos:{stories:[],campana_ad:null,escenas_shooting:[]}, contenido_tecnico:null, manychat_mensajes:[] },
+                    { id:"k_m4", titulo:"Reel: Combo Romántico — San Valentín tardío", hora:"17:00", formato:"Reel", tags:"Promoción,Pareja", target_id:"t_m2", hook:"La cita perfecta no existe... a menos que sea en Mammut 🥂", copy:"Para los que celebran el amor todos los días 🍕❤️ Combo Romántico x2: 2 pizzas + 2 postres + 2 bebidas. Solo $680. Reserva por DM o en el link de bio.", hashtags:"#MammutPizza #CitaPerfecta #PizzaMorelia #FoodLovers", manychat:"Flujo_reserva", pauta:"Sí", stories:"Sí", fecha:"2026-06-28", estado:"Ideas", asignado_a:"", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"Flujo_reserva", pauta_activa:false, pauta_nota:"Pautar viernes-domingo $1,200", campana_id:"", stories_vinculadas:[], drive_doc_url:"", vinculos:{stories:[],campana_ad:null,escenas_shooting:[]}, contenido_tecnico:null, manychat_mensajes:[] },
+                    { id:"k_m5", titulo:"Post: Testimonial cliente — 'La mejor pizza de Morelia'", hora:"12:00", formato:"Carrusel", tags:"UGC,Social Proof", target_id:"t_m1", hook:"'La mejor pizza que he comido en Morelia' — @usuario_real", copy:"Nada nos hace más felices que leer esto 🙏 Gracias a todos los que confían en Mammut cada semana. Sus palabras son nuestro motor. ❤️", hashtags:"#MammutPizza #Testimonio #PizzaMorelia", manychat:"", pauta:"No", stories:"No", fecha:"2026-07-01", estado:"Producción", asignado_a:"Sofía Herrera", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"", pauta_activa:false, pauta_nota:"", campana_id:"", stories_vinculadas:[], drive_doc_url:"", vinculos:{stories:[],campana_ad:null,escenas_shooting:[]}, contenido_tecnico:null, manychat_mensajes:[] },
+                    { id:"k_m6", titulo:"Reel: Lanzamiento Pizza Verano 2026", hora:"18:00", formato:"Reel", tags:"Lanzamiento,Temporada", target_id:"t_m1", hook:"Solo este verano. Solo en Mammut. 🌞", copy:"Presentamos la Pizza Verano 2026: jitomate cherry asado, albahaca fresca, burrata y aceite de chile de árbol. Disponible hasta agosto. Ven y pruébala antes de que se acabe 🍕☀️", hashtags:"#MammutPizza #PizzaVerano #NuevoSabor #Morelia", manychat:"Flujo_pizza_verano", pauta:"Sí", stories:"Sí", fecha:"2026-07-05", estado:"Ideas", asignado_a:"", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"Flujo_pizza_verano", pauta_activa:false, pauta_nota:"Campaña lanzamiento $3,500", campana_id:"", stories_vinculadas:[], drive_doc_url:"", vinculos:{stories:[],campana_ad:null,escenas_shooting:[]}, contenido_tecnico:null, manychat_mensajes:[] }
+                ],
+                dam: [],
+                presupuesto: [
+                    { categoria:"Pauta Digital", item:"Meta Ads — Campañas awareness",  tipo:"Pauta digital",     montos_mes:[{inversion:8000,colaboracion:0,real:8200},{inversion:8000,colaboracion:0,real:7800},{inversion:9000,colaboracion:0,real:9100},{inversion:9000,colaboracion:0,real:8900},{inversion:10000,colaboracion:0,real:10400},{inversion:10000,colaboracion:0,real:0},{inversion:12000,colaboracion:0,real:0},{inversion:12000,colaboracion:0,real:0},{inversion:10000,colaboracion:0,real:0},{inversion:10000,colaboracion:0,real:0},{inversion:9000,colaboracion:0,real:0},{inversion:8000,colaboracion:0,real:0}] },
+                    { categoria:"Pauta Digital", item:"Google Ads — Búsqueda local",     tipo:"Pauta digital",     montos_mes:[{inversion:3000,colaboracion:0,real:2900},{inversion:3000,colaboracion:0,real:3100},{inversion:3500,colaboracion:0,real:3400},{inversion:3500,colaboracion:0,real:3600},{inversion:4000,colaboracion:0,real:3950},{inversion:4000,colaboracion:0,real:0},{inversion:4000,colaboracion:0,real:0},{inversion:4000,colaboracion:0,real:0},{inversion:3500,colaboracion:0,real:0},{inversion:3500,colaboracion:0,real:0},{inversion:3000,colaboracion:0,real:0},{inversion:3000,colaboracion:0,real:0}] },
+                    { categoria:"Producción",    item:"Sesión foto/video mensual",       tipo:"Producción creativa",montos_mes:[{inversion:5000,colaboracion:0,real:5000},{inversion:5000,colaboracion:0,real:4800},{inversion:5500,colaboracion:0,real:5500},{inversion:5500,colaboracion:0,real:5500},{inversion:6000,colaboracion:0,real:6000},{inversion:6000,colaboracion:0,real:0},{inversion:7500,colaboracion:0,real:0},{inversion:7500,colaboracion:0,real:0},{inversion:6000,colaboracion:0,real:0},{inversion:6000,colaboracion:0,real:0},{inversion:5500,colaboracion:0,real:0},{inversion:5000,colaboracion:0,real:0}] },
+                    { categoria:"Influencer",    item:"Micro-influencer foodie Morelia", tipo:"Colaboración",       montos_mes:[{inversion:0,colaboracion:2500,real:2500},{inversion:0,colaboracion:2500,real:2500},{inversion:0,colaboracion:2500,real:2500},{inversion:0,colaboracion:2500,real:2500},{inversion:0,colaboracion:2500,real:2500},{inversion:0,colaboracion:3000,real:0},{inversion:0,colaboracion:3000,real:0},{inversion:0,colaboracion:3000,real:0},{inversion:0,colaboracion:2500,real:0},{inversion:0,colaboracion:2500,real:0},{inversion:0,colaboracion:2500,real:0},{inversion:0,colaboracion:2500,real:0}] },
+                    { categoria:"Agencia",       item:"Fee Lanka Colectivo",             tipo:"Agencia",            montos_mes:[{inversion:15000,colaboracion:0,real:15000},{inversion:15000,colaboracion:0,real:15000},{inversion:15000,colaboracion:0,real:15000},{inversion:15000,colaboracion:0,real:15000},{inversion:15000,colaboracion:0,real:15000},{inversion:15000,colaboracion:0,real:0},{inversion:15000,colaboracion:0,real:0},{inversion:15000,colaboracion:0,real:0},{inversion:15000,colaboracion:0,real:0},{inversion:15000,colaboracion:0,real:0},{inversion:15000,colaboracion:0,real:0},{inversion:15000,colaboracion:0,real:0}] }
+                ],
+                facturas: [
+                    { folio:"F-0041", proveedor:"Meta Business",         concepto:"Pauta digital Mayo 2026",        monto:10400, estado:"Pagado"   },
+                    { folio:"F-0042", proveedor:"Lanka Colectivo",        concepto:"Fee Agencia Mayo 2026",          monto:15000, estado:"Pagado"   },
+                    { folio:"F-0043", proveedor:"Estudio Diego Ramírez",  concepto:"Sesión foto/video Mayo 2026",    monto:6000,  estado:"Pagado"   },
+                    { folio:"F-0044", proveedor:"Google Ads",             concepto:"Campañas SEM Mayo 2026",         monto:3950,  estado:"Pagado"   },
+                    { folio:"F-0045", proveedor:"@foodie_morelia",        concepto:"Colaboración influencer Mayo",   monto:2500,  estado:"Pagado"   },
+                    { folio:"F-0046", proveedor:"Meta Business",          concepto:"Pauta digital Junio 2026",       monto:10000, estado:"Pendiente"},
+                    { folio:"F-0047", proveedor:"Lanka Colectivo",        concepto:"Fee Agencia Junio 2026",         monto:15000, estado:"Pendiente"},
+                    { folio:"F-0048", proveedor:"Impresos Rápidos MRL",   concepto:"Menús y flyers promo verano",    monto:3800,  estado:"Pendiente"}
+                ],
+                briefing: {
+                    reglas: [
+                        "Nunca mencionar precios de la competencia directamente",
+                        "Siempre fotografiar la pizza con fondo oscuro o madera natural para mantener estética de marca",
+                        "El tono es cálido, cercano y aspiracional — NO corporativo",
+                        "Usar siempre el hashtag #MammutPizza en todas las publicaciones",
+                        "Las promociones deben tener fecha de vigencia explícita",
+                        "Responder DMs en máximo 2 horas en horario 10am-10pm",
+                        "No publicar sobre política o temas controversiales"
+                    ],
+                    cofepris: false,
+                    cofepris_notas: "",
+                    tono_ejemplos: [
+                        "¿Listo para el mejor plan del jueves? 🍕 Mammut te espera.",
+                        "Masa artesanal, ingredientes frescos, amor en cada mordida.",
+                        "La pizza perfecta no se improvisa — se fermenta 48 horas. ⏱️"
+                    ],
+                    palabras_prohibidas: ["barato","económico","precio bajo","oferta de liquidación"],
+                    palabras_clave: ["artesanal","masa madre","ingredientes frescos","horno de leña","experiencia","Morelia","auténtico","único"],
+                    manychat: [
+                        { palabra:"RESERVA",    flujo:"Flujo_Reserva_Mesa",        descripcion:"Activa cuando alguien comenta RESERVA — envía link y horarios" },
+                        { palabra:"PIZZA",      flujo:"Flujo_Menu_Completo",       descripcion:"Envía el menú completo en PDF cuando alguien escribe PIZZA" },
+                        { palabra:"PROMO",      flujo:"Flujo_Promociones_Activas", descripcion:"Muestra las promociones vigentes al momento de la consulta" },
+                        { palabra:"DELIVERY",   flujo:"Flujo_Delivery_Info",       descripcion:"Información de zonas de entrega, tiempos y costo mínimo" }
+                    ],
+                    horarios: {
+                        grid: { lun:"13:00", mar:"", mie:"13:00", jue:"18:00", vie:"18:00", sab:"12:00", dom:"" },
+                        por_formato: { reel:"18:00", story:"19:30", post:"13:00", pauta:"Lunes y jueves" }
+                    }
+                },
+                mood: [
+                    { emocion:"Alegría",       bebida:"Aperol",   producto:"Pizza" },
+                    { emocion:"Relajación",    bebida:"Aperol",   producto:"Pizza" },
+                    { emocion:"Alegría",       bebida:"Aperol",   producto:"Pizza" },
+                    { emocion:"Festevo",       bebida:"Aperol",   producto:"Combo" },
+                    { emocion:"Alegría",       bebida:"Ninguna",  producto:"Pizza" },
+                    { emocion:"Profesional",   bebida:"Ninguna",  producto:"Pizza" },
+                    { emocion:"Alegría",       bebida:"Aperol",   producto:"Pizza" },
+                    { emocion:"Festevo",       bebida:"Aperol",   producto:"Combo" },
+                    { emocion:"Relajación",    bebida:"Ninguna",  producto:"Pizza" },
+                    { emocion:"Alegría",       bebida:"Aperol",   producto:"Pizza" },
+                    { emocion:"Festevo",       bebida:"Aperol",   producto:"Combo" },
+                    { emocion:"Alegría",       bebida:"Aperol",   producto:"Pizza" }
+                ],
+                target: [
+                    { id:"t_m1", segmento:"Foodies Urbanos 25-38", sexo:"Ambos",  nivel:"A/B", ubicacion:"Morelia Centro y Chapultepec" },
+                    { id:"t_m2", segmento:"Parejas Jóvenes 22-35", sexo:"Ambos",  nivel:"B",   ubicacion:"Morelia — radio 5km del restaurante" },
+                    { id:"t_m3", segmento:"Familias con Hijos",    sexo:"Ambos",  nivel:"B",   ubicacion:"Colonias Residenciales Morelia" },
+                    { id:"t_m4", segmento:"Universitarios 18-25",  sexo:"Ambos",  nivel:"C+",  ubicacion:"Zona Universitaria Morelia" }
+                ],
+                ads: [
+                    { id:"a_m1", nombre:"Awareness — Pizza Artesanal Morelia", categoria:"Awareness",     plataforma:"Meta",   inversion:10400, alcance:48200, clics:1940, conversiones:186, cpr:55.9, segmento:"Foodies 25-38 · Morelia 5km", estado:"Activa",  inicio:"2026-05-01", fin:"2026-06-30" },
+                    { id:"a_m2", nombre:"Jueves 2x1 — Conversión",             categoria:"Conversión",    plataforma:"Meta",   inversion:4800,  alcance:22100, clics:1120, conversiones:94,  cpr:51.1, segmento:"Parejas 22-35 · Morelia",    estado:"Activa",  inicio:"2026-05-15", fin:"2026-07-31" },
+                    { id:"a_m3", nombre:"Google Local — Búsqueda pizza",       categoria:"Performance",   plataforma:"Google", inversion:3950,  alcance:18400, clics:2310, conversiones:145, cpr:27.2, segmento:"Búsqueda: pizza morelia",      estado:"Activa",  inicio:"2026-01-01", fin:"2026-12-31" },
+                    { id:"a_m4", nombre:"Retargeting — Visitantes web",        categoria:"Retargeting",   plataforma:"Meta",   inversion:1500,  alcance:8900,  clics:420,  conversiones:38,  cpr:39.5, segmento:"Visitantes web últimos 30d",   estado:"Pausada", inicio:"2026-04-01", fin:"2026-05-31" },
+                    { id:"a_m5", nombre:"Lanzamiento Pizza Verano 2026",       categoria:"Lanzamiento",   plataforma:"Meta",   inversion:0,     alcance:0,     clics:0,    conversiones:0,   cpr:0,    segmento:"Foodies 22-40 · Morelia",     estado:"Borrador",inicio:"2026-07-05", fin:"2026-07-31" }
+                ],
+                offline: [
+                    { id:"of_m1", nombre:"Menú impreso — Diseño Verano 2026",  categoria:"Impreso",     cantidad:200, proveedor:"Impresos Rápidos MRL", costo_unit:45,  estado:"Producción", entrega:"2026-06-28" },
+                    { id:"of_m2", nombre:"Flyers Promo Jueves 2x1",             categoria:"Impreso",     cantidad:500, proveedor:"Impresos Rápidos MRL", costo_unit:8,   estado:"Listo",      entrega:"2026-06-15" },
+                    { id:"of_m3", nombre:"Roll-up Mammut Exterior",             categoria:"Señalización",cantidad:2,   proveedor:"Rotulación Michoacán", costo_unit:1800,estado:"Listo",      entrega:"2026-05-20" },
+                    { id:"of_m4", nombre:"Tarjetas de presentación equipo",     categoria:"Impreso",     cantidad:300, proveedor:"Impresos Rápidos MRL", costo_unit:4,   estado:"Listo",      entrega:"2026-04-10" },
+                    { id:"of_m5", nombre:"Postales Mammut Club (programa fidelidad)", categoria:"Impreso",cantidad:1000,proveedor:"Impresos Rápidos MRL",costo_unit:6,  estado:"Producción", entrega:"2026-07-10" },
+                    { id:"of_m6", nombre:"Backlit interior — Menú luminoso",    categoria:"Señalización",cantidad:1,   proveedor:"Rotulación Michoacán", costo_unit:4500,estado:"Revisar",    entrega:"2026-07-20" }
+                ],
+                shooting: [
+                    { id:"sh_m1", titulo:"Shooting Proceso Artesanal — Masa y Horno", fecha:"2026-06-22", hora:"10:00", locacion:"Cocina Mammut Centro", moodboard:"Oscuro, rústico, cálido. Close-ups del amasado, vapor del horno, manos en la masa.",
+                      equipo:["Diego Ramírez","Ana Torres","Sofía Herrera"],
+                      checklist:[
+                        { hecho:true,  texto:"Reel proceso amasado (30 seg)" },
+                        { hecho:true,  texto:"Fotos plano detalle masa cruda" },
+                        { hecho:true,  texto:"Video horno con pizza entrando" },
+                        { hecho:false, texto:"Reel pizza saliendo del horno + queso derritiéndose" },
+                        { hecho:false, texto:"Fotos producto final — 3 pizzas diferentes" }
+                      ]
+                    },
+                    { id:"sh_m2", titulo:"Shooting Lanzamiento Pizza Verano 2026", fecha:"2026-07-03", hora:"11:00", locacion:"Terraza Mammut + estudio",  moodboard:"Verano, colores vibrantes, fresco. Burrata, jitomates cherry, hierbas. Luz natural.",
+                      equipo:["Ana Torres","Diego Ramírez"],
+                      checklist:[
+                        { hecho:false, texto:"Fotos hero de la pizza verano — 5 ángulos" },
+                        { hecho:false, texto:"Reel lanzamiento (15 seg — dinámica rápida)" },
+                        { hecho:false, texto:"Fotos ingredientes por separado" },
+                        { hecho:false, texto:"Video chef armando la pizza" },
+                        { hecho:false, texto:"Contenido stories: detrás de cámaras del lanzamiento" }
+                      ]
+                    },
+                    { id:"sh_m3", titulo:"Shooting Combo Romántico + Postres", fecha:"2026-06-10", hora:"17:00", locacion:"Mesa decorada Mammut Centro", moodboard:"Romántico, íntimo, velas. Pareja implícita. Colores: rojo vino, crema, dorado.",
+                      equipo:["Ana Torres","Sofía Herrera"],
+                      checklist:[
+                        { hecho:true,  texto:"Fotos Combo Romántico completo en mesa decorada" },
+                        { hecho:true,  texto:"Fotos Tiramisú y Panna Cotta — plano cenital" },
+                        { hecho:true,  texto:"Reel tipo cinemagraph — vino que se escancia" },
+                        { hecho:true,  texto:"Stories ambiente restaurante — 6 fotos" }
+                      ]
+                    }
+                ],
+                stories_ind: [],
+                historico_mensual: [
+                    { mes:"Ene", ventas:142000, seguidores:180,  dms:210 },
+                    { mes:"Feb", ventas:158000, seguidores:320,  dms:265 },
+                    { mes:"Mar", ventas:165000, seguidores:410,  dms:298 },
+                    { mes:"Abr", ventas:172000, seguidores:380,  dms:312 },
+                    { mes:"May", ventas:218400, seguidores:850,  dms:487 },
+                    { mes:"Jun", ventas:195000, seguidores:2140, dms:487 },
+                    { mes:"Jul", ventas:0,       seguidores:0,    dms:0   },
+                    { mes:"Ago", ventas:0,       seguidores:0,    dms:0   },
+                    { mes:"Sep", ventas:0,       seguidores:0,    dms:0   },
+                    { mes:"Oct", ventas:0,       seguidores:0,    dms:0   },
+                    { mes:"Nov", ventas:0,       seguidores:0,    dms:0   },
+                    { mes:"Dic", ventas:0,       seguidores:0,    dms:0   }
+                ],
+                kpi_semanal: [
+                    { id:"s_m1", tipo:"semana", semana:"S1 Mayo",     fecha:"2026-05-01", fecha_hasta:"2026-05-07", clientes_nuevos:68, clientes_recurrentes:124, clientes_recuperados:14, ventas:48200, dms:98,  citas_desde_dm:32, ticket_medio:387, seguidores_ini:11200, seguidores_fin:11380, seg_tiktok_fin:null, visualizaciones:24100, alcance_total:18400, clientes_fuente:null },
+                    { id:"s_m2", tipo:"semana", semana:"S2 Mayo",     fecha:"2026-05-08", fecha_hasta:"2026-05-14", clientes_nuevos:74, clientes_recurrentes:131, clientes_recuperados:17, ventas:52100, dms:112, citas_desde_dm:38, ticket_medio:398, seguidores_ini:11380, seguidores_fin:11620, seg_tiktok_fin:null, visualizaciones:28400, alcance_total:21200, clientes_fuente:null },
+                    { id:"s_m3", tipo:"semana", semana:"S3 Mayo",     fecha:"2026-05-15", fecha_hasta:"2026-05-21", clientes_nuevos:82, clientes_recurrentes:138, clientes_recuperados:19, ventas:58900, dms:134, citas_desde_dm:44, ticket_medio:427, seguidores_ini:11620, seguidores_fin:11940, seg_tiktok_fin:null, visualizaciones:34200, alcance_total:26100, clientes_fuente:null },
+                    { id:"s_m4", tipo:"semana", semana:"S4 Mayo",     fecha:"2026-05-22", fecha_hasta:"2026-05-31", clientes_nuevos:88, clientes_recurrentes:135, clientes_recuperados:17, ventas:59200, dms:143, citas_desde_dm:41, ticket_medio:431, seguidores_ini:11940, seguidores_fin:12050, seg_tiktok_fin:null, visualizaciones:31800, alcance_total:24300, clientes_fuente:null },
+                    { id:"s_m5", tipo:"semana", semana:"S1 Junio",    fecha:"2026-06-01", fecha_hasta:"2026-06-07", clientes_nuevos:91, clientes_recurrentes:142, clientes_recuperados:21, ventas:62400, dms:158, citas_desde_dm:52, ticket_medio:438, seguidores_ini:12050, seguidores_fin:12480, seg_tiktok_fin:null, visualizaciones:38100, alcance_total:29800, clientes_fuente:null },
+                    { id:"s_m6", tipo:"semana", semana:"S2 Junio",    fecha:"2026-06-08", fecha_hasta:"2026-06-14", clientes_nuevos:78, clientes_recurrentes:128, clientes_recuperados:18, ventas:54200, dms:126, citas_desde_dm:43, ticket_medio:421, seguidores_ini:12480, seguidores_fin:12820, seg_tiktok_fin:null, visualizaciones:32400, alcance_total:25600, clientes_fuente:null }
+                ],
+                engagement_formato: [
+                    { formato:"Reel",     alcance:28400, interacciones:1840, guardados:412, compartidos:238 },
+                    { formato:"Carrusel", alcance:14200, interacciones:920,  guardados:310, compartidos:95  },
+                    { formato:"Historia", alcance:8400,  interacciones:640,  guardados:0,   compartidos:180 },
+                    { formato:"Foto",     alcance:9800,  interacciones:520,  guardados:198, compartidos:42  }
+                ],
+                kpi_metas: {
+                    mes: { clientes_nuevos:350, clientes_recurrentes:600, clientes_recuperados:80, ventas:250000, dms:550, ticket_medio:480, seguidores:2500 }
+                }
             }
         },
-        proveedores: [ { nombre:"Agencia Meta", categoria:"Medios", contacto:"meta@ad.com", forma_pago:"TC" } ],
+        proveedores: [
+            { nombre:"Meta Business",          categoria:"Medios",      contacto:"meta@ad.com",                forma_pago:"TC"           },
+            { nombre:"Google Ads",             categoria:"Medios",      contacto:"google@billing.com",         forma_pago:"TC"           },
+            { nombre:"Lanka Colectivo",        categoria:"Agencia",     contacto:"hola@lankacollective.com",   forma_pago:"Transferencia"},
+            { nombre:"Estudio Diego Ramírez",  categoria:"Producción",  contacto:"diego.ramirez@studio.com",   forma_pago:"Transferencia"},
+            { nombre:"Impresos Rápidos MRL",   categoria:"Producción",  contacto:"ventas@impresosrapidos.mx",  forma_pago:"Efectivo"     },
+            { nombre:"Rotulación Michoacán",   categoria:"Producción",  contacto:"info@rotulacionmich.mx",     forma_pago:"Transferencia"},
+            { nombre:"@foodie_morelia",        categoria:"Medios",      contacto:"foodie_morelia@gmail.com",   forma_pago:"Transferencia"}
+        ],
         roles_sistema: [
             { id: "owner",       nombre: "Owner",            color: "#C4855A", editable: false },
             { id: "direccion",   nombre: "Dirección",        color: "#4A90D9", editable: true  },
@@ -2537,11 +2747,15 @@ document.addEventListener('DOMContentLoaded', function() {
             catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
         },
         usuarios: [
-            { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      puesto:"Socio Director",  password:btoa("Lanka2026"),  rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",            estado:"activo" },
-            { id:"u_angeles", nombre:"Ángeles Fernández", username:"angeles.fernandez",  puesto:"Fotógrafa",       password:btoa("angeles26"),  rol_id:"direccion",   proyectos:["aitama"],          ubicacion:"Morelia - Aitama", estado:"activo" },
-            { id:"u_dulce",   nombre:"Dulce",             username:"dulce",              puesto:"Asistente",       password:btoa("dulce26"),    rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama", estado:"activo" },
-            { id:"u_sergio",  nombre:"Sergio",            username:"sergio",             puesto:"Videógrafo",      password:btoa("sergio26"),   rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama", estado:"activo" },
-            { id:"u_mathias", nombre:"Mathias",           username:"mathias",            puesto:"Lanka Team",      password:btoa("lankateam26"),rol_id:"lanka_team",  proyectos:["aitama","mammut"], ubicacion:"Todas",            estado:"activo" }
+            { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      puesto:"Socio Director",   password:btoa("Lanka2026"),   rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
+            { id:"u_angeles", nombre:"Ángeles Fernández", username:"angeles.fernandez",  puesto:"Fotógrafa",        password:btoa("angeles26"),   rol_id:"direccion",   proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_dulce",   nombre:"Dulce",             username:"dulce",              puesto:"Asistente",        password:btoa("dulce26"),     rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_sergio",  nombre:"Sergio",            username:"sergio",             puesto:"Videógrafo",       password:btoa("sergio26"),    rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_mathias", nombre:"Mathias",           username:"mathias",            puesto:"Lanka Team",       password:btoa("lankateam26"), rol_id:"lanka_team",  proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
+            { id:"u_carlos",  nombre:"Carlos Vega",       username:"carlos.vega",        puesto:"Director General", password:btoa("carlos26"),    rol_id:"direccion",   proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_sofia",   nombre:"Sofía Herrera",     username:"sofia.herrera",      puesto:"Coordinadora",     password:btoa("sofia26"),     rol_id:"coordinador", proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_diego",   nombre:"Diego Ramírez",     username:"diego.ramirez",      puesto:"Videógrafo",       password:btoa("diego26"),     rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_ana",     nombre:"Ana Torres",        username:"ana.torres",         puesto:"Fotógrafa",        password:btoa("ana26"),       rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" }
         ],
         ubicaciones: ["Morelia - Aitama", "Morelia - Mammut Centro", "Mammut Chapultepec", "Todas"]
     };
