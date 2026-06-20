@@ -3106,32 +3106,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (_cardMigrated) guardarBD();
 
         // ── Migración DEMO: rellenar Mammut con datos demo si está vacío ──
-        {
-            const _md = DB.datos && DB.datos.mammut;
-            const _forceReset = new URLSearchParams(window.location.search).get('reset_mammut') === '1';
-            const _mammutVacio = _forceReset || (_md
-                && (!_md.productos || _md.productos.length === 0)
-                && (!_md.kanban    || _md.kanban.length    === 0)
-                && (!_md.ads       || _md.ads.length       === 0)
-                && !DB._mammut_demo_v1);
-            if (_mammutVacio) {
-                DB.datos.mammut = JSON.parse(JSON.stringify(DATOS_SEMILLA.datos.mammut));
-                const _suc = (DB.sucursales||[]).find(s => s.id === 'mammut');
-                if (_suc) {
-                    if (!_suc.equipo_miembros || _suc.equipo_miembros.length === 0)
-                        _suc.equipo_miembros = JSON.parse(JSON.stringify(DATOS_SEMILLA.sucursales.find(s=>s.id==='mammut').equipo_miembros));
-                    if (!_suc.categorias_servicio || _suc.categorias_servicio.length === 0)
-                        _suc.categorias_servicio = ["Pizza","Bebida","Postre","Entrada","Combo","Promoción"];
-                }
-                const _nuevosMammut = DATOS_SEMILLA.usuarios.filter(u => ['u_carlos','u_sofia','u_diego','u_ana'].includes(u.id));
-                _nuevosMammut.forEach(nu => { if (!DB.usuarios.find(u => u.id === nu.id)) DB.usuarios.push(JSON.parse(JSON.stringify(nu))); });
-                if (!DB.proveedores || DB.proveedores.length <= 1)
-                    DB.proveedores = JSON.parse(JSON.stringify(DATOS_SEMILLA.proveedores));
-                DB._mammut_demo_v1 = true;
-                localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-                console.log('✓ Demo Mammut: datos de presentación cargados');
-            }
-        }
+        _aplicarDemoMammut();
 
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
         
@@ -3177,7 +3152,35 @@ document.addEventListener('DOMContentLoaded', function() {
         if (moneda !== 'MXN' && tc[moneda]) num = Math.round(num / tc[moneda]);
         return formatMoneda(num, moneda);
     }
-    
+
+    function _aplicarDemoMammut() {
+        if (!DB || !DB.datos || !DB.datos.mammut) return;
+        const _md = DB.datos.mammut;
+        const _force = new URLSearchParams(window.location.search).get('reset_mammut') === '1';
+        const _necesita = _force || (
+            (!_md.productos || _md.productos.length === 0) &&
+            (!_md.kanban    || _md.kanban.length    === 0) &&
+            (!_md.ads       || _md.ads.length       === 0) &&
+            !DB._mammut_demo_v1
+        );
+        if (!_necesita) return;
+        DB.datos.mammut = JSON.parse(JSON.stringify(DATOS_SEMILLA.datos.mammut));
+        const _seed_suc = DATOS_SEMILLA.sucursales.find(s => s.id === 'mammut');
+        const _suc = (DB.sucursales||[]).find(s => s.id === 'mammut');
+        if (_suc && _seed_suc) {
+            _suc.equipo_miembros   = JSON.parse(JSON.stringify(_seed_suc.equipo_miembros));
+            _suc.categorias_servicio = JSON.parse(JSON.stringify(_seed_suc.categorias_servicio));
+        }
+        const _ids = ['u_carlos','u_sofia','u_diego','u_ana'];
+        DATOS_SEMILLA.usuarios.filter(u => _ids.includes(u.id)).forEach(nu => {
+            if (!DB.usuarios.find(u => u.id === nu.id)) DB.usuarios.push(JSON.parse(JSON.stringify(nu)));
+        });
+        if (!DB.proveedores || DB.proveedores.length <= 1)
+            DB.proveedores = JSON.parse(JSON.stringify(DATOS_SEMILLA.proveedores));
+        DB._mammut_demo_v1 = true;
+        console.log('✓ Demo Mammut: datos cargados correctamente');
+    }
+
     // Paso 5: guardarBD — guarda en localStorage Y Supabase
     // Protege Supabase: solo se escribe después de confirmar qué hay allá.
     // Evita que un navegador nuevo sin localStorage sobreescriba datos reales.
@@ -3258,8 +3261,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Supabase tiene datos reales → tomar como fuente de verdad
                         const yaEnApp = !!SUC_ACTIVA;
                         DB = data.data;
+                        // Aplicar demo Mammut si Supabase también tiene datos vacíos
+                        const _antesDemo = !DB._mammut_demo_v1;
+                        _aplicarDemoMammut();
                         localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
                         _supabaseVerificado = true;
+                        // Si aplicamos demo, subir a Supabase para que quede sincronizado
+                        if (_antesDemo && DB._mammut_demo_v1) guardarBD();
                         console.log('✓ Datos sincronizados desde Supabase:', data.updated_at);
                         if (yaEnApp && typeof renderTodas === 'function') renderTodas();
                     } else if (!error) {
