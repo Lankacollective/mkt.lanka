@@ -3496,7 +3496,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
         if(lista === 'proveedores') { const _pa=_getProveedores(SUC_ACTIVA); _pa.push({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:""}); _saveProveedores(SUC_ACTIVA,_pa); renderAdministracion(); return; }
-        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); renderTodas();
+        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') sendToCAOS({ title: n.titulo, project: 'Marketing', assignee: n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); renderTodas();
     }
 
     /* ====================================================
