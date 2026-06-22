@@ -11892,5 +11892,36 @@ function _xlsNotificarOrigenManual() {
 </div>
 <div id="notif-overlay" onclick="_toggleNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8999;background:rgba(0,0,0,.15);"></div>
 
+<!-- CAOS Integration -->
+<script>
+  const CAOS_API = 'https://tmypjnoapglzdidrurqq.supabase.co/functions/v1/add-task';
+  const CAOS_KEY = 'caos_sk_lnk_7xK9mP2vQr3bN8dTw';
+  async function sendToCAOS({ title, description = '', project = '', assignee = '', date = '', notes = '' }) {
+    try {
+      const res = await fetch(CAOS_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': CAOS_KEY
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          project,
+          assignee,
+          date,
+          notes,
+          source: 'mkt-lanka'
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      alert('\u2713 Tarea enviada a CAOS');
+      return data;
+    } catch (e) {
+      alert('Error enviando a CAOS: ' + e.message);
+    }
+  }
+</script>
 </body>
 </html>
