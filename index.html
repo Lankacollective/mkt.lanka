@@ -5806,6 +5806,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const ki = (DB.datos[SUC_ACTIVA].kanban||[]).findIndex(k=>k.id===postId);
         if (ki >= 0) { DB.datos[SUC_ACTIVA].kanban[ki].archivo_local = file.name; guardarBD(); }
         renderOrquestacion();
+        setTimeout(() => {
+            const card = document.getElementById(`card-${postId}`);
+            if (card && !card.classList.contains('open')) card.classList.add('open');
+        }, 50);
         // Comprimir y subir solo el preview a Storage
         try {
             _showToast('⬆ Comprimiendo preview…');
@@ -5821,6 +5825,10 @@ document.addEventListener('DOMContentLoaded', function() {
             window._kPreviewUrls[postId] = { url, isVideo: false };
             _syncArchivoLocalToDam(postId, file.name, postIdx, url);
             renderOrquestacion();
+            setTimeout(() => {
+                const card = document.getElementById(`card-${postId}`);
+                if (card && !card.classList.contains('open')) card.classList.add('open');
+            }, 50);
             _showToast('Preview subido ✓ — visible para todo el equipo');
         } catch(e) {
             console.error('Storage error:', e);
