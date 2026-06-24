@@ -5750,30 +5750,82 @@ document.addEventListener('DOMContentLoaded', function() {
         return publicUrl;
     }
 
+    // Genera un preview comprimido en JPEG para subir a Storage.
+    // Imágenes: redimensiona a max 1200px. Videos: captura el primer frame.
+    // Siempre devuelve un Blob JPEG pequeño (<300KB), nunca el archivo original.
+    function _compressToPreview(file) {
+        return new Promise((resolve) => {
+            const MAX_PX = 1200, QUALITY = 0.82;
+            const objUrl = URL.createObjectURL(file);
+
+            if (file.type.startsWith('image/')) {
+                const img = new Image();
+                img.onload = () => {
+                    URL.revokeObjectURL(objUrl);
+                    let w = img.width, h = img.height;
+                    if (w > MAX_PX) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+                    if (h > MAX_PX) { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+                    const c = document.createElement('canvas');
+                    c.width = w; c.height = h;
+                    c.getContext('2d').drawImage(img, 0, 0, w, h);
+                    c.toBlob(b => resolve(b), 'image/jpeg', QUALITY);
+                };
+                img.onerror = () => { URL.revokeObjectURL(objUrl); resolve(null); };
+                img.src = objUrl;
+
+            } else if (file.type.startsWith('video/')) {
+                const vid = document.createElement('video');
+                vid.muted = true; vid.playsInline = true; vid.preload = 'metadata';
+                vid.onloadeddata = () => { vid.currentTime = 0.1; };
+                vid.onseeked = () => {
+                    URL.revokeObjectURL(objUrl);
+                    let w = vid.videoWidth, h = vid.videoHeight;
+                    if (w > MAX_PX) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+                    if (h > MAX_PX) { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+                    const c = document.createElement('canvas');
+                    c.width = w; c.height = h;
+                    c.getContext('2d').drawImage(vid, 0, 0, w, h);
+                    c.toBlob(b => { vid.src = ''; resolve(b); }, 'image/jpeg', QUALITY);
+                };
+                vid.onerror = () => { URL.revokeObjectURL(objUrl); resolve(null); };
+                vid.src = objUrl; vid.load();
+            } else {
+                URL.revokeObjectURL(objUrl); resolve(null);
+            }
+        });
+    }
+
     async function _handlePostFileUpload(input, postId, postIdx) {
         const file = input.files[0];
         if (!file) return;
         const isVideo = file.type.startsWith('video/');
-        // Optimistic: preview local inmediato
+        // Optimistic: preview local inmediato con objectURL
         const objUrl = URL.createObjectURL(file);
         window._kPreviewUrls = window._kPreviewUrls || {};
         window._kPreviewUrls[postId] = { url: objUrl, isVideo };
         const ki = (DB.datos[SUC_ACTIVA].kanban||[]).findIndex(k=>k.id===postId);
         if (ki >= 0) { DB.datos[SUC_ACTIVA].kanban[ki].archivo_local = file.name; guardarBD(); }
         renderOrquestacion();
-        // Upload a Supabase Storage
+        // Comprimir y subir solo el preview a Storage
         try {
+            _showToast('⬆ Comprimiendo preview…');
+            const previewBlob = await _compressToPreview(file);
+            if (!previewBlob) throw new Error('No se pudo generar preview');
+            const previewFile = new File([previewBlob],
+                file.name.replace(/\.[^.]+$/, '_preview.jpg'),
+                { type: 'image/jpeg' });
             _showToast('⬆ Subiendo a Storage…');
-            const url = await _uploadToStorage(file, `posts/${postId}`);
+            const url = await _uploadToStorage(previewFile, `posts/${postId}`);
             if (ki >= 0) { DB.datos[SUC_ACTIVA].kanban[ki].preview_url = url; guardarBD(); }
-            window._kPreviewUrls[postId] = { url, isVideo };
+            // preview siempre es imagen JPEG (incluso para video)
+            window._kPreviewUrls[postId] = { url, isVideo: false };
             _syncArchivoLocalToDam(postId, file.name, postIdx, url);
             renderOrquestacion();
-            _showToast('Archivo subido ✓ — visible para todo el equipo');
+            _showToast('Preview subido ✓ — visible para todo el equipo');
         } catch(e) {
             console.error('Storage error:', e);
             _syncArchivoLocalToDam(postId, file.name, postIdx, objUrl);
-            _showToast('Preview guardado localmente (Storage no disponible)');
+            _showToast('Preview guardado en sesión (Storage no disponible)');
         }
     }
 
@@ -7833,13 +7885,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         const _newDamId = d.dam[d.dam.length-1].id;
         guardarBD(); cerrarModales(); renderDAM(); _showToast('Activo agregado');
-        // Upload file to Supabase Storage async
+        // Comprimir y subir solo el preview a Storage (async, sin bloquear UI)
         if (window._damPendingFile) {
             const _f = window._damPendingFile; window._damPendingFile = null;
-            _uploadToStorage(_f, `dam/${_newDamId}`).then(url => {
-                const idx2 = (DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id===_newDamId);
-                if (idx2 >= 0) { DB.datos[SUC_ACTIVA].dam[idx2].thumbnail_url = url; guardarBD(); renderDAM(); }
-            }).catch(e => console.error('DAM upload error:', e));
+            (async () => {
+                try {
+                    const blob = await _compressToPreview(_f);
+                    if (!blob) return;
+                    const pf = new File([blob], _f.name.replace(/\.[^.]+$/, '_preview.jpg'), { type: 'image/jpeg' });
+                    const url = await _uploadToStorage(pf, `dam/${_newDamId}`);
+                    const idx2 = (DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id===_newDamId);
+                    if (idx2 >= 0) { DB.datos[SUC_ACTIVA].dam[idx2].thumbnail_url = url; guardarBD(); renderDAM(); }
+                } catch(e) { console.error('DAM upload error:', e); }
+            })();
         }
     }
 
