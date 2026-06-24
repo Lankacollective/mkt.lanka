@@ -5798,22 +5798,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    function _getArchivos(t) {
+        if (t.archivos && t.archivos.length) return t.archivos;
+        if (t.archivo_local) return [{ nombre: t.archivo_local, preview_url: t.preview_url||'', thumbnail_url: t.thumbnail_url||t.preview_url||'' }];
+        return [];
+    }
+
+    function _removePostArchivo(postId, fileIdx) {
+        const k = (DB.datos[SUC_ACTIVA].kanban||[]).find(x=>x.id===postId);
+        if (!k) return;
+        if (k.archivos && k.archivos.length) {
+            k.archivos.splice(fileIdx, 1);
+        } else {
+            k.archivo_local = ''; k.preview_url = ''; k.thumbnail_url = '';
+        }
+        guardarBD(); renderOrquestacion();
+    }
+
     async function _handlePostFileUpload(input, postId, postIdx) {
         const file = input.files[0];
         if (!file) return;
         const isVideo = file.type.startsWith('video/');
-        // Optimistic: preview local inmediato con objectURL
         const objUrl = URL.createObjectURL(file);
         window._kPreviewUrls = window._kPreviewUrls || {};
-        window._kPreviewUrls[postId] = { url: objUrl, isVideo };
+        if (!Array.isArray(window._kPreviewUrls[postId])) window._kPreviewUrls[postId] = [];
+        const _sessEntry = { url: objUrl, isVideo, nombre: file.name };
+        window._kPreviewUrls[postId].push(_sessEntry);
         const ki = (DB.datos[SUC_ACTIVA].kanban||[]).findIndex(k=>k.id===postId);
-        if (ki >= 0) { DB.datos[SUC_ACTIVA].kanban[ki].archivo_local = file.name; guardarBD(); }
         renderOrquestacion();
         setTimeout(() => {
             const card = document.getElementById(`card-${postId}`);
             if (card && !card.classList.contains('open')) card.classList.add('open');
         }, 50);
-        // Subir thumbnail JPEG + video original (si aplica) a Storage
         try {
             _showToast('⬆ Generando thumbnail…');
             const thumbBlob = await _compressToPreview(file);
@@ -5823,26 +5839,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 { type: 'image/jpeg' });
             _showToast('⬆ Subiendo thumbnail…');
             const thumbUrl = await _uploadToStorage(thumbFile, `posts/${postId}`);
-
             let videoUrl = null;
             if (isVideo) {
                 _showToast('⬆ Subiendo video…');
                 videoUrl = await _uploadToStorage(file, `posts/${postId}`);
             }
-
             if (ki >= 0) {
-                DB.datos[SUC_ACTIVA].kanban[ki].thumbnail_url = thumbUrl;
-                DB.datos[SUC_ACTIVA].kanban[ki].preview_url = videoUrl || thumbUrl;
+                const k = DB.datos[SUC_ACTIVA].kanban[ki];
+                if (!k.archivos) k.archivos = [];
+                k.archivos.push({ nombre: file.name, preview_url: videoUrl || thumbUrl, thumbnail_url: thumbUrl });
                 guardarBD();
             }
-            window._kPreviewUrls[postId] = { url: videoUrl || thumbUrl, isVideo: isVideo && !!videoUrl };
+            window._kPreviewUrls[postId] = (window._kPreviewUrls[postId]||[]).filter(e => e !== _sessEntry);
             _syncArchivoLocalToDam(postId, file.name, postIdx, thumbUrl, videoUrl);
             renderOrquestacion();
             setTimeout(() => {
                 const card = document.getElementById(`card-${postId}`);
                 if (card && !card.classList.contains('open')) card.classList.add('open');
             }, 50);
-            _showToast(isVideo ? 'Video subido ✓ — visible para todo el equipo' : 'Preview subido ✓ — visible para todo el equipo');
+            _showToast(isVideo ? 'Video subido ✓ — visible para todo el equipo' : 'Archivo subido ✓ — visible para todo el equipo');
         } catch(e) {
             console.error('Storage error:', e);
             _syncArchivoLocalToDam(postId, file.name, postIdx, objUrl, null);
@@ -5885,23 +5900,44 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${canEdit ? `<i class="fa-solid fa-times" style="cursor:pointer;color:var(--color-peligro);font-size:11px;flex-shrink:0;" onclick="event.stopPropagation();${_kp}.drive_doc_url='';guardarBD();renderOrquestacion()" title="Desvincula el documento"></i>` : ''}
                </div>`
             : '';
-        const _archivoLocalBadge = t.archivo_local
-            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.archivo_local}">${t.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();${_kp}.archivo_local='';${_kp}.preview_url='';${_kp}.thumbnail_url='';delete((window._kPreviewUrls||{})['${t.id}']);guardarBD();renderOrquestacion()">×</span>` : ''}</span>`
+        const _archivos = _getArchivos(t);
+        const _sessFils = Array.isArray((window._kPreviewUrls||{})[t.id]) ? window._kPreviewUrls[t.id] : [];
+        const _allFils = [
+            ..._archivos.map((f, fi) => ({ nombre: f.nombre, preview_url: f.preview_url||'', thumbnail_url: f.thumbnail_url||f.preview_url||'', fi, sess: false })),
+            ..._sessFils.map(s => ({ nombre: s.nombre, preview_url: s.url, thumbnail_url: s.url, fi: -1, sess: true }))
+        ];
+        const _archivoLocalBadge = _allFils.length
+            ? _allFils.map(f =>
+                `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;">`
+                + `<i class="fa-solid ${f.sess ? 'fa-spinner fa-spin' : 'fa-file'}" style="font-size:10px;opacity:.5;flex-shrink:0;"></i>`
+                + `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${f.nombre}">${f.nombre}</span>`
+                + (canEdit && !f.sess ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();_removePostArchivo('${t.id}',${f.fi})">×</span>` : '')
+                + `</span>`).join('')
             : '';
 
-        // Preview: usa URL persistente de Supabase Storage primero, luego objectURL de sesión
-        const _prevUrl = t.preview_url || ((window._kPreviewUrls||{})[t.id]?.url) || '';
-        const _thumbUrl = t.thumbnail_url || _prevUrl;
-        const _isVid = _prevUrl ? (/\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(_prevUrl) || ((window._kPreviewUrls||{})[t.id]?.isVideo === true)) : false;
-        const _previewBlock = _prevUrl
-            ? (_isVid
-                ? `<video src="${_prevUrl}" style="width:100%;max-height:150px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;background:#000;cursor:pointer;" muted playsinline onclick="event.stopPropagation();_openPreviewModal('${_prevUrl}',true)"></video>`
-                : `<img src="${_prevUrl}" alt="preview" style="width:100%;max-height:150px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;cursor:pointer;" loading="lazy" onclick="event.stopPropagation();_openPreviewModal('${_prevUrl}',false)">`)
+        // Gallery multi-archivo: tiles 80×80 clicables, × individual por archivo
+        const _previewBlock = _allFils.length
+            ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">${_allFils.map(f => {
+                const _fIsVid = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(f.preview_url);
+                const _fThumb = f.thumbnail_url || f.preview_url;
+                if (!_fThumb) return '';
+                return `<div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal('${f.preview_url}',${_fIsVid})">`
+                    + `<img src="${_fThumb}" style="width:100%;height:100%;object-fit:cover;${_fIsVid ? 'opacity:.8;' : ''}display:block;" loading="lazy">`
+                    + (_fIsVid ? `<i class="fa-solid fa-play" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;pointer-events:none;"></i>` : '')
+                    + (canEdit && !f.sess ? `<span style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;line-height:1;" onclick="event.stopPropagation();_removePostArchivo('${t.id}',${f.fi})">×</span>` : '')
+                    + `</div>`;
+            }).join('')}</div>`
             : '';
-        const _thumbHdr = _thumbUrl
-            ? (_isVid
-                ? `<span style="width:38px;height:38px;border-radius:7px;background:#111;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;"><img src="${_thumbUrl}" alt="" style="width:100%;height:100%;object-fit:cover;opacity:.7;" loading="lazy"><i class="fa-solid fa-play" style="position:absolute;color:#fff;font-size:10px;"></i></span>`
-                : `<img src="${_thumbUrl}" alt="" style="width:38px;height:38px;border-radius:7px;object-fit:cover;flex-shrink:0;display:inline-block;" loading="lazy">`)
+        const _first = _allFils[0];
+        const _firstIsVid = _first ? /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(_first.preview_url) : false;
+        const _firstThumb = _first ? (_first.thumbnail_url || _first.preview_url || '') : '';
+        const _thumbHdr = _firstThumb
+            ? `<span style="position:relative;width:38px;height:38px;display:inline-flex;flex-shrink:0;">`
+                + (_allFils.length > 1 ? `<span style="position:absolute;top:-4px;right:-4px;background:var(--color-primario);color:#fff;border-radius:50%;font-size:8px;font-weight:700;width:15px;height:15px;display:flex;align-items:center;justify-content:center;z-index:1;">${_allFils.length}</span>` : '')
+                + (_firstIsVid
+                    ? `<span style="width:38px;height:38px;border-radius:7px;background:#111;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;position:relative;"><img src="${_firstThumb}" alt="" style="width:100%;height:100%;object-fit:cover;opacity:.7;" loading="lazy"><i class="fa-solid fa-play" style="position:absolute;color:#fff;font-size:10px;"></i></span>`
+                    : `<img src="${_firstThumb}" alt="" style="width:38px;height:38px;border-radius:7px;object-fit:cover;display:block;" loading="lazy">`)
+                + `</span>`
             : '';
 
         // Formato badge/selector
