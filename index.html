@@ -1666,6 +1666,7 @@
                         </div>
                         <button class="btn btn-fantasma req-agencia" onclick="abrirImportarJSON()"><i class="fa-solid fa-file-code"></i> Importar semana</button>
                         <button class="btn btn-fantasma req-agencia" onclick="_abrirImportarPostIA()"><i class="fa-solid fa-wand-magic-sparkles"></i> Importar post IA</button>
+                        <button class="btn btn-fantasma req-agencia" onclick="_abrirImportarParrilla()" style="background:linear-gradient(135deg,rgba(var(--primario-rgb),.08),rgba(var(--primario-rgb),.04));border-color:rgba(var(--primario-rgb),.25);"><i class="fa-solid fa-calendar-week" style="color:var(--color-primario);"></i> Importar parrilla completa</button>
                         <button class="btn btn-primario req-agencia" onclick="agregarElemento('kanban')"><i class="fa-solid fa-plus"></i> Nueva Tarea</button>
                     </div>
                 </div>
@@ -2169,6 +2170,34 @@
             <div style="display:flex;gap:8px;">
                 <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
                 <button class="btn btn-primario" id="btn-importar-post-ia" onclick="importarPostIA()"><i class="fa-solid fa-bolt"></i> Importar y vincular</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Importar Parrilla Completa -->
+<div class="fondo-modal" id="modal-importar-parrilla">
+    <div class="modal-caja" style="max-width:760px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-calendar-week" style="color:var(--color-primario);margin-right:10px;"></i>Importar Parrilla Completa</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:24px;">
+            <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:6px;line-height:1.6;">Pega el JSON de la parrilla del mes. Se importarán todos los posts, sus stories vinculadas y las stories independientes de una sola vez.</p>
+            <div style="background:rgba(var(--primario-rgb),.05);border:1px solid rgba(var(--primario-rgb),.15);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--texto-secundario);line-height:1.7;">
+                <strong style="color:var(--color-primario);">Formato esperado:</strong>
+                <code style="display:block;margin-top:4px;font-size:11px;white-space:pre;">{ "parrilla": { "mes": "2026-07", "posts": [ { "titulo":"...", "fecha":"YYYY-MM-DD", "hora":"HH:MM", "tipo":"reel|carrusel|historia|asmr", "caption_instagram":"...", "pauta": { ... }, "stories": [ ... ] } ], "stories_independientes": [ { "dia":"YYYY-MM-DD", "hora":"HH:MM", "tipo":"foto|video", "copy":"...", "cta":"...", "descripcion_visual":"..." } ] } }</code>
+            </div>
+            <textarea id="parrilla-json-textarea" class="json-textarea" rows="14" placeholder='{ "parrilla": { "mes": "2026-07", "posts": [ ... ], "stories_independientes": [ ... ] } }'></textarea>
+            <div id="parrilla-error" style="display:none;color:var(--color-peligro);font-size:13px;font-weight:600;margin-top:12px;padding:10px 14px;background:rgba(234,67,53,0.06);border-radius:8px;"></div>
+            <div id="parrilla-resultado" style="display:none;margin-top:12px;padding:14px;background:rgba(34,197,94,.06);border-radius:10px;border:1px solid rgba(34,197,94,.25);font-size:13px;line-height:1.9;color:#15803D;font-weight:500;"></div>
+            <div id="parrilla-progreso" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(var(--primario-rgb),.05);border-radius:8px;font-size:13px;color:var(--texto-secundario);"></div>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 20px 20px;">
+            <span style="font-size:12px;color:var(--texto-secundario);">Posts existentes en la misma fecha+tipo se omiten (no se sobreescriben).</span>
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn btn-primario" id="btn-importar-parrilla" onclick="importarParrillaCompleta()"><i class="fa-solid fa-calendar-week"></i> Importar parrilla</button>
             </div>
         </div>
     </div>
@@ -10990,6 +11019,106 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('post-ia-resultado').style.display = 'none';
         document.getElementById('modal-importar-post-ia').classList.add('activo');
         setTimeout(() => document.getElementById('post-ia-json-textarea').focus(), 200);
+    }
+
+    function _abrirImportarParrilla() {
+        document.getElementById('parrilla-json-textarea').value = '';
+        document.getElementById('parrilla-error').style.display = 'none';
+        document.getElementById('parrilla-resultado').style.display = 'none';
+        document.getElementById('parrilla-progreso').style.display = 'none';
+        document.getElementById('modal-importar-parrilla').classList.add('activo');
+        setTimeout(() => document.getElementById('parrilla-json-textarea').focus(), 200);
+    }
+
+    async function importarParrillaCompleta() {
+        const raw    = (document.getElementById('parrilla-json-textarea').value || '').trim();
+        const errEl  = document.getElementById('parrilla-error');
+        const resEl  = document.getElementById('parrilla-resultado');
+        const progEl = document.getElementById('parrilla-progreso');
+        const btnEl  = document.getElementById('btn-importar-parrilla');
+        errEl.style.display = 'none'; resEl.style.display = 'none'; progEl.style.display = 'none';
+
+        // ── PASO 1: PARSEAR ────────────────────────────────────────────
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch(e) {
+            errEl.textContent = 'JSON inválido: ' + e.message; errEl.style.display = 'block'; return;
+        }
+        const parrilla = parsed.parrilla;
+        if (!parrilla) { errEl.textContent = 'Falta el campo raíz "parrilla"'; errEl.style.display = 'block'; return; }
+        const posts = Array.isArray(parrilla.posts) ? parrilla.posts : [];
+        const storiesInd = Array.isArray(parrilla.stories_independientes) ? parrilla.stories_independientes : [];
+        if (!posts.length && !storiesInd.length) {
+            errEl.textContent = 'La parrilla no contiene posts ni stories independientes'; errEl.style.display = 'block'; return;
+        }
+
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d) { errEl.textContent = 'Proyecto activo no encontrado'; errEl.style.display = 'block'; return; }
+
+        // ── PASO 2: PROCESAR POSTS ─────────────────────────────────────
+        btnEl.disabled = true;
+        progEl.style.display = 'block';
+        progEl.textContent = 'Importando…';
+
+        let importados = 0, omitidos = 0, errores = [];
+        const tiposOk = ['carrusel','reel','historia','asmr'];
+
+        for (let i = 0; i < posts.length; i++) {
+            const p = posts[i];
+            progEl.textContent = `Procesando post ${i+1} de ${posts.length}…`;
+            if (!p.titulo || !p.fecha || !p.hora || !p.tipo) {
+                errores.push(`Post ${i+1}: faltan campos obligatorios (titulo, fecha, hora, tipo)`);
+                omitidos++; continue;
+            }
+            if (!tiposOk.includes((p.tipo||'').toLowerCase())) {
+                errores.push(`Post ${i+1} "${p.titulo}": tipo no válido "${p.tipo}"`);
+                omitidos++; continue;
+            }
+            try {
+                await _ejecutarImportPost({ post: p }, null);
+                importados++;
+            } catch(e) {
+                errores.push(`Post ${i+1} "${p.titulo}": ${e.message}`);
+                omitidos++;
+            }
+        }
+
+        // ── PASO 3: STORIES INDEPENDIENTES ────────────────────────────
+        if (!d.stories_ind) d.stories_ind = [];
+        let storiesAgregadas = 0;
+        for (const s of storiesInd) {
+            if (!s.dia && !s.fecha) continue;
+            const newStory = {
+                id: 'si_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+                fecha: s.dia || s.fecha,
+                hora: s.hora || '09:00',
+                tipo: (s.tipo || 'foto').toLowerCase(),
+                copy: s.copy || '',
+                cta: s.cta || '',
+                descripcion_visual: s.descripcion_visual || '',
+                estado: 'idea',
+                ts_creacion: new Date().toISOString()
+            };
+            d.stories_ind.push(newStory);
+            storiesAgregadas++;
+        }
+
+        // ── PASO 4: GUARDAR Y RENDERIZAR ──────────────────────────────
+        guardarBD();
+        renderOrquestacion();
+        btnEl.disabled = false;
+        progEl.style.display = 'none';
+
+        // ── PASO 5: MOSTRAR RESULTADO ──────────────────────────────────
+        let html = `<b>Importación completada</b><br>`;
+        html += `✅ Posts importados: <b>${importados}</b><br>`;
+        html += `📸 Stories independientes: <b>${storiesAgregadas}</b><br>`;
+        if (omitidos) html += `⚠️ Omitidos: <b>${omitidos}</b><br>`;
+        if (errores.length) {
+            html += `<details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;color:#f59e0b;">Ver errores (${errores.length})</summary><ul style="margin:6px 0 0 12px;font-size:11px;color:#f59e0b;">` +
+                errores.map(e => `<li>${e}</li>`).join('') + '</ul></details>';
+        }
+        resEl.innerHTML = html;
+        resEl.style.display = 'block';
     }
 
     function _formatManychatFlujo(mc) {
