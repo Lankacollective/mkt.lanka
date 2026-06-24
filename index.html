@@ -1355,7 +1355,7 @@
         <div class="menu-titulo">Orquestación</div>
         <ul class="menu-nav">
             <li class="item-nav req-no-equipo" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario Content</li>
-            <li class="item-nav req-no-equipo" data-target="vista-cal-editorial"><i class="fa-solid fa-table-columns"></i> Kanban</li>
+            <li class="item-nav req-no-equipo" data-target="vista-cal-editorial"><i class="fa-solid fa-table-columns"></i> Calendario Visual</li>
             <li class="item-nav" data-target="vista-shooting"><i class="fa-solid fa-camera"></i> Agenda Shooting</li>
             <li class="item-nav" data-target="vista-dam"><i class="fa-solid fa-photo-film"></i> Gestión de Activos</li>
             <li class="item-nav req-no-equipo" data-target="vista-stories"><i class="fa-solid fa-film"></i> Stories</li>
@@ -9837,8 +9837,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const _BOTTOM_NAV_ROLES = {
         equipo:     [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-mis-tareas','fa-list-check','Tareas']],
         cliente:    [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-calendario','fa-calendar-days','Calendario'],['vista-stories','fa-film','Stories']],
-        direccion:  [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-cal-editorial','fa-table-columns','Kanban'],['vista-calendario','fa-calendar-days','Calendario']],
-        _default:   [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-cal-editorial','fa-table-columns','Kanban'],['vista-calendario','fa-calendar-days','Calendario']]
+        direccion:  [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-cal-editorial','fa-table-columns','Calendario Visual'],['vista-calendario','fa-calendar-days','Calendario']],
+        _default:   [['vista-resumen','fa-gauge-high','Inicio'],['vista-shooting','fa-camera','Shooting'],['vista-cal-editorial','fa-table-columns','Calendario Visual'],['vista-calendario','fa-calendar-days','Calendario']]
     };
 
     function _adaptarBottomNav(rol_id) {
@@ -12132,7 +12132,7 @@ function _xlsNotificarOrigenManual() {
             <i class="fa-solid fa-camera"></i><span>Shooting</span>
         </button>
         <button class="bottom-tab" id="btab-kanban" onclick="irA('vista-cal-editorial')" data-vista="vista-cal-editorial">
-            <i class="fa-solid fa-table-columns"></i><span>Kanban</span>
+            <i class="fa-solid fa-table-columns"></i><span>Calendario Visual</span>
         </button>
         <button class="bottom-tab" id="btab-tareas" onclick="irA('vista-mis-tareas')" data-vista="vista-mis-tareas">
             <i class="fa-solid fa-list-check"></i><span>Tareas</span>
