@@ -5833,7 +5833,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
     ${_docBadge}
-    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<input type="file" id="file-local-${t.id}" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderOrquestacion()"><button class="btn btn-xs btn-fantasma" onclick="event.stopPropagation();document.getElementById('file-local-${t.id}').click()" title="Seleccionar archivo local"><i class="fa-solid fa-folder-open"></i> Archivo local</button>` : ''}${_archivoLocalBadge}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderOrquestacion()"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}${_archivoLocalBadge}</div>
   </div>
   ${_sep}
   ${_lbl('<i class="fa-brands fa-instagram" style="color:#E1306C;font-size:12px;"></i>','Contenido Instagram')}
@@ -5998,8 +5998,13 @@ document.addEventListener('DOMContentLoaded', function() {
         const contenedor = document.getElementById('contenedor-dam');
         if (!contenedor) return;
 
+        const _damProjDrive = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).drive_contenido_url || '';
+        const _damDriveBar = _damProjDrive
+            ? `<div style="grid-column:1/-1;margin-bottom:4px;"><a href="${_damProjDrive}" target="_blank" rel="noopener" class="btn btn-fantasma" style="display:inline-flex;align-items:center;gap:8px;"><i class="fa-brands fa-google-drive" style="color:#4285F4;font-size:13px;"></i> Abrir carpeta del proyecto en Drive</a></div>`
+            : '';
+
         if (!filtered.length) {
-            contenedor.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px 40px;color:var(--texto-secundario);">
+            contenedor.innerHTML = _damDriveBar + `<div style="grid-column:1/-1;text-align:center;padding:60px 40px;color:var(--texto-secundario);">
                 <i class="fa-solid fa-photo-film" style="font-size:36px;opacity:.15;display:block;margin-bottom:16px;color:var(--color-primario);"></i>
                 Sin activos en esta categoría.
                 ${canEdit?`<br><button class="btn btn-primario" style="margin-top:16px;" onclick="_abrirModalNuevoActivo()"><i class="fa-solid fa-upload"></i> Agregar activo</button>`:''}
@@ -6007,7 +6012,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        contenedor.innerHTML = filtered.map(a => {
+        contenedor.innerHTML = _damDriveBar + filtered.map(a => {
             const realIdx  = assets.indexOf(a);
             const est      = _damEstadoInfo(a.estado);
             const tipoIcon = _damTipoIcon(a.tipo);
@@ -6048,7 +6053,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div style="padding:10px 14px;border-top:1px solid var(--color-borde);display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
                     ${verBtn}${copiarBtn}${previstaBtn}${histBtn}${accionBtn}
-                    ${canEdit ? `<input type="file" id="file-dam-${a.id}" style="display:none;" onchange="const _ai=(DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id==='${a.id}');if(_ai>=0){DB.datos[SUC_ACTIVA].dam[_ai].archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderDAM();}"><button class="btn btn-xs btn-fantasma" onclick="document.getElementById('file-dam-${a.id}').click()" title="Seleccionar archivo local"><i class="fa-solid fa-folder-open"></i> Archivo local</button>` : ''}
+                    ${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local"><input type="file" style="display:none;" onchange="const _ai=(DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id==='${a.id}');if(_ai>=0){DB.datos[SUC_ACTIVA].dam[_ai].archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderDAM();}"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}
                     ${a.archivo_local ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:180px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.archivo_local}">${a.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:3px;font-weight:400;" onclick="const _ai2=(DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id==='${a.id}');if(_ai2>=0){DB.datos[SUC_ACTIVA].dam[_ai2].archivo_local='';guardarBD();renderDAM();}">×</span>` : ''}</span>` : ''}
                 </div>
             </div>`;
@@ -9486,7 +9491,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const groups = {};
         sorted.forEach(s => { const k = s.dia||'sin-fecha'; if (!groups[k]) groups[k]=[]; groups[k].push(s); });
 
-        el.innerHTML = Object.entries(groups).map(([fechaKey, items]) => {
+        const _storiesProjDrive = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).drive_contenido_url || '';
+        const _storiesDriveBar = _storiesProjDrive
+            ? `<div style="margin-bottom:16px;"><a href="${_storiesProjDrive}" target="_blank" rel="noopener" class="btn btn-fantasma" style="display:inline-flex;align-items:center;gap:8px;"><i class="fa-brands fa-google-drive" style="color:#4285F4;font-size:13px;"></i> Abrir carpeta del proyecto en Drive</a></div>`
+            : '';
+        el.innerHTML = _storiesDriveBar + Object.entries(groups).map(([fechaKey, items]) => {
             const fechaLabel = fechaKey !== 'sin-fecha'
                 ? new Date(fechaKey+'T00:00:00').toLocaleDateString('es-MX', {weekday:'long', day:'numeric', month:'long'})
                 : 'Sin fecha';
@@ -9526,8 +9535,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="fa-solid ${s.estado==='Publicado' ? 'fa-circle-check' : 'fa-check'}"></i> ${s.estado==='Publicado' ? 'Publicada' : 'Publicar'}
                         </button>
                         <button class="btn btn-xs btn-fantasma" onclick="editarStory('${s.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
-                        <input type="file" id="file-story-${s.id}" style="display:none;" onchange="const _stIdx=(DB.datos[SUC_ACTIVA].stories_ind||[]).findIndex(x=>x.id==='${s.id}');if(_stIdx>=0){DB.datos[SUC_ACTIVA].stories_ind[_stIdx].archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderStories();}">
-                        <button class="btn btn-xs btn-fantasma" onclick="document.getElementById('file-story-${s.id}').click()" title="Seleccionar archivo local"><i class="fa-solid fa-folder-open"></i></button>
+                        <label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local"><input type="file" style="display:none;" onchange="const _stIdx=(DB.datos[SUC_ACTIVA].stories_ind||[]).findIndex(x=>x.id==='${s.id}');if(_stIdx>=0){DB.datos[SUC_ACTIVA].stories_ind[_stIdx].archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderStories();}"><i class="fa-solid fa-folder-open"></i></label>
                         <button class="btn btn-xs btn-peligro-suave" onclick="eliminarStory('${s.id}')"><i class="fa-solid fa-trash"></i></button>
                     </div>` : ''}
                 </div>`;
