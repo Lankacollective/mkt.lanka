@@ -10959,11 +10959,19 @@ document.addEventListener('DOMContentLoaded', function() {
     let _catalogoTab = null;
 
     function _catalogoCategoriasPorTipo() {
+        // Derivar categorías desde los datos reales (soporta JSON importado con cualquier categoría)
+        const catData = _getCatalogo(SUC_ACTIVA);
+        if (catData && catData.length > 0) {
+            const seen = [];
+            catData.forEach(item => { if (item.categoria && !seen.includes(item.categoria)) seen.push(item.categoria); });
+            if (seen.length > 0) return seen;
+        }
+        // Fallback por tipo de proyecto (catálogo vacío)
         const tipo = getTipoProyecto(SUC_ACTIVA);
         if (tipo === 'restaurante') return ['Pizza', 'Entrada', 'Postre', 'Bebida', 'Combo', 'Promoción'];
         if (tipo === 'cafeteria')   return ['Productos', 'Eventos'];
         if (tipo === 'personal')    return ['Servicios', 'Contenido patrocinado'];
-        return ['Servicios', 'Productos']; // wellness + otro
+        return ['Servicios', 'Productos'];
     }
 
     function _catalogoShowDuracion() {
