@@ -1354,7 +1354,7 @@
 
         <div class="menu-titulo">Orquestación</div>
         <ul class="menu-nav">
-            <li class="item-nav req-no-equipo" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario Content</li>
+            <li class="item-nav req-no-equipo" data-target="vista-calendario"><i class="fa-solid fa-calendar-days"></i> Calendario de Contenido</li>
             <li class="item-nav req-no-equipo" data-target="vista-cal-editorial"><i class="fa-solid fa-table-columns"></i> Calendario Visual</li>
             <li class="item-nav" data-target="vista-shooting"><i class="fa-solid fa-camera"></i> Agenda Shooting</li>
             <li class="item-nav" data-target="vista-dam"><i class="fa-solid fa-photo-film"></i> Gestión de Activos</li>
@@ -1363,8 +1363,7 @@
 
         <div class="menu-titulo req-no-equipo">Estrategia Operativa</div>
         <ul class="menu-nav req-no-equipo">
-            <li class="item-nav" data-target="vista-briefing"><i class="fa-solid fa-chess-knight"></i> Briefing Mensual</li>
-            <li class="item-nav" data-target="vista-mood"><i class="fa-solid fa-calendar-week"></i> Mood & Ejes</li>
+            <li class="item-nav" data-target="vista-briefing"><i class="fa-solid fa-chess-knight"></i> Briefing</li>
             <li class="item-nav" data-target="vista-target"><i class="fa-solid fa-users-viewfinder"></i> Target & Seg.</li>
             <li class="item-nav" data-target="vista-ads"><i class="fa-solid fa-bullhorn"></i> Ad Performance</li>
             <li class="item-nav" data-target="vista-offline"><i class="fa-solid fa-print"></i> Materiales Offline</li>
@@ -7258,6 +7257,24 @@ document.addEventListener('DOMContentLoaded', function() {
             <p style="font-size:11px;color:var(--texto-secundario);margin-top:6px;line-height:1.5;">Usadas en <strong>Ad Performance</strong> y <strong>Mix de Servicios</strong>.</p>
         </div>`;
 
+        // Card 6: Ubicaciones del proyecto
+        const _ubicsSuc = _getUbicacionesSuc(SUC_ACTIVA);
+        let _ubicHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+            <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Ubicaciones del Proyecto</b>
+            ${_isOwnerForConfig?`<button class="btn btn-xs btn-primario" onclick="agregarUbicacion()"><i class="fa-solid fa-plus"></i> Nueva</button>`:''}
+        </div><div style="display:flex;flex-direction:column;gap:6px;">`;
+        _ubicsSuc.forEach((u, i) => {
+            _ubicHTML += `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--color-fondo);border-radius:8px;border:1px solid var(--color-borde);">
+                <i class="fa-solid fa-location-dot" style="color:var(--color-primario);font-size:12px;flex-shrink:0;"></i>
+                ${_isOwnerForConfig
+                    ? `<input class="input-celda" value="${u}" style="flex:1;font-size:13px;" onchange="const _ul=_getUbicacionesSuc('${SUC_ACTIVA}');_ul[${i}]=this.value;_setUbicacionesSuc('${SUC_ACTIVA}',_ul);if(document.getElementById('tab-ubicaciones'))renderTabUbicaciones();">
+                       <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:11px;" onclick="eliminarUbicacion(${i})"></i>`
+                    : `<span style="flex:1;font-size:13px;">${u}</span>`}
+            </div>`;
+        });
+        _ubicHTML += `</div>`;
+        confHTML += `<div style="${_cardStyle}">${_ubicHTML}</div>`;
+
         // Card: Benchmarks del Dashboard (per-project)
         const _benchDefaults = { cac:{good:150,warn:250}, ticket:{good:800,warn:500}, conv:{good:25,warn:12}, ret:{good:60,warn:40}, seg:{good:8,warn:4} };
         const _sucIdx = DB.sucursales.findIndex(s => s.id === SUC_ACTIVA);
@@ -10039,7 +10056,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const initials = u.nombre.split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase() || '?';
             let pwd = ''; try { pwd = atob(u.password); } catch(e) {}
             const rolesOpts = (DB.roles_sistema||[]).map(r => `<option value="${r.id}" ${r.id===u.rol_id?'selected':''}>${r.nombre}</option>`).join('');
-            const ubicOpts  = (DB.ubicaciones||[]).map(ub => `<option value="${ub}" ${ub===u.ubicacion?'selected':''}>${ub}</option>`).join('');
+            const _uPids = u.proyectos && u.proyectos.length ? u.proyectos : [SUC_ACTIVA];
+            const _uUbics = [...new Set(_uPids.flatMap(pid => _getUbicacionesSuc(pid)))];
+            if (!_uUbics.includes('Todas')) _uUbics.unshift('Todas');
+            const ubicOpts  = _uUbics.map(ub => `<option value="${ub}" ${ub===u.ubicacion?'selected':''}>${ub}</option>`).join('');
             const proyOpts  = (DB.sucursales||[]).map(p => `<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;padding:6px 12px;border:1px solid var(--color-borde);border-radius:8px;background:var(--color-tarjeta);"><input type="checkbox" id="u-proy-${u.id}-${p.id}" ${(u.proyectos||[]).includes(p.id)?'checked':''}> ${p.nombre}</label>`).join('');
             return `<div class="usuario-card" id="u-card-${u.id}">
                 <div class="usuario-card-header" onclick="toggleExpandirUsuario('${u.id}')">
@@ -10375,19 +10395,31 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>`;
     }
 
+    function _getUbicacionesSuc(sucId) {
+        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
+        if (!suc) return ['Todas'];
+        if (!suc.ubicaciones) suc.ubicaciones = ['Todas'];
+        return suc.ubicaciones;
+    }
+    function _setUbicacionesSuc(sucId, arr) {
+        const idx = (DB.sucursales||[]).findIndex(s=>s.id===sucId);
+        if (idx >= 0) { DB.sucursales[idx].ubicaciones = arr; guardarBD(); }
+    }
+
     function renderTabUbicaciones() {
         const el = document.getElementById('tab-ubicaciones'); if (!el) return;
-        const ubicaciones = DB.ubicaciones || [];
+        const ubicaciones = _getUbicacionesSuc(SUC_ACTIVA);
+        const sucNombre = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).nombre || '';
         const isOwner = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
         el.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-            <p style="font-size:14px;color:var(--texto-secundario);">Ubicaciones físicas para asignar a usuarios.</p>
+            <p style="font-size:14px;color:var(--texto-secundario);">Ubicaciones físicas de <strong>${sucNombre}</strong>.</p>
             ${isOwner?`<button class="btn btn-primario btn-xs" onclick="agregarUbicacion()"><i class="fa-solid fa-plus"></i> Nueva Ubicación</button>`:''}
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;max-width:600px;">
         ${ubicaciones.map((u,i) => `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--color-tarjeta);border-radius:10px;border:1px solid var(--color-borde);">
             <i class="fa-solid fa-location-dot" style="color:var(--color-primario);font-size:13px;width:16px;text-align:center;flex-shrink:0;"></i>
             ${isOwner
-                ? `<input class="input-celda" value="${u}" style="flex:1;" onchange="DB.ubicaciones[${i}]=this.value;guardarBD();">
+                ? `<input class="input-celda" value="${u}" style="flex:1;" onchange="const _ul=_getUbicacionesSuc('${SUC_ACTIVA}');_ul[${i}]=this.value;_setUbicacionesSuc('${SUC_ACTIVA}',_ul);">
                    <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="eliminarUbicacion(${i})"></i>`
                 : `<span style="flex:1;font-size:14px;">${u}</span>`}
         </div>`).join('')}
@@ -10430,13 +10462,20 @@ document.addEventListener('DOMContentLoaded', function() {
     function agregarUbicacion() {
         const u = prompt('Nueva ubicación:');
         if (!u || !u.trim()) return;
-        if (!DB.ubicaciones) DB.ubicaciones = [];
-        DB.ubicaciones.push(u.trim()); guardarBD(); renderTabUbicaciones();
+        const arr = _getUbicacionesSuc(SUC_ACTIVA);
+        arr.push(u.trim());
+        _setUbicacionesSuc(SUC_ACTIVA, arr);
+        renderTabUbicaciones();
+        renderAdministracion();
     }
 
     function eliminarUbicacion(idx) {
         if (!confirm('¿Eliminar esta ubicación?')) return;
-        (DB.ubicaciones||[]).splice(idx,1); guardarBD(); renderTabUbicaciones();
+        const arr = _getUbicacionesSuc(SUC_ACTIVA);
+        arr.splice(idx, 1);
+        _setUbicacionesSuc(SUC_ACTIVA, arr);
+        renderTabUbicaciones();
+        renderAdministracion();
     }
 
     // ---- Auditoría ----
