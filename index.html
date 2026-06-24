@@ -1741,8 +1741,12 @@
             <section id="vista-dam" class="seccion-app oculto">
                 <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
                     <div><h1>Gestión de Activos</h1><p>Aprobación y control de versiones · integrado con Google Drive.</p></div>
-                    <button class="btn btn-primario req-agencia" onclick="_abrirModalNuevoActivo()"><i class="fa-solid fa-upload"></i> Agregar activo</button>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-fantasma req-agencia" onclick="_damGestionarCats()"><i class="fa-solid fa-tags"></i> Categorías</button>
+                        <button class="btn btn-primario req-agencia" onclick="_abrirModalNuevoActivo()"><i class="fa-solid fa-upload"></i> Agregar activo</button>
+                    </div>
                 </div>
+                <div id="dam-cats-panel-wrap"></div>
                 <div id="dam-filtros" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px;"></div>
                 <div class="cuadricula-dam" id="contenedor-dam"></div>
                 <div class="req-agencia" style="margin-top:32px;padding-top:20px;border-top:1px solid var(--color-borde);display:flex;justify-content:center;">
@@ -5907,14 +5911,17 @@ document.addEventListener('DOMContentLoaded', function() {
         'Entrega Sergio':    []
     };
     let _damFiltro = 'all';
+    let _catalogoSearch = '';
 
     function _getDamCategorias() {
         const tipo = getTipoProyecto(SUC_ACTIVA);
         if (tipo === 'wellness') return _DAM_CATS_WELLNESS;
-        const srvs = _getServicios(SUC_ACTIVA);
-        const cats = {};
-        (srvs.length ? srvs : ['General']).forEach(s => { cats[s] = []; });
-        return cats;
+        // Usar categorías DAM configuradas por el usuario (independientes del menú)
+        const damCats = DB.datos?.[SUC_ACTIVA]?.dam_categorias;
+        if (damCats && Array.isArray(damCats) && damCats.length > 0) {
+            const cats = {}; damCats.forEach(c => { cats[c] = []; }); return cats;
+        }
+        return { 'General': [], 'Historias': [], 'Videos': [], 'Fotos': [] };
     }
     function _extractDriveId(url) {
         if (!url) return '';
@@ -7505,6 +7512,55 @@ document.addEventListener('DOMContentLoaded', function() {
     function cambiarVistaCalendario(v) { document.querySelectorAll('.btn-vista').forEach(b=>b.classList.remove('activo')); document.getElementById('btn-vista-'+v).classList.add('activo'); if(v==='kanban'){document.getElementById('contenedor-kanban').classList.remove('oculto');document.getElementById('contenedor-parrilla').classList.add('oculto');}else{document.getElementById('contenedor-kanban').classList.add('oculto');document.getElementById('contenedor-parrilla').classList.remove('oculto');} }
 
     /* ====== DAM (ORIGINAL) ====== */
+    function _damGetCatsList() {
+        if (!DB.datos[SUC_ACTIVA].dam_categorias) {
+            DB.datos[SUC_ACTIVA].dam_categorias = Object.keys(_getDamCategorias());
+        }
+        return DB.datos[SUC_ACTIVA].dam_categorias;
+    }
+
+    function _damGestionarCats() {
+        const wrap = document.getElementById('dam-cats-panel-wrap');
+        if (!wrap) return;
+        if (wrap.innerHTML.trim()) { wrap.innerHTML = ''; return; }
+        const cats = _damGetCatsList();
+        wrap.innerHTML = `<div style="background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:12px;padding:20px;margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <span style="font-weight:800;font-size:14px;font-family:var(--font-display);">Categorías del DAM</span>
+                <button class="btn btn-xs btn-fantasma" onclick="document.getElementById('dam-cats-panel-wrap').innerHTML=''"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="font-size:11px;color:var(--texto-secundario);margin-bottom:12px;">Estas categorías son independientes del menú de productos.</div>
+            <div id="dam-cats-lista">
+                ${cats.map(c => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span style="flex:1;font-size:13px;font-weight:600;">${c}</span>
+                    <button class="btn btn-xs btn-peligro-suave" onclick="_damEliminarCategoria('${c.replace(/'/g,"\\'")}')"><i class="fa-solid fa-trash"></i></button>
+                </div>`).join('')}
+            </div>
+            <div style="display:flex;gap:8px;border-top:1px solid var(--color-borde);padding-top:14px;margin-top:6px;">
+                <input type="text" class="input-celda" id="dam-cat-nueva" placeholder="Nueva categoría…"
+                    style="flex:1;border:1px solid var(--color-borde);"
+                    onkeydown="if(event.key==='Enter')_damAgregarCategoria()">
+                <button class="btn btn-primario btn-xs" onclick="_damAgregarCategoria()"><i class="fa-solid fa-plus"></i> Agregar</button>
+            </div>
+        </div>`;
+    }
+
+    function _damAgregarCategoria() {
+        const val = (document.getElementById('dam-cat-nueva')?.value || '').trim();
+        if (!val) return;
+        const cats = _damGetCatsList();
+        if (!cats.includes(val)) { cats.push(val); guardarBD(); }
+        _damGestionarCats(); _damGestionarCats(); renderDAM();
+    }
+
+    function _damEliminarCategoria(cat) {
+        if (!confirm(`¿Eliminar la categoría "${cat}" del DAM?\nLos activos con esta categoría quedarán sin categoría.`)) return;
+        const cats = _damGetCatsList();
+        const idx = cats.indexOf(cat);
+        if (idx !== -1) { cats.splice(idx, 1); guardarBD(); }
+        _damGestionarCats(); _damGestionarCats(); renderDAM();
+    }
+
     function _abrirModalNuevoActivo() {
         const cats = _getDamCategorias();
         const catEl = document.getElementById('dam-categoria');
@@ -11050,10 +11106,35 @@ document.addEventListener('DOMContentLoaded', function() {
         ).join('');
 
         // Botones de cabecera
-        let hBtns = '';
+        let hBtns = `<input type="text" placeholder="Buscar en catálogo…" value="${_catalogoSearch.replace(/"/g,'&quot;')}"
+            oninput="_catalogoSearch=this.value;renderCatalogo()"
+            style="padding:7px 12px;border:1px solid var(--color-borde);border-radius:8px;font-size:13px;background:var(--color-fondo);color:var(--texto-principal);min-width:180px;">`;
         if (canEdit) hBtns += `<button class="btn btn-primario" onclick="_catalogoNuevoItem()"><i class="fa-solid fa-plus"></i> Nuevo</button>`;
         if (isOwnerOrTeam) hBtns += `<button class="btn btn-fantasma" onclick="_catalogoToggleImport()"><i class="fa-solid fa-file-code"></i> Importar JSON</button>`;
+        if (isOwnerOrTeam) hBtns += `<button class="btn btn-fantasma" onclick="_catalogoGestionarCats()"><i class="fa-solid fa-tags"></i> Categorías</button>`;
         document.getElementById('catalogo-header-btns').innerHTML = hBtns;
+
+        // Búsqueda — muestra resultados planos si hay término
+        const searchTerm = _catalogoSearch.trim().toLowerCase();
+        if (searchTerm) {
+            document.getElementById('catalogo-tabs').innerHTML = '';
+            const results = catData.filter(it =>
+                (it.nombre||'').toLowerCase().includes(searchTerm) ||
+                (it.descripcion||'').toLowerCase().includes(searchTerm) ||
+                (it.categoria||'').toLowerCase().includes(searchTerm)
+            );
+            let html = `<div id="catalogo-import-panel" style="display:none;margin-bottom:20px;"></div>`;
+            if (!results.length) {
+                html += `<div class="tarjeta" style="text-align:center;padding:48px;color:var(--texto-secundario);"><i class="fa-solid fa-magnifying-glass" style="font-size:28px;opacity:.3;display:block;margin-bottom:12px;"></i>Sin resultados para "<strong>${_catalogoSearch}</strong>"</div>`;
+            } else {
+                html += `<div style="font-size:12px;color:var(--texto-secundario);margin-bottom:12px;">${results.length} resultado${results.length!==1?'s':''}</div>`;
+                html += `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">`;
+                results.forEach(item => { const gi = catData.indexOf(item); html += _renderCatalogoCard(item, gi, showDur, canEdit); });
+                html += `</div>`;
+            }
+            document.getElementById('catalogo-contenido').innerHTML = html;
+            return;
+        }
 
         // Items de la pestaña activa
         const items = catData.filter(it => it.categoria === _catalogoTab);
@@ -11120,6 +11201,77 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>` : ''}
             </div>
         </div>`;
+    }
+
+    function _catalogoGestionarCats() {
+        const old = document.getElementById('catalogo-gestion-cats-panel');
+        if (old) { old.remove(); return; }
+        const catData = _getCatalogo(SUC_ACTIVA);
+        const categorias = [];
+        catData.forEach(i => { if (i.categoria && !categorias.includes(i.categoria)) categorias.push(i.categoria); });
+        const panel = document.createElement('div');
+        panel.id = 'catalogo-gestion-cats-panel';
+        panel.style.cssText = 'background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:12px;padding:20px;margin-bottom:20px;';
+        panel.innerHTML = `
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <span style="font-weight:800;font-size:14px;font-family:var(--font-display);">Gestionar Categorías</span>
+                <button class="btn btn-xs btn-fantasma" onclick="document.getElementById('catalogo-gestion-cats-panel').remove()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Renombrar (Enter para guardar) · Selecciona para fusionar</div>
+            ${categorias.map(cat => {
+                const safe = cat.replace(/[^a-zA-Z0-9]/g,'_');
+                const count = catData.filter(i => i.categoria === cat).length;
+                return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <input type="checkbox" id="cat-sel-${safe}" value="${cat.replace(/"/g,'&quot;')}">
+                    <input type="text" class="input-celda" id="cat-rename-${safe}" value="${cat.replace(/"/g,'&quot;')}"
+                        style="flex:1;border:1px solid var(--color-borde);"
+                        onkeydown="if(event.key==='Enter')_catalogoRenombrarCategoria('${cat.replace(/'/g,"\\'")}',this.value)">
+                    <span style="font-size:11px;color:var(--texto-secundario);white-space:nowrap;">${count} item${count!==1?'s':''}</span>
+                    <button class="btn btn-xs btn-fantasma" title="Renombrar"
+                        onclick="_catalogoRenombrarCategoria('${cat.replace(/'/g,"\\'")}',document.getElementById('cat-rename-${safe}').value)">
+                        <i class="fa-solid fa-check"></i>
+                    </button>
+                </div>`;
+            }).join('')}
+            <div style="border-top:1px solid var(--color-borde);padding-top:14px;margin-top:6px;">
+                <div style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Fusionar seleccionadas en:</div>
+                <div style="display:flex;gap:8px;">
+                    <input type="text" class="input-celda" id="cat-fusion-nombre" placeholder="Nombre de la nueva categoría…"
+                        style="flex:1;border:1px solid var(--color-borde);"
+                        onkeydown="if(event.key==='Enter')_catalogoFusionarSeleccionadas()">
+                    <button class="btn btn-primario btn-xs" onclick="_catalogoFusionarSeleccionadas()"><i class="fa-solid fa-compress"></i> Fusionar</button>
+                </div>
+            </div>`;
+        const contenido = document.getElementById('catalogo-contenido');
+        contenido.parentNode.insertBefore(panel, contenido);
+    }
+
+    function _catalogoRenombrarCategoria(oldName, newName) {
+        newName = (newName || '').trim();
+        if (!newName || newName === oldName) return;
+        const cat = _getCatalogo(SUC_ACTIVA);
+        cat.forEach(item => { if (item.categoria === oldName) item.categoria = newName; });
+        _saveCatalogo(SUC_ACTIVA, cat);
+        (DB.datos[SUC_ACTIVA].productos || []).forEach(p => { if (p.categoria === oldName) p.categoria = newName; });
+        guardarBD();
+        renderCatalogo();
+        _catalogoGestionarCats();
+    }
+
+    function _catalogoFusionarSeleccionadas() {
+        const newName = (document.getElementById('cat-fusion-nombre')?.value || '').trim();
+        if (!newName) { alert('Escribe el nombre de la categoría de destino.'); return; }
+        const checks = document.querySelectorAll('[id^="cat-sel-"]:checked');
+        const seleccionadas = Array.from(checks).map(cb => cb.value);
+        if (seleccionadas.length < 2) { alert('Selecciona al menos 2 categorías para fusionar.'); return; }
+        if (!confirm(`¿Fusionar ${seleccionadas.length} categorías en "${newName}"?\n\n${seleccionadas.join('\n')}`)) return;
+        const cat = _getCatalogo(SUC_ACTIVA);
+        cat.forEach(item => { if (seleccionadas.includes(item.categoria)) item.categoria = newName; });
+        _saveCatalogo(SUC_ACTIVA, cat);
+        (DB.datos[SUC_ACTIVA].productos || []).forEach(p => { if (seleccionadas.includes(p.categoria)) p.categoria = newName; });
+        guardarBD();
+        renderCatalogo();
+        _catalogoGestionarCats();
     }
 
     function _catalogoUpdateField(idx, campo, valor) {
