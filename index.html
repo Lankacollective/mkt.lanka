@@ -762,6 +762,11 @@
 
     .pwd-field-wrap { position:relative; display:flex; align-items:center; }
     .pwd-field-wrap .input-celda { padding-right:36px; }
+    .currency-wrap { position:relative; display:flex; align-items:center; }
+    .currency-wrap::before { content:'$'; position:absolute; left:8px; font-weight:700; color:var(--texto-secundario); pointer-events:none; font-size:12px; z-index:1; }
+    .currency-wrap input { padding-left:18px !important; }
+    .currency-wrap-sm::before { left:4px; font-size:11px; }
+    .currency-wrap-sm input { padding-left:14px !important; }
     .pwd-toggle-eye { position:absolute; right:10px; color:var(--texto-secundario); cursor:pointer; font-size:13px; transition:color .2s; }
     .pwd-toggle-eye:hover { color:var(--color-primario); }
 
@@ -6173,7 +6178,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const _real = m.real||0; const _inv = m.inversion||0;
                 const _rc = _real===0?'var(--texto-secundario)':(_real>_inv?'#EA4335':'#15803D');
                 const inp = (val, campo, extraStyle) =>
-                    `<input type="text" inputmode="numeric" class="input-celda" style="width:62px;font-size:11px;font-weight:600;text-align:right;padding:4px 3px;${extraStyle||''}" value="${val}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].${campo}=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()">`;
+                    `<div class="currency-wrap currency-wrap-sm" style="width:66px;"><input type="text" inputmode="numeric" class="input-celda" style="width:66px;font-size:11px;font-weight:600;text-align:right;padding:4px 3px 4px 13px;${extraStyle||''}" value="${val}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].${campo}=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></div>`;
                 if (showInv)  h += `<td style="padding:4px 2px;${monthBorder(true,false,false)}">${inp(_inv,  'inversion', '')}</td>`;
                 if (showReal) h += `<td style="padding:4px 2px;${monthBorder(false,true,false)}">${inp(_real, 'real',      'color:'+_rc+';')}</td>`;
                 if (showCol)  h += `<td style="padding:4px 2px;${monthBorder(false,false,true)}">${inp(m.colaboracion||0,'colaboracion','color:var(--texto-secundario);')}</td>`;
@@ -6362,7 +6367,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('tabla-facturas').innerHTML = d.facturas.map((f, i) => {
             let optEst = DB.desplegables.estado_factura.map(e => `<option ${e===f.estado?'selected':''}>${e}</option>`).join('');
             let inEst = ROL==='agencia' ? `<select class="select-celda" style="font-weight:700;" onchange="DB.datos['${SUC_ACTIVA}'].facturas[${i}].estado=this.value;guardarBD();renderFacturas()">${optEst}</select>` : `<span class="estado-dam ${f.estado==='Pagado'?'estado-aprobado':(f.estado==='Vencido'?'estado-cambios':'estado-revision')}">${f.estado}</span>`;
-            return `<tr><td><input class="input-celda" style="width:70px; font-weight:700;" value="${f.folio}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].facturas[${i}].folio=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:600;" value="${f.proveedor}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].facturas[${i}].proveedor=this.value;guardarBD()"></td><td><input class="input-celda" value="${f.concepto}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].facturas[${i}].concepto=this.value;guardarBD()"></td><td><input type="number" class="input-celda" style="font-weight:700;" value="${f.monto}" ${ro} onchange="updObj('facturas',${i},'monto',this.value)"></td><td>${inEst}</td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('facturas',${i})"></i></td></tr>`;
+            return `<tr><td><input class="input-celda" style="width:70px; font-weight:700;" value="${f.folio}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].facturas[${i}].folio=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:600;" value="${f.proveedor}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].facturas[${i}].proveedor=this.value;guardarBD()"></td><td><input class="input-celda" value="${f.concepto}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].facturas[${i}].concepto=this.value;guardarBD()"></td><td><div class="currency-wrap"><input type="number" class="input-celda" style="font-weight:700;" value="${f.monto}" ${ro} onchange="updObj('facturas',${i},'monto',this.value)"></div></td><td>${inEst}</td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('facturas',${i})"></i></td></tr>`;
         }).join('');
     }
 
@@ -9089,7 +9094,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <td><input class="input-celda" value="${it.categoria}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].categoria=this.value;guardarBD()"></td>
                 <td><input type="text" inputmode="numeric" class="input-celda" style="width:70px; font-weight:700;" value="${it.cantidad}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].cantidad=Number(this.value)||0;guardarBD();renderOfflineTable()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></td>
                 <td><input class="input-celda" value="${it.proveedor}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].proveedor=this.value;guardarBD()"></td>
-                <td><input type="text" inputmode="numeric" class="input-celda" value="${it.costo_unit}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].costo_unit=Number(this.value)||0;guardarBD();renderOfflineTable()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></td>
+                <td><div class="currency-wrap"><input type="text" inputmode="numeric" class="input-celda" value="${it.costo_unit}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].costo_unit=Number(this.value)||0;guardarBD();renderOfflineTable()" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}"></div></td>
                 <td style="font-weight:700; color:var(--color-primario);">$${total.toLocaleString()}</td>
                 <td>${ROL==='agencia' ? `<select class="select-celda" onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].estado=this.value;guardarBD();renderOfflineTable()">${optEst}</select>` : `<span class="estado-badge ${stCls}">${it.estado}</span>`}</td>
                 <td><input type="date" class="input-celda" style="width:130px;" value="${it.entrega}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].offline[${i}].entrega=this.value;guardarBD()"></td>
@@ -11189,9 +11194,11 @@ document.addEventListener('DOMContentLoaded', function() {
             <div style="display:flex;gap:10px;align-items:flex-end;">
                 <div style="flex:1;">
                     <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px;">Precio</label>
-                    <input type="number" class="input-celda" placeholder="0" value="${item.precio??''}" ${ro} min="0"
-                        style="border:1px solid var(--color-borde);border-radius:6px;padding:5px 8px;font-size:13px;font-weight:700;width:100%;box-sizing:border-box;"
-                        onchange="_catalogoUpdateField(${idx},'precio',this.value!==''?Number(this.value):null)">
+                    <div class="currency-wrap" style="width:100%;">
+                        <input type="number" class="input-celda" placeholder="0" value="${item.precio??''}" ${ro} min="0"
+                            style="border:1px solid var(--color-borde);border-radius:6px;padding:5px 8px 5px 18px;font-size:13px;font-weight:700;width:100%;box-sizing:border-box;"
+                            onchange="_catalogoUpdateField(${idx},'precio',this.value!==''?Number(this.value):null)">
+                    </div>
                 </div>
                 ${showDur ? `<div style="flex:1;">
                     <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:3px;">Duración</label>
