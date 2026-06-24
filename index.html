@@ -5730,7 +5730,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tipo==='post') renderOrquestacion(); else renderStories();
     }
 
-    function _syncArchivoLocalToDam(postId, filename, postIdx) {
+    function _syncArchivoLocalToDam(postId, filename, postIdx, previewUrl) {
         const d = DB.datos[SUC_ACTIVA];
         if (!d.dam) d.dam = [];
         if (d.dam.find(a => a.post_vinculado === postId && a.archivo_local === filename)) return;
@@ -5739,7 +5739,7 @@ document.addEventListener('DOMContentLoaded', function() {
             id: 'd'+Date.now(),
             nombre: (post.titulo || 'Activo de post').substring(0, 60),
             categoria: 'General', subcategoria: '', tipo: 'foto',
-            drive_url: '', drive_id: '', url: '', thumbnail_url: '',
+            drive_url: '', drive_id: '', url: '', thumbnail_url: previewUrl||'',
             post_vinculado: postId, story_vinculada: '', shooting_id: '',
             estado: 'en_revision', archivo_local: filename,
             subido_por: USUARIO_ACTIVO?.id||'', subido_por_nombre: USUARIO_ACTIVO?.nombre||ROL,
@@ -5765,7 +5765,20 @@ document.addEventListener('DOMContentLoaded', function() {
                </div>`
             : '';
         const _archivoLocalBadge = t.archivo_local
-            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.archivo_local}">${t.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();${_kp}.archivo_local='';guardarBD();renderOrquestacion()">×</span>` : ''}</span>`
+            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.archivo_local}">${t.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();${_kp}.archivo_local='';delete(window._kPreviewUrls||{}['${t.id}']);guardarBD();renderOrquestacion()">×</span>` : ''}</span>`
+            : '';
+
+        // Preview visual del archivo local (persiste en memoria mientras la sesión esté abierta)
+        const _prevData = (window._kPreviewUrls||{})[t.id];
+        const _previewBlock = _prevData
+            ? (_prevData.isVideo
+                ? `<video src="${_prevData.url}" style="width:100%;max-height:220px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;background:#000;" muted playsinline controls></video>`
+                : `<img src="${_prevData.url}" alt="preview" style="width:100%;max-height:220px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;" loading="lazy">`)
+            : '';
+        const _thumbHdr = _prevData
+            ? (_prevData.isVideo
+                ? `<span style="width:38px;height:38px;border-radius:7px;background:#111;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><i class="fa-solid fa-play" style="color:#fff;font-size:11px;"></i></span>`
+                : `<img src="${_prevData.url}" alt="" style="width:38px;height:38px;border-radius:7px;object-fit:cover;flex-shrink:0;display:inline-block;" loading="lazy">`)
             : '';
 
         // Formato badge/selector
@@ -5837,6 +5850,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
     ${_estEl}
     ${_damBadgeKanban(t.id)}
+    ${_thumbHdr}
     <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);font-size:11px;transition:transform .2s;"></i>
   </div>
 </div>
@@ -5856,7 +5870,8 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
     ${_docBadge}
-    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();const _fn=this.files[0]?this.files[0].name:'';${_kp}.archivo_local=_fn;if(_fn)_syncArchivoLocalToDam('${t.id}',_fn,${idx});guardarBD();renderOrquestacion()"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}${_archivoLocalBadge}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();const _f=this.files[0];const _fn=_f?_f.name:'';if(_f){window._kPreviewUrls=window._kPreviewUrls||{};window._kPreviewUrls['${t.id}']={url:URL.createObjectURL(_f),isVideo:_f.type.startsWith('video/')}}${_kp}.archivo_local=_fn;if(_fn){_syncArchivoLocalToDam('${t.id}',_fn,${idx},(window._kPreviewUrls||{})['${t.id}']?.url);}guardarBD();renderOrquestacion()"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}${_archivoLocalBadge}</div>
+    ${_previewBlock}
   </div>
   ${_sep}
   ${_lbl('<i class="fa-brands fa-instagram" style="color:#E1306C;font-size:12px;"></i>','Contenido Instagram')}
@@ -6058,8 +6073,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 accionBtn = `<button class="btn btn-xs btn-primario" onclick="_subirVersionCorregida('${a.id}')"><i class="fa-solid fa-rotate"></i> Subir V${(a.version||1)+1}</button>`;
             }
 
+            const _damThumb = a.thumbnail_url
+                ? `<div style="width:100%;overflow:hidden;max-height:160px;background:#000;border-radius:0;">${a.tipo==='video'?`<video src="${a.thumbnail_url}" style="width:100%;max-height:160px;object-fit:cover;display:block;" muted playsinline></video>`:`<img src="${a.thumbnail_url}" alt="" style="width:100%;max-height:160px;object-fit:cover;display:block;" loading="lazy">`}</div>`
+                : '';
+
             return `<div class="tarjeta-asset" style="flex-direction:column;padding:0;overflow:hidden;min-height:0;">
                 ${canEdit?`<button onclick="delObj('dam',${realIdx})" title="Eliminar" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;z-index:1;"><i class="fa-solid fa-trash"></i></button>`:''}
+                ${_damThumb}
                 <div style="padding:16px 18px 12px;">
                     <div style="display:flex;align-items:flex-start;gap:12px;">
                         <div style="font-size:20px;color:var(--color-primario);width:28px;flex-shrink:0;text-align:center;margin-top:3px;"><i class="fa-solid ${tipoIcon}"></i></div>
