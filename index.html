@@ -5739,6 +5739,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${canEdit ? `<i class="fa-solid fa-times" style="cursor:pointer;color:var(--color-peligro);font-size:11px;flex-shrink:0;" onclick="event.stopPropagation();${_kp}.drive_doc_url='';guardarBD();renderOrquestacion()" title="Desvincula el documento"></i>` : ''}
                </div>`
             : '';
+        const _archivoLocalBadge = t.archivo_local
+            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.archivo_local}">${t.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();${_kp}.archivo_local='';guardarBD();renderOrquestacion()">×</span>` : ''}</span>`
+            : '';
 
         // Formato badge/selector
         const _fmts = _getFormatos(_SUC);
@@ -5828,6 +5831,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
     ${_docBadge}
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<input type="file" id="file-local-${t.id}" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderOrquestacion()"><button class="btn btn-xs btn-fantasma" onclick="event.stopPropagation();document.getElementById('file-local-${t.id}').click()" title="Seleccionar archivo local"><i class="fa-solid fa-folder-open"></i> Archivo local</button>` : ''}${_archivoLocalBadge}</div>
   </div>
   ${_sep}
   ${_lbl('<i class="fa-brands fa-instagram" style="color:#E1306C;font-size:12px;"></i>','Contenido Instagram')}
@@ -6042,6 +6046,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 <div style="padding:10px 14px;border-top:1px solid var(--color-borde);display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
                     ${verBtn}${copiarBtn}${previstaBtn}${histBtn}${accionBtn}
+                    ${canEdit ? `<input type="file" id="file-dam-${a.id}" style="display:none;" onchange="const _ai=(DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id==='${a.id}');if(_ai>=0){DB.datos[SUC_ACTIVA].dam[_ai].archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderDAM();}"><button class="btn btn-xs btn-fantasma" onclick="document.getElementById('file-dam-${a.id}').click()" title="Seleccionar archivo local"><i class="fa-solid fa-folder-open"></i> Archivo local</button>` : ''}
+                    ${a.archivo_local ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:180px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${a.archivo_local}">${a.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:3px;font-weight:400;" onclick="const _ai2=(DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id==='${a.id}');if(_ai2>=0){DB.datos[SUC_ACTIVA].dam[_ai2].archivo_local='';guardarBD();renderDAM();}">×</span>` : ''}</span>` : ''}
                 </div>
             </div>`;
         }).join('');
@@ -7148,6 +7154,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="font-size:11px;color:var(--texto-secundario);display:flex;align-items:center;gap:6px;padding:6px 0;"><i class="fa-solid fa-moon" style="color:var(--color-primario);opacity:.7;"></i>En dark mode el fondo es automático — Noche profunda siempre activo.</div>
                    </div>`
                 : `<div style="margin-bottom:14px;border:1px solid var(--color-borde);border-radius:10px;padding:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:8px;">BACKGROUND DEL PROYECTO</label><div style="display:flex;gap:5px;margin-bottom:10px;">${_btnTipoFn('solido','Color sólido')}${_btnTipoFn('preset','Preset')}${_btnTipoFn('personalizado','Personalizado')}</div>${_bgBodyHtml}<div style="height:26px;border-radius:7px;border:1px solid var(--color-borde);${_bgPreviewCss}"></div><div style="font-size:10px;color:var(--texto-secundario);margin-top:5px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Fondo de la app cuando este proyecto está activo.</div></div>`;
+            const _driveSection = `<div style="margin-bottom:14px;border:1px solid rgba(66,133,244,.18);border-radius:10px;padding:12px;background:rgba(66,133,244,.03);">
+                <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:8px;"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:5px;"></i>CARPETA DE DRIVE</label>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input class="input-celda" id="drive-folder-input-${s.id}" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:8px 12px;font-size:12px;" placeholder="Pega la URL de la carpeta del proyecto en Drive..." value="${s.drive_contenido_url||''}" onclick="event.stopPropagation()" onchange="DB.sucursales[${i}].drive_contenido_url=this.value.trim();guardarBD()">
+                    <button class="btn btn-xs btn-fantasma" onclick="const _u=document.getElementById('drive-folder-input-${s.id}').value;if(_u)window.open(_u,'_blank');else alert('Agrega primero la URL de la carpeta de Drive')" title="Abrir carpeta en Drive"><i class="fa-brands fa-google-drive" style="color:#4285F4;"></i> Abrir</button>
+                </div>
+                <div style="font-size:10px;color:var(--texto-secundario);margin-top:5px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Link a la carpeta del proyecto — visible en cada post del calendario.</div>
+            </div>`;
             return `<div class="tarjeta-cliente">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <input class="input-celda" style="font-weight:800;font-size:18px;padding-left:0;font-family:var(--font-display);" value="${s.nombre}"
@@ -7172,6 +7186,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">IDENTIDAD VISUAL (HEX)</label><div class="color-picker-wrapper"><input type="color" class="color-picker-input" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"><input class="input-celda" style="padding:0;font-family:monospace;font-weight:700;text-transform:uppercase;" value="${s.color}" onchange="DB.sucursales[${i}].color=this.value;guardarBD();renderTodas();"></div></div>
                 ${_bgSection}
                 ${_logoSection}
+                ${_driveSection}
                 ${equipoSection}
             </div>`;
         }).join('');
@@ -9500,6 +9515,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div style="font-size:11px;color:var(--texto-secundario);display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:2px;">
                             <i class="fa-solid fa-photo-film" style="font-size:9px;opacity:.5;"></i>${_renderActivosStory(s.id)}
                         </div>
+                        ${s.archivo_local ? `<div style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;margin-top:4px;max-width:220px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${s.archivo_local}">${s.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:3px;font-weight:400;" onclick="const _stDel=(DB.datos[SUC_ACTIVA].stories_ind||[]).findIndex(x=>x.id==='${s.id}');if(_stDel>=0){DB.datos[SUC_ACTIVA].stories_ind[_stDel].archivo_local='';guardarBD();renderStories();}">×</span>` : ''}</div>` : ''}
                     </div>
                     ${canEdit ? `
                     <div style="display:flex; flex-direction:column; gap:8px; flex-shrink:0;">
@@ -9507,6 +9523,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             <i class="fa-solid ${s.estado==='Publicado' ? 'fa-circle-check' : 'fa-check'}"></i> ${s.estado==='Publicado' ? 'Publicada' : 'Publicar'}
                         </button>
                         <button class="btn btn-xs btn-fantasma" onclick="editarStory('${s.id}')"><i class="fa-solid fa-pen"></i> Editar</button>
+                        <input type="file" id="file-story-${s.id}" style="display:none;" onchange="const _stIdx=(DB.datos[SUC_ACTIVA].stories_ind||[]).findIndex(x=>x.id==='${s.id}');if(_stIdx>=0){DB.datos[SUC_ACTIVA].stories_ind[_stIdx].archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderStories();}">
+                        <button class="btn btn-xs btn-fantasma" onclick="document.getElementById('file-story-${s.id}').click()" title="Seleccionar archivo local"><i class="fa-solid fa-folder-open"></i></button>
                         <button class="btn btn-xs btn-peligro-suave" onclick="eliminarStory('${s.id}')"><i class="fa-solid fa-trash"></i></button>
                     </div>` : ''}
                 </div>`;
