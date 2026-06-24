@@ -829,7 +829,7 @@
     .ppto-pill:hover { border-color:var(--color-primario); color:var(--color-primario); }
     .ppto-pill.activo { background:var(--color-primario); border-color:var(--color-primario); color:#fff; }
     [data-theme="dark"] .ppto-pill:not(.activo) { border-color:rgba(255,255,255,0.15); }
-    .ppto-sticky-col { background: #fff; }
+    .ppto-sticky-col { background: #fff; min-width:280px; max-width:280px; }
     [data-theme="dark"] .ppto-sticky-col { background: #111114 !important; }
     [data-theme="light"] .ppto-sticky-col { background: #F5F0EA !important; }
     .ppto-cat-header td { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; padding:10px 14px; border-bottom:1px solid var(--color-borde); cursor:pointer; user-select:none; }
@@ -6150,7 +6150,7 @@ document.addEventListener('DOMContentLoaded', function() {
         h += `<div class="tarjeta tabla-scroll-mobile" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
         <table class="tabla-editable" style="font-size:12px;border-collapse:collapse;width:100%;"><thead>
             <tr>
-                <th style="position:sticky;left:0;z-index:2;min-width:200px;padding:10px 14px;" class="ppto-sticky-col">Ítem</th>`;
+                <th style="position:sticky;left:0;z-index:2;min-width:280px;max-width:280px;padding:10px 14px;" class="ppto-sticky-col">Ítem</th>`;
         MESES.forEach((m, mi) => {
             const esMesActual = mi === mesActual;
             h += `<th colspan="${colSpan}" style="text-align:center;border-left:1px solid var(--color-borde);padding:8px 4px;white-space:nowrap;font-size:11px;${esMesActual?'background:rgba(var(--brand-tone-base-rgb),.08);color:var(--color-primario);font-weight:800;':''}">${m.substring(0,3)}${esMesActual?' ●':''}</th>`;
@@ -6217,22 +6217,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 items.forEach(({p, pIdx}) => {
                     const rowTotal = p.montos_mes.reduce((s,m)=>s+(m.inversion||0)+(m.colaboracion||0),0);
                     const inp = (val, campo, mIdx, extraStyle) =>
-                        `<div class="currency-wrap currency-wrap-sm" style="width:62px;"><input type="text" inputmode="numeric" class="input-celda" style="width:62px;font-size:11px;font-weight:600;text-align:right;padding:4px 3px 4px 13px;${extraStyle||''}" value="${val}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].${campo}=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></div>`;
+                        `<div class="currency-wrap currency-wrap-sm" style="width:74px;"><input type="text" inputmode="numeric" class="input-celda" style="width:74px;font-size:11px;font-weight:600;text-align:right;padding:4px 3px 4px 14px;${extraStyle||''}" value="${val}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].${campo}=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></div>`;
                     h += `<tr class="ppto-row-item">
-                        <td style="position:sticky;left:0;z-index:1;padding:6px 14px;border-left:3px solid ${catColor}40;" class="ppto-sticky-col">
-                            <input class="input-celda" value="${p.item}" ${ro} style="font-weight:600;font-size:12px;width:100%;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
+                        <td style="position:sticky;left:0;z-index:1;padding:6px 14px;border-left:3px solid ${catColor}40;min-width:280px;max-width:280px;" class="ppto-sticky-col">
+                            <input class="input-celda" value="${p.item}" ${ro} title="${p.item}" style="font-weight:600;font-size:12px;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
                         </td>`;
                     p.montos_mes.forEach((m, mIdx) => {
                         const _real=m.real||0; const _inv=m.inversion||0;
                         const _rc=_real===0?'var(--texto-secundario)':(_real>_inv?'#EA4335':'#15803D');
                         const esMes=mIdx===mesActual;
-                        h += `<td style="padding:3px 2px;border-left:1px solid var(--color-borde);${esMes?'background:rgba(var(--brand-tone-base-rgb),.04);':''}">`;
+                        h += `<td style="padding:3px 4px;border-left:1px solid var(--color-borde);${esMes?'background:rgba(var(--brand-tone-base-rgb),.04);':''}">`;
                         if (showInv)  h += inp(_inv,'inversion',mIdx,'');
                         if (showReal) h += inp(_real,'real',mIdx,'color:'+_rc+';');
                         if (showCol)  h += inp(m.colaboracion||0,'colaboracion',mIdx,'color:var(--texto-secundario);');
                         h += `</td>`;
                     });
-                    h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:700;white-space:nowrap;font-size:12px;padding:8px 12px;color:${catColor};">${formatDinero(rowTotal)}</td>`;
+                    h += `<td style="border-left:3px solid var(--color-borde-fuerte);text-align:right;font-weight:800;white-space:nowrap;font-size:13px;padding:8px 16px;color:${catColor};background:rgba(0,0,0,.02);">${formatDinero(rowTotal)}</td>`;
                     if (!ro) h += `<td style="width:28px;text-align:center;padding:4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`;
                     h += `</tr>`;
                 });
