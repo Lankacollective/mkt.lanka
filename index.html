@@ -3526,7 +3526,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
         if(lista === 'proveedores') { const _pa=_getProveedores(SUC_ACTIVA); _pa.push({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:""}); _saveProveedores(SUC_ACTIVA,_pa); renderAdministracion(); return; }
-        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); renderTodas();
+        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') sendToCAOS({ title: n.titulo, project: 'Marketing', assignee: n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); renderTodas();
     }
 
     /* ====================================================
@@ -12479,5 +12479,36 @@ function _xlsNotificarOrigenManual() {
 </div>
 <div id="notif-overlay" onclick="_toggleNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8999;background:rgba(0,0,0,.15);"></div>
 
+<!-- CAOS Integration -->
+<script>
+  const CAOS_API = 'https://tmypjnoapglzdidrurqq.supabase.co/functions/v1/add-task';
+  const CAOS_KEY = 'caos_sk_lnk_7xK9mP2vQr3bN8dTw';
+  async function sendToCAOS({ title, description = '', project = '', assignee = '', date = '', notes = '' }) {
+    try {
+      const res = await fetch(CAOS_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': CAOS_KEY
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          project,
+          assignee,
+          date,
+          notes,
+          source: 'mkt-lanka'
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error');
+      alert('\u2713 Tarea enviada a CAOS');
+      return data;
+    } catch (e) {
+      alert('Error enviando a CAOS: ' + e.message);
+    }
+  }
+</script>
 </body>
 </html>
