@@ -810,13 +810,13 @@
     [data-theme="dark"] .tab-btn:hover { color: #F0EDE8 !important; }
     [data-theme="dark"] .tab-btn.activo { color: var(--color-primario) !important; }
     /* Presupuesto KPI strip */
-    .ppto-kpi-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
-    .ppto-kpi-card { background:#FFFFFF; border-radius:18px; padding:22px 24px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); }
-    .ppto-kpi-val { font-family:var(--font-display); font-size:26px; font-weight:900; color:var(--color-primario); letter-spacing:-0.04em; line-height:1.1; margin-bottom:4px; }
+    .ppto-kpi-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px; }
+    @media(max-width:700px){ .ppto-kpi-strip { grid-template-columns:1fr 1fr; } }
+    .ppto-kpi-card { background:#FFFFFF; border-radius:16px; padding:18px 20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); }
+    .ppto-kpi-val { font-family:var(--font-display); font-size:24px; font-weight:900; color:var(--color-primario); letter-spacing:-0.04em; line-height:1.1; margin-bottom:4px; }
     .ppto-kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--texto-secundario); }
     [data-theme="dark"] .ppto-kpi-card { background: rgba(20,18,16,0.82) !important; border-color: rgba(255,255,255,0.08) !important; }
-    [data-theme="light"] .ppto-kpi-card { background: rgba(255,255,255,0.72) !important; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border: 1px solid rgba(255,255,255,0.9) !important; }
-    /* Presupuesto view switcher */
+    [data-theme="light"] .ppto-kpi-card { background: rgba(255,255,255,0.82) !important; backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px); border: 1px solid rgba(255,255,255,0.9) !important; }
     .ppto-view-btns { display:flex; gap:0; border-bottom:2px solid var(--color-borde); margin-bottom:24px; }
     .ppto-view-btn { padding:10px 20px; font-size:13px; font-weight:600; color:var(--texto-secundario); cursor:pointer; border:none; background:none; border-bottom:2px solid transparent; margin-bottom:-2px; transition:var(--transicion); }
     .ppto-view-btn:hover { color:var(--texto-principal); }
@@ -825,15 +825,21 @@
     [data-theme="dark"] .ppto-view-btn:hover { color: #F0EDE8 !important; }
     [data-theme="dark"] .ppto-view-btn.activo { color: var(--color-primario) !important; }
     [data-theme="dark"] .ppto-view-btns { border-bottom-color: rgba(255,255,255,0.1) !important; }
-    /* Presupuesto pills de atajo */
-    .ppto-pill { padding:7px 16px; border-radius:100px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid var(--color-borde-fuerte); background:transparent; color:var(--texto-secundario); transition:var(--transicion); }
+    .ppto-pill { padding:6px 14px; border-radius:100px; font-size:12px; font-weight:600; cursor:pointer; border:1.5px solid var(--color-borde-fuerte); background:transparent; color:var(--texto-secundario); transition:var(--transicion); }
     .ppto-pill:hover { border-color:var(--color-primario); color:var(--color-primario); }
     .ppto-pill.activo { background:var(--color-primario); border-color:var(--color-primario); color:#fff; }
     [data-theme="dark"] .ppto-pill:not(.activo) { border-color:rgba(255,255,255,0.15); }
-    /* Sticky column dark/light */
     .ppto-sticky-col { background: #fff; }
     [data-theme="dark"] .ppto-sticky-col { background: #111114 !important; }
     [data-theme="light"] .ppto-sticky-col { background: #F5F0EA !important; }
+    .ppto-cat-header td { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; padding:10px 14px; border-bottom:1px solid var(--color-borde); cursor:pointer; user-select:none; }
+    .ppto-cat-header td:first-child { border-left:3px solid var(--ppto-cat-color,var(--color-primario)); }
+    .ppto-cat-subtotal { font-size:11px; font-weight:700; text-align:right; white-space:nowrap; padding:8px 10px; color:var(--ppto-cat-color,var(--color-primario)); }
+    .ppto-mes-actual { background:rgba(var(--brand-tone-base-rgb),.06) !important; }
+    .ppto-row-item:hover td { background:rgba(0,0,0,.025); }
+    [data-theme="dark"] .ppto-row-item:hover td { background:rgba(255,255,255,.04); }
+    .ppto-progress-bar { height:3px; border-radius:100px; background:var(--color-borde); margin-top:4px; overflow:hidden; }
+    .ppto-progress-fill { height:100%; border-radius:100px; transition:width .3s; }
 
     /* ================================================================
        DASHBOARD KPI ROW + INVERSIÓN DESGLOSE
@@ -6118,76 +6124,134 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function cambiarVistaPpto(v) { _pptoVista = v; renderPresupuesto(); }
 
+    if (!window._pptoCatCollapsed) window._pptoCatCollapsed = {};
+
     function _renderPptoAnual(pres, ro) {
         const showInv  = _pptoAnualCols === 'all' || _pptoAnualCols === 'inv';
         const showReal = _pptoAnualCols === 'all' || _pptoAnualCols === 'real';
         const showCol  = _pptoAnualCols === 'all' || _pptoAnualCols === 'col';
         const colSpan  = [showInv, showReal, showCol].filter(Boolean).length;
+        const mesActual = new Date().getMonth(); // 0-11
 
-        // Selector de columnas visibles
         const _colPills = [
-            { id:'all',  lbl:'Todo' },
             { id:'inv',  lbl:'Presupuesto' },
             { id:'real', lbl:'Real' },
-            { id:'col',  lbl:'Colaboración' }
+            { id:'col',  lbl:'Colaboración' },
+            { id:'all',  lbl:'Todo' }
         ].map(({id, lbl}) =>
             `<button class="ppto-pill ${_pptoAnualCols===id?'activo':''}" style="font-size:11px;padding:5px 12px;" onclick="_pptoAnualCols='${id}';renderPresupuesto()">${lbl}</button>`
         ).join('');
 
-        let h = `<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
-            <span style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Columnas:</span>
+        let h = `<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+            <span style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;">Ver:</span>
             ${_colPills}
         </div>`;
 
         h += `<div class="tarjeta tabla-scroll-mobile" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
-        <table class="tabla-editable" style="font-size:12px;border-collapse:collapse;"><thead>
+        <table class="tabla-editable" style="font-size:12px;border-collapse:collapse;width:100%;"><thead>
             <tr>
-                <th style="position:sticky;left:0;z-index:2;min-width:190px;max-width:220px;padding:10px 14px;" class="ppto-sticky-col">Ítem</th>`;
-        MESES.forEach(m => h += `<th colspan="${colSpan}" style="text-align:center;border-left:1px solid var(--color-borde);padding:8px 4px;white-space:nowrap;font-size:11px;">${m.substring(0,3)}</th>`);
-        h += `<th style="text-align:center;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;padding:8px 10px;">Total</th></tr>
-            <tr><th style="position:sticky;left:0;z-index:2;padding:4px 14px;" class="ppto-sticky-col"></th>`;
-        MESES.forEach(() => {
-            if (showInv)  h += `<th style="font-size:9px;text-align:center;color:var(--color-primario);opacity:.85;padding:3px 2px;white-space:nowrap;">Pres.</th>`;
-            if (showReal) h += `<th style="font-size:9px;text-align:center;color:#15803D;padding:3px 2px;white-space:nowrap;">Real</th>`;
-            if (showCol)  h += `<th style="font-size:9px;text-align:center;color:var(--texto-secundario);padding:3px 2px;white-space:nowrap;">Col.</th>`;
+                <th style="position:sticky;left:0;z-index:2;min-width:200px;padding:10px 14px;" class="ppto-sticky-col">Ítem</th>`;
+        MESES.forEach((m, mi) => {
+            const esMesActual = mi === mesActual;
+            h += `<th colspan="${colSpan}" style="text-align:center;border-left:1px solid var(--color-borde);padding:8px 4px;white-space:nowrap;font-size:11px;${esMesActual?'background:rgba(var(--brand-tone-base-rgb),.08);color:var(--color-primario);font-weight:800;':''}">${m.substring(0,3)}${esMesActual?' ●':''}</th>`;
         });
-        h += `<th></th></tr></thead><tbody>`;
+        h += `<th style="text-align:right;border-left:2px solid var(--color-borde-fuerte);white-space:nowrap;padding:8px 12px;font-size:11px;">Total</th>`;
+        if (!ro) h += `<th style="width:28px;"></th>`;
+        h += `</tr>`;
 
-        // Función para determinar cuál celda de cada mes lleva border-right separador
-        const monthBorder = (isInv, isReal, isCol) => {
-            if (showCol && isCol)   return 'border-right:1px solid var(--color-borde);';
-            if (!showCol && showReal && isReal) return 'border-right:1px solid var(--color-borde);';
-            if (!showCol && !showReal && showInv && isInv) return 'border-right:1px solid var(--color-borde);';
-            return '';
-        };
+        if (colSpan > 1) {
+            h += `<tr><th style="position:sticky;left:0;z-index:2;padding:4px 14px;" class="ppto-sticky-col"></th>`;
+            MESES.forEach((_, mi) => {
+                const cls = mi===mesActual?'class="ppto-mes-actual"':'';
+                if (showInv)  h += `<th ${cls} style="font-size:9px;text-align:center;color:var(--color-primario);opacity:.85;padding:3px 2px;white-space:nowrap;">Pres.</th>`;
+                if (showReal) h += `<th ${cls} style="font-size:9px;text-align:center;color:#15803D;padding:3px 2px;white-space:nowrap;">Real</th>`;
+                if (showCol)  h += `<th ${cls} style="font-size:9px;text-align:center;color:var(--texto-secundario);padding:3px 2px;white-space:nowrap;">Col.</th>`;
+            });
+            h += `<th></th>${!ro?'<th></th>':''}</tr>`;
+        }
+        h += `</thead><tbody>`;
 
+        // Agrupar por tipo/categoría
+        const grupos = {};
+        const catOrder = INVERSION_CATEGORIAS.map(c => c.tipo);
         pres.forEach((p, pIdx) => {
-            const rowTotal = p.montos_mes.reduce((s,m) => s+(m.inversion||0)+(m.colaboracion||0), 0);
-            const _tipoOpts = INVERSION_CATEGORIAS.map(c=>`<option ${p.tipo===c.tipo?'selected':''}>${c.tipo}</option>`).join('');
-            const tipoSel = ro ? '' : `<select class="select-celda" style="font-size:10px;padding:2px 4px;margin-top:3px;max-width:140px;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].tipo=this.value;guardarBD()">${_tipoOpts}</select>`;
-            const _honorTip = p.tipo === 'Honorarios de agencia' ? `<i class="fa-solid fa-circle-info" style="color:var(--texto-secundario);opacity:.5;font-size:10px;cursor:help;flex-shrink:0;" title="Lo que cobra LANKA mensualmente por gestionar&#10;el marketing de este cliente."></i>` : '';
-            h += `<tr>
-                <td style="position:sticky;left:0;border-right:1px solid var(--color-borde);min-width:190px;max-width:220px;padding:8px 14px;vertical-align:top;" class="ppto-sticky-col">
-                    <input class="input-celda" value="${p.item}" ${ro} style="font-weight:700;width:100%;min-width:0;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
-                    <div style="display:flex;gap:5px;align-items:center;margin-top:3px;min-width:0;">
-                        <span style="font-size:10px;color:var(--texto-secundario);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:0 1 auto;" title="${p.categoria}">${p.categoria}</span>
-                        ${tipoSel}${_honorTip}
+            const tipo = p.tipo || 'Otro';
+            if (!grupos[tipo]) grupos[tipo] = [];
+            grupos[tipo].push({ p, pIdx });
+        });
+        // Items sin tipo reconocido al final
+        const tiposOrdenados = [...catOrder.filter(t => grupos[t]), ...Object.keys(grupos).filter(t => !catOrder.includes(t))];
+
+        tiposOrdenados.forEach(tipo => {
+            const items = grupos[tipo] || [];
+            const catInfo = INVERSION_CATEGORIAS.find(c => c.tipo === tipo) || { color:'#888', icon:'fa-circle', tipo };
+            const catColor = catInfo.color;
+            const collapsed = !!window._pptoCatCollapsed[tipo];
+            const catTotalesMes = Array(12).fill(0);
+            items.forEach(({p}) => { p.montos_mes.forEach((m,mi) => { catTotalesMes[mi] += (m.inversion||0)+(m.colaboracion||0); }); });
+            const catTotal = catTotalesMes.reduce((a,b)=>a+b,0);
+            const pctReal = (() => { let inv=0,real=0; items.forEach(({p})=>p.montos_mes.forEach(m=>{inv+=m.inversion||0;real+=m.real||0;})); return inv>0?Math.min(Math.round(real/inv*100),100):0; })();
+
+            // Header de categoría
+            h += `<tr class="ppto-cat-header" style="--ppto-cat-color:${catColor};background:${catColor}10;" onclick="window._pptoCatCollapsed['${tipo.replace(/'/g,"\\'")}']=${!collapsed};renderPresupuesto()">
+                <td style="position:sticky;left:0;z-index:1;background:${catColor}12;" class="ppto-sticky-col">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <i class="fa-solid ${catInfo.icon}" style="color:${catColor};font-size:12px;flex-shrink:0;"></i>
+                        <span style="color:${catColor};">${tipo}</span>
+                        <span style="font-size:10px;font-weight:500;color:var(--texto-secundario);opacity:.7;">${items.length} ítem${items.length!==1?'s':''}</span>
+                        <i class="fa-solid fa-chevron-${collapsed?'right':'down'}" style="font-size:9px;color:${catColor};margin-left:auto;"></i>
+                    </div>
+                    <div class="ppto-progress-bar" style="margin-top:6px;">
+                        <div class="ppto-progress-fill" style="width:${pctReal}%;background:${catColor};"></div>
                     </div>
                 </td>`;
-            p.montos_mes.forEach((m, mIdx) => {
-                const _real = m.real||0; const _inv = m.inversion||0;
-                const _rc = _real===0?'var(--texto-secundario)':(_real>_inv?'#EA4335':'#15803D');
-                const inp = (val, campo, extraStyle) =>
-                    `<div class="currency-wrap currency-wrap-sm" style="width:66px;"><input type="text" inputmode="numeric" class="input-celda" style="width:66px;font-size:11px;font-weight:600;text-align:right;padding:4px 3px 4px 13px;${extraStyle||''}" value="${val}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].${campo}=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></div>`;
-                if (showInv)  h += `<td style="padding:4px 2px;${monthBorder(true,false,false)}">${inp(_inv,  'inversion', '')}</td>`;
-                if (showReal) h += `<td style="padding:4px 2px;${monthBorder(false,true,false)}">${inp(_real, 'real',      'color:'+_rc+';')}</td>`;
-                if (showCol)  h += `<td style="padding:4px 2px;${monthBorder(false,false,true)}">${inp(m.colaboracion||0,'colaboracion','color:var(--texto-secundario);')}</td>`;
+            MESES.forEach((_, mi) => {
+                const esMes = mi===mesActual;
+                h += `<td colspan="${colSpan}" class="ppto-cat-subtotal${esMes?' ppto-mes-actual':''}" style="--ppto-cat-color:${catColor};border-left:1px solid var(--color-borde);">${catTotalesMes[mi]>0?formatDinero(catTotalesMes[mi]):'<span style="opacity:.3;">—</span>'}</td>`;
             });
-            h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:700;white-space:nowrap;font-size:12px;padding:8px 10px;">${formatDinero(rowTotal)}</td>`;
-            if (!ro) h += `<td style="width:32px;text-align:center;padding:4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`;
+            h += `<td class="ppto-cat-subtotal" style="--ppto-cat-color:${catColor};border-left:2px solid var(--color-borde-fuerte);">${formatDinero(catTotal)}</td>`;
+            if (!ro) h += `<td></td>`;
             h += `</tr>`;
+
+            if (!collapsed) {
+                items.forEach(({p, pIdx}) => {
+                    const rowTotal = p.montos_mes.reduce((s,m)=>s+(m.inversion||0)+(m.colaboracion||0),0);
+                    const inp = (val, campo, mIdx, extraStyle) =>
+                        `<div class="currency-wrap currency-wrap-sm" style="width:62px;"><input type="text" inputmode="numeric" class="input-celda" style="width:62px;font-size:11px;font-weight:600;text-align:right;padding:4px 3px 4px 13px;${extraStyle||''}" value="${val}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].montos_mes[${mIdx}].${campo}=Number(this.value.replace(/[^0-9.]/g,''))||0;guardarBD();renderPresupuesto()"></div>`;
+                    h += `<tr class="ppto-row-item">
+                        <td style="position:sticky;left:0;z-index:1;padding:6px 14px;border-left:3px solid ${catColor}40;" class="ppto-sticky-col">
+                            <input class="input-celda" value="${p.item}" ${ro} style="font-weight:600;font-size:12px;width:100%;" onchange="DB.datos['${SUC_ACTIVA}'].presupuesto[${pIdx}].item=this.value;guardarBD()">
+                        </td>`;
+                    p.montos_mes.forEach((m, mIdx) => {
+                        const _real=m.real||0; const _inv=m.inversion||0;
+                        const _rc=_real===0?'var(--texto-secundario)':(_real>_inv?'#EA4335':'#15803D');
+                        const esMes=mIdx===mesActual;
+                        h += `<td style="padding:3px 2px;border-left:1px solid var(--color-borde);${esMes?'background:rgba(var(--brand-tone-base-rgb),.04);':''}">`;
+                        if (showInv)  h += inp(_inv,'inversion',mIdx,'');
+                        if (showReal) h += inp(_real,'real',mIdx,'color:'+_rc+';');
+                        if (showCol)  h += inp(m.colaboracion||0,'colaboracion',mIdx,'color:var(--texto-secundario);');
+                        h += `</td>`;
+                    });
+                    h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:700;white-space:nowrap;font-size:12px;padding:8px 12px;color:${catColor};">${formatDinero(rowTotal)}</td>`;
+                    if (!ro) h += `<td style="width:28px;text-align:center;padding:4px;"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;font-size:12px;" onclick="delObj('presupuesto',${pIdx})"></i></td>`;
+                    h += `</tr>`;
+                });
+            }
         });
-        return h + `</tbody></table></div></div>`;
+
+        // Fila de gran total
+        const grandTotalesMes = Array(12).fill(0);
+        pres.forEach(p => p.montos_mes.forEach((m,mi) => { grandTotalesMes[mi] += (m.inversion||0)+(m.colaboracion||0); }));
+        const grandTotal = grandTotalesMes.reduce((a,b)=>a+b,0);
+        h += `<tr style="border-top:2px solid var(--color-borde-fuerte);">
+            <td style="position:sticky;left:0;z-index:1;font-weight:800;font-size:12px;padding:10px 14px;" class="ppto-sticky-col">Total anual</td>`;
+        grandTotalesMes.forEach((t, mi) => {
+            h += `<td colspan="${colSpan}" style="text-align:right;font-weight:800;font-size:12px;border-left:1px solid var(--color-borde);padding:8px 6px;white-space:nowrap;${mi===mesActual?'background:rgba(var(--brand-tone-base-rgb),.06);':''}">${formatDinero(t)}</td>`;
+        });
+        h += `<td style="border-left:2px solid var(--color-borde-fuerte);text-align:right;font-weight:800;font-size:13px;padding:10px 12px;color:var(--color-primario);">${formatDinero(grandTotal)}</td>`;
+        if (!ro) h += `<td></td>`;
+        h += `</tr></tbody></table></div></div>`;
+        return h;
     }
 
     // Helpers fecha
