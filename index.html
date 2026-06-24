@@ -1365,7 +1365,7 @@
         <ul class="menu-nav req-no-equipo">
             <li class="item-nav" data-target="vista-briefing"><i class="fa-solid fa-chess-knight"></i> Briefing</li>
             <li class="item-nav" data-target="vista-target"><i class="fa-solid fa-users-viewfinder"></i> Target & Seg.</li>
-            <li class="item-nav" data-target="vista-ads"><i class="fa-solid fa-bullhorn"></i> Ad Performance</li>
+            <li class="item-nav" data-target="vista-ads"><i class="fa-solid fa-bullhorn"></i> Campañas</li>
             <li class="item-nav" data-target="vista-offline"><i class="fa-solid fa-print"></i> Materiales Offline</li>
             <li class="item-nav" data-target="vista-catalogo" onclick="irA('vista-catalogo');renderCatalogo()"><i class="fa-solid fa-book-open"></i> Catálogo</li>
         </ul>
@@ -2048,6 +2048,12 @@
             <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Link de Google Drive</label>
                 <input id="dam-drive-url" class="textarea-apple" style="min-height:auto;padding:10px 14px;" placeholder="https://drive.google.com/file/d/..." oninput="_damAutoExtractId(this)">
                 <div id="dam-drive-id-preview" style="font-size:11px;color:var(--color-primario);margin-top:4px;font-weight:600;"></div></div>
+            <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Archivo local</label>
+                <label style="cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;border-radius:10px;padding:10px 14px;box-sizing:border-box;border:1px solid var(--color-borde);background:var(--color-fondo,#fafafa);font-size:13px;color:var(--texto-secundario);">
+                    <input type="file" id="dam-archivo-local" style="display:none;" onchange="document.getElementById('dam-archivo-local-name').textContent=this.files[0]?this.files[0].name:'Seleccionar archivo...'">
+                    <i class="fa-solid fa-folder-open" style="font-size:13px;color:var(--color-primario);"></i>
+                    <span id="dam-archivo-local-name">Seleccionar archivo...</span>
+                </label></div>
             <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Vincular a post</label>
                 <select id="dam-post" class="textarea-apple" style="min-height:auto;padding:10px 14px;"><option value="">Sin vinculación</option></select></div>
             <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Vincular a story</label>
@@ -5724,6 +5730,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tipo==='post') renderOrquestacion(); else renderStories();
     }
 
+    function _syncArchivoLocalToDam(postId, filename, postIdx) {
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d.dam) d.dam = [];
+        if (d.dam.find(a => a.post_vinculado === postId && a.archivo_local === filename)) return;
+        const post = (d.kanban||[])[postIdx] || {};
+        d.dam.push({
+            id: 'd'+Date.now(),
+            nombre: (post.titulo || 'Activo de post').substring(0, 60),
+            categoria: 'General', subcategoria: '', tipo: 'foto',
+            drive_url: '', drive_id: '', url: '', thumbnail_url: '',
+            post_vinculado: postId, story_vinculada: '', shooting_id: '',
+            estado: 'en_revision', archivo_local: filename,
+            subido_por: USUARIO_ACTIVO?.id||'', subido_por_nombre: USUARIO_ACTIVO?.nombre||ROL,
+            fecha_subida: new Date().toISOString(), notas_edicion: '', version: 1,
+            historial: [{ autor: USUARIO_ACTIVO?.nombre||ROL, fecha: new Date().toLocaleString(), accion: 'Subido', nota: 'Desde post' }]
+        });
+    }
+
     function _buildKanbanCard(t, idx, d, canEdit, ro, suc_info, targetOpts) {
         const _SUC = SUC_ACTIVA;
         const _kp  = `DB.datos['${_SUC}'].kanban[${idx}]`;
@@ -5832,7 +5856,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
     ${_docBadge}
-    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.archivo_local=this.files[0]?this.files[0].name:'';guardarBD();renderOrquestacion()"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}${_archivoLocalBadge}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();const _fn=this.files[0]?this.files[0].name:'';${_kp}.archivo_local=_fn;if(_fn)_syncArchivoLocalToDam('${t.id}',_fn,${idx});guardarBD();renderOrquestacion()"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}${_archivoLocalBadge}</div>
   </div>
   ${_sep}
   ${_lbl('<i class="fa-brands fa-instagram" style="color:#E1306C;font-size:12px;"></i>','Contenido Instagram')}
@@ -7685,6 +7709,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('dam-drive-id-preview').textContent = '';
         document.getElementById('dam-notas').value = '';
         document.getElementById('dam-tipo').value = 'video';
+        const _dalEl = document.getElementById('dam-archivo-local');
+        if (_dalEl) _dalEl.value = '';
+        const _dalName = document.getElementById('dam-archivo-local-name');
+        if (_dalName) _dalName.textContent = 'Seleccionar archivo...';
         document.getElementById('modal-nuevo-activo').classList.add('activo');
     }
 
@@ -7709,6 +7737,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const nombre = document.getElementById('dam-nombre').value.trim();
         if (!nombre) { alert('El nombre del activo es requerido.'); return; }
         const driveUrl = document.getElementById('dam-drive-url').value.trim();
+        const _dalFile = document.getElementById('dam-archivo-local');
+        const archivoLocal = _dalFile && _dalFile.files[0] ? _dalFile.files[0].name : '';
         const d = DB.datos[SUC_ACTIVA];
         if (!d.dam) d.dam = [];
         d.dam.push({
@@ -7725,6 +7755,7 @@ document.addEventListener('DOMContentLoaded', function() {
             story_vinculada:  document.getElementById('dam-story').value,
             shooting_id:      '',
             estado:           'en_revision',
+            archivo_local:    archivoLocal,
             subido_por:       USUARIO_ACTIVO?.id||'',
             subido_por_nombre:USUARIO_ACTIVO?.nombre||ROL,
             fecha_subida:     new Date().toISOString(),
