@@ -5775,17 +5775,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
             } else if (file.type.startsWith('video/')) {
                 const vid = document.createElement('video');
-                vid.muted = true; vid.playsInline = true; vid.preload = 'metadata';
-                vid.onloadeddata = () => { vid.currentTime = 0.1; };
+                vid.muted = true; vid.playsInline = true; vid.preload = 'auto';
+                vid.onloadedmetadata = () => { vid.currentTime = 0.5; };
                 vid.onseeked = () => {
-                    URL.revokeObjectURL(objUrl);
-                    let w = vid.videoWidth, h = vid.videoHeight;
-                    if (w > MAX_PX) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
-                    if (h > MAX_PX) { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
-                    const c = document.createElement('canvas');
-                    c.width = w; c.height = h;
-                    c.getContext('2d').drawImage(vid, 0, 0, w, h);
-                    c.toBlob(b => { vid.src = ''; resolve(b); }, 'image/jpeg', QUALITY);
+                    // doble rAF para asegurar que el frame esté pintado antes de drawImage
+                    requestAnimationFrame(() => requestAnimationFrame(() => {
+                        URL.revokeObjectURL(objUrl);
+                        let w = vid.videoWidth, h = vid.videoHeight;
+                        if (w > MAX_PX) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+                        if (h > MAX_PX) { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+                        const c = document.createElement('canvas');
+                        c.width = w; c.height = h;
+                        c.getContext('2d').drawImage(vid, 0, 0, w, h);
+                        c.toBlob(b => { vid.src = ''; resolve(b); }, 'image/jpeg', QUALITY);
+                    }));
                 };
                 vid.onerror = () => { URL.revokeObjectURL(objUrl); resolve(null); };
                 vid.src = objUrl; vid.load();
@@ -5880,8 +5883,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const _isVid = _prevUrl ? (/\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(_prevUrl) || ((window._kPreviewUrls||{})[t.id]?.isVideo === true)) : false;
         const _previewBlock = _prevUrl
             ? (_isVid
-                ? `<video src="${_prevUrl}" style="width:100%;max-height:220px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;background:#000;" muted playsinline controls></video>`
-                : `<img src="${_prevUrl}" alt="preview" style="width:100%;max-height:220px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;" loading="lazy">`)
+                ? `<video src="${_prevUrl}" style="width:100%;max-height:150px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;background:#000;cursor:pointer;" muted playsinline onclick="event.stopPropagation();_openPreviewModal('${_prevUrl}',true)"></video>`
+                : `<img src="${_prevUrl}" alt="preview" style="width:100%;max-height:150px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;cursor:pointer;" loading="lazy" onclick="event.stopPropagation();_openPreviewModal('${_prevUrl}',false)">`)
             : '';
         const _thumbHdr = _prevUrl
             ? (_isVid
@@ -6182,8 +6185,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
 
             const _damThumb = a.thumbnail_url
-                ? `<div style="width:100%;overflow:hidden;max-height:160px;background:#000;border-radius:0;">${a.tipo==='video'?`<video src="${a.thumbnail_url}" style="width:100%;max-height:160px;object-fit:cover;display:block;" muted playsinline></video>`:`<img src="${a.thumbnail_url}" alt="" style="width:100%;max-height:160px;object-fit:cover;display:block;" loading="lazy">`}</div>`
-                : '';
+                ? `<div style="width:100%;overflow:hidden;max-height:160px;background:#f5f5f5;border-radius:0;cursor:pointer;" onclick="_openPreviewModal('${a.thumbnail_url}',false)"><img src="${a.thumbnail_url}" alt="" style="width:100%;max-height:160px;object-fit:cover;display:block;" loading="lazy"></div>`
+                : `<div style="width:100%;height:80px;background:var(--fondo-secundario);border-radius:0;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-image" style="font-size:28px;opacity:.15;"></i></div>`;
 
             return `<div class="tarjeta-asset" style="flex-direction:column;padding:0;overflow:hidden;min-height:0;">
                 ${canEdit?`<button onclick="delObj('dam',${realIdx})" title="Eliminar" style="position:absolute;top:10px;right:10px;background:none;border:none;cursor:pointer;color:#ccc;font-size:11px;z-index:1;"><i class="fa-solid fa-trash"></i></button>`:''}
@@ -8272,6 +8275,29 @@ document.addEventListener('DOMContentLoaded', function() {
             const el = document.querySelector(`#contenedor-parrilla .content-card [value="${fecha}"]`);
             if (el) el.closest('.content-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 80);
+    }
+
+    /* ============= LIGHTBOX PREVIEW ============= */
+    function _openPreviewModal(url, isVideo) {
+        const existing = document.getElementById('_preview_modal');
+        if (existing) existing.remove();
+        const overlay = document.createElement('div');
+        overlay.id = '_preview_modal';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;backdrop-filter:blur(6px);';
+        overlay.onclick = () => overlay.remove();
+        const media = isVideo
+            ? Object.assign(document.createElement('video'), { src: url, controls: true, autoplay: true })
+            : Object.assign(document.createElement('img'), { src: url, alt: 'preview' });
+        media.style.cssText = 'max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain;display:block;';
+        if (isVideo) { media.muted = false; }
+        media.onclick = e => e.stopPropagation();
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        closeBtn.style.cssText = 'position:absolute;top:18px;right:22px;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:20px;cursor:pointer;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;';
+        closeBtn.onclick = () => overlay.remove();
+        overlay.append(media, closeBtn);
+        document.body.append(overlay);
+        document.addEventListener('keydown', function esc(e){ if(e.key==='Escape'){ overlay.remove(); document.removeEventListener('keydown',esc); }});
     }
 
     /* ============= TOAST GLOBAL ============= */
