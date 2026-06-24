@@ -5800,7 +5800,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function _getArchivos(t) {
         if (t.archivos && t.archivos.length) return t.archivos;
-        if (t.archivo_local) return [{ nombre: t.archivo_local, preview_url: t.preview_url||'', thumbnail_url: t.thumbnail_url||t.preview_url||'' }];
+        const pv = t.preview_url||'', tv = t.thumbnail_url||pv;
+        if (t.archivo_local || pv) return [{ nombre: t.archivo_local||'archivo', preview_url: pv, thumbnail_url: tv }];
         return [];
     }
 
@@ -5825,6 +5826,8 @@ document.addEventListener('DOMContentLoaded', function() {
         const _sessEntry = { url: objUrl, isVideo, nombre: file.name };
         window._kPreviewUrls[postId].push(_sessEntry);
         const ki = (DB.datos[SUC_ACTIVA].kanban||[]).findIndex(k=>k.id===postId);
+        // Optimistic: persiste el nombre del archivo aunque falle el upload
+        if (ki >= 0) { DB.datos[SUC_ACTIVA].kanban[ki].archivo_local = file.name; guardarBD(); }
         renderOrquestacion();
         setTimeout(() => {
             const card = document.getElementById(`card-${postId}`);
@@ -5915,19 +5918,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 + `</span>`).join('')
             : '';
 
-        // Gallery multi-archivo: tiles 80×80 clicables, × individual por archivo
-        const _previewBlock = _allFils.length
-            ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">${_allFils.map(f => {
-                const _fIsVid = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(f.preview_url);
-                const _fThumb = f.thumbnail_url || f.preview_url;
-                if (!_fThumb) return '';
-                return `<div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal('${f.preview_url}',${_fIsVid})">`
-                    + `<img src="${_fThumb}" style="width:100%;height:100%;object-fit:cover;${_fIsVid ? 'opacity:.8;' : ''}display:block;" loading="lazy">`
-                    + (_fIsVid ? `<i class="fa-solid fa-play" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;pointer-events:none;"></i>` : '')
-                    + (canEdit && !f.sess ? `<span style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;line-height:1;" onclick="event.stopPropagation();_removePostArchivo('${t.id}',${f.fi})">×</span>` : '')
-                    + `</div>`;
-            }).join('')}</div>`
-            : '';
+        // Preview: 1 archivo = vista grande; múltiples = galería de tiles 80×80
+        const _mkTile = (f) => {
+            const fIsVid = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(f.preview_url);
+            const fThumb = f.thumbnail_url || (fIsVid ? '' : f.preview_url);
+            if (!fThumb && !fIsVid) return '';
+            return `<div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal('${f.preview_url}',${fIsVid})">`
+                + (fThumb ? `<img src="${fThumb}" style="width:100%;height:100%;object-fit:cover;${fIsVid ? 'opacity:.8;' : ''}display:block;" loading="lazy">` : '')
+                + (fIsVid ? `<i class="fa-solid fa-play" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;pointer-events:none;"></i>` : '')
+                + (canEdit && !f.sess ? `<span style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;line-height:1;" onclick="event.stopPropagation();_removePostArchivo('${t.id}',${f.fi})">×</span>` : '')
+                + `</div>`;
+        };
+        const _previewBlock = _allFils.length === 0 ? '' : _allFils.length === 1 ? (() => {
+            const f = _allFils[0];
+            const fIsVid = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(f.preview_url);
+            const fThumb = f.thumbnail_url || (fIsVid ? '' : f.preview_url);
+            if (!f.preview_url && !fThumb) return '';
+            const _del = canEdit && !f.sess ? `<span style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;" onclick="event.stopPropagation();_removePostArchivo('${t.id}',${f.fi})">×</span>` : '';
+            return fIsVid
+                ? `<div style="position:relative;margin-top:10px;">`
+                    + `<video src="${f.preview_url}" style="width:100%;max-height:200px;border-radius:10px;object-fit:cover;display:block;background:#000;cursor:pointer;" muted playsinline onclick="event.stopPropagation();_openPreviewModal('${f.preview_url}',true)"></video>`
+                    + _del + `</div>`
+                : `<div style="position:relative;margin-top:10px;border-radius:10px;overflow:hidden;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal('${f.preview_url}',false)">`
+                    + `<img src="${fThumb}" style="width:100%;max-height:180px;object-fit:cover;display:block;border-radius:10px;" loading="lazy">`
+                    + _del + `</div>`;
+        })() : `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">${_allFils.map(_mkTile).join('')}</div>`;
         const _first = _allFils[0];
         const _firstIsVid = _first ? /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(_first.preview_url) : false;
         const _firstThumb = _first ? (_first.thumbnail_url || _first.preview_url || '') : '';
