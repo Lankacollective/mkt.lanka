@@ -7228,11 +7228,12 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>`;
 
         // Card 4: Variables globales
-        const _GLOBAL_KEYS = ['estado_factura','emociones','cat_proveedor','sexo','nivel'];
+        const _GLOBAL_KEYS = ['estado_factura','emociones','productos','cat_proveedor','sexo','nivel'];
+        const _GLOBAL_LABELS = { estado_factura:'Estado Factura', emociones:'Emociones', productos:'Producto / Eje (Mood & Ejes)', cat_proveedor:'Cat. Proveedor', sexo:'Sexo', nivel:'Nivel' };
         let _globalHTML = `<div style="margin-bottom:16px;"><b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;color:var(--texto-secundario);">Variables globales</b></div>`;
         _GLOBAL_KEYS.forEach(k => {
             if (!DB.desplegables[k]) return;
-            _globalHTML += `<div style="margin-bottom:16px;"><b style="font-family:var(--font-display);font-size:12px;text-transform:uppercase;">${k.replace(/_/g,' ')}</b>
+            _globalHTML += `<div style="margin-bottom:16px;"><b style="font-family:var(--font-display);font-size:12px;text-transform:uppercase;">${_GLOBAL_LABELS[k]||k.replace(/_/g,' ')}</b>
             <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">`;
             DB.desplegables[k].forEach((val,vi) => {
                 _globalHTML += `<span class="tag gris" style="color:var(--texto-principal);background:var(--color-tarjeta);border:1px solid var(--color-borde);padding:5px 10px;font-size:12px;">${val}
@@ -11194,14 +11195,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 background:transparent;transition:var(--transicion);">${cat}</button>`
         ).join('');
 
-        // Botones de cabecera
-        let hBtns = `<input type="text" placeholder="Buscar en catálogo…" value="${_catalogoSearch.replace(/"/g,'&quot;')}"
-            oninput="_catalogoSearch=this.value;renderCatalogo()"
-            style="padding:7px 12px;border:1px solid var(--color-borde);border-radius:8px;font-size:13px;background:var(--color-fondo);color:var(--texto-principal);min-width:180px;">`;
-        if (canEdit) hBtns += `<button class="btn btn-primario" onclick="_catalogoNuevoItem()"><i class="fa-solid fa-plus"></i> Nuevo</button>`;
-        if (isOwnerOrTeam) hBtns += `<button class="btn btn-fantasma" onclick="_catalogoToggleImport()"><i class="fa-solid fa-file-code"></i> Importar JSON</button>`;
-        if (isOwnerOrTeam) hBtns += `<button class="btn btn-fantasma" onclick="_catalogoGestionarCats()"><i class="fa-solid fa-tags"></i> Categorías</button>`;
-        document.getElementById('catalogo-header-btns').innerHTML = hBtns;
+        // Botones de cabecera — solo reconstruir si el input no existe (evita perder focus al escribir)
+        if (!document.getElementById('cat-buscar')) {
+            let hBtns = `<input type="text" id="cat-buscar" placeholder="Buscar en catálogo…" value="${_catalogoSearch.replace(/"/g,'&quot;')}"
+                oninput="_catalogoSearch=this.value;renderCatalogo()"
+                style="padding:7px 12px;border:1px solid var(--color-borde);border-radius:8px;font-size:13px;background:var(--color-fondo);color:var(--texto-principal);min-width:180px;">`;
+            if (canEdit) hBtns += `<button class="btn btn-primario" onclick="_catalogoNuevoItem()"><i class="fa-solid fa-plus"></i> Nuevo</button>`;
+            if (isOwnerOrTeam) hBtns += `<button class="btn btn-fantasma" onclick="_catalogoToggleImport()"><i class="fa-solid fa-file-code"></i> Importar JSON</button>`;
+            if (isOwnerOrTeam) hBtns += `<button class="btn btn-fantasma" onclick="_catalogoGestionarCats()"><i class="fa-solid fa-tags"></i> Categorías</button>`;
+            document.getElementById('catalogo-header-btns').innerHTML = hBtns;
+        }
 
         // Búsqueda — muestra resultados planos si hay término
         const searchTerm = _catalogoSearch.trim().toLowerCase();
