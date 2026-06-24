@@ -6729,8 +6729,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const d = DB.datos[SUC_ACTIVA];
         const canEdit = _getPermisos('mood', 'editar');
         let optEmo = DB.desplegables.emociones.map(e=>`<option>${e}</option>`).join('');
-        let optPro = DB.desplegables.productos.map(e=>`<option>${e}</option>`).join('');
-        document.getElementById('contenedor-mood').innerHTML = d.mood.map((m, i) => `<div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid var(--color-borde); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div><div style="margin-bottom:12px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${canEdit ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].emocion=this.value;guardarBD()"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div><div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">PRODUCTO/EJE</label>${canEdit ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].producto=this.value;guardarBD()"><option selected hidden>${m.producto}</option>${optPro}</select>` : `<input class="input-celda" value="${m.producto}" readonly>`}</div></div>`).join('');
+        document.getElementById('contenedor-mood').innerHTML = d.mood.map((m, i) => `<div class="tarjeta-mood"><div style="font-weight:800; font-size:15px; margin-bottom:16px; border-bottom:1px solid var(--color-borde); padding-bottom:12px; text-transform:uppercase; letter-spacing:0.08em; font-family:var(--font-display);">${MESES[i]}</div><div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario); letter-spacing:0.08em;">EMOCIÓN</label>${canEdit ? `<select class="select-celda" style="background:#fafafa; border:1px solid var(--color-borde);" onchange="DB.datos['${SUC_ACTIVA}'].mood[${i}].emocion=this.value;guardarBD()"><option selected hidden>${m.emocion}</option>${optEmo}</select>` : `<input class="input-celda" value="${m.emocion}" readonly>`}</div></div>`).join('');
     }
 
     let _expandedTargets = new Set();
@@ -7219,22 +7218,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const _cardStyle = 'background:var(--color-tarjeta);border-radius:14px;border:1px solid var(--color-borde);padding:20px;';
         let confHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-bottom:24px;">`;
 
-        // Card 1: Formatos de Contenido
-        confHTML += `<div style="${_cardStyle}">${_renderConfigLista('Formatos de Contenido', _formatos, 'formatos', _isOwnerForConfig, _sucNombre)}</div>`;
-
-        // Card 2: Servicios / Productos
-        confHTML += `<div style="${_cardStyle}">${_renderConfigLista('Servicios / Productos', _servicios, 'servicios', _isOwnerForConfig, _sucNombre)}</div>`;
-
-        // Card 3: Categorías de servicios (Ad Performance + Mix de Servicios)
-        const _categorias = _getCategorias(SUC_ACTIVA);
-        confHTML += `<div style="${_cardStyle}">
-            ${_renderConfigLista('Categorías de servicios', _categorias, 'categorias', _isOwnerForConfig, _sucNombre)}
-            <p style="font-size:11px;color:var(--texto-secundario);margin-top:6px;line-height:1.5;">Usadas en <strong>Ad Performance</strong> y <strong>Mix de Servicios</strong>.</p>
-        </div>`;
-
-        // Card 4: Variables globales
-        const _GLOBAL_KEYS = ['estado_factura','emociones','productos','cat_proveedor','sexo','nivel'];
-        const _GLOBAL_LABELS = { estado_factura:'Estado Factura', emociones:'Emociones', productos:'Producto / Eje (Mood & Ejes)', cat_proveedor:'Cat. Proveedor', sexo:'Sexo', nivel:'Nivel' };
+        // Card 1: Variables globales
+        const _GLOBAL_KEYS = ['estado_factura','emociones','cat_proveedor','sexo','nivel'];
+        const _GLOBAL_LABELS = { estado_factura:'Estado Factura', emociones:'Emociones', cat_proveedor:'Cat. Proveedor', sexo:'Sexo', nivel:'Nivel' };
         let _globalHTML = `<div style="margin-bottom:16px;"><b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;color:var(--texto-secundario);">Variables globales</b></div>`;
         _GLOBAL_KEYS.forEach(k => {
             if (!DB.desplegables[k]) return;
@@ -7250,13 +7236,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         confHTML += `<div style="${_cardStyle}">${_globalHTML}</div>`;
 
-        // Card 4: Tipos de proyecto
+        // Card 2: Tipos de proyecto (global)
         confHTML += `<div style="${_cardStyle}">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Tipos de Proyecto</b>
                 <span style="font-size:11px;color:var(--texto-secundario);">Global</span>
             </div>
             <div id="cfg-tipos-proyecto"></div>
+        </div>`;
+
+        // Card 3: Formatos de Contenido
+        confHTML += `<div style="${_cardStyle}">${_renderConfigLista('Formatos de Contenido', _formatos, 'formatos', _isOwnerForConfig, _sucNombre)}</div>`;
+
+        // Card 4: Servicios / Productos
+        confHTML += `<div style="${_cardStyle}">${_renderConfigLista('Servicios / Productos', _servicios, 'servicios', _isOwnerForConfig, _sucNombre)}</div>`;
+
+        // Card 5: Categorías de servicios (Ad Performance + Mix de Servicios)
+        const _categorias = _getCategorias(SUC_ACTIVA);
+        confHTML += `<div style="${_cardStyle}">
+            ${_renderConfigLista('Categorías de servicios', _categorias, 'categorias', _isOwnerForConfig, _sucNombre)}
+            <p style="font-size:11px;color:var(--texto-secundario);margin-top:6px;line-height:1.5;">Usadas en <strong>Ad Performance</strong> y <strong>Mix de Servicios</strong>.</p>
         </div>`;
 
         // Card: Benchmarks del Dashboard (per-project)
