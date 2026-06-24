@@ -5879,6 +5879,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function _addDriveLinkToPost(postId, idx) {
+        const raw = prompt('Pega el link de Google Drive (imagen o video):');
+        if (!raw) return;
+        const driveId = _extractDriveId(raw.trim());
+        if (!driveId) { _showToast('No se reconoció el ID de Drive — usa un link tipo /file/d/...'); return; }
+        const thumbUrl  = 'https://drive.google.com/thumbnail?id=' + driveId + '&sz=w600';
+        const embedUrl  = 'https://drive.google.com/file/d/' + driveId + '/preview';
+        const ki = (DB.datos[SUC_ACTIVA].kanban||[]).findIndex(k=>k.id===postId);
+        if (ki < 0) return;
+        const k = DB.datos[SUC_ACTIVA].kanban[ki];
+        if (!k.archivos) k.archivos = [];
+        k.archivos.push({ nombre: 'Drive:' + driveId.substring(0,10), preview_url: embedUrl, thumbnail_url: thumbUrl, drive_id: driveId });
+        guardarBD();
+        renderOrquestacion();
+        _showToast('Link de Drive vinculado ✓');
+    }
+
     function _syncArchivoLocalToDam(postId, filename, postIdx, thumbUrl, videoUrl) {
         const d = DB.datos[SUC_ACTIVA];
         if (!d.dam) d.dam = [];
@@ -5933,18 +5950,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const _VID_RE = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i;
         const _mkTile = (f) => {
             const fv = _VID_RE.test(f.preview_url) || f.isVideo;
+            const isDrive = /drive\.google\.com/.test(f.preview_url);
             const ft = f.thumbnail_url || (fv ? '' : f.preview_url);
-            if (!ft && !fv) return '';
+            if (!ft && !fv && !isDrive) return '';
             return '<div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal(\'' + f.preview_url + '\',' + fv + ')">'
                 + (ft ? '<img src="' + ft + '" style="width:100%;height:100%;object-fit:cover;' + (fv ? 'opacity:.8;' : '') + 'display:block;" loading="lazy">' : '')
-                + (fv ? '<i class="fa-solid fa-play" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;pointer-events:none;"></i>' : '')
+                + (fv && !isDrive ? '<i class="fa-solid fa-play" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;pointer-events:none;"></i>' : '')
+                + (isDrive ? '<i class="fa-brands fa-google-drive" style="position:absolute;bottom:4px;left:4px;color:#4285F4;font-size:11px;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.6);"></i>' : '')
                 + (canEdit && !f.sess ? '<span style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;line-height:1;" onclick="event.stopPropagation();_removePostArchivo(\'' + t.id + '\',' + f.fi + ')">×</span>' : '')
                 + '</div>';
         };
         let _previewBlock = '';
         if (_allFils.length === 1) {
             const _pf = _allFils[0];
-            const _pfIsVid = _VID_RE.test(_pf.preview_url) || _pf.isVideo;
+            const _pfIsDrive = /drive\.google\.com/.test(_pf.preview_url);
+            const _pfIsVid = !_pfIsDrive && (_VID_RE.test(_pf.preview_url) || _pf.isVideo);
             const _pfThumb = _pf.thumbnail_url || (_pfIsVid ? '' : _pf.preview_url);
             if (_pf.preview_url || _pfThumb) {
                 const _pDel = canEdit && !_pf.sess
@@ -5952,6 +5972,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     : '';
                 if (_pfIsVid) {
                     _previewBlock = '<div style="position:relative;margin-top:10px;"><video src="' + _pf.preview_url + '" style="width:100%;max-height:200px;border-radius:10px;object-fit:cover;display:block;background:#000;cursor:pointer;" muted playsinline onclick="event.stopPropagation();_openPreviewModal(\'' + _pf.preview_url + '\',true)"></video>' + _pDel + '</div>';
+                } else if (_pfIsDrive) {
+                    _previewBlock = '<div style="position:relative;margin-top:10px;border-radius:10px;overflow:hidden;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal(\'' + _pf.preview_url + '\',false)">'
+                        + (_pfThumb ? '<img src="' + _pfThumb + '" style="width:100%;max-height:180px;object-fit:cover;display:block;border-radius:10px;" loading="lazy">' : '<div style="width:100%;height:120px;background:#1a1a2e;border-radius:10px;display:flex;align-items:center;justify-content:center;"><i class="fa-brands fa-google-drive" style="color:#4285F4;font-size:36px;"></i></div>')
+                        + '<div style="position:absolute;bottom:8px;left:8px;display:flex;align-items:center;gap:4px;background:rgba(0,0,0,.6);border-radius:6px;padding:3px 7px;"><i class="fa-brands fa-google-drive" style="color:#4285F4;font-size:10px;"></i><span style="color:#fff;font-size:10px;font-weight:600;">Drive</span></div>'
+                        + _pDel + '</div>';
                 } else {
                     _previewBlock = '<div style="position:relative;margin-top:10px;border-radius:10px;overflow:hidden;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal(\'' + _pf.preview_url + '\',false)"><img src="' + _pfThumb + '" style="width:100%;max-height:180px;object-fit:cover;display:block;border-radius:10px;" loading="lazy">' + _pDel + '</div>';
                 }
@@ -6060,7 +6085,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
     ${_docBadge}
-    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();_handlePostFileUpload(this,'${t.id}',${idx})"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}${_archivoLocalBadge}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();_handlePostFileUpload(this,'${t.id}',${idx})"><i class="fa-solid fa-folder-open"></i> Archivo local</label><button class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Vincular archivo de Google Drive" onclick="event.stopPropagation();_addDriveLinkToPost('${t.id}',${idx})"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:3px;"></i>Link Drive</button>` : ''}${_archivoLocalBadge}</div>
     ${_previewBlock}
   </div>
   ${_sep}
@@ -8371,11 +8396,22 @@ document.addEventListener('DOMContentLoaded', function() {
         overlay.id = '_preview_modal';
         overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:zoom-out;backdrop-filter:blur(6px);';
         overlay.onclick = () => overlay.remove();
-        const media = isVideo
-            ? Object.assign(document.createElement('video'), { src: url, controls: true, autoplay: true })
-            : Object.assign(document.createElement('img'), { src: url, alt: 'preview' });
-        media.style.cssText = 'max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain;display:block;';
-        if (isVideo) { media.muted = false; }
+        const isDriveEmbed = /drive\.google\.com.*\/preview/.test(url);
+        let media;
+        if (isDriveEmbed) {
+            media = document.createElement('iframe');
+            media.src = url;
+            media.allow = 'autoplay';
+            media.setAttribute('allowfullscreen', true);
+            media.style.cssText = 'width:min(900px,92vw);height:min(600px,80vh);border-radius:12px;border:none;background:#000;display:block;';
+        } else if (isVideo) {
+            media = Object.assign(document.createElement('video'), { src: url, controls: true, autoplay: true });
+            media.style.cssText = 'max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain;display:block;';
+            media.muted = false;
+        } else {
+            media = Object.assign(document.createElement('img'), { src: url, alt: 'preview' });
+            media.style.cssText = 'max-width:92vw;max-height:88vh;border-radius:12px;box-shadow:0 8px 48px rgba(0,0,0,.6);object-fit:contain;display:block;';
+        }
         media.onclick = e => e.stopPropagation();
         const closeBtn = document.createElement('button');
         closeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
