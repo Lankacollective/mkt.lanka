@@ -3523,10 +3523,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.documentElement.style.setProperty('--brand-tone-dark',  `rgb(${_projectTones.dark.rgb})`);
         if(ROL === 'cliente' || ROL === 'equipo') document.getElementById('etiqueta-cliente').innerText = inf.nombre;
         _actualizarLogoHeader();
-        renderDashboard(); renderInsights(); renderOrquestacion(); renderDAM();
-        renderPresupuesto(); renderFacturas(); renderBriefing(); renderMood();
-        renderEstrategia(); renderAdministracion();
-        _syncKanbanToAds(false); renderAdsTable(); renderOfflineTable(); renderShootingGrid(); renderStories(); renderMisTareas();
+        [renderDashboard, renderInsights, renderOrquestacion, renderDAM,
+         renderPresupuesto, renderFacturas, renderBriefing, renderMood,
+         renderEstrategia, renderAdministracion,
+         () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas
+        ].forEach(fn => { try { fn(); } catch(e) { console.error('[renderTodas]', fn.name, e); } });
         _renderNotifBadge();
         setTimeout(() => {
             _adaptarBottomNav(USUARIO_ACTIVO ? USUARIO_ACTIVO.rol_id : ROL);
@@ -5617,7 +5618,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderInsights() {
         const d = DB.datos[SUC_ACTIVA]; const ro = ROL === 'cliente' ? 'readonly' : '';
-        document.getElementById('body-insights').innerHTML = d.insights.map((ins, i) => `<tr><td><input type="date" class="input-celda" value="${ins.f}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].f=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:700;" value="${ins.c}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].c=this.value;guardarBD()"></td><td><input class="input-celda" value="${ins.r}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].r=this.value;guardarBD()"></td><td><textarea class="input-celda" style="resize:vertical; min-height:40px;" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].a=this.value;guardarBD()">${ins.a}</textarea></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('insights',${i})"></i></td></tr>`).join('');
+        const el = document.getElementById('body-insights');
+        if (!el || !d) return;
+        if (!d.insights) d.insights = [];
+        el.innerHTML = d.insights.map((ins, i) => `<tr><td><input type="date" class="input-celda" value="${ins.f}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].f=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:700;" value="${ins.c}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].c=this.value;guardarBD()"></td><td><input class="input-celda" value="${ins.r}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].r=this.value;guardarBD()"></td><td><textarea class="input-celda" style="resize:vertical; min-height:40px;" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].a=this.value;guardarBD()">${ins.a}</textarea></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('insights',${i})"></i></td></tr>`).join('');
     }
 
     // ── DAM ↔ Kanban / Stories helpers ──────────────────────────────
