@@ -1857,32 +1857,40 @@
 
             <!-- ============ NUEVO MÓDULO 5: AD PERFORMANCE ============ -->
             <section id="vista-ads" class="seccion-app oculto">
-                <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><h1>Ad Performance</h1><p>Métricas reales por pauta — inversión, alcance, CPR, conversiones y segmentación.</p></div>
-                    <button class="btn btn-primario req-agencia" onclick="nuevoAd()"><i class="fa-solid fa-plus"></i> Nueva Campaña</button>
-                </div>
-
-                <!-- KPI cards -->
-                <div class="ads-kpi" id="ads-kpi-strip"></div>
-
-                <!-- Campaigns list -->
-                <div id="ads-lista"></div>
-
-                <!-- Charts -->
-                <div class="ads-chart-grid">
-                    <div class="chart-box">
-                        <h3>Inversión vs Conversiones por Campaña</h3>
-                        <p class="chart-subtitle">Comparativa de eficiencia</p>
-                        <canvas id="chart-ads-perf" height="160"></canvas>
-                    </div>
-                    <div class="chart-box">
-                        <h3>CPR por Audiencia</h3>
-                        <p class="chart-subtitle">Costo por resultado según segmento</p>
-                        <canvas id="chart-ads-cpr" height="160"></canvas>
+                <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;flex-wrap:wrap;gap:12px;">
+                    <div><h1>Campañas</h1><p>Pauta digital y medios offline — inversión, alcance y rendimiento.</p></div>
+                    <div style="display:flex;gap:8px;align-items:center;">
+                        <div id="ads-tab-switcher" style="display:flex;gap:4px;background:var(--color-fondo,#f5f5f5);border-radius:10px;padding:4px;border:1px solid var(--color-borde);">
+                            <button class="ppto-view-btn activo" data-tab="digital" onclick="_setAdsTab('digital')" style="border-radius:7px;font-size:12px;"><i class="fa-solid fa-wifi" style="margin-right:5px;"></i>Digital</button>
+                            <button class="ppto-view-btn" data-tab="offline" onclick="_setAdsTab('offline')" style="border-radius:7px;font-size:12px;"><i class="fa-solid fa-broadcast-tower" style="margin-right:5px;"></i>Offline</button>
+                        </div>
+                        <button class="btn btn-primario req-agencia" id="ads-btn-nuevo" onclick="nuevoAd()"><i class="fa-solid fa-plus"></i> Nueva</button>
                     </div>
                 </div>
-                <div class="req-agencia" style="margin-top:32px;padding-top:20px;border-top:1px solid var(--color-borde);display:flex;justify-content:center;">
-                    <button class="btn btn-peligro-suave btn-sm" onclick="_abrirLimpiarPestana('ads')"><i class="fa-solid fa-trash-can" style="margin-right:6px;"></i>Vaciar campañas de pauta</button>
+
+                <!-- Tab Digital -->
+                <div id="ads-tab-digital">
+                    <div class="ads-kpi" id="ads-kpi-strip"></div>
+                    <div id="ads-lista"></div>
+                    <div class="ads-chart-grid">
+                        <div class="chart-box"><h3>Inversión vs Conversiones por Campaña</h3><p class="chart-subtitle">Comparativa de eficiencia</p><canvas id="chart-ads-perf" height="160"></canvas></div>
+                        <div class="chart-box"><h3>CPR por Audiencia</h3><p class="chart-subtitle">Costo por resultado según segmento</p><canvas id="chart-ads-cpr" height="160"></canvas></div>
+                    </div>
+                    <div class="req-agencia" style="margin-top:32px;padding-top:20px;border-top:1px solid var(--color-borde);display:flex;justify-content:center;">
+                        <button class="btn btn-peligro-suave btn-sm" onclick="_abrirLimpiarPestana('ads')"><i class="fa-solid fa-trash-can" style="margin-right:6px;"></i>Vaciar campañas digitales</button>
+                    </div>
+                </div>
+
+                <!-- Tab Offline -->
+                <div id="ads-tab-offline" style="display:none;">
+                    <div id="ads-offline-lista"></div>
+                    <div class="ads-chart-grid" style="margin-top:24px;">
+                        <div class="chart-box"><h3>Inversión por Medio</h3><p class="chart-subtitle">Radio, Espectacular, Prensa, TV y más</p><canvas id="chart-ads-offline-medios" height="160"></canvas></div>
+                        <div class="chart-box"><h3>Digital vs Offline</h3><p class="chart-subtitle">Comparativa de inversión total</p><canvas id="chart-ads-dvo" height="160"></canvas></div>
+                    </div>
+                    <div class="req-agencia" style="margin-top:32px;padding-top:20px;border-top:1px solid var(--color-borde);display:flex;justify-content:center;">
+                        <button class="btn btn-peligro-suave btn-sm" onclick="_abrirLimpiarPestana('ads_offline')"><i class="fa-solid fa-trash-can" style="margin-right:6px;"></i>Vaciar campañas offline</button>
+                    </div>
                 </div>
             </section>
 
@@ -2050,7 +2058,7 @@
                 <div id="dam-drive-id-preview" style="font-size:11px;color:var(--color-primario);margin-top:4px;font-weight:600;"></div></div>
             <div><label style="font-size:11px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Archivo local</label>
                 <label style="cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;border-radius:10px;padding:10px 14px;box-sizing:border-box;border:1px solid var(--color-borde);background:var(--color-fondo,#fafafa);font-size:13px;color:var(--texto-secundario);">
-                    <input type="file" id="dam-archivo-local" style="display:none;" onchange="document.getElementById('dam-archivo-local-name').textContent=this.files[0]?this.files[0].name:'Seleccionar archivo...'">
+                    <input type="file" id="dam-archivo-local" accept="image/*,video/*" style="display:none;" onchange="document.getElementById('dam-archivo-local-name').textContent=this.files[0]?this.files[0].name:'Seleccionar archivo...';window._damPendingFile=this.files[0]||null;">
                     <i class="fa-solid fa-folder-open" style="font-size:13px;color:var(--color-primario);"></i>
                     <span id="dam-archivo-local-name">Seleccionar archivo...</span>
                 </label></div>
@@ -3177,7 +3185,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById(target).classList.remove('oculto');
                 // Render charts cuando se activa esa vista
                 if (target === 'vista-charts') setTimeout(renderCharts, 50);
-                if (target === 'vista-ads') { _syncKanbanToAds(false); renderAdsTable(); setTimeout(renderAdsCharts, 50); }
+                if (target === 'vista-ads') { _adsTab='digital'; _syncKanbanToAds(false); renderAdsTable(); setTimeout(renderAdsCharts, 50); }
                 if (target === 'vista-offline') setTimeout(renderOfflineCharts, 50);
                 if (target === 'vista-cal-editorial') renderCalEditorial();
                 if (target === 'vista-stories') renderStories();
@@ -5730,6 +5738,45 @@ document.addEventListener('DOMContentLoaded', function() {
         if (tipo==='post') renderOrquestacion(); else renderStories();
     }
 
+    async function _uploadToStorage(file, context) {
+        if (!window.__supabase) throw new Error('Supabase no disponible');
+        const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+        const path = `${SUC_ACTIVA}/${context}/${Date.now()}_${Math.random().toString(36).slice(2,7)}.${ext}`;
+        const { error } = await window.__supabase.storage
+            .from('mkt-lanka-media').upload(path, file, { upsert: true, contentType: file.type });
+        if (error) throw error;
+        const { data: { publicUrl } } = window.__supabase.storage
+            .from('mkt-lanka-media').getPublicUrl(path);
+        return publicUrl;
+    }
+
+    async function _handlePostFileUpload(input, postId, postIdx) {
+        const file = input.files[0];
+        if (!file) return;
+        const isVideo = file.type.startsWith('video/');
+        // Optimistic: preview local inmediato
+        const objUrl = URL.createObjectURL(file);
+        window._kPreviewUrls = window._kPreviewUrls || {};
+        window._kPreviewUrls[postId] = { url: objUrl, isVideo };
+        const ki = (DB.datos[SUC_ACTIVA].kanban||[]).findIndex(k=>k.id===postId);
+        if (ki >= 0) { DB.datos[SUC_ACTIVA].kanban[ki].archivo_local = file.name; guardarBD(); }
+        renderOrquestacion();
+        // Upload a Supabase Storage
+        try {
+            _showToast('⬆ Subiendo a Storage…');
+            const url = await _uploadToStorage(file, `posts/${postId}`);
+            if (ki >= 0) { DB.datos[SUC_ACTIVA].kanban[ki].preview_url = url; guardarBD(); }
+            window._kPreviewUrls[postId] = { url, isVideo };
+            _syncArchivoLocalToDam(postId, file.name, postIdx, url);
+            renderOrquestacion();
+            _showToast('Archivo subido ✓ — visible para todo el equipo');
+        } catch(e) {
+            console.error('Storage error:', e);
+            _syncArchivoLocalToDam(postId, file.name, postIdx, objUrl);
+            _showToast('Preview guardado localmente (Storage no disponible)');
+        }
+    }
+
     function _syncArchivoLocalToDam(postId, filename, postIdx, previewUrl) {
         const d = DB.datos[SUC_ACTIVA];
         if (!d.dam) d.dam = [];
@@ -5765,20 +5812,21 @@ document.addEventListener('DOMContentLoaded', function() {
                </div>`
             : '';
         const _archivoLocalBadge = t.archivo_local
-            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.archivo_local}">${t.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();${_kp}.archivo_local='';delete(window._kPreviewUrls||{}['${t.id}']);guardarBD();renderOrquestacion()">×</span>` : ''}</span>`
+            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.archivo_local}">${t.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();${_kp}.archivo_local='';${_kp}.preview_url='';delete((window._kPreviewUrls||{})['${t.id}']);guardarBD();renderOrquestacion()">×</span>` : ''}</span>`
             : '';
 
-        // Preview visual del archivo local (persiste en memoria mientras la sesión esté abierta)
-        const _prevData = (window._kPreviewUrls||{})[t.id];
-        const _previewBlock = _prevData
-            ? (_prevData.isVideo
-                ? `<video src="${_prevData.url}" style="width:100%;max-height:220px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;background:#000;" muted playsinline controls></video>`
-                : `<img src="${_prevData.url}" alt="preview" style="width:100%;max-height:220px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;" loading="lazy">`)
+        // Preview: usa URL persistente de Supabase Storage primero, luego objectURL de sesión
+        const _prevUrl = t.preview_url || ((window._kPreviewUrls||{})[t.id]?.url) || '';
+        const _isVid = _prevUrl ? (/\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(_prevUrl) || ((window._kPreviewUrls||{})[t.id]?.isVideo === true)) : false;
+        const _previewBlock = _prevUrl
+            ? (_isVid
+                ? `<video src="${_prevUrl}" style="width:100%;max-height:220px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;background:#000;" muted playsinline controls></video>`
+                : `<img src="${_prevUrl}" alt="preview" style="width:100%;max-height:220px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;" loading="lazy">`)
             : '';
-        const _thumbHdr = _prevData
-            ? (_prevData.isVideo
+        const _thumbHdr = _prevUrl
+            ? (_isVid
                 ? `<span style="width:38px;height:38px;border-radius:7px;background:#111;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><i class="fa-solid fa-play" style="color:#fff;font-size:11px;"></i></span>`
-                : `<img src="${_prevData.url}" alt="" style="width:38px;height:38px;border-radius:7px;object-fit:cover;flex-shrink:0;display:inline-block;" loading="lazy">`)
+                : `<img src="${_prevUrl}" alt="" style="width:38px;height:38px;border-radius:7px;object-fit:cover;flex-shrink:0;display:inline-block;" loading="lazy">`)
             : '';
 
         // Formato badge/selector
@@ -5870,7 +5918,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
     ${_docBadge}
-    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();const _f=this.files[0];const _fn=_f?_f.name:'';if(_f){window._kPreviewUrls=window._kPreviewUrls||{};window._kPreviewUrls['${t.id}']={url:URL.createObjectURL(_f),isVideo:_f.type.startsWith('video/')}}${_kp}.archivo_local=_fn;if(_fn){_syncArchivoLocalToDam('${t.id}',_fn,${idx},(window._kPreviewUrls||{})['${t.id}']?.url);}guardarBD();renderOrquestacion()"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}${_archivoLocalBadge}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();_handlePostFileUpload(this,'${t.id}',${idx})"><i class="fa-solid fa-folder-open"></i> Archivo local</label>` : ''}${_archivoLocalBadge}</div>
     ${_previewBlock}
   </div>
   ${_sep}
@@ -7783,7 +7831,16 @@ document.addEventListener('DOMContentLoaded', function() {
             version:          1,
             historial:        [{ autor:USUARIO_ACTIVO?.nombre||ROL, fecha:new Date().toLocaleString(), accion:'Subido', nota:'V1' }]
         });
+        const _newDamId = d.dam[d.dam.length-1].id;
         guardarBD(); cerrarModales(); renderDAM(); _showToast('Activo agregado');
+        // Upload file to Supabase Storage async
+        if (window._damPendingFile) {
+            const _f = window._damPendingFile; window._damPendingFile = null;
+            _uploadToStorage(_f, `dam/${_newDamId}`).then(url => {
+                const idx2 = (DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id===_newDamId);
+                if (idx2 >= 0) { DB.datos[SUC_ACTIVA].dam[idx2].thumbnail_url = url; guardarBD(); renderDAM(); }
+            }).catch(e => console.error('DAM upload error:', e));
+        }
     }
 
     function _abrirDamPreview(id) {
@@ -7846,7 +7903,8 @@ document.addEventListener('DOMContentLoaded', function() {
         facturas:    { nombre: 'Facturación',               desc: '¿Eliminar todas las facturas registradas?',                            limpiar: () => { DB.datos[SUC_ACTIVA].facturas = []; guardarBD(); renderFacturas(); } },
         target:      { nombre: 'Target & Segmentación',     desc: '¿Eliminar todos los segmentos de audiencia?',                          limpiar: () => { DB.datos[SUC_ACTIVA].target = []; guardarBD(); renderEstrategia(); } },
         catalogo:    { nombre: 'Catálogo',                  desc: '¿Eliminar todos los productos y servicios del catálogo?',              limpiar: () => { DB.datos[SUC_ACTIVA].productos = []; localStorage.removeItem('catalogo_' + SUC_ACTIVA); localStorage.removeItem('config_servicios_' + SUC_ACTIVA); guardarBD(); renderCatalogo(); } },
-        ads:         { nombre: 'Ad Performance',            desc: '¿Eliminar todas las campañas y métricas de pauta?',                    limpiar: () => { DB.datos[SUC_ACTIVA].ads = []; guardarBD(); renderAdsTable(); setTimeout(renderAdsCharts, 50); } },
+        ads:         { nombre: 'Campañas Digitales',         desc: '¿Eliminar todas las campañas digitales y métricas de pauta?',          limpiar: () => { DB.datos[SUC_ACTIVA].ads = []; guardarBD(); renderAdsTable(); setTimeout(renderAdsCharts, 50); } },
+        ads_offline: { nombre: 'Campañas Offline',          desc: '¿Eliminar todas las campañas offline (radio, espectaculares, prensa)?', limpiar: () => { DB.datos[SUC_ACTIVA].ads_offline = []; guardarBD(); renderAdsOfflineTable(); setTimeout(renderAdsOfflineCharts, 80); } },
         offline:     { nombre: 'Materiales Offline',        desc: '¿Eliminar todos los materiales offline registrados?',                  limpiar: () => { DB.datos[SUC_ACTIVA].offline = []; guardarBD(); renderOfflineTable(); setTimeout(renderOfflineCharts, 50); } },
     };
     function _abrirLimpiarPestana(tipo) {
@@ -9215,6 +9273,104 @@ document.addEventListener('DOMContentLoaded', function() {
     function nuevoAd() {
         const n = { id:'a'+Date.now(), nombre:"Nueva Campaña", categoria:"", plataforma:"Meta", inversion:0, alcance:0, clics:0, conversiones:0, cpr:0, segmento:"Segmento · Ubicación", estado:"Activa", inicio:new Date().toISOString().split('T')[0], fin:"" };
         DB.datos[SUC_ACTIVA].ads.push(n); guardarBD(); renderAdsTable(); setTimeout(renderAdsCharts, 50);
+    }
+
+    let _adsTab = 'digital';
+    function _setAdsTab(tab) {
+        _adsTab = tab;
+        document.querySelectorAll('#ads-tab-switcher .ppto-view-btn').forEach(b => b.classList.toggle('activo', b.dataset.tab === tab));
+        const tabD = document.getElementById('ads-tab-digital');
+        const tabO = document.getElementById('ads-tab-offline');
+        if (tabD) tabD.style.display = tab === 'digital' ? '' : 'none';
+        if (tabO) tabO.style.display = tab === 'offline' ? '' : 'none';
+        const btnN = document.getElementById('ads-btn-nuevo');
+        if (btnN) { btnN.innerHTML = tab === 'digital' ? '<i class="fa-solid fa-plus"></i> Nueva digital' : '<i class="fa-solid fa-plus"></i> Nuevo offline'; btnN.onclick = tab === 'digital' ? nuevoAd : nuevoAdOffline; }
+        if (tab === 'offline') { renderAdsOfflineTable(); setTimeout(renderAdsOfflineCharts, 80); }
+        else { _syncKanbanToAds(false); renderAdsTable(); setTimeout(renderAdsCharts, 80); }
+    }
+
+    function nuevoAdOffline() {
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d.ads_offline) d.ads_offline = [];
+        d.ads_offline.push({ id:'ao'+Date.now(), nombre:'Nueva campaña offline', medio:'Espectacular', canal:'', tipo_pauta:'', inversion:0, fecha_inicio:new Date().toISOString().split('T')[0], fecha_fin:'', estado:'Activa', notas:'' });
+        guardarBD(); renderAdsOfflineTable(); setTimeout(renderAdsOfflineCharts, 80);
+    }
+
+    function renderAdsOfflineTable() {
+        const d = DB.datos[SUC_ACTIVA];
+        const items = d.ads_offline || [];
+        const canEdit = _getPermisos('ads', 'editar');
+        const medios = ['Radio','TV','Espectacular','Prensa','OOH','Cine','Revista','Otro'];
+        const estados = ['Activa','Pausada','Finalizada'];
+        const el = document.getElementById('ads-offline-lista');
+        if (!el) return;
+        if (!items.length) {
+            el.innerHTML = `<div style="text-align:center;padding:60px 40px;color:var(--texto-secundario);background:var(--color-tarjeta);border-radius:16px;border:1px solid var(--color-borde);margin-top:8px;">
+                <i class="fa-solid fa-broadcast-tower" style="font-size:36px;opacity:.15;display:block;margin-bottom:16px;color:var(--color-primario);"></i>
+                Sin campañas offline registradas.
+                ${canEdit ? `<br><button class="btn btn-primario" style="margin-top:16px;" onclick="nuevoAdOffline()"><i class="fa-solid fa-plus"></i> Nuevo medio offline</button>` : ''}
+            </div>`;
+            return;
+        }
+        const totalInv = items.reduce((s,it)=>s+(it.inversion||0),0);
+        el.innerHTML = `<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+            <div style="background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:12px;padding:14px 20px;min-width:140px;">
+                <div style="font-size:11px;color:var(--texto-secundario);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Total invertido</div>
+                <div style="font-size:20px;font-weight:800;font-family:var(--font-display);color:var(--color-primario);">${new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(totalInv)}</div>
+            </div>
+            <div style="background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:12px;padding:14px 20px;min-width:120px;">
+                <div style="font-size:11px;color:var(--texto-secundario);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Campañas</div>
+                <div style="font-size:20px;font-weight:800;font-family:var(--font-display);">${items.length}</div>
+            </div>
+            <div style="background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:12px;padding:14px 20px;min-width:120px;">
+                <div style="font-size:11px;color:var(--texto-secundario);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;">Activas</div>
+                <div style="font-size:20px;font-weight:800;font-family:var(--font-display);color:#15803D;">${items.filter(it=>it.estado==='Activa').length}</div>
+            </div>
+        </div>
+        <div class="tarjeta" style="padding:0;overflow:hidden;"><table class="tabla-editable"><thead><tr>
+            <th>Nombre / Campaña</th><th>Medio</th><th>Canal / Emisora</th><th>Tipo de pauta</th>
+            <th>Inversión</th><th>Inicio</th><th>Fin</th><th>Estado</th>
+            ${canEdit ? '<th style="width:36px;"></th>' : ''}
+        </tr></thead><tbody>${items.map((it,i) => {
+            const stCls = it.estado==='Activa' ? 'exito' : it.estado==='Finalizada' ? 'gris' : 'advertencia';
+            const ro = canEdit ? '' : 'readonly disabled';
+            return `<tr>
+                <td><input class="input-celda" value="${(it.nombre||'').replace(/"/g,'&quot;')}" ${ro} onchange="(DB.datos[SUC_ACTIVA].ads_offline||[])[${i}].nombre=this.value;guardarBD()"></td>
+                <td>${canEdit?`<select class="select-celda" onchange="(DB.datos[SUC_ACTIVA].ads_offline||[])[${i}].medio=this.value;guardarBD();renderAdsOfflineTable()">${medios.map(m=>`<option ${(it.medio||'')=== m?'selected':''}>${m}</option>`).join('')}</select>`:`<span>${it.medio||'—'}</span>`}</td>
+                <td><input class="input-celda" value="${(it.canal||'').replace(/"/g,'&quot;')}" placeholder="XEMO, El Universal…" ${ro} onchange="(DB.datos[SUC_ACTIVA].ads_offline||[])[${i}].canal=this.value;guardarBD()"></td>
+                <td><input class="input-celda" value="${(it.tipo_pauta||'').replace(/"/g,'&quot;')}" placeholder="Spot 30s, 1/4 pág…" ${ro} onchange="(DB.datos[SUC_ACTIVA].ads_offline||[])[${i}].tipo_pauta=this.value;guardarBD()"></td>
+                <td><div class="currency-wrap"><input class="input-celda" type="text" inputmode="numeric" value="${it.inversion||0}" ${ro} onchange="(DB.datos[SUC_ACTIVA].ads_offline||[])[${i}].inversion=Number(String(this.value).replace(/,/g,''))||0;guardarBD();renderAdsOfflineTable()"></div></td>
+                <td><input class="input-celda" type="date" value="${it.fecha_inicio||''}" ${ro} onchange="(DB.datos[SUC_ACTIVA].ads_offline||[])[${i}].fecha_inicio=this.value;guardarBD()"></td>
+                <td><input class="input-celda" type="date" value="${it.fecha_fin||''}" ${ro} onchange="(DB.datos[SUC_ACTIVA].ads_offline||[])[${i}].fecha_fin=this.value;guardarBD()"></td>
+                <td>${canEdit?`<select class="select-celda" onchange="(DB.datos[SUC_ACTIVA].ads_offline||[])[${i}].estado=this.value;guardarBD();renderAdsOfflineTable()">${estados.map(e=>`<option ${(it.estado||'')=== e?'selected':''}>${e}</option>`).join('')}</select>`:`<span class="estado-badge ${stCls}">${it.estado||'—'}</span>`}</td>
+                ${canEdit?`<td><button onclick="if(confirm('¿Eliminar?')){DB.datos[SUC_ACTIVA].ads_offline.splice(${i},1);guardarBD();renderAdsOfflineTable();setTimeout(renderAdsOfflineCharts,80);}" style="background:none;border:none;cursor:pointer;color:#ccc;"><i class="fa-solid fa-trash"></i></button></td>`:''}
+            </tr>`;
+        }).join('')}</tbody></table></div>`;
+    }
+
+    function renderAdsOfflineCharts() {
+        const d = DB.datos[SUC_ACTIVA];
+        const items = d.ads_offline || [];
+        const mediosList = ['Radio','TV','Espectacular','Prensa','OOH','Cine','Revista','Otro'];
+        const medioTotales = mediosList.map(m => items.filter(it=>it.medio===m).reduce((s,it)=>s+(it.inversion||0),0));
+        const ctx1 = document.getElementById('chart-ads-offline-medios');
+        if (ctx1) {
+            if (_charts['ads-ofm']) _charts['ads-ofm'].destroy();
+            _charts['ads-ofm'] = new Chart(ctx1.getContext('2d'), {
+                type:'bar', data:{ labels:mediosList, datasets:[{ label:'Inversión', data:medioTotales, backgroundColor:'rgba(196,133,90,.8)', borderRadius:6 }] },
+                options:{ responsive:true, plugins:{legend:{display:false}}, scales:{ y:{ticks:{callback:v=>'$'+v.toLocaleString()},grid:{color:'rgba(0,0,0,.05)'}}, x:{grid:{display:false}} } }
+            });
+        }
+        const totalDigital = (d.ads||[]).reduce((s,a)=>s+(a.inversion||0),0);
+        const totalOffline = items.reduce((s,it)=>s+(it.inversion||0),0);
+        const ctx2 = document.getElementById('chart-ads-dvo');
+        if (ctx2) {
+            if (_charts['ads-dvo']) _charts['ads-dvo'].destroy();
+            _charts['ads-dvo'] = new Chart(ctx2.getContext('2d'), {
+                type:'doughnut', data:{ labels:['Digital','Offline'], datasets:[{ data:[totalDigital,totalOffline], backgroundColor:['rgba(66,133,244,.8)','rgba(196,133,90,.8)'], borderWidth:0 }] },
+                options:{ responsive:true, plugins:{legend:{position:'bottom'}}, cutout:'65%' }
+            });
+        }
     }
 
     /* ============= MÓDULO 2: MATERIALES OFFLINE ============= */
