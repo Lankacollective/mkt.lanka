@@ -5842,19 +5842,30 @@ document.addEventListener('DOMContentLoaded', function() {
                 { type: 'image/jpeg' });
             _showToast('⬆ Subiendo thumbnail…');
             const thumbUrl = await _uploadToStorage(thumbFile, `posts/${postId}`);
-            let videoUrl = null;
-            if (isVideo) {
-                _showToast('⬆ Subiendo video…');
-                videoUrl = await _uploadToStorage(file, `posts/${postId}`);
-            }
+            // Guarda entrada en archivos[] con thumbnail ya disponible
             if (ki >= 0) {
                 const k = DB.datos[SUC_ACTIVA].kanban[ki];
                 if (!k.archivos) k.archivos = [];
-                k.archivos.push({ nombre: file.name, preview_url: videoUrl || thumbUrl, thumbnail_url: thumbUrl });
+                k.archivos.push({ nombre: file.name, preview_url: thumbUrl, thumbnail_url: thumbUrl });
                 guardarBD();
             }
+            // Intenta subir video completo — si falla, el thumbnail ya quedó guardado
+            if (isVideo) {
+                try {
+                    _showToast('⬆ Subiendo video…');
+                    const videoUrl = await _uploadToStorage(file, `posts/${postId}`);
+                    if (ki >= 0) {
+                        const k = DB.datos[SUC_ACTIVA].kanban[ki];
+                        const last = k.archivos && k.archivos[k.archivos.length - 1];
+                        if (last && last.nombre === file.name) { last.preview_url = videoUrl; guardarBD(); }
+                    }
+                } catch(ve) {
+                    console.warn('Video upload failed, keeping thumbnail:', ve);
+                    _showToast('Thumbnail guardado — video no subió (archivo muy grande o error de red)');
+                }
+            }
             window._kPreviewUrls[postId] = (window._kPreviewUrls[postId]||[]).filter(e => e !== _sessEntry);
-            _syncArchivoLocalToDam(postId, file.name, postIdx, thumbUrl, videoUrl);
+            _syncArchivoLocalToDam(postId, file.name, postIdx, thumbUrl, null);
             renderOrquestacion();
             setTimeout(() => {
                 const card = document.getElementById(`card-${postId}`);
@@ -5864,7 +5875,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) {
             console.error('Storage error:', e);
             _syncArchivoLocalToDam(postId, file.name, postIdx, objUrl, null);
-            _showToast('Archivo guardado en sesión (Storage no disponible)');
+            _showToast('No se pudo subir el archivo — guardado en sesión');
         }
     }
 
@@ -5919,30 +5930,35 @@ document.addEventListener('DOMContentLoaded', function() {
             : '';
 
         // Preview: 1 archivo = vista grande; múltiples = galería de tiles 80×80
+        const _VID_RE = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i;
         const _mkTile = (f) => {
-            const fIsVid = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(f.preview_url);
-            const fThumb = f.thumbnail_url || (fIsVid ? '' : f.preview_url);
-            if (!fThumb && !fIsVid) return '';
-            return `<div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal('${f.preview_url}',${fIsVid})">`
-                + (fThumb ? `<img src="${fThumb}" style="width:100%;height:100%;object-fit:cover;${fIsVid ? 'opacity:.8;' : ''}display:block;" loading="lazy">` : '')
-                + (fIsVid ? `<i class="fa-solid fa-play" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;pointer-events:none;"></i>` : '')
-                + (canEdit && !f.sess ? `<span style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;line-height:1;" onclick="event.stopPropagation();_removePostArchivo('${t.id}',${f.fi})">×</span>` : '')
-                + `</div>`;
+            const fv = _VID_RE.test(f.preview_url) || f.isVideo;
+            const ft = f.thumbnail_url || (fv ? '' : f.preview_url);
+            if (!ft && !fv) return '';
+            return '<div style="position:relative;width:80px;height:80px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#111;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal(\'' + f.preview_url + '\',' + fv + ')">'
+                + (ft ? '<img src="' + ft + '" style="width:100%;height:100%;object-fit:cover;' + (fv ? 'opacity:.8;' : '') + 'display:block;" loading="lazy">' : '')
+                + (fv ? '<i class="fa-solid fa-play" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#fff;font-size:14px;pointer-events:none;"></i>' : '')
+                + (canEdit && !f.sess ? '<span style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;line-height:1;" onclick="event.stopPropagation();_removePostArchivo(\'' + t.id + '\',' + f.fi + ')">×</span>' : '')
+                + '</div>';
         };
-        const _previewBlock = _allFils.length === 0 ? '' : _allFils.length === 1 ? (() => {
-            const f = _allFils[0];
-            const fIsVid = /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(f.preview_url);
-            const fThumb = f.thumbnail_url || (fIsVid ? '' : f.preview_url);
-            if (!f.preview_url && !fThumb) return '';
-            const _del = canEdit && !f.sess ? `<span style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;" onclick="event.stopPropagation();_removePostArchivo('${t.id}',${f.fi})">×</span>` : '';
-            return fIsVid
-                ? `<div style="position:relative;margin-top:10px;">`
-                    + `<video src="${f.preview_url}" style="width:100%;max-height:200px;border-radius:10px;object-fit:cover;display:block;background:#000;cursor:pointer;" muted playsinline onclick="event.stopPropagation();_openPreviewModal('${f.preview_url}',true)"></video>`
-                    + _del + `</div>`
-                : `<div style="position:relative;margin-top:10px;border-radius:10px;overflow:hidden;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal('${f.preview_url}',false)">`
-                    + `<img src="${fThumb}" style="width:100%;max-height:180px;object-fit:cover;display:block;border-radius:10px;" loading="lazy">`
-                    + _del + `</div>`;
-        })() : `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">${_allFils.map(_mkTile).join('')}</div>`;
+        let _previewBlock = '';
+        if (_allFils.length === 1) {
+            const _pf = _allFils[0];
+            const _pfIsVid = _VID_RE.test(_pf.preview_url) || _pf.isVideo;
+            const _pfThumb = _pf.thumbnail_url || (_pfIsVid ? '' : _pf.preview_url);
+            if (_pf.preview_url || _pfThumb) {
+                const _pDel = canEdit && !_pf.sess
+                    ? '<span style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.55);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;cursor:pointer;" onclick="event.stopPropagation();_removePostArchivo(\'' + t.id + '\',' + _pf.fi + ')">×</span>'
+                    : '';
+                if (_pfIsVid) {
+                    _previewBlock = '<div style="position:relative;margin-top:10px;"><video src="' + _pf.preview_url + '" style="width:100%;max-height:200px;border-radius:10px;object-fit:cover;display:block;background:#000;cursor:pointer;" muted playsinline onclick="event.stopPropagation();_openPreviewModal(\'' + _pf.preview_url + '\',true)"></video>' + _pDel + '</div>';
+                } else {
+                    _previewBlock = '<div style="position:relative;margin-top:10px;border-radius:10px;overflow:hidden;cursor:pointer;" onclick="event.stopPropagation();_openPreviewModal(\'' + _pf.preview_url + '\',false)"><img src="' + _pfThumb + '" style="width:100%;max-height:180px;object-fit:cover;display:block;border-radius:10px;" loading="lazy">' + _pDel + '</div>';
+                }
+            }
+        } else if (_allFils.length > 1) {
+            _previewBlock = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">' + _allFils.map(_mkTile).join('') + '</div>';
+        }
         const _first = _allFils[0];
         const _firstIsVid = _first ? /\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(_first.preview_url) : false;
         const _firstThumb = _first ? (_first.thumbnail_url || _first.preview_url || '') : '';
