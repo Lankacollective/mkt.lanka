@@ -9919,6 +9919,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <button class="btn btn-fantasma btn-xs" onclick="copiarCredenciales('${u.id}')"><i class="fa-solid fa-copy"></i> Copiar credenciales</button>
                         <button class="btn btn-fantasma btn-xs" onclick="limpiarCamposUsuario('${u.id}')"><i class="fa-solid fa-eraser"></i> Limpiar</button>
                         <button class="btn btn-xs ${u.estado==='activo'?'btn-peligro-suave':'btn-fantasma'}" style="margin-left:auto;" onclick="suspenderUsuario('${u.id}')"><i class="fa-solid fa-${u.estado==='activo'?'ban':'circle-check'}"></i> ${u.estado==='activo'?'Suspender':'Activar'}</button>
+                        <button class="btn btn-xs btn-peligro-suave" onclick="eliminarUsuario('${u.id}')"><i class="fa-solid fa-trash"></i> Eliminar</button>
                     </div>
                 </div>
             </div>`;
@@ -9994,6 +9995,15 @@ document.addEventListener('DOMContentLoaded', function() {
         const newEstado = u.estado === 'activo' ? 'suspendido' : 'activo';
         if (!confirm(`¿${newEstado === 'suspendido' ? 'Suspender' : 'Activar'} a ${u.nombre}?`)) return;
         u.estado = newEstado; guardarBD(); renderUsuarios();
+    }
+
+    function eliminarUsuario(id) {
+        const u = (DB.usuarios||[]).find(u => u.id === id);
+        if (!u) return;
+        if (USUARIO_ACTIVO && USUARIO_ACTIVO.id === id) { alert('No puedes eliminar tu propio usuario.'); return; }
+        if (!confirm(`¿Eliminar permanentemente a ${u.nombre}?\nEsta acción no se puede deshacer.`)) return;
+        DB.usuarios = DB.usuarios.filter(u => u.id !== id);
+        guardarBD(); renderUsuarios();
     }
 
     function limpiarCamposUsuario(id) {
