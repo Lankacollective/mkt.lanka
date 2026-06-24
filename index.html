@@ -5813,43 +5813,54 @@ document.addEventListener('DOMContentLoaded', function() {
             const card = document.getElementById(`card-${postId}`);
             if (card && !card.classList.contains('open')) card.classList.add('open');
         }, 50);
-        // Comprimir y subir solo el preview a Storage
+        // Subir thumbnail JPEG + video original (si aplica) a Storage
         try {
-            _showToast('⬆ Comprimiendo preview…');
-            const previewBlob = await _compressToPreview(file);
-            if (!previewBlob) throw new Error('No se pudo generar preview');
-            const previewFile = new File([previewBlob],
+            _showToast('⬆ Generando thumbnail…');
+            const thumbBlob = await _compressToPreview(file);
+            if (!thumbBlob) throw new Error('No se pudo generar thumbnail');
+            const thumbFile = new File([thumbBlob],
                 file.name.replace(/\.[^.]+$/, '_preview.jpg'),
                 { type: 'image/jpeg' });
-            _showToast('⬆ Subiendo a Storage…');
-            const url = await _uploadToStorage(previewFile, `posts/${postId}`);
-            if (ki >= 0) { DB.datos[SUC_ACTIVA].kanban[ki].preview_url = url; guardarBD(); }
-            // preview siempre es imagen JPEG (incluso para video)
-            window._kPreviewUrls[postId] = { url, isVideo: false };
-            _syncArchivoLocalToDam(postId, file.name, postIdx, url);
+            _showToast('⬆ Subiendo thumbnail…');
+            const thumbUrl = await _uploadToStorage(thumbFile, `posts/${postId}`);
+
+            let videoUrl = null;
+            if (isVideo) {
+                _showToast('⬆ Subiendo video…');
+                videoUrl = await _uploadToStorage(file, `posts/${postId}`);
+            }
+
+            if (ki >= 0) {
+                DB.datos[SUC_ACTIVA].kanban[ki].thumbnail_url = thumbUrl;
+                DB.datos[SUC_ACTIVA].kanban[ki].preview_url = videoUrl || thumbUrl;
+                guardarBD();
+            }
+            window._kPreviewUrls[postId] = { url: videoUrl || thumbUrl, isVideo: isVideo && !!videoUrl };
+            _syncArchivoLocalToDam(postId, file.name, postIdx, thumbUrl, videoUrl);
             renderOrquestacion();
             setTimeout(() => {
                 const card = document.getElementById(`card-${postId}`);
                 if (card && !card.classList.contains('open')) card.classList.add('open');
             }, 50);
-            _showToast('Preview subido ✓ — visible para todo el equipo');
+            _showToast(isVideo ? 'Video subido ✓ — visible para todo el equipo' : 'Preview subido ✓ — visible para todo el equipo');
         } catch(e) {
             console.error('Storage error:', e);
-            _syncArchivoLocalToDam(postId, file.name, postIdx, objUrl);
-            _showToast('Preview guardado en sesión (Storage no disponible)');
+            _syncArchivoLocalToDam(postId, file.name, postIdx, objUrl, null);
+            _showToast('Archivo guardado en sesión (Storage no disponible)');
         }
     }
 
-    function _syncArchivoLocalToDam(postId, filename, postIdx, previewUrl) {
+    function _syncArchivoLocalToDam(postId, filename, postIdx, thumbUrl, videoUrl) {
         const d = DB.datos[SUC_ACTIVA];
         if (!d.dam) d.dam = [];
         if (d.dam.find(a => a.post_vinculado === postId && a.archivo_local === filename)) return;
         const post = (d.kanban||[])[postIdx] || {};
+        const isVidFile = /\.(mp4|mov|webm|avi|mkv)$/i.test(filename);
         d.dam.push({
             id: 'd'+Date.now(),
             nombre: (post.titulo || 'Activo de post').substring(0, 60),
-            categoria: 'General', subcategoria: '', tipo: 'foto',
-            drive_url: '', drive_id: '', url: '', thumbnail_url: previewUrl||'',
+            categoria: 'General', subcategoria: '', tipo: isVidFile ? 'video' : 'foto',
+            drive_url: '', drive_id: '', url: videoUrl||'', thumbnail_url: thumbUrl||'',
             post_vinculado: postId, story_vinculada: '', shooting_id: '',
             estado: 'en_revision', archivo_local: filename,
             subido_por: USUARIO_ACTIVO?.id||'', subido_por_nombre: USUARIO_ACTIVO?.nombre||ROL,
@@ -5875,21 +5886,22 @@ document.addEventListener('DOMContentLoaded', function() {
                </div>`
             : '';
         const _archivoLocalBadge = t.archivo_local
-            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.archivo_local}">${t.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();${_kp}.archivo_local='';${_kp}.preview_url='';delete((window._kPreviewUrls||{})['${t.id}']);guardarBD();renderOrquestacion()">×</span>` : ''}</span>`
+            ? `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;background:rgba(0,0,0,.04);border:1px solid var(--color-borde);border-radius:6px;padding:2px 10px;max-width:200px;"><i class="fa-solid fa-file" style="font-size:10px;opacity:.5;flex-shrink:0;"></i><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${t.archivo_local}">${t.archivo_local}</span>${canEdit ? `<span style="cursor:pointer;color:var(--texto-secundario);flex-shrink:0;margin-left:2px;font-weight:400;" onclick="event.stopPropagation();${_kp}.archivo_local='';${_kp}.preview_url='';${_kp}.thumbnail_url='';delete((window._kPreviewUrls||{})['${t.id}']);guardarBD();renderOrquestacion()">×</span>` : ''}</span>`
             : '';
 
         // Preview: usa URL persistente de Supabase Storage primero, luego objectURL de sesión
         const _prevUrl = t.preview_url || ((window._kPreviewUrls||{})[t.id]?.url) || '';
+        const _thumbUrl = t.thumbnail_url || _prevUrl;
         const _isVid = _prevUrl ? (/\.(mp4|mov|webm|avi|mkv)(\?|$)/i.test(_prevUrl) || ((window._kPreviewUrls||{})[t.id]?.isVideo === true)) : false;
         const _previewBlock = _prevUrl
             ? (_isVid
                 ? `<video src="${_prevUrl}" style="width:100%;max-height:150px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;background:#000;cursor:pointer;" muted playsinline onclick="event.stopPropagation();_openPreviewModal('${_prevUrl}',true)"></video>`
                 : `<img src="${_prevUrl}" alt="preview" style="width:100%;max-height:150px;border-radius:10px;object-fit:cover;margin-top:10px;display:block;cursor:pointer;" loading="lazy" onclick="event.stopPropagation();_openPreviewModal('${_prevUrl}',false)">`)
             : '';
-        const _thumbHdr = _prevUrl
+        const _thumbHdr = _thumbUrl
             ? (_isVid
-                ? `<span style="width:38px;height:38px;border-radius:7px;background:#111;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;"><i class="fa-solid fa-play" style="color:#fff;font-size:11px;"></i></span>`
-                : `<img src="${_prevUrl}" alt="" style="width:38px;height:38px;border-radius:7px;object-fit:cover;flex-shrink:0;display:inline-block;" loading="lazy">`)
+                ? `<span style="width:38px;height:38px;border-radius:7px;background:#111;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative;"><img src="${_thumbUrl}" alt="" style="width:100%;height:100%;object-fit:cover;opacity:.7;" loading="lazy"><i class="fa-solid fa-play" style="position:absolute;color:#fff;font-size:10px;"></i></span>`
+                : `<img src="${_thumbUrl}" alt="" style="width:38px;height:38px;border-radius:7px;object-fit:cover;flex-shrink:0;display:inline-block;" loading="lazy">`)
             : '';
 
         // Formato badge/selector
@@ -7896,17 +7908,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         const _newDamId = d.dam[d.dam.length-1].id;
         guardarBD(); cerrarModales(); renderDAM(); _showToast('Activo agregado');
-        // Comprimir y subir solo el preview a Storage (async, sin bloquear UI)
+        // Subir thumbnail JPEG + video original a Storage (async, sin bloquear UI)
         if (window._damPendingFile) {
             const _f = window._damPendingFile; window._damPendingFile = null;
+            const _isVidFile = _f.type.startsWith('video/');
             (async () => {
                 try {
                     const blob = await _compressToPreview(_f);
                     if (!blob) return;
                     const pf = new File([blob], _f.name.replace(/\.[^.]+$/, '_preview.jpg'), { type: 'image/jpeg' });
-                    const url = await _uploadToStorage(pf, `dam/${_newDamId}`);
+                    const thumbUrl = await _uploadToStorage(pf, `dam/${_newDamId}`);
+                    let videoUrl = null;
+                    if (_isVidFile) videoUrl = await _uploadToStorage(_f, `dam/${_newDamId}`);
                     const idx2 = (DB.datos[SUC_ACTIVA].dam||[]).findIndex(x=>x.id===_newDamId);
-                    if (idx2 >= 0) { DB.datos[SUC_ACTIVA].dam[idx2].thumbnail_url = url; guardarBD(); renderDAM(); }
+                    if (idx2 >= 0) {
+                        DB.datos[SUC_ACTIVA].dam[idx2].thumbnail_url = thumbUrl;
+                        if (videoUrl) DB.datos[SUC_ACTIVA].dam[idx2].url = videoUrl;
+                        guardarBD(); renderDAM();
+                    }
                 } catch(e) { console.error('DAM upload error:', e); }
             })();
         }
