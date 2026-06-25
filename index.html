@@ -1776,7 +1776,7 @@
                 <div class="encabezado-seccion">
                     <div>
                         <h1>Mis Tareas</h1>
-                        <p id="mis-tareas-subtitulo">Publicaciones asignadas — tus contenidos a producir.</p>
+                        <p id="mis-tareas-subtitulo">Tus publicaciones asignadas y tareas de CAOS.</p>
                     </div>
                 </div>
                 <div id="mis-tareas-lista" style="display:flex; flex-direction:column; gap:14px;"></div>
@@ -3534,7 +3534,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
         if(lista === 'proveedores') { const _pa=_getProveedores(SUC_ACTIVA); _pa.push({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:""}); _saveProveedores(SUC_ACTIVA,_pa); renderAdministracion(); return; }
-        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') sendToCAOS({ title: n.titulo, project: 'Marketing', assignee: n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); renderTodas();
+        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') sendToCAOS({ title: n.titulo, assignee: n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); renderTodas();
     }
 
     /* ====================================================
@@ -10364,41 +10364,105 @@ document.addEventListener('DOMContentLoaded', function() {
        SPRINT 2 — NUEVAS FUNCIONES
        ================================================================ */
 
-    function renderMisTareas() {
+    async function renderMisTareas() {
         const el = document.getElementById('mis-tareas-lista');
         if (!el) return;
         if (ROL !== 'equipo') { el.innerHTML = ''; return; }
+
+        // --- Sección 1: publicaciones del kanban asignadas ---
         const kanban = DB.datos[SUC_ACTIVA].kanban || [];
         const mis = kanban.filter(t => t.asignado_a === USUARIO_EQUIPO);
-        if (!mis.length) {
-            el.innerHTML = `<div style="text-align:center; padding:72px 40px; color:var(--texto-secundario); background:#FFFFFF; border-radius:20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave);"><i class="fa-solid fa-list-check" style="font-size:44px; opacity:0.18; display:block; margin-bottom:20px; color:var(--color-primario);"></i><p style="font-size:15px; font-weight:600; color:var(--texto-principal); margin-bottom:8px;">Sin tareas asignadas</p><p style="font-size:13px;">Aquí aparecerán las publicaciones que te asignen.</p></div>`;
-            return;
-        }
         const estadoCls = { 'Ideas': 'estado-pendiente', 'Producción': 'estado-produccion', 'Revisión': 'estado-revisar', 'Programado': 'estado-listo' };
-        el.innerHTML = [...mis].sort((a, b) => new Date(a.fecha+'T'+(a.hora||'00:00')) - new Date(b.fecha+'T'+(b.hora||'00:00'))).map(t => {
-            const cls = estadoCls[t.estado] || 'estado-pendiente';
-            const tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let c = 'gris'; if(l.includes('reel')) c='reel'; if(l.includes('asmr')) c='asmr'; if(l.includes('pauta')) c='pauta'; return `<span class="tag ${c}">${tag.trim()}</span>`; }).join('') : '';
-            return `<div class="mis-tareas-card">
-                <div class="mis-tareas-fecha">
-                    <div class="mis-tareas-hora">${t.fecha}</div>
-                    <div class="mis-tareas-dia-val">${t.hora || '—'}</div>
-                </div>
-                <div style="flex:1; min-width:0;">
-                    <div style="font-family:var(--font-display); font-size:16px; font-weight:800; margin-bottom:6px; line-height:1.3; color:var(--texto-principal);">${t.titulo}</div>
-                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">${tagsH}</div>
-                    ${t.copy ? `<div style="font-size:13px; color:var(--texto-secundario); line-height:1.5; font-style:italic; border-left:3px solid var(--color-borde-fuerte); padding-left:10px;">${t.copy.substring(0,120)}${t.copy.length>120?'…':''}</div>` : ''}
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0;">
-                    <span class="estado-badge ${cls}">${t.estado}</span>
-                    ${t.estado !== 'Programado' ? `<button class="btn btn-xs btn-primario" onclick="completarTarea('${t.id}')"><i class="fa-solid fa-check"></i> Completar</button>` : `<span style="font-size:11px; color:var(--color-exito); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Listo</span>`}
-                </div>
-            </div>`;
-        }).join('');
+        let kanbanHTML = '';
+        if (mis.length) {
+            kanbanHTML = [...mis].sort((a,b)=>new Date(a.fecha+'T'+(a.hora||'00:00'))-new Date(b.fecha+'T'+(b.hora||'00:00'))).map(t => {
+                const cls = estadoCls[t.estado] || 'estado-pendiente';
+                const tagsH = t.tags ? t.tags.split(',').map(tag => { let l=tag.trim().toLowerCase(); let c='gris'; if(l.includes('reel'))c='reel'; if(l.includes('asmr'))c='asmr'; if(l.includes('pauta'))c='pauta'; return `<span class="tag ${c}">${tag.trim()}</span>`; }).join('') : '';
+                return `<div class="mis-tareas-card">
+                    <div class="mis-tareas-fecha">
+                        <div class="mis-tareas-hora">${t.fecha}</div>
+                        <div class="mis-tareas-dia-val">${t.hora || '—'}</div>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-family:var(--font-display); font-size:16px; font-weight:800; margin-bottom:6px; line-height:1.3; color:var(--texto-principal);">${t.titulo}</div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">${tagsH}</div>
+                        ${t.copy ? `<div style="font-size:13px; color:var(--texto-secundario); line-height:1.5; font-style:italic; border-left:3px solid var(--color-borde-fuerte); padding-left:10px;">${t.copy.substring(0,120)}${t.copy.length>120?'…':''}</div>` : ''}
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0;">
+                        <span class="estado-badge ${cls}">${t.estado}</span>
+                        ${t.estado !== 'Programado' ? `<button class="btn btn-xs btn-primario" onclick="completarTarea('${t.id}')"><i class="fa-solid fa-check"></i> Completar</button>` : `<span style="font-size:11px; color:var(--color-exito); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Listo</span>`}
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            kanbanHTML = `<div style="text-align:center; padding:32px 24px; color:var(--texto-secundario); background:#FFFFFF; border-radius:16px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); font-size:13px; font-weight:600;">Sin publicaciones asignadas</div>`;
+        }
+
+        el.innerHTML = `
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--color-borde);">
+                <h3 style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--texto-secundario); margin:0;">Producción asignada</h3>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:28px;">${kanbanHTML}</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--color-borde);">
+                <h3 style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--texto-secundario); margin:0;"><i class="fa-solid fa-bolt" style="color:var(--color-primario);margin-right:5px;"></i>Tareas CAOS</h3>
+                <button class="btn btn-xs btn-fantasma" onclick="renderMisTareas()" title="Recargar"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+            <div id="caos-tareas-lista" style="display:flex; flex-direction:column; gap:10px;">
+                <div style="text-align:center; padding:24px; color:var(--texto-secundario); font-size:13px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Cargando…</div>
+            </div>
+        `;
+
+        // --- Sección 2: tareas CAOS (async) ---
+        try {
+            const rolId = USUARIO_ACTIVO?.rol_id || 'equipo';
+            const proyNombre = _caosProyecto();
+            let qs = `?project=${encodeURIComponent(proyNombre)}`;
+            if (rolId !== 'coordinador') qs += `&assignee=${encodeURIComponent(USUARIO_EQUIPO)}`;
+            const tareas = await _caosGetTareas(qs);
+            const caosEl = document.getElementById('caos-tareas-lista');
+            if (!caosEl) return;
+            const activas = tareas.filter(t => t.status !== 'done');
+            if (!activas.length) {
+                caosEl.innerHTML = `<div style="text-align:center; padding:32px 24px; background:#FFFFFF; border-radius:16px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); font-size:13px; font-weight:600; color:var(--texto-secundario);">Sin tareas pendientes en CAOS</div>`;
+                return;
+            }
+            const priorCls = { alta:'#ef4444', media:'#f59e0b', baja:'#6b7280' };
+            const statusLabel = { inbox:'Inbox', todo:'Por hacer', doing:'En progreso', done:'Hecho' };
+            caosEl.innerHTML = activas.map(t => {
+                const pc = priorCls[t.priority] || '#6b7280';
+                const sl = statusLabel[t.status] || (t.status||'');
+                const tid = t.id || t.title;
+                return `<div class="mis-tareas-card">
+                    <div class="mis-tareas-fecha" style="min-width:70px;">
+                        <div class="mis-tareas-hora">${t.date || '—'}</div>
+                        <div class="mis-tareas-dia-val" style="font-size:13px;">${t.time || ''}</div>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:15px; font-weight:800; margin-bottom:5px; color:var(--texto-principal);">${t.title}</div>
+                        ${t.description ? `<div style="font-size:12px; color:var(--texto-secundario); line-height:1.5;">${t.description.substring(0,100)}${t.description.length>100?'…':''}</div>` : ''}
+                        ${t.assignee ? `<div style="font-size:11px; color:var(--texto-secundario); margin-top:4px;"><i class="fa-solid fa-user" style="margin-right:3px;opacity:0.5;"></i>${t.assignee}</div>` : ''}
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0;">
+                        ${t.priority ? `<span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:100px; background:${pc}1a; color:${pc}; border:1px solid ${pc}40;">${t.priority.toUpperCase()}</span>` : ''}
+                        <span style="font-size:11px; font-weight:600; color:var(--texto-secundario);">${sl}</span>
+                        ${t.status !== 'done' ? `<button class="btn btn-xs btn-primario" onclick="_caosMarcarDone(${JSON.stringify(tid)})"><i class="fa-solid fa-check"></i> Listo</button>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            const caosEl = document.getElementById('caos-tareas-lista');
+            if (caosEl) caosEl.innerHTML = `<div style="text-align:center; padding:20px; color:var(--texto-secundario); font-size:13px; border-radius:12px; border:1px solid var(--color-borde);">No se pudo cargar CAOS — <button class="btn btn-xs btn-fantasma" onclick="renderMisTareas()">Reintentar</button></div>`;
+        }
     }
 
     function completarTarea(id) {
         const t = DB.datos[SUC_ACTIVA].kanban.find(x => x.id === id);
-        if (t) { t.estado = 'Programado'; guardarBD(); renderMisTareas(); }
+        if (t) {
+            t.estado = 'Programado';
+            guardarBD();
+            _caosUpdateTarea(t.titulo, { status: 'done' });
+            renderMisTareas();
+        }
     }
 
     function generarShootingDesdeParrilla() {
@@ -12873,35 +12937,58 @@ function _xlsNotificarOrigenManual() {
 </div>
 <div id="notif-overlay" onclick="_toggleNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8999;background:rgba(0,0,0,.15);"></div>
 
-<!-- CAOS Integration -->
+<!-- CAOS Integration v2 -->
 <script>
-  const CAOS_API = 'https://tmypjnoapglzdidrurqq.supabase.co/functions/v1/add-task';
-  const CAOS_KEY = 'caos_sk_lnk_7xK9mP2vQr3bN8dTw';
-  async function sendToCAOS({ title, description = '', project = '', assignee = '', date = '', notes = '' }) {
+  const CAOS_BASE = 'https://tmypjnoapglzdidrurqq.supabase.co/functions/v1';
+  const CAOS_KEY  = 'caos_sk_lnk_7xK9mP2vQr3bN8dTw';
+
+  function _caosProyecto() {
+    return (DB.sucursales||[]).find(s=>s.id===SUC_ACTIVA)?.nombre || 'Marketing';
+  }
+
+  async function sendToCAOS({ title, description='', project='', assignee='', date='', notes='' }) {
     try {
-      const res = await fetch(CAOS_API, {
+      const res = await fetch(`${CAOS_BASE}/add-task`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CAOS_KEY
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          project,
-          assignee,
-          date,
-          notes,
-          source: 'mkt-lanka'
-        })
+        headers: { 'Content-Type': 'application/json', 'x-api-key': CAOS_KEY },
+        body: JSON.stringify({ title, description, project: project || _caosProyecto(), assignee, date, notes, status: 'todo', source: 'mkt-lanka' })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
-      alert('\u2713 Tarea enviada a CAOS');
+      _showToast('\u2713 Tarea creada en CAOS');
       return data;
-    } catch (e) {
-      alert('Error enviando a CAOS: ' + e.message);
+    } catch(e) {
+      _showToast('Error CAOS: ' + e.message);
     }
+  }
+
+  async function _caosGetTareas(filtros='') {
+    const res = await fetch(`${CAOS_BASE}/get-tasks${filtros}`, {
+      headers: { 'x-api-key': CAOS_KEY }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.tasks || data.data || []);
+  }
+
+  async function _caosUpdateTarea(idOrTitle, fields) {
+    try {
+      const idLike = typeof idOrTitle === 'string' && /^[a-f0-9-]{10,}$/i.test(idOrTitle);
+      const body = idLike ? { id: idOrTitle, ...fields } : { title: idOrTitle, ...fields };
+      const res = await fetch(`${CAOS_BASE}/update-task`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': CAOS_KEY },
+        body: JSON.stringify(body)
+      });
+      return res.ok;
+    } catch { return false; }
+  }
+
+  async function _caosMarcarDone(idOrTitle) {
+    const ok = await _caosUpdateTarea(idOrTitle, { status: 'done' });
+    if (ok) _showToast('\u2713 Completado en CAOS');
+    else _showToast('No se pudo actualizar CAOS');
+    renderMisTareas();
   }
 </script>
 </body>
