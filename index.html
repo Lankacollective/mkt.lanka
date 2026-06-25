@@ -2816,15 +2816,15 @@ document.addEventListener('DOMContentLoaded', function() {
             catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
         },
         usuarios: [
-            { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      puesto:"Socio Director",   password:btoa("Lanka2026"),   rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
-            { id:"u_angeles", nombre:"Ángeles Fernández", username:"angeles.fernandez",  puesto:"Fotógrafa",        password:btoa("angeles26"),   rol_id:"direccion",   proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
-            { id:"u_dulce",   nombre:"Dulce",             username:"dulce",              puesto:"Asistente",        password:btoa("dulce26"),     rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
-            { id:"u_sergio",  nombre:"Sergio",            username:"sergio",             puesto:"Videógrafo",       password:btoa("sergio26"),    rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
-            { id:"u_mathias", nombre:"Mathias",           username:"mathias",            puesto:"Lanka Team",       password:btoa("lankateam26"), rol_id:"lanka_team",  proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
-            { id:"u_carlos",  nombre:"Carlos Vega",       username:"carlos.vega",        puesto:"Director General", password:btoa("carlos26"),    rol_id:"direccion",   proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
-            { id:"u_sofia",   nombre:"Sofía Herrera",     username:"sofia.herrera",      puesto:"Coordinadora",     password:btoa("sofia26"),     rol_id:"coordinador", proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
-            { id:"u_diego",   nombre:"Diego Ramírez",     username:"diego.ramirez",      puesto:"Videógrafo",       password:btoa("diego26"),     rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
-            { id:"u_ana",     nombre:"Ana Torres",        username:"ana.torres",         puesto:"Fotógrafa",        password:btoa("ana26"),       rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" }
+            { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      caos_name:"Paola Sagrero",            puesto:"Socio Director",   password:btoa("Lanka2026"),   rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
+            { id:"u_angeles", nombre:"Ángeles Fernández", username:"angeles.fernandez",  caos_name:"angeles.fernandez",        puesto:"Fotógrafa",        password:btoa("angeles26"),   rol_id:"direccion",   proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_dulce",   nombre:"Dulce",             username:"dulce",              caos_name:"dulce",                    puesto:"Asistente",        password:btoa("dulce26"),     rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_sergio",  nombre:"Sergio",            username:"sergio",             caos_name:"sergio",                   puesto:"Videógrafo",       password:btoa("sergio26"),    rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_mathias", nombre:"Mathias",           username:"mathias",            caos_name:"Mathias Neudörfer Hecker", puesto:"Lanka Team",       password:btoa("lankateam26"), rol_id:"lanka_team",  proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
+            { id:"u_carlos",  nombre:"Carlos Vega",       username:"carlos.vega",        caos_name:"carlos.vega",              puesto:"Director General", password:btoa("carlos26"),    rol_id:"direccion",   proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_sofia",   nombre:"Sofía Herrera",     username:"sofia.herrera",      caos_name:"sofia.herrera",            puesto:"Coordinadora",     password:btoa("sofia26"),     rol_id:"coordinador", proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_diego",   nombre:"Diego Ramírez",     username:"diego.ramirez",      caos_name:"diego.ramirez",            puesto:"Videógrafo",       password:btoa("diego26"),     rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_ana",     nombre:"Ana Torres",        username:"ana.torres",         caos_name:"ana.torres",               puesto:"Fotógrafa",        password:btoa("ana26"),       rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" }
         ],
         ubicaciones: ["Morelia - Aitama", "Morelia - Mammut Centro", "Mammut Chapultepec", "Todas"]
     };
@@ -2928,6 +2928,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!DB.permisos)      { DB.permisos      = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos));      _s3migrated = true; }
         // Ensure all permission keys from seed exist (handles stale localStorage from old versions)
         Object.keys(DATOS_SEMILLA.permisos).forEach(mod => { if (!DB.permisos[mod]) { DB.permisos[mod] = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos[mod])); _s3migrated = true; } });
+        // mis_tareas is not user-editable — always sync from seed to pick up role additions
+        DB.permisos.mis_tareas = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos.mis_tareas));
         if (!DB.ubicaciones)   { DB.ubicaciones   = JSON.parse(JSON.stringify(DATOS_SEMILLA.ubicaciones));   _s3migrated = true; }
         if (!DB.usuarios) {
             DB.usuarios = JSON.parse(JSON.stringify(DATOS_SEMILLA.usuarios));
@@ -2937,9 +2939,14 @@ document.addEventListener('DOMContentLoaded', function() {
             DB.usuarios.forEach(u => { if (u.puesto === undefined) u.puesto = ''; });
             // Add Mathias if missing
             if (!DB.usuarios.find(u => u.id === 'u_mathias')) {
-                DB.usuarios.push({ id:"u_mathias", nombre:"Mathias", username:"mathias", puesto:"Lanka Team", password:btoa("lankateam26"), rol_id:"lanka_team", proyectos:["aitama","mammut"], ubicacion:"Todas", estado:"activo" });
+                DB.usuarios.push({ id:"u_mathias", nombre:"Mathias", username:"mathias", caos_name:"Mathias Neudörfer Hecker", puesto:"Lanka Team", password:btoa("lankateam26"), rol_id:"lanka_team", proyectos:["aitama","mammut"], ubicacion:"Todas", estado:"activo" });
                 _s3migrated = true;
             }
+            // Sync caos_name from seed for all existing users
+            DB.usuarios.forEach(u => {
+                const seed = DATOS_SEMILLA.usuarios.find(s => s.id === u.id);
+                if (seed && !u.caos_name) { u.caos_name = seed.caos_name; _s3migrated = true; }
+            });
         }
         if (_s3migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
 
@@ -3536,7 +3543,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
         if(lista === 'proveedores') { const _pa=_getProveedores(SUC_ACTIVA); _pa.push({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:""}); _saveProveedores(SUC_ACTIVA,_pa); renderAdministracion(); return; }
-        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') sendToCAOS({ title: n.titulo, assignee: n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); renderTodas();
+        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') { const _u = (DB.usuarios||[]).find(u => u.nombre === n.asignado_a); sendToCAOS({ title: n.titulo, assignee: _u?.caos_name || n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); } renderTodas();
     }
 
     /* ====================================================
@@ -10408,7 +10415,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:28px;">${kanbanHTML}</div>
             <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--color-borde);">
-                <h3 style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--texto-secundario); margin:0;"><i class="fa-solid fa-bolt" style="color:var(--color-primario);margin-right:5px;"></i>Tareas CAOS</h3>
+                <h3 style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--texto-secundario); margin:0;">Tareas</h3>
                 <button class="btn btn-xs btn-fantasma" onclick="renderMisTareas()" title="Recargar"><i class="fa-solid fa-rotate-right"></i></button>
             </div>
             <div id="caos-tareas-lista" style="display:flex; flex-direction:column; gap:10px;">
@@ -10416,12 +10423,12 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
 
-        // --- Sección 2: tareas CAOS (async) ---
+        // --- Sección 2: tareas (async desde CAOS) ---
         try {
-            const proyNombre = _caosProyecto();
-            let qs = `?project=${encodeURIComponent(proyNombre)}`;
+            const caosNombre = USUARIO_ACTIVO?.caos_name || USUARIO_ACTIVO?.username || '';
             const verTodas = ['coordinador', 'owner', 'direccion', 'lanka_team'].includes(rolId);
-            if (!verTodas && USUARIO_EQUIPO) qs += `&assignee=${encodeURIComponent(USUARIO_EQUIPO)}`;
+            let qs = caosNombre ? `?assignee=${encodeURIComponent(caosNombre)}` : '';
+            if (!verTodas && !qs) qs = `?assignee=${encodeURIComponent(USUARIO_EQUIPO)}`;
             const tareas = await _caosGetTareas(qs);
             const caosEl = document.getElementById('caos-tareas-lista');
             if (!caosEl) return;
