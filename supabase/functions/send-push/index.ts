@@ -4,8 +4,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const VAPID_SUBJECT  = "mailto:hola@lankacollective.com";
 const VAPID_PUBLIC   = Deno.env.get("VAPID_PUBLIC_KEY")  || "";
 const VAPID_PRIVATE  = Deno.env.get("VAPID_PRIVATE_KEY") || "";
-const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")      || "";
-const SUPABASE_KEY   = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const SUPABASE_URL   = Deno.env.get("SUPABASE_URL")   || "https://ulbqvgvzvkxztfaaekmr.supabase.co";
+const SUPABASE_KEY   = Deno.env.get("SB_SERVICE_ROLE_KEY") || "";
 
 // --- minimal VAPID / Web-Push implementation (no npm) ---
 
