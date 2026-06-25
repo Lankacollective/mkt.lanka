@@ -2926,6 +2926,8 @@ document.addEventListener('DOMContentLoaded', function() {
         let _s3migrated = false;
         if (!DB.roles_sistema) { DB.roles_sistema = JSON.parse(JSON.stringify(DATOS_SEMILLA.roles_sistema)); _s3migrated = true; }
         if (!DB.permisos)      { DB.permisos      = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos));      _s3migrated = true; }
+        // Ensure all permission keys from seed exist (handles stale localStorage from old versions)
+        Object.keys(DATOS_SEMILLA.permisos).forEach(mod => { if (!DB.permisos[mod]) { DB.permisos[mod] = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos[mod])); _s3migrated = true; } });
         if (!DB.ubicaciones)   { DB.ubicaciones   = JSON.parse(JSON.stringify(DATOS_SEMILLA.ubicaciones));   _s3migrated = true; }
         if (!DB.usuarios) {
             DB.usuarios = JSON.parse(JSON.stringify(DATOS_SEMILLA.usuarios));
@@ -3442,7 +3444,7 @@ document.addEventListener('DOMContentLoaded', function() {
             (document.getElementById('badge-rol-text')||document.getElementById('badge-rol')).innerText = USUARIO_EQUIPO + ' · Equipo';
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.req-equipo').forEach(el => el.style.display = '');
+            document.querySelectorAll('.req-equipo').forEach(el => el.style.display = 'block');
             document.getElementById('selector-sucursal').style.display = 'none';
             document.getElementById('etiqueta-cliente').style.display = 'block';
             // Navigate to Mis Tareas by default
@@ -6271,7 +6273,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
         // Restore expanded state
         _openCardIds.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('open'); });
-        document.querySelectorAll('.req-agencia').forEach(el => el.style.display = ROL === 'cliente' ? 'none' : '');
+        document.querySelectorAll('.req-agencia').forEach(el => el.style.display = (ROL === 'cliente' || ROL === 'equipo') ? 'none' : '');
     }
 
     // ── DAM: constantes de categorías ────────────────────────────────
@@ -6353,7 +6355,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!contenedor) return;
 
         const _damProjDrive = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).drive_contenido_url || '';
-        const _damDriveBar = _damProjDrive
+        const _damDriveBar = (canEdit && _damProjDrive)
             ? `<div style="grid-column:1/-1;margin-bottom:4px;"><a href="${_damProjDrive}" target="_blank" rel="noopener" class="btn btn-fantasma" style="display:inline-flex;align-items:center;gap:8px;"><i class="fa-brands fa-google-drive" style="color:#4285F4;font-size:13px;"></i> Abrir carpeta del proyecto en Drive</a></div>`
             : '';
 
@@ -10707,7 +10709,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Show Mi Trabajo section header if role has mis_tareas access
         const hasMisTareas = !!(DB.permisos.mis_tareas && DB.permisos.mis_tareas[rol_id]);
-        document.querySelectorAll('.req-equipo').forEach(el => { el.style.display = hasMisTareas ? '' : 'none'; });
+        document.querySelectorAll('.req-equipo').forEach(el => { el.style.display = hasMisTareas ? 'block' : 'none'; });
         // Update role badge
         const rol = (DB.roles_sistema||[]).find(r => r.id === rol_id);
         if (rol && USUARIO_ACTIVO) {
