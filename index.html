@@ -1285,6 +1285,10 @@
 </style>
 ```
 
+<!-- Google Drive Picker (carga lazy al abrir el picker por primera vez) -->
+<script src="https://apis.google.com/js/api.js" async defer id="_gapi_script"></script>
+<script src="https://accounts.google.com/gsi/client" async defer id="_gis_script"></script>
+
 <!-- Pasos 2-4: Supabase client + credenciales inyectadas en build -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -1664,6 +1668,7 @@
                             <button id="btn-vista-parrilla" class="btn-vista activo" onclick="cambiarVistaCalendario('parrilla')"><i class="fa-solid fa-list"></i> Parrilla</button>
                             <button id="btn-vista-kanban" class="btn-vista" onclick="cambiarVistaCalendario('kanban')"><i class="fa-solid fa-columns"></i> Kanban</button>
                         </div>
+                        <button id="btn-carpeta-drive" class="btn btn-fantasma" style="display:none;" onclick="const _u=(DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).drive_contenido_url;if(_u)window.open(_u,'_blank');else alert('Configura la carpeta Drive en Configuración → Carpeta Drive.');"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:4px;"></i> Carpeta Drive</button>
                         <button class="btn btn-fantasma req-agencia" onclick="abrirImportarJSON()"><i class="fa-solid fa-file-code"></i> Importar semana</button>
                         <button class="btn btn-fantasma req-agencia" onclick="_abrirImportarPostIA()"><i class="fa-solid fa-wand-magic-sparkles"></i> Importar post IA</button>
                         <button class="btn btn-primario req-agencia" onclick="agregarElemento('kanban')"><i class="fa-solid fa-plus"></i> Nueva Tarea</button>
@@ -5882,21 +5887,108 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fallback: pegar URL manualmente (usado si el Picker falla)
     function _addDriveLinkToPost(postId, idx) {
         const raw = prompt('Pega el link de Google Drive (imagen o video):');
         if (!raw) return;
         const driveId = _extractDriveId(raw.trim());
         if (!driveId) { _showToast('No se reconoció el ID de Drive — usa un link tipo /file/d/...'); return; }
-        const thumbUrl  = 'https://drive.google.com/thumbnail?id=' + driveId + '&sz=w600';
-        const embedUrl  = 'https://drive.google.com/file/d/' + driveId + '/preview';
+        _saveDriveFileToPost(postId, driveId, 'Drive:' + driveId.substring(0,10));
+    }
+
+    function _saveDriveFileToPost(postId, driveId, nombre) {
+        const thumbUrl = 'https://drive.google.com/thumbnail?id=' + driveId + '&sz=w600';
+        const embedUrl = 'https://drive.google.com/file/d/' + driveId + '/preview';
         const ki = (DB.datos[SUC_ACTIVA].kanban||[]).findIndex(k=>k.id===postId);
         if (ki < 0) return;
         const k = DB.datos[SUC_ACTIVA].kanban[ki];
         if (!k.archivos) k.archivos = [];
-        k.archivos.push({ nombre: 'Drive:' + driveId.substring(0,10), preview_url: embedUrl, thumbnail_url: thumbUrl, drive_id: driveId });
+        k.archivos.push({ nombre: nombre||('Drive:'+driveId.substring(0,10)), preview_url: embedUrl, thumbnail_url: thumbUrl, drive_id: driveId });
         guardarBD();
         renderOrquestacion();
-        _showToast('Link de Drive vinculado ✓');
+        _showToast('✓ Archivo vinculado desde Drive');
+    }
+
+    /* ===== GOOGLE DRIVE PICKER ===== */
+    const _GAPI_KEY      = 'AIzaSyBjsWc6MunqKuTK8ENUKaf2POCY8QGRv_o';
+    const _GOAUTH_CLIENT = '279622918546-fcoc7slmscqqir247q8jv5p43n3cbpj3.apps.googleusercontent.com';
+    let _gapiReady = false, _gapiToken = null;
+
+    function _drivePickerEnsureReady() {
+        return new Promise((resolve) => {
+            if (_gapiReady) { resolve(true); return; }
+            const check = () => {
+                if (window.gapi && window.google?.accounts) {
+                    gapi.load('picker', () => { _gapiReady = true; resolve(true); });
+                } else {
+                    setTimeout(check, 300);
+                }
+            };
+            check();
+        });
+    }
+
+    async function _drivePickerAbrir(postId, idx) {
+        _showToast('Abriendo Google Drive…');
+        const ready = await Promise.race([
+            _drivePickerEnsureReady(),
+            new Promise(r => setTimeout(() => r(false), 6000))
+        ]);
+        if (!ready) {
+            // Fallback si los scripts no cargaron
+            _showToast('No se pudo cargar el Picker — pega el link manualmente');
+            _addDriveLinkToPost(postId, idx);
+            return;
+        }
+
+        const _buildPicker = (token) => {
+            const suc      = DB.sucursales.find(s => s.id === SUC_ACTIVA);
+            const folderId = _extractDriveId((suc?.drive_contenido_url) || '');
+
+            let imgView = new google.picker.DocsView(google.picker.ViewId.DOCS_IMAGES)
+                .setIncludeFolders(true);
+            let vidView = new google.picker.DocsView(google.picker.ViewId.DOCS_VIDEOS)
+                .setIncludeFolders(true);
+            let allView = new google.picker.DocsView()
+                .setIncludeFolders(true)
+                .setSelectFolderEnabled(false);
+            if (folderId) {
+                imgView = imgView.setParent(folderId);
+                vidView = vidView.setParent(folderId);
+                allView = allView.setParent(folderId);
+            }
+
+            new google.picker.PickerBuilder()
+                .setTitle(folderId ? 'Seleccionar archivo del proyecto' : 'Seleccionar archivo de Drive')
+                .addView(imgView)
+                .addView(vidView)
+                .addView(allView)
+                .setOAuthToken(token)
+                .setDeveloperKey(_GAPI_KEY)
+                .setCallback((data) => {
+                    if (data.action !== google.picker.Action.PICKED) return;
+                    const f = data.docs[0];
+                    _saveDriveFileToPost(postId, f.id, f.name || ('Drive:' + f.id.substring(0,10)));
+                })
+                .build()
+                .setVisible(true);
+        };
+
+        // Reusar token si sigue vigente
+        if (_gapiToken && _gapiToken.exp > Date.now()) {
+            _buildPicker(_gapiToken.token);
+            return;
+        }
+
+        google.accounts.oauth2.initTokenClient({
+            client_id: _GOAUTH_CLIENT,
+            scope: 'https://www.googleapis.com/auth/drive.readonly',
+            callback: (resp) => {
+                if (resp.error) { _showToast('Error Google: ' + resp.error); return; }
+                _gapiToken = { token: resp.access_token, exp: Date.now() + (resp.expires_in - 60) * 1000 };
+                _buildPicker(resp.access_token);
+            }
+        }).requestAccessToken({ prompt: _gapiToken ? '' : '' });
     }
 
     function _syncArchivoLocalToDam(postId, filename, postIdx, thumbUrl, videoUrl) {
@@ -6088,7 +6180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
     ${_docBadge}
-    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();_handlePostFileUpload(this,'${t.id}',${idx})"><i class="fa-solid fa-folder-open"></i> Archivo local</label><button class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Vincular archivo de Google Drive" onclick="event.stopPropagation();_addDriveLinkToPost('${t.id}',${idx})"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:3px;"></i>Link Drive</button>` : ''}${_archivoLocalBadge}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();_handlePostFileUpload(this,'${t.id}',${idx})"><i class="fa-solid fa-folder-open"></i> Archivo local</label><button class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Vincular archivo de Google Drive" onclick="event.stopPropagation();_drivePickerAbrir('${t.id}',${idx})"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:3px;"></i>Desde Drive</button>` : ''}${_archivoLocalBadge}</div>
     ${_previewBlock}
   </div>
   ${_sep}
@@ -6147,6 +6239,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const d = DB.datos[SUC_ACTIVA];
         const canEdit = _getPermisos('calendario', 'editar');
         const ro = canEdit ? '' : 'readonly';
+        // Mostrar botón carpeta Drive si el proyecto tiene URL configurada
+        const _btnDrive = document.getElementById('btn-carpeta-drive');
+        if (_btnDrive) {
+            const _driveUrl = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).drive_contenido_url||'';
+            _btnDrive.style.display = _driveUrl ? '' : 'none';
+        }
         let kHTML = {'Ideas':'','Producción':'','Revisión':'','Programado':'','Publicado':''};
         let pHTML = '';
         let targetOpts = d.target.map(t => `<option value="${t.id}">${t.segmento}</option>`).join('');
