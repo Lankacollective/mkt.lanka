@@ -1282,6 +1282,18 @@
     [data-theme="dark"] .mas-drawer-item:active { background: rgba(255,255,255,0.06) !important; }
     [data-theme="light"] .bottom-nav { background: rgba(245,240,234,0.96) !important; border-top-color: rgba(196,133,90,0.15) !important; }
     [data-theme="light"] .mas-drawer { background: rgba(245,240,234,0.99) !important; }
+
+    /* ── Print / PDF export ─────────────────────────── */
+    @media print {
+        body * { visibility: hidden !important; }
+        #vista-director, #vista-director * { visibility: visible !important; }
+        #vista-director { position: fixed !important; inset: 0 !important; overflow: visible !important; background: #fff !important; }
+        #vista-director .seccion-app { display: block !important; }
+        #dir-btn-export, #dir-tab-btn-parrilla, #dir-tab-btn-campanas { display: none !important; }
+        #dir-view-parrilla, #dir-view-campanas { display: block !important; }
+        .oculto { display: block !important; visibility: visible !important; }
+        @page { margin: 16mm 12mm; size: A4 landscape; }
+    }
 </style>
 ```
 
@@ -2032,6 +2044,10 @@
                         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                             <select id="dir-mes-sel" onchange="renderDirector()"
                                 style="font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;border:1px solid var(--color-borde);background:#fff;color:var(--texto-principal);cursor:pointer;"></select>
+                            <button onclick="exportarDirectorPDF()" id="dir-btn-export"
+                                style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;padding:8px 18px;border-radius:10px;border:none;background:var(--color-primario);color:#fff;cursor:pointer;transition:.2s;white-space:nowrap;">
+                                <i class="fa-solid fa-file-arrow-down" style="font-size:13px;"></i>Exportar PDF
+                            </button>
                         </div>
                     </div>
 
@@ -4044,6 +4060,34 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+    function exportarDirectorPDF() {
+        const btn = document.getElementById('dir-btn-export');
+        if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:13px;"></i> Generando...'; btn.disabled = true; }
+
+        // Asegurar que ambas vistas estén visibles para impresión
+        const vP = document.getElementById('dir-view-parrilla');
+        const vC = document.getElementById('dir-view-campanas');
+        const vPprev = vP ? vP.style.display : '';
+        const vCprev = vC ? vC.style.display : '';
+        if (vP) vP.style.display = '';
+        if (vC) vC.style.display = '';
+
+        // Título del documento
+        const sub = document.getElementById('dir-subtitulo');
+        const titulo = `Modo Director — ${sub ? sub.textContent : ''}`;
+        const prevTitle = document.title;
+        document.title = titulo;
+
+        setTimeout(() => {
+            window.print();
+            // Restaurar estado
+            document.title = prevTitle;
+            if (vP) vP.style.display = vPprev;
+            if (vC) vC.style.display = vCprev;
+            if (btn) { btn.innerHTML = '<i class="fa-solid fa-file-arrow-down" style="font-size:13px;"></i> Exportar PDF'; btn.disabled = false; }
+        }, 200);
+    }
+
     // ─── FIN MODO DIRECTOR ────────────────────────────────────────────────────
 
     async function obtenerTipoCambio() {
