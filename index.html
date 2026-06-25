@@ -1344,6 +1344,7 @@
         <ul class="menu-nav req-no-equipo">
             <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-gauge-high"></i> Dashboard</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
+            <li class="item-nav" data-target="vista-director"><i class="fa-solid fa-presentation-screen"></i> Modo Director</li>
         </ul>
 
         <div class="menu-titulo req-agencia">Finanzas</div>
@@ -2013,6 +2014,63 @@
                     <button class="btn btn-primario" onclick="generarReporteAuditoria()"><i class="fa-solid fa-bolt"></i> Generar Reporte</button>
                 </div>
                 <div id="auditoria-resultado"></div>
+            </section>
+
+            <!-- ═══ MODO DIRECTOR ═══════════════════════════════════════════════ -->
+            <section id="vista-director" class="seccion-app oculto">
+                <div style="padding:28px 32px;max-width:1400px;">
+
+                    <!-- Header -->
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;">
+                        <div>
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+                                <i class="fa-solid fa-presentation-screen" style="font-size:18px;color:var(--color-primario);"></i>
+                                <h1 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.02em;">Modo Director</h1>
+                            </div>
+                            <p id="dir-subtitulo" style="margin:0;font-size:13px;color:var(--texto-secundario);"></p>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <select id="dir-mes-sel" onchange="renderDirector()"
+                                style="font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;border:1px solid var(--color-borde);background:#fff;color:var(--texto-principal);cursor:pointer;"></select>
+                        </div>
+                    </div>
+
+                    <!-- Tabs -->
+                    <div style="display:flex;gap:2px;margin-bottom:28px;background:var(--color-fondo);padding:4px;border-radius:12px;width:fit-content;border:1px solid var(--color-borde);">
+                        <button id="dir-tab-btn-parrilla" onclick="dirCambiarTab('parrilla')"
+                            style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:9px;border:none;cursor:pointer;transition:.2s;background:#fff;color:var(--texto-principal);box-shadow:0 1px 4px rgba(0,0,0,.08);">
+                            <i class="fa-solid fa-table-cells" style="margin-right:6px;font-size:11px;"></i>Parrilla del mes
+                        </button>
+                        <button id="dir-tab-btn-campanas" onclick="dirCambiarTab('campanas')"
+                            style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:9px;border:none;cursor:pointer;transition:.2s;background:transparent;color:var(--texto-secundario);box-shadow:none;">
+                            <i class="fa-solid fa-bullhorn" style="margin-right:6px;font-size:11px;"></i>Campañas & Métricas
+                        </button>
+                    </div>
+
+                    <!-- Parrilla View -->
+                    <div id="dir-view-parrilla">
+                        <div style="display:flex;gap:16px;margin-bottom:18px;flex-wrap:wrap;align-items:center;">
+                            <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);">Estado:</span>
+                            <span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;"><span style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;display:inline-block;"></span>Ideas</span>
+                            <span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;"><span style="width:8px;height:8px;border-radius:50%;background:#4A90D9;display:inline-block;"></span>Producción</span>
+                            <span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;"><span style="width:8px;height:8px;border-radius:50%;background:#FBBC05;display:inline-block;"></span>Revisión</span>
+                            <span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;"><span style="width:8px;height:8px;border-radius:50%;background:#8B5CF6;display:inline-block;"></span>Programado</span>
+                            <span style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:500;"><span style="width:8px;height:8px;border-radius:50%;background:#34A853;display:inline-block;"></span>Publicado</span>
+                        </div>
+                        <div id="dir-parrilla-grid"></div>
+                    </div>
+
+                    <!-- Campañas View -->
+                    <div id="dir-view-campanas" style="display:none;">
+                        <div id="dir-kpi-strip" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;"></div>
+                        <div id="dir-campanas-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;"></div>
+                        <div id="dir-campanas-empty" style="display:none;text-align:center;padding:48px;color:var(--texto-secundario);">
+                            <i class="fa-solid fa-bullhorn" style="font-size:32px;display:block;margin-bottom:12px;opacity:.25;"></i>
+                            <p style="font-size:15px;font-weight:500;">No hay campañas activas para este mes</p>
+                        </div>
+                    </div>
+
+                </div>
             </section>
 
         </div>
@@ -3192,7 +3250,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (target === 'vista-target') renderEstrategia();
                 if (target === 'vista-shooting') renderShootingGrid();
                 if (target === 'vista-dam') { _damFiltro='all'; renderDAM(); }
-            }); 
+                if (target === 'vista-director') renderDirector();
+            });
         });
     });
 
@@ -3377,6 +3436,243 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Retorna inmediatamente — UI disponible sin esperar Supabase
     }
+
+    // ─── MODO DIRECTOR ────────────────────────────────────────────────────────
+    let _dirTab = 'parrilla';
+
+    function dirCambiarTab(tab) {
+        _dirTab = tab;
+        const btnP = document.getElementById('dir-tab-btn-parrilla');
+        const btnC = document.getElementById('dir-tab-btn-campanas');
+        const vP   = document.getElementById('dir-view-parrilla');
+        const vC   = document.getElementById('dir-view-campanas');
+        if (!btnP) return;
+        if (tab === 'parrilla') {
+            btnP.style.cssText += ';background:#fff;color:var(--texto-principal);box-shadow:0 1px 4px rgba(0,0,0,.08);';
+            btnC.style.cssText += ';background:transparent;color:var(--texto-secundario);box-shadow:none;';
+            vP.style.display = ''; vC.style.display = 'none';
+        } else {
+            btnC.style.cssText += ';background:#fff;color:var(--texto-principal);box-shadow:0 1px 4px rgba(0,0,0,.08);';
+            btnP.style.cssText += ';background:transparent;color:var(--texto-secundario);box-shadow:none;';
+            vC.style.display = ''; vP.style.display = 'none';
+        }
+    }
+
+    function _estadoColorDir(estado) {
+        const m = { 'Ideas':'#9CA3AF','Producción':'#4A90D9','Revisión':'#FBBC05','Programado':'#8B5CF6','Publicado':'#34A853' };
+        return m[estado] || '#9CA3AF';
+    }
+
+    function _formatoIconDir(formato) {
+        const f = (formato||'').toLowerCase();
+        if (f.includes('reel') || f.includes('video')) return 'fa-film';
+        if (f.includes('story') || f.includes('stories')) return 'fa-mobile-screen';
+        if (f.includes('carrusel') || f.includes('carousel')) return 'fa-images';
+        return 'fa-image';
+    }
+
+    function renderDirector() {
+        const el = document.getElementById('vista-director');
+        if (!el || el.classList.contains('oculto')) return;
+        if (!SUC_ACTIVA || !DB.datos || !DB.datos[SUC_ACTIVA]) return;
+
+        const d = DB.datos[SUC_ACTIVA];
+        const suc = (DB.sucursales||[]).find(s => s.id === SUC_ACTIVA) || {};
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+        // Selector de mes: generar solo si está vacío
+        const sel = document.getElementById('dir-mes-sel');
+        if (sel && !sel.options.length) {
+            const hoy = new Date();
+            let ops = '';
+            for (let i = -5; i <= 3; i++) {
+                const d2 = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+                const v = `${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}`;
+                const sel2 = (i === 0) ? ' selected' : '';
+                ops += `<option value="${v}"${sel2}>${meses[d2.getMonth()]} ${d2.getFullYear()}</option>`;
+            }
+            sel.innerHTML = ops;
+        }
+
+        const mesVal = sel ? sel.value : `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+        const [mesYear, mesMonth] = mesVal.split('-').map(Number);
+
+        const sub = document.getElementById('dir-subtitulo');
+        if (sub) sub.textContent = `${suc.nombre||''} — ${meses[mesMonth-1]} ${mesYear}`;
+
+        _renderDirectorParrilla(d, mesYear, mesMonth);
+        _renderDirectorCampanas(d, mesYear, mesMonth);
+    }
+
+    function _renderDirectorParrilla(d, year, month) {
+        const grid = document.getElementById('dir-parrilla-grid');
+        if (!grid) return;
+
+        const kanban = (d.kanban||[]).filter(p => {
+            if (!p.fecha) return false;
+            const pts = p.fecha.split('-').map(Number);
+            return pts[0] === year && pts[1] === month;
+        });
+
+        const porFecha = {};
+        kanban.forEach(p => { if (!porFecha[p.fecha]) porFecha[p.fecha]=[]; porFecha[p.fecha].push(p); });
+
+        const diasSemana = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+        const primerDia = new Date(year, month-1, 1);
+        const ultimoDia = new Date(year, month, 0);
+        const dow = (primerDia.getDay()+6)%7;
+        const cursor = new Date(year, month-1, 1-dow);
+
+        const semanas = [];
+        while (cursor <= ultimoDia) {
+            const semana = [];
+            for (let i=0;i<7;i++) { semana.push(new Date(cursor)); cursor.setDate(cursor.getDate()+1); }
+            semanas.push(semana);
+        }
+
+        const total = kanban.length;
+        const pub = kanban.filter(p=>p.estado==='Publicado').length;
+        const prog = kanban.filter(p=>p.estado==='Programado').length;
+        const rev = kanban.filter(p=>p.estado==='Revisión').length;
+
+        const fmtNum = n => n >= 1000 ? (n/1000).toFixed(1)+'K' : String(n);
+
+        let h = `<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">`;
+        [{v:total,l:'Posts del mes',c:'var(--color-primario)'},{v:pub,l:'Publicados',c:'#34A853'},{v:prog,l:'Programados',c:'#8B5CF6'},{v:rev,l:'En revisión',c:'#FBBC05'}].forEach(k=>{
+            h+=`<div style="background:#fff;border:1px solid var(--color-borde);border-radius:12px;padding:14px 18px;">
+                <div style="font-size:22px;font-weight:700;color:${k.c};">${k.v}</div>
+                <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);margin-top:2px;">${k.l}</div>
+            </div>`;
+        });
+        h += `</div>`;
+
+        if (total === 0) {
+            h += `<div style="text-align:center;padding:64px 24px;background:#fff;border-radius:16px;border:1px dashed var(--color-borde);">
+                <i class="fa-solid fa-calendar-days" style="font-size:32px;opacity:.2;display:block;margin-bottom:12px;"></i>
+                <p style="color:var(--texto-secundario);font-size:15px;font-weight:500;">No hay posts programados para este mes</p>
+            </div>`;
+            grid.innerHTML = h; return;
+        }
+
+        h += `<div style="background:#fff;border-radius:16px;border:1px solid var(--color-borde);overflow:hidden;">`;
+        h += `<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:2px solid var(--color-borde);">`;
+        diasSemana.forEach((ds,i)=>{
+            h+=`<div style="padding:10px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);text-align:center;${i<6?'border-right:1px solid var(--color-borde);':''}">${ds}</div>`;
+        });
+        h += `</div>`;
+
+        semanas.forEach((sem, si) => {
+            h += `<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));${si<semanas.length-1?'border-bottom:1px solid var(--color-borde);':''}">`;
+            sem.forEach((dia, di) => {
+                const esMes = (dia.getMonth()+1) === month;
+                const fs = `${dia.getFullYear()}-${String(dia.getMonth()+1).padStart(2,'0')}-${String(dia.getDate()).padStart(2,'0')}`;
+                const posts = porFecha[fs] || [];
+                h += `<div style="min-height:130px;padding:8px;background:${esMes?'#fff':'#FAFAFA'};${di<6?'border-right:1px solid var(--color-borde);':''}">`;
+                h += `<div style="font-size:13px;font-weight:${esMes?'700':'400'};color:${esMes?'var(--texto-principal)':'#C4C4C4'};margin-bottom:6px;">${dia.getDate()}</div>`;
+                posts.slice(0,2).forEach(p => {
+                    const thumb = (p.archivos&&p.archivos[0]&&(p.archivos[0].thumbnail_url||p.archivos[0].preview_url))||p.thumbnail_url||p.preview_url||'';
+                    const col = _estadoColorDir(p.estado);
+                    const ico = _formatoIconDir(p.formato);
+                    h += `<div style="margin-bottom:5px;border-radius:8px;overflow:hidden;border:1px solid var(--color-borde);cursor:pointer;" onclick="navegarVista('vista-calendario')" title="${(p.titulo||'').replace(/"/g,'&quot;')}">`;
+                    h += thumb
+                        ? `<div style="width:100%;height:54px;background:url('${thumb}') center/cover no-repeat;background-color:#F0F0F0;"></div>`
+                        : `<div style="width:100%;height:54px;background:${col}18;display:flex;align-items:center;justify-content:center;"><i class="fa-solid ${ico}" style="font-size:18px;color:${col};opacity:.7;"></i></div>`;
+                    h += `<div style="padding:4px 6px;display:flex;align-items:center;gap:4px;">
+                        <span style="width:6px;height:6px;border-radius:50%;background:${col};flex-shrink:0;"></span>
+                        <span style="font-size:10px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">${(p.titulo||'Post').substring(0,20)}</span>
+                    </div></div>`;
+                });
+                if (posts.length>2) h+=`<div style="font-size:10px;font-weight:600;color:var(--texto-secundario);text-align:center;padding:3px 0;cursor:pointer;" onclick="navegarVista('vista-calendario')">+${posts.length-2} más</div>`;
+                h += `</div>`;
+            });
+            h += `</div>`;
+        });
+        h += `</div>`;
+        grid.innerHTML = h;
+    }
+
+    function _renderDirectorCampanas(d, year, month) {
+        const kpiEl  = document.getElementById('dir-kpi-strip');
+        const gridEl = document.getElementById('dir-campanas-grid');
+        const emptyEl= document.getElementById('dir-campanas-empty');
+        if (!kpiEl || !gridEl) return;
+
+        const mesIni = new Date(year, month-1, 1);
+        const mesFin = new Date(year, month, 0);
+        const ads = (d.ads||[]).filter(a => {
+            if (a.estado==='Borrador') return false;
+            const cIni = a.inicio ? new Date(a.inicio+'T00:00:00') : new Date(0);
+            const cFin = a.fin ? new Date(a.fin+'T00:00:00') : new Date(9999,0,1);
+            return cIni <= mesFin && cFin >= mesIni;
+        });
+
+        if (!ads.length) { kpiEl.innerHTML=''; gridEl.innerHTML=''; if(emptyEl) emptyEl.style.display=''; return; }
+        if (emptyEl) emptyEl.style.display='none';
+
+        const fmtMon = n => new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n||0);
+        const fmtNum = n => (n||0)>=1000000?(n/1000000).toFixed(1)+'M':(n||0)>=1000?(n/1000).toFixed(1)+'K':String(n||0);
+
+        const totInv  = ads.reduce((s,a)=>s+(Number(a.inversion)||0),0);
+        const totAlc  = ads.reduce((s,a)=>s+(Number(a.alcance)||0),0);
+        const totConv = ads.reduce((s,a)=>s+(Number(a.conversiones)||0),0);
+        const avgCPR  = totConv>0 ? totInv/totConv : 0;
+
+        kpiEl.innerHTML = [
+            {l:'Inversión total', v:fmtMon(totInv),    ic:'fa-wallet',        c:'#4A90D9'},
+            {l:'Alcance total',   v:fmtNum(totAlc),    ic:'fa-users',         c:'#8B5CF6'},
+            {l:'Conversiones',    v:fmtNum(totConv),   ic:'fa-arrow-trend-up',c:'#34A853'},
+            {l:'CPR promedio',    v:avgCPR?fmtMon(avgCPR):'—', ic:'fa-bullseye', c:'var(--color-primario)'}
+        ].map(k=>`<div style="background:#fff;border:1px solid var(--color-borde);border-radius:14px;padding:18px 20px;display:flex;align-items:center;gap:14px;">
+            <div style="width:42px;height:42px;border-radius:11px;background:${k.c}18;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <i class="fa-solid ${k.ic}" style="font-size:16px;color:${k.c};"></i>
+            </div>
+            <div>
+                <div style="font-size:20px;font-weight:700;letter-spacing:-0.02em;">${k.v}</div>
+                <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);margin-top:2px;">${k.l}</div>
+            </div>
+        </div>`).join('');
+
+        const estC = {'Activa':'#34A853','Pausada':'#FBBC05','Borrador':'#9CA3AF'};
+        const pIco = {'Meta':'fa-square-facebook','Google':'fa-google','TikTok':'fa-tiktok','Instagram':'fa-instagram'};
+
+        gridEl.innerHTML = ads.map(a => {
+            const inv=Number(a.inversion)||0, alc=Number(a.alcance)||0;
+            const cli=Number(a.clics)||0, conv=Number(a.conversiones)||0;
+            const cpr=Number(a.cpr)||(conv&&inv?Math.round(inv/conv):0);
+            const ec=estC[a.estado]||'#9CA3AF';
+            const pi=pIco[a.plataforma]||'fa-chart-bar';
+            return `<div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+                <div style="padding:18px 20px;border-bottom:1px solid var(--color-borde);">
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:15px;font-weight:700;margin-bottom:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nombre||'Campaña'}</div>
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <span style="font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;background:${ec}18;color:${ec};">${a.estado||'—'}</span>
+                                ${a.plataforma?`<span style="font-size:11px;font-weight:600;color:var(--texto-secundario);display:flex;align-items:center;gap:4px;"><i class="fa-brands ${pi}"></i> ${a.plataforma}</span>`:''}
+                                ${a.categoria?`<span style="font-size:11px;color:var(--texto-secundario);">${a.categoria}</span>`:''}
+                            </div>
+                        </div>
+                        <div style="text-align:right;flex-shrink:0;">
+                            <div style="font-size:18px;font-weight:700;color:var(--color-primario);">${fmtMon(inv)}</div>
+                            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);">Inversión</div>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding:16px 20px;flex:1;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                        ${[{l:'Alcance',v:fmtNum(alc),i:'fa-users'},{l:'Clics',v:fmtNum(cli),i:'fa-computer-mouse'},{l:'Conversiones',v:fmtNum(conv),i:'fa-arrow-trend-up'},{l:'CPR',v:cpr?fmtMon(cpr):'—',i:'fa-dollar-sign'}].map(m=>`
+                        <div style="background:var(--color-fondo);border-radius:10px;padding:10px 12px;">
+                            <div style="font-size:15px;font-weight:700;">${m.v}</div>
+                            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);margin-top:2px;">${m.l}</div>
+                        </div>`).join('')}
+                    </div>
+                    ${a.segmento?`<div style="font-size:11px;color:var(--texto-secundario);margin-bottom:8px;"><i class="fa-solid fa-crosshairs" style="margin-right:4px;"></i>${a.segmento}</div>`:''}
+                    ${(a.inicio||a.fin)?`<div style="font-size:11px;color:var(--texto-secundario);display:flex;align-items:center;gap:6px;"><i class="fa-solid fa-calendar-days"></i> ${a.inicio||'—'} → ${a.fin||'—'}</div>`:''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+    // ─── FIN MODO DIRECTOR ────────────────────────────────────────────────────
 
     async function obtenerTipoCambio() {
         const el = document.getElementById('tc-fecha');
@@ -3579,7 +3875,8 @@ document.addEventListener('DOMContentLoaded', function() {
         [renderDashboard, renderInsights, renderOrquestacion, renderDAM,
          renderPresupuesto, renderFacturas, renderBriefing, renderMood,
          renderEstrategia, renderAdministracion,
-         () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas
+         () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas,
+         renderDirector
         ].forEach(fn => { try { fn(); } catch(e) { console.error('[renderTodas]', fn.name, e); } });
         _renderNotifBadge();
         setTimeout(() => {
