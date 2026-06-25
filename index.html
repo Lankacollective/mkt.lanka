@@ -3459,6 +3459,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (USUARIO_ACTIVO && DB.permisos) aplicarPermisos(USUARIO_ACTIVO.rol_id);
         aplicarGradiente();
         renderTodas();
+        _pushInit();
+        setTimeout(_renderNotifPushBtn, 600);
         // Nav colapsable: init only once
         if (!document.getElementById('nav-tooltip')) initNavCollapse();
         // Sync moneda selector to active project
@@ -8455,6 +8457,22 @@ document.addEventListener('DOMContentLoaded', function() {
         arr.push({ id: String(Date.now()), tipo, de, para, mensaje, leida: false, fecha: new Date().toISOString(), referencia_id: referencia_id||'' });
         _saveNotifs(arr);
         _renderNotifBadge();
+        // Send browser push notification to recipient
+        _pushEnviar(para, de, mensaje.split('\n')[0].substring(0, 80));
+    }
+
+    async function _pushEnviar(userId, titulo, cuerpo) {
+        if (!window.__supabase || !window.SUPABASE_URL) return;
+        try {
+            await fetch(window.SUPABASE_URL + '/functions/v1/send-push', {
+                method: 'POST',
+                headers: {
+                    'Content-Type':  'application/json',
+                    'Authorization': 'Bearer ' + window.SUPABASE_ANON_KEY,
+                },
+                body: JSON.stringify({ user_id: userId, proyecto: SUC_ACTIVA, title: 'mkt.lanka · ' + (titulo||'Nueva notificación'), body: cuerpo||'', url: '/' })
+            });
+        } catch(e) { /* non-blocking */ }
     }
 
     function _renderNotifBadge() {
@@ -8477,7 +8495,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const open = panel.style.right === '0px';
         panel.style.right   = open ? '-340px' : '0px';
         if (overlay) overlay.style.display = open ? 'none' : 'block';
-        if (!open) _renderNotifPanel();
+        if (!open) { _renderNotifPanel(); _renderNotifPushBtn(); }
     }
 
     function _renderNotifPanel() {
@@ -8551,6 +8569,100 @@ document.addEventListener('DOMContentLoaded', function() {
         if (refId.startsWith('_confirmar')) { eval(refId); return; }
         irA(refId.includes('vista-') ? refId : 'vista-resumen');
         if (refId === 'vista-resumen') openEjecutorModal();
+    }
+
+    /* ============= WEB PUSH NOTIFICATIONS ============= */
+    const _VAPID_PUBLIC = 'BEu8YzN2YTySpnYUijoiVPJu2jgayqeNR4MtH2u7H-zNjCc58_PD-xfXBilMkuELz70OdvwrZNmvuXV9Ij8lrIs';
+
+    function _b64ToUint8(b64) {
+        const pad = b64.replace(/-/g,'+').replace(/_/g,'/');
+        const raw = atob(pad);
+        const arr = new Uint8Array(raw.length);
+        for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+        return arr;
+    }
+
+    async function _pushInit() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        try {
+            await navigator.serviceWorker.register('/sw.js');
+        } catch(e) { console.warn('SW register error:', e); }
+    }
+
+    async function _pushSolicitar() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+            _showToast('Tu navegador no soporta notificaciones push');
+            return;
+        }
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') { _showToast('Notificaciones bloqueadas — actívalas desde la configuración del navegador'); return; }
+        try {
+            const reg  = await navigator.serviceWorker.ready;
+            let   sub  = await reg.pushManager.getSubscription();
+            if (!sub) {
+                sub = await reg.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: _b64ToUint8(_VAPID_PUBLIC)
+                });
+            }
+            await _pushGuardarSuscripcion(sub);
+            _showToast('✓ Notificaciones push activadas');
+            _renderNotifPushBtn();
+        } catch(e) {
+            console.error('Push subscribe error:', e);
+            _showToast('Error al activar notificaciones: ' + (e.message||''));
+        }
+    }
+
+    async function _pushGuardarSuscripcion(sub) {
+        if (!window.__supabase || !USUARIO_ACTIVO) return;
+        const subJson = sub.toJSON();
+        const payload = {
+            user_id:   USUARIO_ACTIVO.id,
+            proyecto:  SUC_ACTIVA,
+            endpoint:  subJson.endpoint,
+            p256dh:    subJson.keys?.p256dh  || '',
+            auth:      subJson.keys?.auth     || '',
+            created_at: new Date().toISOString()
+        };
+        await window.__supabase.from('push_subscriptions')
+            .upsert(payload, { onConflict: 'endpoint' });
+    }
+
+    async function _pushEstado() {
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return 'unsupported';
+        if (Notification.permission === 'denied') return 'denied';
+        const reg = await navigator.serviceWorker.ready.catch(() => null);
+        if (!reg) return 'no-sw';
+        const sub = await reg.pushManager.getSubscription().catch(() => null);
+        return sub ? 'subscribed' : 'unsubscribed';
+    }
+
+    async function _pushCancelar() {
+        try {
+            const reg = await navigator.serviceWorker.ready;
+            const sub = await reg.pushManager.getSubscription();
+            if (sub) {
+                await sub.unsubscribe();
+                if (window.__supabase) {
+                    await window.__supabase.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
+                }
+            }
+            _showToast('Notificaciones push desactivadas');
+            _renderNotifPushBtn();
+        } catch(e) { _showToast('Error al desactivar: ' + (e.message||'')); }
+    }
+
+    async function _renderNotifPushBtn() {
+        const el = document.getElementById('notif-push-btn-wrap');
+        if (!el) return;
+        const estado = await _pushEstado();
+        if (estado === 'unsupported') { el.innerHTML = ''; return; }
+        if (estado === 'subscribed') {
+            el.innerHTML = `<button class="btn btn-xs btn-fantasma" style="font-size:10px;color:var(--texto-secundario);" onclick="_pushCancelar()"><i class="fa-solid fa-bell-slash" style="margin-right:4px;"></i>Desactivar push</button>`;
+        } else {
+            el.innerHTML = `<button class="btn btn-xs btn-primario" style="font-size:10px;" onclick="_pushSolicitar()"><i class="fa-solid fa-bell" style="margin-right:4px;"></i>Activar notificaciones push</button>`;
+        }
     }
 
     /* ============= PARTE 4 — GUIÓN GENERADO POR IA ============= */
@@ -12623,6 +12735,7 @@ function _xlsNotificarOrigenManual() {
             <button onclick="_toggleNotifPanel()" style="background:none;border:none;cursor:pointer;color:var(--texto-secundario);font-size:16px;padding:4px;"><i class="fa-solid fa-xmark"></i></button>
         </div>
     </div>
+    <div id="notif-push-btn-wrap" style="padding:10px 20px;border-bottom:1px solid var(--color-borde,#eee);"></div>
     <div id="notif-panel-content" style="flex:1;overflow-y:auto;"></div>
 </div>
 <div id="notif-overlay" onclick="_toggleNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8999;background:rgba(0,0,0,.15);"></div>
