@@ -2811,7 +2811,7 @@ document.addEventListener('DOMContentLoaded', function() {
             control_accesos: { owner:true, lanka_team:false, direccion:false, coordinador:false, equipo:false },
             auditoria:       { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
             stories:         { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
-            mis_tareas:      { owner:false,lanka_team:false, direccion:false, coordinador:true,  equipo:true  },
+            mis_tareas:      { owner:true, lanka_team:false, direccion:true,  coordinador:true,  equipo:true  },
             usuarios:        { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
             catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
         },
@@ -10367,11 +10367,13 @@ document.addEventListener('DOMContentLoaded', function() {
     async function renderMisTareas() {
         const el = document.getElementById('mis-tareas-lista');
         if (!el) return;
-        if (ROL !== 'equipo') { el.innerHTML = ''; return; }
+        const rolId = USUARIO_ACTIVO?.rol_id || '';
+        const esGestor = ['owner', 'direccion', 'lanka_team'].includes(rolId);
+        if (ROL === 'cliente') { el.innerHTML = ''; return; }
 
-        // --- Sección 1: publicaciones del kanban asignadas ---
+        // --- Sección 1: publicaciones del kanban asignadas (solo equipo/coordinador) ---
         const kanban = DB.datos[SUC_ACTIVA].kanban || [];
-        const mis = kanban.filter(t => t.asignado_a === USUARIO_EQUIPO);
+        const mis = esGestor ? [] : kanban.filter(t => t.asignado_a === USUARIO_EQUIPO);
         const estadoCls = { 'Ideas': 'estado-pendiente', 'Producción': 'estado-produccion', 'Revisión': 'estado-revisar', 'Programado': 'estado-listo' };
         let kanbanHTML = '';
         if (mis.length) {
@@ -10414,10 +10416,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // --- Sección 2: tareas CAOS (async) ---
         try {
-            const rolId = USUARIO_ACTIVO?.rol_id || 'equipo';
             const proyNombre = _caosProyecto();
             let qs = `?project=${encodeURIComponent(proyNombre)}`;
-            if (rolId !== 'coordinador') qs += `&assignee=${encodeURIComponent(USUARIO_EQUIPO)}`;
+            const verTodas = ['coordinador', 'owner', 'direccion', 'lanka_team'].includes(rolId);
+            if (!verTodas && USUARIO_EQUIPO) qs += `&assignee=${encodeURIComponent(USUARIO_EQUIPO)}`;
             const tareas = await _caosGetTareas(qs);
             const caosEl = document.getElementById('caos-tareas-lista');
             if (!caosEl) return;
