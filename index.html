@@ -3461,6 +3461,7 @@ document.addEventListener('DOMContentLoaded', function() {
         renderTodas();
         _pushInit();
         setTimeout(_renderNotifPushBtn, 600);
+        setTimeout(_pushAutoPrompt, 2000);
         // Nav colapsable: init only once
         if (!document.getElementById('nav-tooltip')) initNavCollapse();
         // Sync moneda selector to active project
@@ -8657,12 +8658,46 @@ document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('notif-push-btn-wrap');
         if (!el) return;
         const estado = await _pushEstado();
-        if (estado === 'unsupported') { el.innerHTML = ''; return; }
+        if (estado === 'unsupported' || estado === 'denied') { el.innerHTML = ''; return; }
         if (estado === 'subscribed') {
             el.innerHTML = `<button class="btn btn-xs btn-fantasma" style="font-size:10px;color:var(--texto-secundario);" onclick="_pushCancelar()"><i class="fa-solid fa-bell-slash" style="margin-right:4px;"></i>Desactivar push</button>`;
         } else {
             el.innerHTML = `<button class="btn btn-xs btn-primario" style="font-size:10px;" onclick="_pushSolicitar()"><i class="fa-solid fa-bell" style="margin-right:4px;"></i>Activar notificaciones push</button>`;
         }
+    }
+
+    async function _pushAutoPrompt() {
+        // Mostrar banner una sola vez por usuario/browser para pedir permiso
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        if (Notification.permission === 'denied') return;
+        const key = '_push_prompt_' + (USUARIO_ACTIVO?.id || 'guest');
+        if (localStorage.getItem(key)) return;
+        const estado = await _pushEstado();
+        if (estado === 'subscribed') return;
+        // Marcar como mostrado antes de crear el banner
+        localStorage.setItem(key, '1');
+        const banner = document.createElement('div');
+        banner.id = '_push_banner';
+        banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1A17;color:#fff;border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:14px;z-index:99990;box-shadow:0 8px 32px rgba(0,0,0,.35);max-width:420px;width:92vw;animation:_slideUp .3s ease;';
+        banner.innerHTML = `
+            <i class="fa-solid fa-bell" style="color:#C4855A;font-size:20px;flex-shrink:0;"></i>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Activar notificaciones</div>
+                <div style="font-size:11px;opacity:.7;line-height:1.4;">Recibe alertas de aprobaciones, rechazos y menciones aunque tengas la app cerrada.</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+                <button class="btn btn-xs btn-primario" style="font-size:11px;white-space:nowrap;" onclick="document.getElementById('_push_banner')?.remove();_pushSolicitar()">Activar</button>
+                <button style="background:none;border:none;color:#fff;opacity:.5;cursor:pointer;font-size:16px;padding:2px 6px;" onclick="document.getElementById('_push_banner')?.remove()" title="Cerrar">×</button>
+            </div>`;
+        if (!document.getElementById('_push_banner_style')) {
+            const st = document.createElement('style');
+            st.id = '_push_banner_style';
+            st.textContent = '@keyframes _slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+            document.head.appendChild(st);
+        }
+        document.body.appendChild(banner);
+        // Auto-cierra a los 12 segundos
+        setTimeout(() => banner.remove(), 12000);
     }
 
     /* ============= PARTE 4 — GUIÓN GENERADO POR IA ============= */
