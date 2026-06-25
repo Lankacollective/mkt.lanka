@@ -3249,6 +3249,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Protege Supabase: solo se escribe después de confirmar qué hay allá.
     // Evita que un navegador nuevo sin localStorage sobreescriba datos reales.
     let _supabaseVerificado = false;
+    let _localChangedDuringInit = false; // usuario editó antes de que Supabase confirmara
+    let _supabaseRetryTimer = null;
 
     let _guardarBDTimer = null;
 
@@ -3262,7 +3264,11 @@ document.addEventListener('DOMContentLoaded', function() {
             s.style.opacity = 1;
         }
 
-        if (!window.__supabase || !_supabaseVerificado) return;
+        if (!window.__supabase || !_supabaseVerificado) {
+            // Marcar que hubo cambios locales antes de que Supabase confirmara
+            if (window.__supabase && !_supabaseVerificado) _localChangedDuringInit = true;
+            return;
+        }
 
         // 2. Supabase: debounce 900ms — cancela writes anteriores si el usuario sigue escribiendo
         clearTimeout(_guardarBDTimer);
@@ -3302,8 +3308,8 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 DB = JSON.parse(guardado);
                 // Usuario existente con datos locales: ya es seguro guardar en Supabase
-                _supabaseVerificado = true;
-                console.log('✓ Datos cargados desde localStorage');
+                // NO activar _supabaseVerificado aquí — esperar confirmación de Supabase
+                console.log('✓ Datos cargados desde localStorage — esperando confirmación de Supabase');
             } catch(e) { console.warn('localStorage corrupto, usando semilla'); }
         }
         if (!DB || !DB.sucursales) {
@@ -3322,33 +3328,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(({ data, error }) => {
                     console.timeEnd('supabase-load');
                     if (!error && data?.data && Object.keys(data.data).length > 0) {
-                        // Supabase tiene datos reales → tomar como fuente de verdad
                         const yaEnApp = !!SUC_ACTIVA;
-                        DB = data.data;
-                        // Aplicar demo Mammut si Supabase también tiene datos vacíos
-                        const _antesDemo = !DB._mammut_demo_v1;
-                        _aplicarDemoMammut();
-                        localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-                        _supabaseVerificado = true;
-                        // Si aplicamos demo, subir a Supabase para que quede sincronizado
-                        if (_antesDemo && DB._mammut_demo_v1) guardarBD();
-                        console.log('✓ Datos sincronizados desde Supabase:', data.updated_at);
-                        if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                        clearTimeout(_supabaseRetryTimer);
+                        if (_localChangedDuringInit) {
+                            // El usuario editó mientras Supabase cargaba — los cambios locales son más recientes
+                            _supabaseVerificado = true;
+                            _localChangedDuringInit = false;
+                            console.log('⚠ Cambios locales durante init — subiendo versión local a Supabase (no sobreescribir)');
+                            guardarBD();
+                        } else {
+                            // Sin cambios locales — Supabase es la fuente de verdad
+                            DB = data.data;
+                            const _antesDemo = !DB._mammut_demo_v1;
+                            _aplicarDemoMammut();
+                            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                            _supabaseVerificado = true;
+                            if (_antesDemo && DB._mammut_demo_v1) guardarBD();
+                            console.log('✓ Datos en vivo desde Supabase:', data.updated_at);
+                            if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                        }
                     } else if (!error) {
-                        // Supabase respondió OK pero está vacío → usuario nuevo real
+                        clearTimeout(_supabaseRetryTimer);
                         _supabaseVerificado = true;
+                        _localChangedDuringInit = false;
                         console.log('✓ Supabase vacío — usuario nuevo, listo para guardar');
-                        guardarBD(); // única vez que subimos semilla: Supabase confirmó que no hay nada
+                        guardarBD();
                     } else {
-                        // Error de Supabase → NO tocar Supabase, proteger datos remotos
-                        console.warn('Supabase load error — modo solo-local activado:', error.message);
-                        // _supabaseVerificado queda false: guardarBD() solo usará localStorage
+                        console.warn('Supabase load error — reintentando en 30s:', error.message);
+                        clearTimeout(_supabaseRetryTimer);
+                        _supabaseRetryTimer = setTimeout(() => {
+                            _localChangedDuringInit = false;
+                            inicializarDB();
+                        }, 30000);
                     }
                 })
                 .catch(e => {
                     console.timeEnd('supabase-load');
-                    console.warn('Supabase load exception — modo solo-local:', e);
-                    // NO llamar guardarBD() aquí — podría sobreescribir datos remotos
+                    console.warn('Supabase load exception — reintentando en 30s:', e);
+                    clearTimeout(_supabaseRetryTimer);
+                    _supabaseRetryTimer = setTimeout(() => {
+                        _localChangedDuringInit = false;
+                        inicializarDB();
+                    }, 30000);
                 });
         } else {
             // Sin Supabase configurado: modo completamente local
