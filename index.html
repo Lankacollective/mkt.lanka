@@ -2866,7 +2866,8 @@ document.addEventListener('DOMContentLoaded', function() {
             stories:         { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
             mis_tareas:      { owner:false,lanka_team:false, direccion:false, coordinador:true,  equipo:true  },
             usuarios:        { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
-            catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
+            catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
+            director:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
         },
         usuarios: [
             { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      puesto:"Socio Director",   password:btoa("Lanka2026"),   rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
@@ -2993,6 +2994,16 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         if (_s3migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+
+        // Sprint 3.1 migration — add new permission modules if missing from existing DB
+        if (DB.permisos) {
+            let _s31migrated = false;
+            const _newModules = { director: { owner:true, lanka_team:true, direccion:true, coordinador:false, equipo:false } };
+            Object.keys(_newModules).forEach(mod => {
+                if (!DB.permisos[mod]) { DB.permisos[mod] = _newModules[mod]; _s31migrated = true; }
+            });
+            if (_s31migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
 
         // Sprint 4 migration — presupuesto: {directa,intercambio} → {inversion,colaboracion}
         if (DB.datos) {
@@ -10682,7 +10693,8 @@ document.addEventListener('DOMContentLoaded', function() {
         ads:'vista-ads', offline:'vista-offline',
         proyectos:'vista-clientes', proveedores:'vista-proveedores', config:'vista-config',
         control_accesos:'vista-control-accesos', auditoria:'vista-auditoria',
-        stories:'vista-stories', mis_tareas:'vista-mis-tareas', usuarios:'vista-usuarios'
+        stories:'vista-stories', mis_tareas:'vista-mis-tareas', usuarios:'vista-usuarios',
+        director:'vista-director'
     };
 
     function irA(target) {
@@ -11088,7 +11100,8 @@ document.addEventListener('DOMContentLoaded', function() {
         mood:        { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     },
         shooting:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'lectura', equipo:'lectura' },
         briefing:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'lectura', equipo:'off'     },
-        stories:     { owner:'editar', lanka_team:'editar', direccion:'editar',   coordinador:'editar',  equipo:'off'     }
+        stories:     { owner:'editar', lanka_team:'editar', direccion:'editar',   coordinador:'editar',  equipo:'off'     },
+        director:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     }
     };
     const _AC_ESTADO_COLOR = { off:'var(--texto-secundario)', lectura:'#378ADD', editar:'#C4855A' };
     let _acRolActivo = 'owner';
