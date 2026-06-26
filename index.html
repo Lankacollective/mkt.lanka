@@ -3370,6 +3370,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (_bkMigrated) guardarBD();
 
+        // Migrate: brief on shooting sessions
+        let _shBriefMigrated = false;
+        (DB.sucursales||[]).forEach(s => {
+            const bkNoUsar = (s.brand_kit||{}).no_usar || [];
+            (DB.datos[s.id]?.shooting||[]).forEach(sh => {
+                if (!sh.brief) {
+                    sh.brief = { objetivo:'', piezas:[], paleta:[], tipo_luz:'', fondos:'', props:[], look:'', no_hacer:[...bkNoUsar], referencias:[], estado:'sin_brief' };
+                    _shBriefMigrated = true;
+                }
+            });
+        });
+        if (_shBriefMigrated) guardarBD();
+
         // ── Migración DEMO: rellenar Mammut con datos demo si está vacío ──
         _aplicarDemoMammut();
 
@@ -10611,13 +10624,17 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="shooting-card${_startOpen?' open':''}" id="sh-card-${s.id}">
             <div class="shooting-header" onclick="this.closest('.shooting-card').classList.toggle('open')">
                 ${header}
-                <div style="text-align:center;background:rgba(196,133,90,0.08);border-radius:12px;padding:10px 16px;min-width:70px;flex-shrink:0;">
-                    <div style="font-family:var(--font-display);font-size:26px;font-weight:900;color:var(--color-primario);">${pct}%</div>
-                    <div style="font-size:9px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;">Listo</div>
+                <div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0;">
+                    <div style="text-align:center;background:rgba(196,133,90,0.08);border-radius:12px;padding:10px 16px;min-width:70px;">
+                        <div style="font-family:var(--font-display);font-size:26px;font-weight:900;color:var(--color-primario);">${pct}%</div>
+                        <div style="font-size:9px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;">Listo</div>
+                    </div>
+                    ${_shBriefBadge(s)}
                 </div>
                 <i class="fa-solid fa-chevron-down sh-chevron"></i>
             </div>
             <div class="shooting-body">
+                ${_renderShootingBrief(s, si, canEdit)}
                 ${mood}
                 <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:10px;">Contenidos a capturar</div>
                 <ul class="shooting-checklist">${checklistHTML}</ul>
@@ -10629,6 +10646,130 @@ document.addEventListener('DOMContentLoaded', function() {
                     <button class="btn btn-xs btn-fantasma" onclick="agregarMiembroEquipo('${s.id}',${si})"><i class="fa-solid fa-user-plus"></i> Miembro</button>
                     <button class="btn btn-xs btn-peligro-suave" style="margin-left:auto;" onclick="eliminarShooting('${s.id}')"><i class="fa-solid fa-trash"></i> Eliminar</button>
                 </div>` : ''}
+            </div>
+        </div>`;
+    }
+
+    function _shBriefBadge(s) {
+        const est = (s.brief||{}).estado || 'sin_brief';
+        if (est === 'aprobado') return `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(52,168,83,.15);color:#1E7E34;border:1px solid rgba(52,168,83,.25);white-space:nowrap;"><i class="fa-solid fa-circle-check" style="font-size:9px;"></i>Brief aprobado</span>`;
+        if (est === 'borrador') return `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(251,188,5,.15);color:#B7860B;border:1px solid rgba(251,188,5,.25);white-space:nowrap;"><i class="fa-solid fa-pen-to-square" style="font-size:9px;"></i>Brief borrador</span>`;
+        return `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:10px;font-weight:700;background:rgba(239,68,68,.1);color:#C0392B;border:1px solid rgba(239,68,68,.2);white-space:nowrap;"><i class="fa-solid fa-triangle-exclamation" style="font-size:9px;"></i>Sin brief</span>`;
+    }
+
+    function _renderShootingBrief(s, si, canEdit) {
+        const b = s.brief || {};
+        const est = b.estado || 'sin_brief';
+        const bk = (DB.sucursales.find(x=>x.id===SUC_ACTIVA)||{}).brand_kit || {};
+        const isOwner = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id==='owner'||USUARIO_ACTIVO.rol_id==='lanka_team') && !ROL_SIMULADO;
+        const save = `const _shb=DB.datos['${SUC_ACTIVA}'].shooting[${si}];if(!_shb.brief)_shb.brief={objetivo:'',piezas:[],paleta:[],tipo_luz:'',fondos:'',props:[],look:'',no_hacer:[],referencias:[],estado:'sin_brief'};`;
+
+        // Paleta brand kit para selección
+        const paletaRef = (bk.paleta||[]).length > 0 ? `<div style="margin-bottom:16px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Paleta de referencia para este shooting</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                ${(bk.paleta||[]).map(c => {
+                    const sel = (b.paleta||[]).includes(c.hex);
+                    return `<div onclick="${canEdit?`${save}const _hp='${c.hex}';const _pi=_shb.brief.paleta.indexOf(_hp);if(_pi>=0)_shb.brief.paleta.splice(_pi,1);else _shb.brief.paleta.push(_hp);guardarBD();renderShootingGrid();event.stopPropagation();`:''}" style="display:flex;flex-direction:column;align-items:center;gap:4px;${canEdit?'cursor:pointer;':''}">
+                        <div style="width:36px;height:36px;border-radius:8px;background:${c.hex};border:${sel?'3px solid var(--texto-principal)':'2px solid rgba(0,0,0,.1)'};box-shadow:${sel?'0 0 0 2px #fff, 0 0 0 4px var(--texto-principal)':'none'};transition:.15s;"></div>
+                        <span style="font-size:9px;font-weight:${sel?'700':'500'};color:var(--texto-secundario);">${c.nombre}</span>
+                    </div>`;
+                }).join('')}
+            </div>
+        </div>` : '';
+
+        // Tipo de luz
+        const luces = ['Natural','Estudio','Mixta','LED'];
+        const tipoLuz = `<div style="margin-bottom:16px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Tipo de luz</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                ${luces.map(l=>`<button onclick="${canEdit?`${save}_shb.brief.tipo_luz='${l}';guardarBD();renderShootingGrid();event.stopPropagation();`:''}" style="padding:5px 14px;border-radius:100px;border:1.5px solid ${b.tipo_luz===l?'var(--color-primario)':'var(--color-borde)'};background:${b.tipo_luz===l?'rgba(var(--color-primario-rgb,196,133,90),.12)':'transparent'};font-size:11px;font-weight:${b.tipo_luz===l?'700':'500'};color:${b.tipo_luz===l?'var(--color-primario)':'var(--texto-secundario)'};cursor:${canEdit?'pointer':'default'};transition:.15s;">${l}</button>`).join('')}
+            </div>
+        </div>`;
+
+        // Props
+        const propsHTML = `<div style="margin-bottom:16px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Props necesarios</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                ${(b.props||[]).map((p,pi)=>`<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--color-fondo);border-radius:100px;font-size:11px;border:1px solid var(--color-borde);">${p}${canEdit?`<i class="fa-solid fa-times" style="font-size:8px;color:#bbb;cursor:pointer;" onclick="event.stopPropagation();${save}_shb.brief.props.splice(${pi},1);guardarBD();renderShootingGrid();"></i>`:''}</span>`).join('')}
+                ${canEdit?`<button class="btn btn-xs btn-fantasma" style="border-radius:100px;" onclick="event.stopPropagation();const _n=prompt('Prop necesario:');if(_n&&_n.trim()){${save}_shb.brief.props.push(_n.trim());guardarBD();renderShootingGrid();}">+ Agregar</button>`:''}
+            </div>
+        </div>`;
+
+        // No hacer (brand alignment)
+        const noHacerHTML = `<div style="margin-bottom:16px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#EF4444;margin-bottom:8px;"><i class="fa-solid fa-ban" style="margin-right:4px;"></i>No hacer en este shooting</div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                ${(b.no_hacer||[]).map((n,ni)=>`<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(239,68,68,.08);border-radius:100px;font-size:11px;font-weight:600;color:#EF4444;border:1px solid rgba(239,68,68,.2);">${n}${canEdit?`<i class="fa-solid fa-times" style="font-size:8px;cursor:pointer;" onclick="event.stopPropagation();${save}_shb.brief.no_hacer.splice(${ni},1);guardarBD();renderShootingGrid();"></i>`:''}</span>`).join('')}
+                ${canEdit?`<button class="btn btn-xs btn-fantasma" style="border-radius:100px;" onclick="event.stopPropagation();const _n=prompt('¿Qué evitar?');if(_n&&_n.trim()){${save}_shb.brief.no_hacer.push(_n.trim());guardarBD();renderShootingGrid();}">+ Agregar</button>`:''}
+            </div>
+        </div>`;
+
+        // Piezas a capturar
+        const piezasHTML = `<div style="margin-bottom:16px;">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:8px;">Piezas a capturar</div>
+            ${(b.piezas||[]).length ? `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
+                ${(b.piezas||[]).map((p,pi)=>`<div style="display:grid;grid-template-columns:80px 40px 1fr auto;gap:6px;align-items:center;padding:6px 10px;background:var(--color-fondo);border-radius:8px;border:1px solid var(--color-borde);">
+                    ${canEdit
+                        ? `<input class="input-celda" value="${p.tipo}" placeholder="Reel…" style="font-size:11px;font-weight:700;" onclick="event.stopPropagation()" onchange="${save}_shb.brief.piezas[${pi}].tipo=this.value;guardarBD();">
+                           <input class="input-celda" type="number" value="${p.cantidad||1}" min="1" style="font-size:11px;text-align:center;" onclick="event.stopPropagation()" onchange="${save}_shb.brief.piezas[${pi}].cantidad=Number(this.value)||1;guardarBD();">
+                           <input class="input-celda" value="${(p.descripcion||'').replace(/"/g,'&quot;')}" placeholder="Descripción…" style="font-size:11px;" onclick="event.stopPropagation()" onchange="${save}_shb.brief.piezas[${pi}].descripcion=this.value;guardarBD();">
+                           <i class="fa-solid fa-trash" style="color:#bbb;cursor:pointer;font-size:10px;" onclick="event.stopPropagation();${save}_shb.brief.piezas.splice(${pi},1);guardarBD();renderShootingGrid();"></i>`
+                        : `<span style="font-size:11px;font-weight:700;">${p.tipo}</span>
+                           <span style="font-size:11px;font-weight:700;color:var(--color-primario);text-align:center;">×${p.cantidad||1}</span>
+                           <span style="font-size:11px;color:var(--texto-secundario);grid-column:3/5;">${p.descripcion||''}</span>`}
+                </div>`).join('')}
+            </div>` : ''}
+            ${canEdit?`<button class="btn btn-xs btn-fantasma" onclick="event.stopPropagation();${save}_shb.brief.piezas.push({tipo:'Reel',cantidad:1,descripcion:''});guardarBD();renderShootingGrid();"><i class="fa-solid fa-plus"></i> Pieza</button>`:''}
+        </div>`;
+
+        // Estado y botón aprobar
+        const estadoBar = `<div style="display:flex;align-items:center;gap:10px;padding-top:14px;border-top:1px solid var(--color-borde);flex-wrap:wrap;">
+            ${_shBriefBadge(s)}
+            ${canEdit && est === 'sin_brief' ? `<button class="btn btn-xs btn-fantasma" onclick="event.stopPropagation();${save}_shb.brief.estado='borrador';guardarBD();renderShootingGrid();">Guardar como borrador</button>` : ''}
+            ${isOwner && est === 'borrador' ? `<button class="btn btn-xs btn-primario" onclick="event.stopPropagation();${save}_shb.brief.estado='aprobado';guardarBD();renderShootingGrid();">✓ Aprobar brief</button>` : ''}
+            ${isOwner && est === 'aprobado' ? `<button class="btn btn-xs btn-fantasma" onclick="event.stopPropagation();${save}_shb.brief.estado='borrador';guardarBD();renderShootingGrid();">Reabrir</button>` : ''}
+        </div>`;
+
+        const readonly = est === 'aprobado' && !isOwner;
+
+        return `<div style="margin-bottom:18px;padding:16px;background:rgba(var(--color-primario-rgb,196,133,90),.04);border-radius:12px;border:1px solid rgba(var(--color-primario-rgb,196,133,90),.15);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;cursor:pointer;" onclick="event.stopPropagation();const _bel=document.getElementById('sh-brief-body-${s.id}');_bel.style.display=_bel.style.display==='none'?'block':'none';">
+                <i class="fa-solid fa-palette" style="color:var(--color-primario);font-size:12px;"></i>
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--color-primario);">Brief de Marca</span>
+                ${_shBriefBadge(s)}
+                <i class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);font-size:10px;margin-left:auto;"></i>
+            </div>
+            <div id="sh-brief-body-${s.id}" style="display:${est==='sin_brief'&&!canEdit?'none':'block'};">
+                <div style="margin-bottom:14px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:6px;">Objetivo del shooting</div>
+                    ${canEdit && !readonly
+                        ? `<textarea class="input-celda" style="width:100%;min-height:52px;font-size:12px;resize:vertical;" placeholder="¿Para qué es este shooting? (ej. Contenido para campaña de junio, reels de producto...)" onclick="event.stopPropagation()"
+                            onchange="${save}_shb.brief.objetivo=this.value;guardarBD();">${b.objetivo||''}</textarea>`
+                        : `<p style="font-size:12px;color:var(--texto-secundario);line-height:1.5;margin:0;">${b.objetivo||'—'}</p>`}
+                </div>
+                ${piezasHTML}
+                ${paletaRef}
+                ${tipoLuz}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;">
+                    <div>
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:6px;">Fondos / Locación</div>
+                        ${canEdit && !readonly
+                            ? `<textarea class="input-celda" style="width:100%;min-height:52px;font-size:12px;resize:vertical;" placeholder="Fondo blanco, jardín exterior, interior minimalista..." onclick="event.stopPropagation()"
+                                onchange="${save}_shb.brief.fondos=this.value;guardarBD();">${b.fondos||''}</textarea>`
+                            : `<p style="font-size:12px;color:var(--texto-secundario);line-height:1.5;margin:0;">${b.fondos||'—'}</p>`}
+                    </div>
+                    <div>
+                        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:6px;">Look / Styling</div>
+                        ${canEdit && !readonly
+                            ? `<textarea class="input-celda" style="width:100%;min-height:52px;font-size:12px;resize:vertical;" placeholder="Ropa: tonos tierra, sin estampados. Sin accesorios dorados..." onclick="event.stopPropagation()"
+                                onchange="${save}_shb.brief.look=this.value;guardarBD();">${b.look||''}</textarea>`
+                            : `<p style="font-size:12px;color:var(--texto-secundario);line-height:1.5;margin:0;">${b.look||'—'}</p>`}
+                    </div>
+                </div>
+                ${propsHTML}
+                ${noHacerHTML}
+                ${estadoBar}
             </div>
         </div>`;
     }
@@ -10725,6 +10866,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 <div style="font-size:11px;color:var(--texto-secundario);margin-top:6px;">${done} de ${total} contenidos completados</div>
             </div>` : ''}
 
+            <!-- Brief de Marca -->
+            <div style="margin-bottom:20px;">
+                ${_renderShootingBrief(s, si, canEdit)}
+            </div>
+
             <!-- Mood -->
             ${mood ? `
             <div style="margin-bottom:20px;">
@@ -10793,11 +10939,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function nuevoShooting() {
+        const _bk = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).brand_kit || {};
         const n = {
             id: 'sh'+Date.now(), titulo: "Nuevo Shooting", fecha: new Date().toISOString().split('T')[0], hora: "",
             locacion: "", moodboard: "",
-            equipo: [],
-            checklist: []
+            equipo: [], checklist: [],
+            brief: {
+                objetivo:'', piezas:[], paleta: (_bk.paleta||[]).map(c=>c.hex),
+                tipo_luz:'', fondos:'', props:[], look:'',
+                no_hacer: [...(_bk.no_usar||[])], referencias:[], estado:'sin_brief'
+            }
         };
         DB.datos[SUC_ACTIVA].shooting.push(n); guardarBD(); renderShootingGrid();
     }
