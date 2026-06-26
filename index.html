@@ -3102,6 +3102,17 @@ document.addEventListener('DOMContentLoaded', function() {
             if (_s7m) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
+        // Sprint 8 migration — scope field for kanban posts (local/global)
+        if (DB.datos) {
+            let _s8m = false;
+            Object.keys(DB.datos).forEach(sid => {
+                (DB.datos[sid].kanban || []).forEach(k => {
+                    if (k.scope === undefined) { k.scope = 'local'; _s8m = true; }
+                });
+            });
+            if (_s8m) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
         // Sprint 5 migration — briefing expanded structure
         if (DB.datos) {
             let _s5migrated = false;
@@ -4497,7 +4508,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'productos') n = { m: "Producto", pct: 0 };
         if(lista === 'objetivos') n = { m: "Meta", o: "0" };
         if(lista === 'insights') n = { f: new Date().toISOString().split('T')[0], c: "Experimento", r: "Resultado...", a: "Aprendizaje..." };
-        if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", formato:"", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"", pauta_activa:false, pauta_nota:"", campana_id:"", stories_vinculadas:[], drive_doc_url:"", vinculos:{ stories:[], campana_ad:null, escenas_shooting:[] }, contenido_tecnico:null, manychat_mensajes:[] };
+        if(lista === 'kanban') n = { id:"k"+Date.now(), titulo:"Nueva Publicación", hora:"12:00", formato:"", tags:"", target_id:"", hook:"", copy:"", hashtags:"", manychat:"", pauta:"", stories:"", fecha:new Date().toISOString().split('T')[0], estado:"Ideas", asignado_a:"", shooting_id:"", caption_ig:"", hashtags_ig:"", caption_tiktok:"", hashtags_tiktok:"", manychat_flujo:"", pauta_activa:false, pauta_nota:"", campana_id:"", stories_vinculadas:[], drive_doc_url:"", vinculos:{ stories:[], campana_ad:null, escenas_shooting:[] }, contenido_tecnico:null, manychat_mensajes:[], scope:"local" };
         if(lista === 'dam') n = { id:"d"+Date.now(), nombre:"Nuevo Asset", tipo:"fa-image", estado:"En revisión", version:1, url:"", historial:[{autor:ROL, fecha:new Date().toLocaleDateString(), accion:"Creado", nota:"V1"}] };
         if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Pauta digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0, real: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
@@ -7113,6 +7124,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const _storyBadges = (d.stories_ind||[]).filter(s=>_storyIds.includes(s.id)).map(s=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:100px;font-size:10px;font-weight:600;background:rgba(0,0,0,.06);color:var(--texto-secundario);margin-bottom:4px;cursor:pointer;" onclick="event.stopPropagation();_irAModuloFiltrado('vista-stories','${t.id}')" title="Ver stories de esta publicación"><i class="fa-solid fa-play" style="font-size:8px;"></i>${s.dia||'—'}: ${(s.copy||'').substring(0,26)} <i class="fa-solid fa-times" style="cursor:pointer;margin-left:3px;color:var(--color-peligro);" onclick="event.stopPropagation();const _sv=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[];DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=_sv.filter(id=>id!=='${s.id}');guardarBD();renderOrquestacion()"></i></span>`).join(' ');
         const _storyAddOpts = `<option value="">+ Vincular story...</option>` + (d.stories_ind||[]).filter(s=>!_storyIds.includes(s.id)).map(s=>`<option value="${s.id}">[${s.dia||'—'}] ${(s.copy||'').substring(0,42)}</option>`).join('');
 
+        // Scope — quién puede cambiarlo
+        const _rolActivo = ROL_SIMULADO || USUARIO_ACTIVO?.rol_id || (ROL === 'agencia' ? 'lanka_team' : 'equipo');
+        const _canScope = ['owner','lanka_team','direccion'].includes(_rolActivo) && !ROL_SIMULADO;
+        const _isGlobal = t.scope === 'global';
+        const _scopeBadge = _isGlobal
+            ? `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;padding:2px 9px;border-radius:100px;background:rgba(99,102,241,.12);color:#6366f1;border:1px solid rgba(99,102,241,.25);" title="Post global — visible en todas las sucursales"><i class="fa-solid fa-globe" style="font-size:9px;"></i> Global</span>`
+            : '';
+
         // Helpers
         const _lbl = (icon, txt) => `<div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:8px;display:flex;align-items:center;gap:6px;">${icon}<span>${txt}</span></div>`;
         const _sep = `<div style="border-top:1px solid var(--color-borde);margin:16px 0;"></div>`;
@@ -7125,7 +7144,7 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div style="min-width:0;overflow:hidden;">
     <input class="input-celda" style="font-size:15px;font-weight:800;padding-left:0;font-family:var(--font-display);width:100%;" value="${t.titulo}" ${ro} onclick="event.stopPropagation()" onchange="${_kp}.titulo=this.value;guardarBD()">
-    <div style="display:flex;gap:6px;align-items:center;margin-top:5px;flex-wrap:wrap;">${_fmtEl} ${_tagsH}</div>
+    <div style="display:flex;gap:6px;align-items:center;margin-top:5px;flex-wrap:wrap;">${_fmtEl} ${_tagsH} ${_scopeBadge}</div>
   </div>
   <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
     ${_estEl}
@@ -7200,7 +7219,15 @@ document.addEventListener('DOMContentLoaded', function() {
     ${canEdit?`<select class="select-celda" style="font-size:11px;margin-top:6px;" onclick="event.stopPropagation()" onchange="if(!this.value)return;const _svArr=(DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[]);if(!_svArr.includes(this.value)){_svArr.push(this.value);}this.value='';guardarBD();renderOrquestacion();">${_storyAddOpts}</select>`:''}
   </div>
   ${_renderVinculosPost(t)}
-  ${canEdit?`<div style="text-align:right;margin-top:20px;border-top:1px solid var(--color-borde);padding-top:14px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Eliminar tarea</button></div>`:''}
+  ${_canScope ? `<div style="margin-top:20px;border-top:1px solid var(--color-borde);padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;" onclick="event.stopPropagation()" title="Posts globales son visibles como referencia en todas las sucursales">
+      <input type="checkbox" ${_isGlobal ? 'checked' : ''} onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.scope=this.checked?'global':'local';guardarBD();renderOrquestacion()">
+      <i class="fa-solid fa-globe" style="color:#6366f1;font-size:12px;"></i> Post global
+      <span style="font-size:11px;font-weight:400;color:var(--texto-secundario);">(visible en todas las sucursales)</span>
+    </label>
+    ${_isGlobal ? `<button class="btn btn-xs" style="background:rgba(99,102,241,.1);color:#6366f1;border:1px solid rgba(99,102,241,.25);font-weight:700;" onclick="event.stopPropagation();_difundirPost('${t.id}')" title="Copia este post como punto de partida en todas las otras sucursales"><i class="fa-solid fa-broadcast-tower" style="margin-right:4px;font-size:10px;"></i>Difundir a todas</button>` : ''}
+  </div>` : ''}
+  ${canEdit?`<div style="text-align:right;margin-top:12px;"><button class="btn btn-xs btn-peligro-suave" onclick="delObj('kanban',${idx})"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Eliminar tarea</button></div>`:''}
 </div>
 </div>`;
     }
@@ -7227,7 +7254,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const asignadoSel = canEdit ? `<select class="select-celda" style="width:160px; border:1px solid var(--color-borde); background:#fafafa; font-size:12px; border-radius:8px;" onclick="event.stopPropagation()" onchange="DB.datos['${SUC_ACTIVA}'].kanban[${idx}].asignado_a=this.value;guardarBD()">${asignadoOpts}</select>` : `<span style="font-size:12px; color:var(--texto-secundario);">${t.asignado_a || 'Sin asignar'}</span>`;
             const asignadoChip = t.asignado_a ? `<div style="margin-top:6px;"><span style="background:rgba(74,144,217,0.1); color:#4A90D9; font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px;"><i class="fa-solid fa-user-tie" style="margin-right:4px;"></i>${t.asignado_a}</span></div>` : '';
             const _esPublicado = t.estado === 'Publicado';
-            kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag} style="${_esPublicado?'border-left:3px solid #15803D;':''}"><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${_esPublicado?'<i class="fa-solid fa-circle-check" style="color:#15803D;font-size:11px;margin-right:4px;"></i>':''}${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div>${asignadoChip}</div>`;
+            const _kGlobal = t.scope === 'global';
+            kHTML[t.estado] += `<div class="kanban-card" id="${t.id}" ${drag} style="${_esPublicado?'border-left:3px solid #15803D;':_kGlobal?'border-left:3px solid #6366f1;':''}"><div style="font-weight:700; font-size:14px; margin-bottom:8px; line-height:1.3; font-family:var(--font-display);">${_esPublicado?'<i class="fa-solid fa-circle-check" style="color:#15803D;font-size:11px;margin-right:4px;"></i>':''}${_kGlobal&&!_esPublicado?'<i class="fa-solid fa-globe" style="color:#6366f1;font-size:10px;margin-right:4px;" title="Post global"></i>':''}${t.titulo}</div><div style="font-size:11px; font-weight:600; color:var(--texto-secundario);"><i class="fa-regular fa-calendar"></i> ${t.fecha}</div>${asignadoChip}</div>`;
             let optEst = ['Ideas','Producción','Revisión','Programado','Publicado'].map(e => `<option ${e===t.estado?'selected':''}>${e}</option>`).join('');
             let selEst = canEdit ? `<select class="select-celda" style="width:120px; border:1px solid var(--color-borde); background:#fafafa; font-size:11px; text-transform:uppercase;" onclick="event.stopPropagation()" onchange="updObj('kanban',${idx},'estado',this.value)">${optEst}</select>` : `<span class="tag gris">${t.estado}</span>`;
             let tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let cls = 'gris'; if(l.includes('reel')) cls='reel'; if(l.includes('asmr')) cls='asmr'; if(l.includes('pauta')) cls='pauta'; if(l.includes('urgente')) cls='urgente'; return `<span class="tag ${cls}">${tag.trim()}</span>`; }).join('') : '';
@@ -13984,6 +14012,28 @@ function _xlsNotificarOrigenManual() {
         body: JSON.stringify({ action, user })
       });
     } catch(e) { console.warn('CAOS manage-team:', e); }
+  }
+
+  function _difundirPost(postId) {
+    const srcPost = (DB.datos[SUC_ACTIVA]?.kanban || []).find(k => k.id === postId);
+    if (!srcPost) return;
+    const destinos = DB.sucursales.filter(s => s.id !== SUC_ACTIVA);
+    if (!destinos.length) { alert('No hay otras sucursales a las que difundir.'); return; }
+    const nombres = destinos.map(s => s.nombre).join(', ');
+    if (!confirm(`¿Difundir "${srcPost.titulo}" a: ${nombres}?\n\nSe creará una copia en cada sucursal como punto de partida. Cada equipo podrá adaptarlo.`)) return;
+    destinos.forEach(s => {
+      if (!DB.datos[s.id]) return;
+      if (!DB.datos[s.id].kanban) DB.datos[s.id].kanban = [];
+      const copia = JSON.parse(JSON.stringify(srcPost));
+      copia.id = 'k' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+      copia.scope = 'global';
+      copia.difundido_desde = SUC_ACTIVA;
+      copia.asignado_a = '';
+      copia.estado = 'Ideas';
+      DB.datos[s.id].kanban.push(copia);
+    });
+    guardarBD();
+    alert(`✓ Post difundido a ${destinos.length} sucursal${destinos.length > 1 ? 'es' : ''}.`);
   }
 </script>
 </body>
