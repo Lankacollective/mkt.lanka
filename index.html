@@ -2108,7 +2108,12 @@
                     <!-- Parrilla View -->
                     <div id="dir-view-parrilla">
                         <div id="dir-parrilla-stats" style="margin-bottom:16px;"></div>
+                        <div style="display:flex;gap:6px;margin-bottom:16px;">
+                            <button id="dir-parrilla-btn-cal" onclick="dirParrillaVista('cal')" style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid var(--color-borde);background:var(--color-tarjeta);color:var(--texto-principal);cursor:pointer;"><i class="fa-solid fa-calendar-days" style="margin-right:5px;"></i>Calendario</button>
+                            <button id="dir-parrilla-btn-feed" onclick="dirParrillaVista('feed')" style="font-size:12px;font-weight:600;padding:6px 14px;border-radius:8px;border:1px solid var(--color-borde);background:transparent;color:var(--texto-secundario);cursor:pointer;"><i class="fa-solid fa-grip" style="margin-right:5px;"></i>Feed visual</button>
+                        </div>
                         <div id="dir-parrilla-grid"></div>
+                        <div id="dir-parrilla-feed" style="display:none;"></div>
                     </div>
 
                     <!-- Campañas & Inversión View -->
@@ -3983,6 +3988,94 @@ document.addEventListener('DOMContentLoaded', function() {
 
         h += `</div>`;
         grid.innerHTML = h;
+    }
+
+    function dirParrillaVista(v) {
+        const calEl  = document.getElementById('dir-parrilla-grid');
+        const feedEl = document.getElementById('dir-parrilla-feed');
+        const btnCal = document.getElementById('dir-parrilla-btn-cal');
+        const btnFeed= document.getElementById('dir-parrilla-btn-feed');
+        if (!calEl || !feedEl) return;
+        if (v === 'feed') {
+            calEl.style.display  = 'none';
+            feedEl.style.display = '';
+            if (btnCal)  { btnCal.style.background  = 'transparent'; btnCal.style.color  = 'var(--texto-secundario)'; }
+            if (btnFeed) { btnFeed.style.background = 'var(--color-tarjeta)'; btnFeed.style.color = 'var(--texto-principal)'; }
+            const d = DB.datos[SUC_ACTIVA];
+            const sel = document.getElementById('dir-mes-sel');
+            const mesVal = sel ? sel.value : `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+            const [mesYear, mesMonth] = mesVal.split('-').map(Number);
+            _renderDirectorFeed(d, mesYear, mesMonth);
+        } else {
+            calEl.style.display  = '';
+            feedEl.style.display = 'none';
+            if (btnCal)  { btnCal.style.background  = 'var(--color-tarjeta)'; btnCal.style.color  = 'var(--texto-principal)'; }
+            if (btnFeed) { btnFeed.style.background = 'transparent'; btnFeed.style.color = 'var(--texto-secundario)'; }
+        }
+    }
+
+    function _renderDirectorFeed(d, year, month) {
+        const el = document.getElementById('dir-parrilla-feed');
+        if (!el) return;
+        const bk = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).brand_kit || {};
+
+        const posts = (d.kanban||[]).filter(p => {
+            if (!p.fecha) return false;
+            const [y,m] = p.fecha.split('-').map(Number);
+            return y===year && m===month;
+        }).sort((a,b) => (a.fecha||'') < (b.fecha||'') ? -1 : 1);
+
+        if (!posts.length) { el.innerHTML = `<div style="text-align:center;padding:48px;color:var(--texto-secundario);">No hay posts programados para este mes</div>`; return; }
+
+        // Referencia de marca en la parte superior
+        const paletaSwatches = (bk.paleta||[]).map(c=>`<div title="${c.nombre} ${c.hex}" style="width:18px;height:18px;border-radius:4px;background:${c.hex};border:1px solid rgba(0,0,0,.1);"></div>`).join('');
+        const noUsarTags = (bk.no_usar||[]).map(n=>`<span style="font-size:10px;font-weight:600;padding:2px 8px;background:rgba(239,68,68,.1);color:#EF4444;border-radius:100px;"><i class="fa-solid fa-ban" style="font-size:8px;margin-right:2px;"></i>${n}</span>`).join('');
+        const tonoTags = (bk.tono_voz||[]).slice(0,4).map(t=>`<span style="font-size:10px;font-weight:600;padding:2px 8px;background:rgba(var(--color-primario-rgb,196,133,90),.1);color:var(--color-primario);border-radius:100px;">${t}</span>`).join('');
+
+        const brandBar = (paletaSwatches||tonoTags||noUsarTags) ? `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 14px;background:var(--color-tarjeta);border-radius:10px;border:1px solid var(--color-borde);margin-bottom:16px;font-size:10px;">
+            <span style="font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);">Referencia de marca</span>
+            ${paletaSwatches ? `<div style="display:flex;gap:4px;">${paletaSwatches}</div>` : ''}
+            ${tonoTags}
+            ${noUsarTags}
+        </div>` : '';
+
+        // Stats de coherencia visual
+        const conImg   = posts.filter(p => (p.archivos&&p.archivos[0]&&(p.archivos[0].thumbnail_url||p.archivos[0].preview_url))||p.thumbnail_url||p.preview_url).length;
+        const sinImg   = posts.length - conImg;
+        const pubPct   = posts.length ? Math.round(posts.filter(p=>p.estado==='Publicado').length / posts.length * 100) : 0;
+        const statsBar = `<div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+            <div style="padding:8px 14px;background:var(--color-tarjeta);border-radius:10px;border:1px solid var(--color-borde);font-size:12px;"><span style="font-weight:700;color:var(--texto-principal);">${posts.length}</span> <span style="color:var(--texto-secundario);">posts totales</span></div>
+            <div style="padding:8px 14px;background:var(--color-tarjeta);border-radius:10px;border:1px solid var(--color-borde);font-size:12px;"><span style="font-weight:700;color:#34A853;">${pubPct}%</span> <span style="color:var(--texto-secundario);">publicados</span></div>
+            <div style="padding:8px 14px;background:${sinImg>0?'rgba(239,68,68,.08)':'rgba(52,168,83,.08)'};border-radius:10px;border:1px solid ${sinImg>0?'rgba(239,68,68,.2)':'rgba(52,168,83,.2)'};font-size:12px;"><span style="font-weight:700;color:${sinImg>0?'#EF4444':'#34A853'};">${conImg}/${posts.length}</span> <span style="color:var(--texto-secundario);">con imagen</span></div>
+        </div>`;
+
+        // Grid tipo feed de Instagram
+        const _estColor = est => est==='Publicado'?'#15803D':est==='Programado'?'#8B5CF6':est==='Revisión'?'#F59E0B':est==='Aprobado'?'#22C55E':'#9CA3AF';
+        const feedGrid = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:12px;overflow:hidden;">
+            ${posts.map(p => {
+                const thumb = (p.archivos&&p.archivos[0]&&(p.archivos[0].thumbnail_url||p.archivos[0].preview_url))||p.thumbnail_url||p.preview_url||'';
+                const col = _estColor(p.estado);
+                const isVid = /\.(mp4|mov|webm)(\?|$)/i.test(thumb);
+                return `<div style="position:relative;aspect-ratio:1;background:${thumb?'#000':col+'18'};cursor:pointer;overflow:hidden;" title="${(p.titulo||'').replace(/"/g,'&quot;')} · ${p.fecha}" onclick="irA('vista-cal-editorial');renderOrquestacion()">
+                    ${thumb ? `<img src="${thumb}" alt="" style="width:100%;height:100%;object-fit:cover;display:block;${p.estado!=='Publicado'&&p.estado!=='Programado'?'opacity:.85;':''}" loading="lazy" onerror="this.style.display='none'">` : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;padding:8px;"><i class="fa-solid fa-image" style="font-size:20px;color:${col};opacity:.4;"></i><span style="font-size:8px;font-weight:700;color:${col};text-align:center;line-height:1.2;word-break:break-word;opacity:.7;">${(p.titulo||'').substring(0,20)}</span></div>`}
+                    ${isVid ? `<div style="position:absolute;top:6px;left:6px;"><i class="fa-solid fa-play" style="color:#fff;font-size:10px;text-shadow:0 1px 4px rgba(0,0,0,.6);"></i></div>` : ''}
+                    <div style="position:absolute;top:5px;right:5px;background:${col};border-radius:50%;width:8px;height:8px;" title="${p.estado}"></div>
+                    <div style="position:absolute;bottom:0;left:0;right:0;padding:4px 6px;background:linear-gradient(transparent,rgba(0,0,0,.6));opacity:0;transition:.2s;" class="feed-cell-hover">
+                        <span style="font-size:9px;font-weight:700;color:#fff;line-height:1.2;display:block;">${(p.titulo||'').substring(0,24)}</span>
+                        <span style="font-size:8px;color:rgba(255,255,255,.7);">${p.fecha}${p.formato?' · '+p.formato:''}</span>
+                    </div>
+                </div>`;
+            }).join('')}
+        </div>`;
+
+        el.innerHTML = brandBar + statsBar + feedGrid;
+
+        // Hover effect
+        el.querySelectorAll('[class=feed-cell-hover]').forEach(hov => {
+            const cell = hov.parentElement;
+            cell.addEventListener('mouseenter', () => hov.style.opacity = '1');
+            cell.addEventListener('mouseleave', () => hov.style.opacity = '0');
+        });
     }
 
     function _renderDirectorCampanas(d, year, month) {
