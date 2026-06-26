@@ -1282,6 +1282,18 @@
     [data-theme="dark"] .mas-drawer-item:active { background: rgba(255,255,255,0.06) !important; }
     [data-theme="light"] .bottom-nav { background: rgba(245,240,234,0.96) !important; border-top-color: rgba(196,133,90,0.15) !important; }
     [data-theme="light"] .mas-drawer { background: rgba(245,240,234,0.99) !important; }
+
+    /* ── Print / PDF export ─────────────────────────── */
+    @media print {
+        body * { visibility: hidden !important; }
+        #vista-director, #vista-director * { visibility: visible !important; }
+        #vista-director { position: fixed !important; inset: 0 !important; overflow: visible !important; background: #fff !important; }
+        #vista-director .seccion-app { display: block !important; }
+        #dir-btn-export, #dir-tab-btn-parrilla, #dir-tab-btn-campanas { display: none !important; }
+        #dir-view-parrilla, #dir-view-campanas { display: block !important; }
+        .oculto { display: block !important; visibility: visible !important; }
+        @page { margin: 16mm 12mm; size: A4 landscape; }
+    }
 </style>
 ```
 
@@ -1348,6 +1360,7 @@
         <ul class="menu-nav req-no-equipo">
             <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-gauge-high"></i> Dashboard</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
+            <li class="item-nav" data-target="vista-director" style="margin-top:6px;background:linear-gradient(135deg,var(--color-primario)14,var(--color-primario)05);border:1px solid var(--color-primario)25;font-weight:700;color:var(--color-primario);"><i class="fa-solid fa-clapperboard" style="color:var(--color-primario);"></i> Modo Director</li>
         </ul>
 
         <div class="menu-titulo req-agencia">Finanzas</div>
@@ -2018,6 +2031,77 @@
                     <button class="btn btn-primario" onclick="generarReporteAuditoria()"><i class="fa-solid fa-bolt"></i> Generar Reporte</button>
                 </div>
                 <div id="auditoria-resultado"></div>
+            </section>
+
+            <!-- ═══ MODO DIRECTOR ═══════════════════════════════════════════════ -->
+            <section id="vista-director" class="seccion-app oculto">
+                <div style="padding:28px 32px;max-width:1400px;">
+
+                    <!-- Header -->
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:16px;">
+                        <div>
+                            <div style="display:flex;align-items:center;gap:10px;margin-bottom:5px;">
+                                <i class="fa-solid fa-clapperboard" style="font-size:18px;color:var(--color-primario);"></i>
+                                <h1 style="margin:0;font-size:20px;font-weight:700;letter-spacing:-0.02em;">Modo Director</h1>
+                            </div>
+                            <p id="dir-subtitulo" style="margin:0;font-size:13px;color:var(--texto-secundario);"></p>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <select id="dir-mes-sel" onchange="renderDirector()"
+                                style="font-size:13px;font-weight:600;padding:8px 14px;border-radius:10px;border:1px solid var(--color-borde);background:#fff;color:var(--texto-principal);cursor:pointer;"></select>
+                            <button onclick="exportarDirectorPDF()" id="dir-btn-export"
+                                style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;padding:8px 18px;border-radius:10px;border:none;background:var(--color-primario);color:#fff;cursor:pointer;transition:.2s;white-space:nowrap;">
+                                <i class="fa-solid fa-file-arrow-down" style="font-size:13px;"></i>Exportar PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Resumen Ejecutivo (siempre visible) -->
+                    <div id="dir-exec-strip" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px;"></div>
+
+                    <!-- Tabs -->
+                    <div style="display:flex;gap:2px;margin-bottom:24px;background:var(--color-fondo);padding:4px;border-radius:12px;width:fit-content;border:1px solid var(--color-borde);">
+                        <button id="dir-tab-btn-parrilla" onclick="dirCambiarTab('parrilla')"
+                            style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:9px;border:none;cursor:pointer;transition:.2s;background:#fff;color:var(--texto-principal);box-shadow:0 1px 4px rgba(0,0,0,.08);">
+                            <i class="fa-solid fa-table-cells" style="margin-right:6px;font-size:11px;"></i>Parrilla del mes
+                        </button>
+                        <button id="dir-tab-btn-campanas" onclick="dirCambiarTab('campanas')"
+                            style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:9px;border:none;cursor:pointer;transition:.2s;background:transparent;color:var(--texto-secundario);box-shadow:none;">
+                            <i class="fa-solid fa-bullhorn" style="margin-right:6px;font-size:11px;"></i>Campañas & Inversión
+                        </button>
+                        <button id="dir-tab-btn-resultados" onclick="dirCambiarTab('resultados')"
+                            style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:9px;border:none;cursor:pointer;transition:.2s;background:transparent;color:var(--texto-secundario);box-shadow:none;">
+                            <i class="fa-solid fa-chart-line" style="margin-right:6px;font-size:11px;"></i>Resultados & Métricas
+                        </button>
+                    </div>
+
+                    <!-- Parrilla View -->
+                    <div id="dir-view-parrilla">
+                        <div id="dir-parrilla-stats" style="margin-bottom:16px;"></div>
+                        <div id="dir-parrilla-grid"></div>
+                    </div>
+
+                    <!-- Campañas & Inversión View -->
+                    <div id="dir-view-campanas" style="display:none;">
+                        <div id="dir-kpi-strip" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-bottom:28px;"></div>
+                        <div id="dir-campanas-grid"></div>
+                        <div id="dir-campanas-empty" style="display:none;text-align:center;padding:48px;color:var(--texto-secundario);">
+                            <i class="fa-solid fa-bullhorn" style="font-size:32px;display:block;margin-bottom:12px;opacity:.25;"></i>
+                            <p style="font-size:15px;font-weight:500;">No hay campañas activas para este mes</p>
+                        </div>
+                        <div id="dir-presupuesto-cats"></div>
+                        <div id="dir-offline-section"></div>
+                    </div>
+
+                    <!-- Resultados & Métricas View -->
+                    <div id="dir-view-resultados" style="display:none;">
+                        <div id="dir-narrativa"></div>
+                        <div id="dir-metas-grid" style="margin-top:24px;"></div>
+                        <div id="dir-engagement-formato" style="margin-top:32px;"></div>
+                        <div id="dir-kpi-semanal" style="margin-top:32px;"></div>
+                    </div>
+
+                </div>
             </section>
 
         </div>
@@ -2813,7 +2897,8 @@ document.addEventListener('DOMContentLoaded', function() {
             stories:         { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
             mis_tareas:      { owner:true, lanka_team:false, direccion:true,  coordinador:true,  equipo:true  },
             usuarios:        { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
-            catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
+            catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
+            director:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
         },
         usuarios: [
             { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      caos_name:"Paola Sagrero",            puesto:"Socio Director",   password:btoa("Lanka2026"),   rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
@@ -2949,6 +3034,16 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         if (_s3migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+
+        // Sprint 3.1 migration — add new permission modules if missing from existing DB
+        if (DB.permisos) {
+            let _s31migrated = false;
+            const _newModules = { director: { owner:true, lanka_team:true, direccion:true, coordinador:false, equipo:false } };
+            Object.keys(_newModules).forEach(mod => {
+                if (!DB.permisos[mod]) { DB.permisos[mod] = _newModules[mod]; _s31migrated = true; }
+            });
+            if (_s31migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
 
         // Sprint 4 migration — presupuesto: {directa,intercambio} → {inversion,colaboracion}
         if (DB.datos) {
@@ -3206,7 +3301,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (target === 'vista-target') renderEstrategia();
                 if (target === 'vista-shooting') renderShootingGrid();
                 if (target === 'vista-dam') { _damFiltro='all'; renderDAM(); }
-            }); 
+                if (target === 'vista-director') renderDirector();
+            });
         });
     });
 
@@ -3263,6 +3359,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Protege Supabase: solo se escribe después de confirmar qué hay allá.
     // Evita que un navegador nuevo sin localStorage sobreescriba datos reales.
     let _supabaseVerificado = false;
+    let _localChangedDuringInit = false; // usuario editó antes de que Supabase confirmara
+    let _supabaseRetryTimer = null;
 
     let _guardarBDTimer = null;
 
@@ -3276,7 +3374,11 @@ document.addEventListener('DOMContentLoaded', function() {
             s.style.opacity = 1;
         }
 
-        if (!window.__supabase || !_supabaseVerificado) return;
+        if (!window.__supabase || !_supabaseVerificado) {
+            // Marcar que hubo cambios locales antes de que Supabase confirmara
+            if (window.__supabase && !_supabaseVerificado) _localChangedDuringInit = true;
+            return;
+        }
 
         // 2. Supabase: debounce 900ms — cancela writes anteriores si el usuario sigue escribiendo
         clearTimeout(_guardarBDTimer);
@@ -3316,8 +3418,8 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 DB = JSON.parse(guardado);
                 // Usuario existente con datos locales: ya es seguro guardar en Supabase
-                _supabaseVerificado = true;
-                console.log('✓ Datos cargados desde localStorage');
+                // NO activar _supabaseVerificado aquí — esperar confirmación de Supabase
+                console.log('✓ Datos cargados desde localStorage — esperando confirmación de Supabase');
             } catch(e) { console.warn('localStorage corrupto, usando semilla'); }
         }
         if (!DB || !DB.sucursales) {
@@ -3336,33 +3438,48 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(({ data, error }) => {
                     console.timeEnd('supabase-load');
                     if (!error && data?.data && Object.keys(data.data).length > 0) {
-                        // Supabase tiene datos reales → tomar como fuente de verdad
                         const yaEnApp = !!SUC_ACTIVA;
-                        DB = data.data;
-                        // Aplicar demo Mammut si Supabase también tiene datos vacíos
-                        const _antesDemo = !DB._mammut_demo_v1;
-                        _aplicarDemoMammut();
-                        localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-                        _supabaseVerificado = true;
-                        // Si aplicamos demo, subir a Supabase para que quede sincronizado
-                        if (_antesDemo && DB._mammut_demo_v1) guardarBD();
-                        console.log('✓ Datos sincronizados desde Supabase:', data.updated_at);
-                        if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                        clearTimeout(_supabaseRetryTimer);
+                        if (_localChangedDuringInit) {
+                            // El usuario editó mientras Supabase cargaba — los cambios locales son más recientes
+                            _supabaseVerificado = true;
+                            _localChangedDuringInit = false;
+                            console.log('⚠ Cambios locales durante init — subiendo versión local a Supabase (no sobreescribir)');
+                            guardarBD();
+                        } else {
+                            // Sin cambios locales — Supabase es la fuente de verdad
+                            DB = data.data;
+                            const _antesDemo = !DB._mammut_demo_v1;
+                            _aplicarDemoMammut();
+                            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                            _supabaseVerificado = true;
+                            if (_antesDemo && DB._mammut_demo_v1) guardarBD();
+                            console.log('✓ Datos en vivo desde Supabase:', data.updated_at);
+                            if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                        }
                     } else if (!error) {
-                        // Supabase respondió OK pero está vacío → usuario nuevo real
+                        clearTimeout(_supabaseRetryTimer);
                         _supabaseVerificado = true;
+                        _localChangedDuringInit = false;
                         console.log('✓ Supabase vacío — usuario nuevo, listo para guardar');
-                        guardarBD(); // única vez que subimos semilla: Supabase confirmó que no hay nada
+                        guardarBD();
                     } else {
-                        // Error de Supabase → NO tocar Supabase, proteger datos remotos
-                        console.warn('Supabase load error — modo solo-local activado:', error.message);
-                        // _supabaseVerificado queda false: guardarBD() solo usará localStorage
+                        console.warn('Supabase load error — reintentando en 30s:', error.message);
+                        clearTimeout(_supabaseRetryTimer);
+                        _supabaseRetryTimer = setTimeout(() => {
+                            _localChangedDuringInit = false;
+                            inicializarDB();
+                        }, 30000);
                     }
                 })
                 .catch(e => {
                     console.timeEnd('supabase-load');
-                    console.warn('Supabase load exception — modo solo-local:', e);
-                    // NO llamar guardarBD() aquí — podría sobreescribir datos remotos
+                    console.warn('Supabase load exception — reintentando en 30s:', e);
+                    clearTimeout(_supabaseRetryTimer);
+                    _supabaseRetryTimer = setTimeout(() => {
+                        _localChangedDuringInit = false;
+                        inicializarDB();
+                    }, 30000);
                 });
         } else {
             // Sin Supabase configurado: modo completamente local
@@ -3370,6 +3487,844 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Retorna inmediatamente — UI disponible sin esperar Supabase
     }
+
+    // ─── MODO DIRECTOR ────────────────────────────────────────────────────────
+    let _dirTab = 'parrilla';
+
+    function dirCambiarTab(tab) {
+        _dirTab = tab;
+        const tabs = [
+            { id:'parrilla',   btn:'dir-tab-btn-parrilla',   view:'dir-view-parrilla'   },
+            { id:'campanas',   btn:'dir-tab-btn-campanas',   view:'dir-view-campanas'   },
+            { id:'resultados', btn:'dir-tab-btn-resultados', view:'dir-view-resultados' }
+        ];
+        const onSt  = 'background:#fff;color:var(--texto-principal);box-shadow:0 1px 4px rgba(0,0,0,.08);';
+        const offSt = 'background:transparent;color:var(--texto-secundario);box-shadow:none;';
+        tabs.forEach(t => {
+            const btn = document.getElementById(t.btn);
+            const view = document.getElementById(t.view);
+            if (btn)  btn.style.cssText  = btn.style.cssText  + (t.id === tab ? onSt : offSt);
+            if (view) view.style.display = (t.id === tab ? '' : 'none');
+        });
+    }
+
+    function _estadoColorDir(estado) {
+        const m = { 'Ideas':'#9CA3AF','Producción':'#4A90D9','Revisión':'#FBBC05','Aprobado':'#22C55E','Programado':'#8B5CF6','Publicado':'#34A853' };
+        return m[estado] || '#9CA3AF';
+    }
+
+    function _formatoIconDir(formato) {
+        const f = (formato||'').toLowerCase();
+        if (f.includes('reel') || f.includes('video')) return 'fa-film';
+        if (f.includes('storia') || f.includes('stories') || f.includes('historia')) return 'fa-mobile-screen';
+        if (f.includes('carrusel') || f.includes('carousel')) return 'fa-images';
+        return 'fa-image';
+    }
+
+    function renderDirector() {
+        const el = document.getElementById('vista-director');
+        if (!el || el.classList.contains('oculto')) return;
+        if (!SUC_ACTIVA || !DB.datos || !DB.datos[SUC_ACTIVA]) return;
+
+        const d = DB.datos[SUC_ACTIVA];
+        const suc = (DB.sucursales||[]).find(s => s.id === SUC_ACTIVA) || {};
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+        const sel = document.getElementById('dir-mes-sel');
+        if (sel && !sel.options.length) {
+            const hoy = new Date();
+            let ops = '';
+            for (let i = -5; i <= 3; i++) {
+                const d2 = new Date(hoy.getFullYear(), hoy.getMonth() + i, 1);
+                const v = `${d2.getFullYear()}-${String(d2.getMonth()+1).padStart(2,'0')}`;
+                ops += `<option value="${v}"${i===0?' selected':''}>${meses[d2.getMonth()]} ${d2.getFullYear()}</option>`;
+            }
+            sel.innerHTML = ops;
+        }
+
+        const mesVal = sel ? sel.value : `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+        const [mesYear, mesMonth] = mesVal.split('-').map(Number);
+
+        const sub = document.getElementById('dir-subtitulo');
+        if (sub) sub.textContent = `${suc.nombre||''} — ${meses[mesMonth-1]} ${mesYear}`;
+
+        _renderDirectorExec(d, mesYear, mesMonth);
+        _renderDirectorParrilla(d, mesYear, mesMonth);
+        _renderDirectorCampanas(d, mesYear, mesMonth);
+        _renderDirectorResultados(d, mesYear, mesMonth);
+    }
+
+    function _renderDirectorExec(d, year, month) {
+        const el = document.getElementById('dir-exec-strip');
+        if (!el) return;
+
+        const fmtMon = n => new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n||0);
+        const mi = month - 1; // índice 0-based para arrays de 12 meses
+
+        // Inversión del mes: presupuesto planeado vs real
+        const pres = d.presupuesto || [];
+        const totPlan = pres.reduce((s,p) => {
+            const m = p.montos_mes && p.montos_mes[mi];
+            return s + ((m ? (Number(m.inversion)||0) + (Number(m.colaboracion)||0) : 0));
+        }, 0);
+        const totReal = pres.reduce((s,p) => {
+            const m = p.montos_mes && p.montos_mes[mi];
+            return s + (m ? (Number(m.real)||0) : 0);
+        }, 0);
+        const burnPct = totPlan > 0 ? Math.min(100, Math.round(totReal / totPlan * 100)) : 0;
+        const burnColor = burnPct > 100 ? '#EF4444' : burnPct > 85 ? '#FBBC05' : '#34A853';
+
+        // Contenido: pace del mes
+        const hoy = new Date();
+        const kanban = (d.kanban||[]).filter(p => {
+            if (!p.fecha) return false;
+            const [y,m2] = p.fecha.split('-').map(Number);
+            return y === year && m2 === month;
+        });
+        const stories = (d.stories_ind||[]).filter(s => {
+            if (!s.dia) return false;
+            const [y,m2] = s.dia.split('-').map(Number);
+            return y === year && m2 === month;
+        });
+        const totalContenido = kanban.length + stories.length;
+        const publicados = kanban.filter(p=>p.estado==='Publicado').length + stories.filter(s=>s.estado==='Publicado').length;
+        const revisiones = kanban.filter(p=>p.estado==='Revisión').length;
+        const esMesActual = (hoy.getFullYear()===year && hoy.getMonth()+1===month);
+        const diasTotal = new Date(year, month, 0).getDate();
+        const diasTranscurridos = esMesActual ? Math.min(hoy.getDate(), diasTotal) : diasTotal;
+        const pacePct = totalContenido > 0 && esMesActual
+            ? Math.round(publicados / totalContenido * 100)
+            : (publicados === totalContenido && totalContenido > 0 ? 100 : 0);
+        const paceColor = !esMesActual ? '#34A853' : pacePct >= 70 ? '#34A853' : pacePct >= 40 ? '#FBBC05' : '#EF4444';
+        const paceLabel = !esMesActual ? 'Cerrado' : pacePct >= 70 ? 'En ritmo' : pacePct >= 40 ? 'Atención' : 'Atrasado';
+
+        // ROI por canal
+        const mesIni = new Date(year, month-1, 1);
+        const mesFin = new Date(year, month, 0);
+        const adsActivos = (d.ads||[]).filter(a => {
+            if (a.estado==='Borrador') return false;
+            const cIni = a.inicio ? new Date(a.inicio+'T00:00:00') : new Date(0);
+            const cFin = a.fin ? new Date(a.fin+'T00:00:00') : new Date(9999,0,1);
+            return cIni <= mesFin && cFin >= mesIni;
+        });
+        const byPlat = {};
+        adsActivos.forEach(a => {
+            if (!byPlat[a.plataforma||'Otro']) byPlat[a.plataforma||'Otro'] = { inv:0, conv:0 };
+            byPlat[a.plataforma||'Otro'].inv  += Number(a.inversion)||0;
+            byPlat[a.plataforma||'Otro'].conv += Number(a.conversiones)||0;
+        });
+        let topCanal = '—', topRoi = 0;
+        Object.entries(byPlat).forEach(([k,v]) => {
+            const roi = v.inv > 0 ? v.conv / v.inv * 1000 : 0;
+            if (roi > topRoi) { topRoi = roi; topCanal = k; }
+        });
+        const topRoiStr = topRoi > 0 ? `${topRoi.toFixed(1)} conv/k` : '—';
+
+        // Pendientes críticos en revisión
+        const pendRev = revisiones;
+        const pendColor = pendRev > 0 ? '#FBBC05' : '#34A853';
+
+        // Ventas del mes vs meta
+        const histMes = (d.historico_mensual||[])[mi] || {};
+        const ventasMes = Number(histMes.ventas)||0;
+        const metaVentas = Number((d.kpi_metas&&d.kpi_metas.mes&&d.kpi_metas.mes.ventas)||0);
+        const ventasPct = metaVentas > 0 ? Math.min(150, Math.round(ventasMes/metaVentas*100)) : 0;
+        const ventasColor = ventasPct >= 100 ? '#34A853' : ventasPct >= 75 ? '#FBBC05' : ventasPct > 0 ? '#EF4444' : '#9CA3AF';
+        const segsMes = Number(histMes.seguidores)||0;
+        const metaSegs = Number((d.kpi_metas&&d.kpi_metas.mes&&d.kpi_metas.mes.seguidores)||0);
+
+        el.innerHTML = [
+            {
+                ic:'fa-fire-flame-curved', c:'#4A90D9',
+                label:'Inversión del mes',
+                value: fmtMon(totReal),
+                sub2: `de ${fmtMon(totPlan)} planeado`,
+                extra: `<div style="margin-top:10px;"><div style="height:4px;border-radius:4px;background:var(--color-fondo);overflow:hidden;"><div style="height:100%;width:${burnPct}%;background:${burnColor};border-radius:4px;transition:.6s;"></div></div><div style="font-size:10px;font-weight:600;color:${burnColor};margin-top:4px;">${burnPct}% ejecutado</div></div>`
+            },
+            {
+                ic:'fa-peso-sign', c:'#34A853',
+                label:'Ventas del mes',
+                value: ventasMes > 0 ? fmtMon(ventasMes) : '—',
+                sub2: metaVentas > 0 ? `meta: ${fmtMon(metaVentas)}` : 'Sin meta definida',
+                extra: metaVentas > 0 && ventasMes > 0 ? `<div style="margin-top:10px;"><div style="height:4px;border-radius:4px;background:var(--color-fondo);overflow:hidden;"><div style="height:100%;width:${ventasPct}%;background:${ventasColor};border-radius:4px;transition:.6s;"></div></div><div style="font-size:10px;font-weight:600;color:${ventasColor};margin-top:4px;">${ventasPct}% de la meta</div></div>` : ''
+            },
+            {
+                ic:'fa-layer-group', c:'#8B5CF6',
+                label:'Contenido del mes',
+                value: `${publicados} / ${totalContenido}`,
+                sub2: `${publicados} publicados · ${stories.length} historias`,
+                extra: `<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;background:${paceColor}18;"><span style="width:6px;height:6px;border-radius:50%;background:${paceColor};"></span><span style="font-size:10px;font-weight:700;color:${paceColor};">${paceLabel}</span></div>`
+            },
+            {
+                ic:'fa-user-plus', c:'#EC4899',
+                label:'Seguidores ganados',
+                value: segsMes > 0 ? `+${segsMes.toLocaleString('es-MX')}` : '—',
+                sub2: metaSegs > 0 ? `meta: +${metaSegs.toLocaleString('es-MX')}` : (segsMes > 0 ? 'Sin meta definida' : 'Sin datos'),
+                extra: metaSegs > 0 && segsMes > 0 ? (() => { const p=Math.min(150,Math.round(segsMes/metaSegs*100)); const c=p>=100?'#34A853':p>=75?'#FBBC05':'#EF4444'; return `<div style="margin-top:10px;"><div style="height:4px;border-radius:4px;background:var(--color-fondo);overflow:hidden;"><div style="height:100%;width:${p}%;background:${c};border-radius:4px;transition:.6s;"></div></div><div style="font-size:10px;font-weight:600;color:${c};margin-top:4px;">${p}% de la meta</div></div>`; })() : ''
+            },
+            {
+                ic:'fa-triangle-exclamation', c: pendRev > 0 ? '#FBBC05' : '#34A853',
+                label:'Pendientes aprobación',
+                value: pendRev > 0 ? `${pendRev} post${pendRev!==1?'s':''}` : 'Al día',
+                sub2: pendRev > 0 ? 'En revisión — requieren OK' : 'Sin pendientes críticos',
+                extra: pendRev > 0 ? `<div style="margin-top:8px;"><button onclick="dirCambiarTab('parrilla');navegarVista('vista-director')" style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:8px;border:none;background:#FBBC0520;color:#B45309;cursor:pointer;">Ver parrilla →</button></div>` : ''
+            }
+        ].map(k => `
+            <div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;padding:18px 20px;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                    <div style="width:36px;height:36px;border-radius:10px;background:${k.c}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fa-solid ${k.ic}" style="font-size:14px;color:${k.c};"></i>
+                    </div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);">${k.label}</div>
+                </div>
+                <div style="font-size:22px;font-weight:800;letter-spacing:-0.03em;color:var(--texto-principal);line-height:1.1;">${k.value}</div>
+                <div style="font-size:11px;color:var(--texto-secundario);margin-top:3px;">${k.sub2}</div>
+                ${k.extra}
+            </div>
+        `).join('');
+    }
+
+    function _renderDirectorParrilla(d, year, month) {
+        const statsEl = document.getElementById('dir-parrilla-stats');
+        const grid    = document.getElementById('dir-parrilla-grid');
+        if (!grid) return;
+
+        const kanban = (d.kanban||[]).filter(p => {
+            if (!p.fecha) return false;
+            const [y,m] = p.fecha.split('-').map(Number);
+            return y === year && m === month;
+        });
+        const stories = (d.stories_ind||[]).filter(s => {
+            if (!s.dia) return false;
+            const [y,m] = s.dia.split('-').map(Number);
+            return y === year && m === month;
+        });
+
+        // Agrupar por fecha
+        const porFecha = {};
+        kanban.forEach(p => {
+            if (!porFecha[p.fecha]) porFecha[p.fecha] = { posts:[], stories:[] };
+            porFecha[p.fecha].posts.push(p);
+        });
+        stories.forEach(s => {
+            const key = s.dia;
+            if (!porFecha[key]) porFecha[key] = { posts:[], stories:[] };
+            porFecha[key].stories.push(s);
+        });
+
+        const total   = kanban.length;
+        const pub     = kanban.filter(p=>p.estado==='Publicado').length;
+        const prog    = kanban.filter(p=>p.estado==='Programado'||p.estado==='Aprobado').length;
+        const rev     = kanban.filter(p=>p.estado==='Revisión').length;
+        const stTot   = stories.length;
+
+        // Stats + leyenda combinados
+        if (statsEl) {
+            const leyendaItems = [
+                {c:'#9CA3AF',l:'Ideas'},{c:'#4A90D9',l:'Producción'},{c:'#FBBC05',l:'Revisión'},
+                {c:'#22C55E',l:'Aprobado'},{c:'#8B5CF6',l:'Programado'},{c:'#34A853',l:'Publicado'}
+            ];
+            statsEl.innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        ${[
+                            {v:total,l:'Posts',c:'var(--color-primario)'},
+                            {v:stTot,l:'Historias',c:'#EC4899'},
+                            {v:pub,l:'Publicados',c:'#34A853'},
+                            {v:prog,l:'Listos',c:'#8B5CF6'},
+                            {v:rev,l:'En revisión',c:'#FBBC05'}
+                        ].map(k=>`<div style="background:#fff;border:1px solid var(--color-borde);border-radius:10px;padding:10px 16px;text-align:center;">
+                            <div style="font-size:20px;font-weight:800;color:${k.c};letter-spacing:-0.02em;">${k.v}</div>
+                            <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);margin-top:1px;">${k.l}</div>
+                        </div>`).join('')}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                        <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);">Estado:</span>
+                        ${leyendaItems.map(it=>`<span style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;"><span style="width:7px;height:7px;border-radius:50%;background:${it.c};"></span>${it.l}</span>`).join('')}
+                        <span style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:500;"><i class="fa-solid fa-mobile-screen" style="font-size:10px;color:#EC4899;"></i>Historia</span>
+                    </div>
+                </div>`;
+        }
+
+        if (total === 0 && stTot === 0) {
+            grid.innerHTML = `<div style="text-align:center;padding:64px 24px;background:#fff;border-radius:16px;border:1px dashed var(--color-borde);margin-top:12px;">
+                <i class="fa-solid fa-calendar-days" style="font-size:32px;opacity:.2;display:block;margin-bottom:12px;"></i>
+                <p style="color:var(--texto-secundario);font-size:15px;font-weight:500;">No hay contenido programado para este mes</p>
+            </div>`;
+            return;
+        }
+
+        const diasSemana = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+        const primerDia  = new Date(year, month-1, 1);
+        const ultimoDia  = new Date(year, month, 0);
+        const dow        = (primerDia.getDay()+6)%7;
+        const cursor     = new Date(year, month-1, 1-dow);
+
+        const semanas = [];
+        while (cursor <= ultimoDia) {
+            const semana = [];
+            for (let i=0;i<7;i++) { semana.push(new Date(cursor)); cursor.setDate(cursor.getDate()+1); }
+            semanas.push(semana);
+        }
+
+        let h = `<div style="background:#fff;border-radius:16px;border:1px solid var(--color-borde);overflow:hidden;margin-top:12px;">`;
+        // Header días
+        h += `<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-bottom:2px solid var(--color-borde);">`;
+        diasSemana.forEach((ds,i) => {
+            h+=`<div style="padding:10px 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);text-align:center;${i<6?'border-right:1px solid var(--color-borde);':''}">${ds}</div>`;
+        });
+        h += `</div>`;
+
+        semanas.forEach((sem, si) => {
+            h += `<div style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));${si<semanas.length-1?'border-bottom:1px solid var(--color-borde);':''}">`;
+            sem.forEach((dia, di) => {
+                const esMes = (dia.getMonth()+1) === month;
+                const fs = `${dia.getFullYear()}-${String(dia.getMonth()+1).padStart(2,'0')}-${String(dia.getDate()).padStart(2,'0')}`;
+                const dia_data = porFecha[fs] || { posts:[], stories:[] };
+                const dPosts   = dia_data.posts;
+                const dStories = dia_data.stories;
+
+                h += `<div style="min-height:130px;padding:6px;background:${esMes?'#fff':'#FAFAFA'};${di<6?'border-right:1px solid var(--color-borde);':''}">`;
+                h += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;">
+                    <span style="font-size:12px;font-weight:${esMes?'700':'400'};color:${esMes?'var(--texto-principal)':'#C4C4C4'};">${dia.getDate()}</span>
+                    ${dStories.length ? `<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;background:#EC489915;color:#EC4899;"><i class="fa-solid fa-mobile-screen" style="font-size:8px;"></i> ${dStories.length}</span>` : ''}
+                </div>`;
+
+                // Mostrar posts (máx 2)
+                dPosts.slice(0,2).forEach(p => {
+                    const thumb = (p.archivos&&p.archivos[0]&&(p.archivos[0].thumbnail_url||p.archivos[0].preview_url))||p.thumbnail_url||p.preview_url||'';
+                    const col   = _estadoColorDir(p.estado);
+                    const ico   = _formatoIconDir(p.formato);
+                    const esHistory = (p.formato||'').toLowerCase().includes('historia');
+                    h += `<div style="margin-bottom:4px;border-radius:7px;overflow:hidden;border:1.5px solid ${col}40;cursor:pointer;" onclick="navegarVista('vista-cal-editorial')" title="${(p.titulo||'').replace(/"/g,'&quot;')}">`;
+                    if (thumb) {
+                        h += `<div style="width:100%;height:${esHistory?'64px':'52px'};background:url('${thumb}') center/cover no-repeat;background-color:#F0F0F0;position:relative;">
+                            ${esHistory?`<span style="position:absolute;top:3px;left:3px;background:#EC489990;border-radius:4px;padding:1px 4px;"><i class="fa-solid fa-mobile-screen" style="font-size:8px;color:#fff;"></i></span>`:''}
+                            <span style="position:absolute;bottom:3px;right:3px;background:${col};border-radius:50%;width:10px;height:10px;display:block;"></span>
+                        </div>`;
+                    } else {
+                        h += `<div style="width:100%;height:52px;background:${col}15;display:flex;align-items:center;justify-content:center;position:relative;">
+                            <i class="fa-solid ${ico}" style="font-size:16px;color:${col};opacity:.7;"></i>
+                            <span style="position:absolute;bottom:3px;right:3px;background:${col};border-radius:50%;width:8px;height:8px;display:block;"></span>
+                        </div>`;
+                    }
+                    h += `<div style="padding:3px 5px;font-size:9px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--texto-secundario);">${(p.titulo||'Post').substring(0,22)}</div>`;
+                    h += `</div>`;
+                });
+
+                const extra = (dPosts.length - 2);
+                if (extra > 0) h+=`<div style="font-size:9px;font-weight:700;color:var(--texto-secundario);text-align:center;padding:2px 0;cursor:pointer;" onclick="navegarVista('vista-cal-editorial')">+${extra} más</div>`;
+                h += `</div>`;
+            });
+            h += `</div>`;
+        });
+
+        h += `</div>`;
+        grid.innerHTML = h;
+    }
+
+    function _renderDirectorCampanas(d, year, month) {
+        const kpiEl      = document.getElementById('dir-kpi-strip');
+        const gridEl     = document.getElementById('dir-campanas-grid');
+        const emptyEl    = document.getElementById('dir-campanas-empty');
+        const presEl     = document.getElementById('dir-presupuesto-cats');
+        const offlineEl  = document.getElementById('dir-offline-section');
+        if (!kpiEl || !gridEl) return;
+
+        const fmtMon = n => new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n||0);
+        const fmtNum = n => (n||0)>=1000000?(n/1000000).toFixed(1)+'M':(n||0)>=1000?(n/1000).toFixed(1)+'K':String(n||0);
+        const mi     = month - 1;
+        const mesIni = new Date(year, month-1, 1);
+        const mesFin = new Date(year, month, 0);
+        const hoy    = new Date();
+
+        // ── Campañas digitales activas en el mes ──────────────────────────────
+        const ads = (d.ads||[]).filter(a => {
+            if (a.estado==='Borrador') return false;
+            const cIni = a.inicio ? new Date(a.inicio+'T00:00:00') : new Date(0);
+            const cFin = a.fin    ? new Date(a.fin+'T00:00:00')    : new Date(9999,0,1);
+            return cIni <= mesFin && cFin >= mesIni;
+        });
+
+        if (!ads.length) {
+            kpiEl.innerHTML = ''; gridEl.innerHTML = '';
+            if (emptyEl) emptyEl.style.display = '';
+        } else {
+            if (emptyEl) emptyEl.style.display = 'none';
+
+            const totInv  = ads.reduce((s,a)=>s+(Number(a.inversion)||0),0);
+            const totAlc  = ads.reduce((s,a)=>s+(Number(a.alcance)||0),0);
+            const totConv = ads.reduce((s,a)=>s+(Number(a.conversiones)||0),0);
+            const avgCPR  = totConv>0 ? totInv/totConv : 0;
+            const totClic = ads.reduce((s,a)=>s+(Number(a.clics)||0),0);
+            const ctr     = totAlc>0 ? (totClic/totAlc*100) : 0;
+
+            kpiEl.innerHTML = [
+                {l:'Inversión digital',  v:fmtMon(totInv),           ic:'fa-wallet',         c:'#4A90D9'},
+                {l:'Alcance total',      v:fmtNum(totAlc),            ic:'fa-users',          c:'#8B5CF6'},
+                {l:'Conversiones',       v:fmtNum(totConv),           ic:'fa-arrow-trend-up', c:'#34A853'},
+                {l:'CPR promedio',       v:avgCPR?fmtMon(avgCPR):'—',ic:'fa-bullseye',       c:'var(--color-primario)'},
+                {l:'Clics totales',      v:fmtNum(totClic),           ic:'fa-computer-mouse', c:'#EC4899'},
+                {l:'CTR promedio',       v:ctr?`${ctr.toFixed(2)}%`:'—', ic:'fa-percent',    c:'#F59E0B'}
+            ].map(k=>`<div style="background:#fff;border:1px solid var(--color-borde);border-radius:14px;padding:16px 18px;display:flex;align-items:center;gap:12px;">
+                <div style="width:38px;height:38px;border-radius:10px;background:${k.c}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <i class="fa-solid ${k.ic}" style="font-size:14px;color:${k.c};"></i>
+                </div>
+                <div>
+                    <div style="font-size:18px;font-weight:800;letter-spacing:-0.02em;">${k.v}</div>
+                    <div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);margin-top:1px;">${k.l}</div>
+                </div>
+            </div>`).join('');
+
+            const estC = {'Activa':'#34A853','Pausada':'#FBBC05','Completada':'#4A90D9','Borrador':'#9CA3AF'};
+            const pIco = {'Meta':'fa-square-facebook','Google':'fa-google','TikTok':'fa-tiktok','Instagram':'fa-instagram','Twitter':'fa-x-twitter'};
+
+            gridEl.innerHTML = `<div style="margin-bottom:20px;">
+                <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin:0 0 14px;">Campañas Digitales</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:16px;">
+                    ${ads.map(a => {
+                        const inv  = Number(a.inversion)||0;
+                        const alc  = Number(a.alcance)||0;
+                        const cli  = Number(a.clics)||0;
+                        const conv = Number(a.conversiones)||0;
+                        const cpr  = Number(a.cpr)||(conv&&inv ? Math.round(inv/conv) : 0);
+                        const ec   = estC[a.estado]||'#9CA3AF';
+                        const pi   = pIco[a.plataforma]||'fa-chart-bar';
+
+                        // Evolución: % período transcurrido
+                        let periodoHtml = '';
+                        if (a.inicio && a.fin) {
+                            const ini  = new Date(a.inicio+'T00:00:00');
+                            const fin  = new Date(a.fin+'T00:00:00');
+                            const durT = fin - ini;
+                            const elapsed = Math.min(hoy - ini, durT);
+                            const pctTiempo = durT > 0 ? Math.max(0,Math.min(100,Math.round(elapsed/durT*100))) : 0;
+                            // Ritmo vs logro: si hay conversiones y tenemos % de tiempo, ¿vamos bien?
+                            const ritmoColor = pctTiempo > 0 && conv > 0 ? '#34A853' : pctTiempo > 50 && conv === 0 ? '#EF4444' : '#9CA3AF';
+                            periodoHtml = `<div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--color-borde);">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+                                    <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);">Evolución</span>
+                                    <span style="font-size:10px;font-weight:700;color:${ritmoColor};">${pctTiempo}% del período</span>
+                                </div>
+                                <div style="height:5px;border-radius:5px;background:var(--color-fondo);overflow:hidden;">
+                                    <div style="height:100%;width:${pctTiempo}%;background:${ritmoColor};border-radius:5px;transition:.6s;"></div>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;margin-top:4px;">
+                                    <span style="font-size:9px;color:var(--texto-secundario);">${a.inicio}</span>
+                                    <span style="font-size:9px;color:var(--texto-secundario);">${a.fin}</span>
+                                </div>
+                            </div>`;
+                        }
+
+                        const metricas = [
+                            {l:'Alcance',      v:fmtNum(alc),  i:'fa-users'},
+                            {l:'Clics',        v:fmtNum(cli),  i:'fa-computer-mouse'},
+                            {l:'Conversiones', v:fmtNum(conv), i:'fa-arrow-trend-up'},
+                            {l:'CPR',          v:cpr?fmtMon(cpr):'—', i:'fa-dollar-sign'}
+                        ];
+
+                        return `<div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;">
+                            <div style="padding:16px 18px;border-bottom:1px solid var(--color-borde);">
+                                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-size:14px;font-weight:700;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.nombre||'Campaña'}</div>
+                                        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+                                            <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${ec}18;color:${ec};">${a.estado||'—'}</span>
+                                            ${a.plataforma?`<span style="font-size:10px;font-weight:600;color:var(--texto-secundario);display:flex;align-items:center;gap:3px;"><i class="fa-brands ${pi}"></i> ${a.plataforma}</span>`:''}
+                                            ${a.categoria?`<span style="font-size:10px;color:var(--texto-secundario);">${a.categoria}</span>`:''}
+                                        </div>
+                                    </div>
+                                    <div style="text-align:right;flex-shrink:0;">
+                                        <div style="font-size:17px;font-weight:800;color:var(--color-primario);">${fmtMon(inv)}</div>
+                                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);">Inversión</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="padding:14px 18px;flex:1;">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                    ${metricas.map(m=>`<div style="background:var(--color-fondo);border-radius:10px;padding:10px 12px;">
+                                        <div style="font-size:15px;font-weight:800;">${m.v}</div>
+                                        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);margin-top:1px;">${m.l}</div>
+                                    </div>`).join('')}
+                                </div>
+                                ${a.segmento?`<div style="font-size:10px;color:var(--texto-secundario);margin-top:10px;"><i class="fa-solid fa-crosshairs" style="margin-right:4px;"></i>${a.segmento}</div>`:''}
+                                ${periodoHtml}
+                            </div>
+                        </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+        }
+
+        // ── Inversión por categoría (presupuesto) ─────────────────────────────
+        if (presEl) {
+            const pres = d.presupuesto || [];
+            const catMap = {};
+            pres.forEach(p => {
+                const cat = p.categoria || 'Otro';
+                if (!catMap[cat]) catMap[cat] = { plan:0, real:0, items:[] };
+                const m = p.montos_mes && p.montos_mes[mi];
+                if (m) {
+                    catMap[cat].plan += (Number(m.inversion)||0) + (Number(m.colaboracion)||0);
+                    catMap[cat].real += (Number(m.real)||0);
+                }
+                catMap[cat].items.push(p.item||'');
+            });
+
+            const cats = Object.entries(catMap);
+            const catColors = ['#4A90D9','#8B5CF6','#34A853','#EC4899','#F59E0B','#EF4444'];
+
+            if (!cats.length || cats.every(([,v])=>v.plan===0)) {
+                presEl.innerHTML = '';
+            } else {
+                const totalPlan = cats.reduce((s,[,v])=>s+v.plan,0);
+                presEl.innerHTML = `
+                    <div style="margin-top:32px;">
+                        <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin:0 0 14px;">
+                            Inversión por categoría — ${['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][mi]}
+                        </h3>
+                        <div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;">
+                            <div style="display:grid;grid-template-columns:auto 1fr auto auto;gap:0;align-items:stretch;">
+                                <div style="padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);border-bottom:1px solid var(--color-borde);">Categoría</div>
+                                <div style="padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);border-bottom:1px solid var(--color-borde);">Distribución</div>
+                                <div style="padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);text-align:right;border-bottom:1px solid var(--color-borde);">Planeado</div>
+                                <div style="padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);text-align:right;border-bottom:1px solid var(--color-borde);">Real</div>
+                                ${cats.map(([cat,v],idx) => {
+                                    const pct     = totalPlan > 0 ? Math.round(v.plan/totalPlan*100) : 0;
+                                    const execPct = v.plan > 0 ? Math.min(100,Math.round(v.real/v.plan*100)) : 0;
+                                    const bColor  = catColors[idx % catColors.length];
+                                    const realColor = execPct > 100 ? '#EF4444' : execPct > 85 ? '#FBBC05' : '#34A853';
+                                    const border  = idx < cats.length-1 ? 'border-bottom:1px solid var(--color-borde);' : '';
+                                    return `
+                                        <div style="padding:14px 16px;${border}display:flex;align-items:center;gap:8px;">
+                                            <span style="width:10px;height:10px;border-radius:3px;background:${bColor};flex-shrink:0;"></span>
+                                            <div>
+                                                <div style="font-size:13px;font-weight:700;">${cat}</div>
+                                                <div style="font-size:10px;color:var(--texto-secundario);margin-top:1px;">${pct}% del total</div>
+                                            </div>
+                                        </div>
+                                        <div style="padding:14px 16px;${border}display:flex;align-items:center;">
+                                            <div style="flex:1;">
+                                                <div style="height:6px;border-radius:6px;background:${bColor}20;overflow:hidden;">
+                                                    <div style="height:100%;width:${pct}%;background:${bColor};border-radius:6px;"></div>
+                                                </div>
+                                                <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+                                                    <div style="height:3px;border-radius:3px;background:${realColor}30;flex:1;overflow:hidden;">
+                                                        <div style="height:100%;width:${execPct}%;background:${realColor};border-radius:3px;"></div>
+                                                    </div>
+                                                    <span style="font-size:9px;font-weight:700;color:${realColor};flex-shrink:0;">${execPct}%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div style="padding:14px 16px;${border}text-align:right;">
+                                            <div style="font-size:13px;font-weight:700;">${fmtMon(v.plan)}</div>
+                                        </div>
+                                        <div style="padding:14px 16px;${border}text-align:right;">
+                                            <div style="font-size:13px;font-weight:700;color:${v.real>0?realColor:'var(--texto-secundario)'};">${v.real>0?fmtMon(v.real):'—'}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            <div style="padding:14px 20px;background:var(--color-fondo);border-top:2px solid var(--color-borde);display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;">Total del mes</span>
+                                <div style="display:flex;gap:24px;">
+                                    <div style="text-align:right;"><span style="font-size:10px;font-weight:600;color:var(--texto-secundario);display:block;">Planeado</span><span style="font-size:15px;font-weight:800;">${fmtMon(totalPlan)}</span></div>
+                                    <div style="text-align:right;"><span style="font-size:10px;font-weight:600;color:var(--texto-secundario);display:block;">Real</span><span style="font-size:15px;font-weight:800;color:var(--color-primario);">${fmtMon(cats.reduce((s,[,v])=>s+v.real,0))}</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        // ── Offline: materiales físicos y acciones ────────────────────────────
+        if (offlineEl) {
+            const offline = (d.offline||[]).filter(o => {
+                if (!o.entrega) return false;
+                const [y,m2] = o.entrega.split('-').map(Number);
+                return y === year && m2 === month;
+            });
+
+            if (!offline.length) {
+                offlineEl.innerHTML = '';
+            } else {
+                const estColOf = { 'Listo':'#34A853','Producción':'#4A90D9','Revisar':'#FBBC05','Cancelado':'#EF4444' };
+                const totalCostoOff = offline.reduce((s,o)=>{
+                    return s + ((Number(o.costo_unit)||0) * (Number(o.cantidad)||1));
+                },0);
+                offlineEl.innerHTML = `
+                    <div style="margin-top:32px;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                            <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin:0;">
+                                Activaciones & Materiales Offline
+                            </h3>
+                            <span style="font-size:12px;font-weight:700;color:var(--color-primario);">Total: ${fmtMon(totalCostoOff)}</span>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;">
+                            ${offline.map(o => {
+                                const costo = (Number(o.costo_unit)||0) * (Number(o.cantidad)||1);
+                                const ec    = estColOf[o.estado]||'#9CA3AF';
+                                return `<div style="background:#fff;border:1px solid var(--color-borde);border-radius:14px;padding:16px 18px;">
+                                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="font-size:13px;font-weight:700;line-height:1.3;">${o.nombre||'Material'}</div>
+                                            <div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${o.categoria||''}</div>
+                                        </div>
+                                        <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:${ec}18;color:${ec};white-space:nowrap;flex-shrink:0;">${o.estado||'—'}</span>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+                                        <div style="background:var(--color-fondo);border-radius:8px;padding:8px 10px;">
+                                            <div style="font-size:13px;font-weight:700;">${o.cantidad||'—'}</div>
+                                            <div style="font-size:9px;font-weight:600;text-transform:uppercase;color:var(--texto-secundario);">Cant.</div>
+                                        </div>
+                                        <div style="background:var(--color-fondo);border-radius:8px;padding:8px 10px;">
+                                            <div style="font-size:13px;font-weight:700;">${fmtMon(Number(o.costo_unit)||0)}</div>
+                                            <div style="font-size:9px;font-weight:600;text-transform:uppercase;color:var(--texto-secundario);">Unit.</div>
+                                        </div>
+                                        <div style="background:var(--color-fondo);border-radius:8px;padding:8px 10px;">
+                                            <div style="font-size:13px;font-weight:700;color:var(--color-primario);">${fmtMon(costo)}</div>
+                                            <div style="font-size:9px;font-weight:600;text-transform:uppercase;color:var(--texto-secundario);">Total</div>
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--texto-secundario);">
+                                        <i class="fa-solid fa-truck" style="font-size:9px;"></i>
+                                        ${o.proveedor||'—'} · Entrega: <strong>${o.entrega}</strong>
+                                    </div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
+            }
+        }
+    }
+    function _renderDirectorResultados(d, year, month) {
+        const narrEl = document.getElementById('dir-narrativa');
+        const metasEl = document.getElementById('dir-metas-grid');
+        const engEl  = document.getElementById('dir-engagement-formato');
+        const semEl  = document.getElementById('dir-kpi-semanal');
+        if (!metasEl) return;
+
+        const fmtMon = n => new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0}).format(n||0);
+        const fmtNum = n => (n||0) >= 1000 ? `${((n||0)/1000).toFixed(1)}K` : String(n||0);
+        const mi = month - 1;
+        const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+        // ── Narrativa de la agencia ───────────────────────────────────────────
+        if (narrEl) {
+            const txt = d.txt_working || '';
+            narrEl.innerHTML = txt ? `
+                <div style="background:linear-gradient(135deg,var(--color-primario)08,var(--color-primario)03);border:1px solid var(--color-primario)20;border-left:4px solid var(--color-primario);border-radius:14px;padding:20px 24px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                        <i class="fa-solid fa-bolt" style="color:var(--color-primario);font-size:14px;"></i>
+                        <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--color-primario);">Resumen operativo — LANKA</span>
+                    </div>
+                    <p style="margin:0;font-size:14px;line-height:1.65;color:var(--texto-principal);">${txt}</p>
+                </div>` : '';
+        }
+
+        // ── Metas vs Real del mes ─────────────────────────────────────────────
+        const hist  = (d.historico_mensual||[])[mi] || {};
+        const metas = (d.kpi_metas && d.kpi_metas.mes) || {};
+        const kpis = [
+            { l:'Ventas',              ic:'fa-peso-sign',        c:'#34A853', real: Number(hist.ventas)||0,               meta: Number(metas.ventas)||0,               fmt: fmtMon  },
+            { l:'DMs recibidos',       ic:'fa-envelope',         c:'#4A90D9', real: Number(hist.dms)||0,                  meta: Number(metas.dms)||0,                  fmt: fmtNum  },
+            { l:'Seguidores ganados',  ic:'fa-user-plus',        c:'#EC4899', real: Number(hist.seguidores)||0,           meta: Number(metas.seguidores)||0,           fmt: n=>`+${fmtNum(n)}` },
+            { l:'Clientes nuevos',     ic:'fa-star',             c:'#8B5CF6', real: 0,                                    meta: Number(metas.clientes_nuevos)||0,      fmt: fmtNum, noReal: true },
+            { l:'Ticket medio',        ic:'fa-receipt',          c:'#F59E0B', real: 0,                                    meta: Number(metas.ticket_medio)||0,         fmt: fmtMon, noReal: true },
+            { l:'Clientes recurrentes',ic:'fa-arrow-rotate-left',c:'#06B6D4', real: 0,                                    meta: Number(metas.clientes_recurrentes)||0, fmt: fmtNum, noReal: true }
+        ].filter(k => k.meta > 0 || k.real > 0);
+
+        if (metasEl) {
+            if (!kpis.length) {
+                metasEl.innerHTML = '';
+            } else {
+                metasEl.innerHTML = `
+                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin:0 0 14px;">
+                        <i class="fa-solid fa-bullseye" style="margin-right:6px;color:var(--color-primario);"></i>Metas vs. Resultados — ${meses[mi]}
+                    </h3>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+                        ${kpis.map(k => {
+                            const pct = k.meta > 0 && k.real > 0 ? Math.min(150, Math.round(k.real/k.meta*100)) : 0;
+                            const barColor = pct >= 100 ? '#34A853' : pct >= 75 ? '#FBBC05' : pct > 0 ? '#EF4444' : '#9CA3AF';
+                            const sinReal = k.noReal || k.real === 0;
+                            return `<div style="background:#fff;border:1px solid var(--color-borde);border-radius:14px;padding:16px 18px;">
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+                                    <div style="width:32px;height:32px;border-radius:9px;background:${k.c}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <i class="fa-solid ${k.ic}" style="font-size:12px;color:${k.c};"></i>
+                                    </div>
+                                    <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);">${k.l}</span>
+                                </div>
+                                <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:10px;">
+                                    <div>
+                                        <div style="font-size:22px;font-weight:800;letter-spacing:-0.03em;color:${sinReal?'var(--texto-secundario)':'var(--texto-principal)'};">${sinReal ? '—' : k.fmt(k.real)}</div>
+                                        <div style="font-size:10px;font-weight:600;color:var(--texto-secundario);margin-top:1px;">Real</div>
+                                    </div>
+                                    <div style="text-align:right;">
+                                        <div style="font-size:15px;font-weight:700;color:var(--texto-secundario);">${k.fmt(k.meta)}</div>
+                                        <div style="font-size:10px;font-weight:600;color:var(--texto-secundario);margin-top:1px;">Meta</div>
+                                    </div>
+                                </div>
+                                ${!sinReal && k.meta > 0 ? `
+                                <div style="height:5px;border-radius:5px;background:var(--color-fondo);overflow:hidden;">
+                                    <div style="height:100%;width:${pct}%;background:${barColor};border-radius:5px;transition:.6s;"></div>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">
+                                    <span style="font-size:10px;font-weight:700;color:${barColor};">${pct}% de la meta</span>
+                                    ${pct >= 100 ? '<span style="font-size:10px;font-weight:700;color:#34A853;">✓ Logrado</span>' : pct >= 75 ? '<span style="font-size:10px;color:#B45309;">Cerca</span>' : '<span style="font-size:10px;color:#DC2626;">Por debajo</span>'}
+                                </div>` : '<div style="font-size:10px;color:var(--texto-secundario);margin-top:4px;">Sin datos reales aún</div>'}
+                            </div>`;
+                        }).join('')}
+                    </div>`;
+            }
+        }
+
+        // ── Engagement por formato ────────────────────────────────────────────
+        if (engEl) {
+            const eng = d.engagement_formato || [];
+            if (!eng.length) {
+                engEl.innerHTML = '';
+            } else {
+                const maxAlc = Math.max(...eng.map(e=>Number(e.alcance)||0), 1);
+                const fmtIco = { 'Reel':'fa-film', 'Carrusel':'fa-images', 'Historia':'fa-mobile-screen', 'Foto':'fa-image' };
+                const fmtCol = { 'Reel':'#4A90D9', 'Carrusel':'#8B5CF6', 'Historia':'#EC4899', 'Foto':'#F59E0B' };
+                engEl.innerHTML = `
+                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin:0 0 14px;">
+                        <i class="fa-solid fa-chart-pie" style="margin-right:6px;color:var(--color-primario);"></i>Rendimiento por formato de contenido
+                    </h3>
+                    <div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;">
+                        <div style="display:grid;grid-template-columns:auto 1fr auto auto auto;border-bottom:1px solid var(--color-borde);">
+                            ${['Formato','Alcance','Interacciones','Guardados','Compartidos'].map((h,i)=>`<div style="padding:10px ${i===0?'16px':'12px'};font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);${i>1?'text-align:right;':''}">${h}</div>`).join('')}
+                        </div>
+                        ${eng.map((e,idx) => {
+                            const alc  = Number(e.alcance)||0;
+                            const int  = Number(e.interacciones)||0;
+                            const gua  = Number(e.guardados)||0;
+                            const com  = Number(e.compartidos)||0;
+                            const pct  = Math.round(alc/maxAlc*100);
+                            const col  = fmtCol[e.formato]||'var(--color-primario)';
+                            const ico  = fmtIco[e.formato]||'fa-file';
+                            const engRate = alc > 0 ? ((int/alc)*100).toFixed(1) : '0';
+                            const border = idx < eng.length-1 ? 'border-bottom:1px solid var(--color-borde);' : '';
+                            return `
+                                <div style="padding:14px 16px;${border}display:flex;align-items:center;gap:10px;">
+                                    <div style="width:30px;height:30px;border-radius:8px;background:${col}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                        <i class="fa-solid ${ico}" style="font-size:12px;color:${col};"></i>
+                                    </div>
+                                    <div>
+                                        <div style="font-size:13px;font-weight:700;">${e.formato}</div>
+                                        <div style="font-size:10px;color:var(--texto-secundario);">Eng. rate ${engRate}%</div>
+                                    </div>
+                                </div>
+                                <div style="padding:14px 12px;${border}display:flex;align-items:center;gap:8px;">
+                                    <div style="flex:1;height:6px;border-radius:6px;background:${col}18;overflow:hidden;">
+                                        <div style="height:100%;width:${pct}%;background:${col};border-radius:6px;"></div>
+                                    </div>
+                                    <span style="font-size:12px;font-weight:700;color:${col};min-width:44px;text-align:right;">${fmtNum(alc)}</span>
+                                </div>
+                                <div style="padding:14px 12px;${border}text-align:right;font-size:13px;font-weight:700;">${fmtNum(int)}</div>
+                                <div style="padding:14px 12px;${border}text-align:right;font-size:13px;font-weight:700;">${gua > 0 ? fmtNum(gua) : '—'}</div>
+                                <div style="padding:14px 12px;${border}text-align:right;font-size:13px;font-weight:700;">${fmtNum(com)}</div>
+                            `;
+                        }).join('')}
+                    </div>`;
+            }
+        }
+
+        // ── KPI semanal del mes ───────────────────────────────────────────────
+        if (semEl) {
+            const semsDelMes = (d.kpi_semanal||[]).filter(s => {
+                if (!s.fecha) return false;
+                const [y,m2] = s.fecha.split('-').map(Number);
+                return y === year && m2 === month;
+            });
+            if (!semsDelMes.length) {
+                semEl.innerHTML = '';
+            } else {
+                const totVentas  = semsDelMes.reduce((s,w)=>s+(Number(w.ventas)||0),0);
+                const totDMs     = semsDelMes.reduce((s,w)=>s+(Number(w.dms)||0),0);
+                const totNuevos  = semsDelMes.reduce((s,w)=>s+(Number(w.clientes_nuevos)||0),0);
+                const segIni     = semsDelMes[0]?.seguidores_ini || 0;
+                const segFin     = semsDelMes[semsDelMes.length-1]?.seguidores_fin || 0;
+                const maxVentas  = Math.max(...semsDelMes.map(s=>Number(s.ventas)||0), 1);
+
+                semEl.innerHTML = `
+                    <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin:0 0 14px;">
+                        <i class="fa-solid fa-calendar-week" style="margin-right:6px;color:var(--color-primario);"></i>Semana a semana — ${meses[mi]}
+                    </h3>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px;">
+                        ${[
+                            {l:'Ventas totales',ic:'fa-peso-sign',c:'#34A853',v:fmtMon(totVentas)},
+                            {l:'DMs del mes',   ic:'fa-envelope', c:'#4A90D9',v:fmtNum(totDMs)},
+                            {l:'Clientes nuevos',ic:'fa-star',    c:'#8B5CF6',v:fmtNum(totNuevos)},
+                            {l:'Seguidores',    ic:'fa-user-plus',c:'#EC4899',v:`${segIni>0?segIni.toLocaleString('es-MX'):'—'} → ${segFin>0?segFin.toLocaleString('es-MX'):'—'}`}
+                        ].map(k=>`<div style="background:#fff;border:1px solid var(--color-borde);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+                            <div style="width:32px;height:32px;border-radius:9px;background:${k.c}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="fa-solid ${k.ic}" style="font-size:12px;color:${k.c};"></i>
+                            </div>
+                            <div><div style="font-size:15px;font-weight:800;">${k.v}</div><div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--texto-secundario);">${k.l}</div></div>
+                        </div>`).join('')}
+                    </div>
+                    <div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;">
+                        <div style="display:grid;grid-template-columns:auto 1fr auto auto auto auto;border-bottom:1px solid var(--color-borde);">
+                            ${['Semana','Ventas','Ventas','DMs','Cl. Nuevos','Ticket'].map((h,i)=>
+                                `<div style="padding:10px ${i===0?'16px':'12px'};font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);${i>1?'text-align:right;':''}">${i===2?'':h}</div>`
+                            ).join('')}
+                        </div>
+                        ${semsDelMes.map((s,idx) => {
+                            const v  = Number(s.ventas)||0;
+                            const bw = Math.round(v/maxVentas*100);
+                            const border = idx < semsDelMes.length-1 ? 'border-bottom:1px solid var(--color-borde);' : '';
+                            const segGain = (Number(s.seguidores_fin)||0) - (Number(s.seguidores_ini)||0);
+                            return `
+                                <div style="padding:12px 16px;${border}">
+                                    <div style="font-size:13px;font-weight:700;">${s.semana||'Sem.'}</div>
+                                    <div style="font-size:10px;color:var(--texto-secundario);">${s.fecha||''}</div>
+                                </div>
+                                <div style="padding:12px 12px;${border}display:flex;align-items:center;gap:6px;">
+                                    <div style="flex:1;height:6px;border-radius:6px;background:#34A85318;overflow:hidden;">
+                                        <div style="height:100%;width:${bw}%;background:#34A853;border-radius:6px;"></div>
+                                    </div>
+                                </div>
+                                <div style="padding:12px 12px;${border}text-align:right;font-size:13px;font-weight:700;">${fmtMon(v)}</div>
+                                <div style="padding:12px 12px;${border}text-align:right;font-size:13px;font-weight:600;">${fmtNum(Number(s.dms)||0)}</div>
+                                <div style="padding:12px 12px;${border}text-align:right;font-size:13px;font-weight:600;">${fmtNum(Number(s.clientes_nuevos)||0)}</div>
+                                <div style="padding:12px 12px;${border}text-align:right;font-size:13px;font-weight:600;">${Number(s.ticket_medio)>0?fmtMon(s.ticket_medio):'—'}</div>
+                            `;
+                        }).join('')}
+                    </div>`;
+            }
+        }
+    }
+
+    function exportarDirectorPDF() {
+        const btn = document.getElementById('dir-btn-export');
+        if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:13px;"></i> Generando...'; btn.disabled = true; }
+
+        // Asegurar que ambas vistas estén visibles para impresión
+        const vP = document.getElementById('dir-view-parrilla');
+        const vC = document.getElementById('dir-view-campanas');
+        const vPprev = vP ? vP.style.display : '';
+        const vCprev = vC ? vC.style.display : '';
+        if (vP) vP.style.display = '';
+        if (vC) vC.style.display = '';
+
+        // Título del documento
+        const sub = document.getElementById('dir-subtitulo');
+        const titulo = `Modo Director — ${sub ? sub.textContent : ''}`;
+        const prevTitle = document.title;
+        document.title = titulo;
+
+        setTimeout(() => {
+            window.print();
+            // Restaurar estado
+            document.title = prevTitle;
+            if (vP) vP.style.display = vPprev;
+            if (vC) vC.style.display = vCprev;
+            if (btn) { btn.innerHTML = '<i class="fa-solid fa-file-arrow-down" style="font-size:13px;"></i> Exportar PDF'; btn.disabled = false; }
+        }, 200);
+    }
+
+    // ─── FIN MODO DIRECTOR ────────────────────────────────────────────────────
 
     async function obtenerTipoCambio() {
         const el = document.getElementById('tc-fecha');
@@ -3573,7 +4528,8 @@ document.addEventListener('DOMContentLoaded', function() {
         [renderDashboard, renderInsights, renderOrquestacion, renderDAM,
          renderPresupuesto, renderFacturas, renderBriefing, renderMood,
          renderEstrategia, renderAdministracion,
-         () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas
+         () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas,
+         renderDirector
         ].forEach(fn => { try { fn(); } catch(e) { console.error('[renderTodas]', fn.name, e); } });
         _renderNotifBadge();
         setTimeout(() => {
@@ -10572,7 +11528,8 @@ document.addEventListener('DOMContentLoaded', function() {
         ads:'vista-ads', offline:'vista-offline',
         proyectos:'vista-clientes', proveedores:'vista-proveedores', config:'vista-config',
         control_accesos:'vista-control-accesos', auditoria:'vista-auditoria',
-        stories:'vista-stories', mis_tareas:'vista-mis-tareas', usuarios:'vista-usuarios'
+        stories:'vista-stories', mis_tareas:'vista-mis-tareas', usuarios:'vista-usuarios',
+        director:'vista-director'
     };
 
     function irA(target) {
@@ -10981,7 +11938,8 @@ document.addEventListener('DOMContentLoaded', function() {
         mood:        { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     },
         shooting:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'lectura', equipo:'lectura' },
         briefing:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'lectura', equipo:'off'     },
-        stories:     { owner:'editar', lanka_team:'editar', direccion:'editar',   coordinador:'editar',  equipo:'off'     }
+        stories:     { owner:'editar', lanka_team:'editar', direccion:'editar',   coordinador:'editar',  equipo:'off'     },
+        director:    { owner:'editar', lanka_team:'editar', direccion:'lectura',  coordinador:'off',     equipo:'off'     }
     };
     const _AC_ESTADO_COLOR = { off:'var(--texto-secundario)', lectura:'#378ADD', editar:'#C4855A' };
     let _acRolActivo = 'owner';
