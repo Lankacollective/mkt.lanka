@@ -2010,6 +2010,9 @@
                         <select id="filtro-prov-suc" class="select-celda" style="min-width:160px;" onchange="renderProveedoresCentral()">
                             <option value="">Todos los proyectos</option>
                         </select>
+                        <select id="filtro-prov-cliente" class="select-celda" style="min-width:160px;" onchange="renderProveedoresCentral()">
+                            <option value="">Todos los clientes</option>
+                        </select>
                         <span id="filtro-prov-count" style="font-size:12px;color:var(--texto-secundario);margin-left:4px;"></span>
                     </div>
                 </div>
@@ -2019,6 +2022,7 @@
                             <th>Nombre</th>
                             <th>Categoría</th>
                             <th>Tipo</th>
+                            <th>Cliente</th>
                             <th>Dónde opera</th>
                             <th>Proyectos</th>
                             <th>Contacto</th>
@@ -2703,8 +2707,12 @@ document.addEventListener('DOMContentLoaded', function() {
             cat_proveedor: ["Agencia", "Medios", "Producción"],
             sexo: ["Ambos", "Hombre", "Mujer"], nivel: ["A/B", "C+", "C", "D", "E"]
         },
+        clientes: [
+            { id: "cl_aitama", nombre: "Aitama",        color: "#C4855A", tipo: "wellness",    password: btoa("Aitama26")  },
+            { id: "cl_mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", password: btoa("Mammut26")  }
+        ],
         sucursales: [
-            { id: "aitama", nombre: "Aitama Wellness", color: "#C4855A", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Aitama26"),
+            { id: "aitama", nombre: "Aitama Wellness", color: "#C4855A", tipo: "wellness", cliente_id: "cl_aitama", pct_intercambio: 0.0, pto_anual: 400000, password: btoa("Aitama26"),
               categorias_servicio: ["Head Spa","Facial","Masajes","Paquetes","Reductivos","Producto","Otro"], drive_contenido_url: "",
               equipo_miembros: [
                 { nombre: "Ángeles Fernández", rol: "Fotógrafa", password: btoa("angeles26") },
@@ -2713,7 +2721,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
               ]
             },
-            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"),
+            { id: "mammut", nombre: "Mammut Pizza",   color: "#EA4335", tipo: "restaurante", cliente_id: "cl_mammut", pct_intercambio: 0.0, pto_anual: 1200000, password: btoa("Mammut26"),
               categorias_servicio: ["Pizza","Bebida","Postre","Entrada","Combo","Promoción"],
               drive_contenido_url: "",
               equipo_miembros: [
@@ -2962,13 +2970,13 @@ document.addEventListener('DOMContentLoaded', function() {
             { nombre:"@foodie_morelia",        categoria:"Medios",      contacto:"foodie_morelia@gmail.com",   forma_pago:"Transferencia"}
         ],
         proveedores_central: [
-            { id:"pc_001", nombre:"Meta Business",         categoria:"Medios",     contacto:"meta@ad.com",               forma_pago:"TC",            tipo:"compartido", ciudades:[], sucursales:[], notas:"" },
-            { id:"pc_002", nombre:"Google Ads",            categoria:"Medios",     contacto:"google@billing.com",         forma_pago:"TC",            tipo:"compartido", ciudades:[], sucursales:[], notas:"" },
-            { id:"pc_003", nombre:"Lanka Colectivo",       categoria:"Agencia",    contacto:"hola@lankacollective.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:[], sucursales:[], notas:"" },
-            { id:"pc_004", nombre:"Estudio Diego Ramírez", categoria:"Producción", contacto:"diego.ramirez@studio.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:[], sucursales:[], notas:"" },
-            { id:"pc_005", nombre:"Impresos Rápidos MRL",  categoria:"Producción", contacto:"ventas@impresosrapidos.mx",  forma_pago:"Efectivo",      tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"" },
-            { id:"pc_006", nombre:"Rotulación Michoacán",  categoria:"Producción", contacto:"info@rotulacionmich.mx",     forma_pago:"Transferencia", tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"" },
-            { id:"pc_007", nombre:"@foodie_morelia",       categoria:"Medios",     contacto:"foodie_morelia@gmail.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"" }
+            { id:"pc_001", nombre:"Meta Business",         categoria:"Medios",     contacto:"meta@ad.com",               forma_pago:"TC",            tipo:"compartido", ciudades:[], sucursales:[], notas:"", cliente_id: null },
+            { id:"pc_002", nombre:"Google Ads",            categoria:"Medios",     contacto:"google@billing.com",         forma_pago:"TC",            tipo:"compartido", ciudades:[], sucursales:[], notas:"", cliente_id: null },
+            { id:"pc_003", nombre:"Lanka Colectivo",       categoria:"Agencia",    contacto:"hola@lankacollective.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:[], sucursales:[], notas:"", cliente_id: null },
+            { id:"pc_004", nombre:"Estudio Diego Ramírez", categoria:"Producción", contacto:"diego.ramirez@studio.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:[], sucursales:[], notas:"", cliente_id: null },
+            { id:"pc_005", nombre:"Impresos Rápidos MRL",  categoria:"Producción", contacto:"ventas@impresosrapidos.mx",  forma_pago:"Efectivo",      tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"", cliente_id: null },
+            { id:"pc_006", nombre:"Rotulación Michoacán",  categoria:"Producción", contacto:"info@rotulacionmich.mx",     forma_pago:"Transferencia", tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"", cliente_id: null },
+            { id:"pc_007", nombre:"@foodie_morelia",       categoria:"Medios",     contacto:"foodie_morelia@gmail.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"", cliente_id: null }
         ],
         roles_sistema: [
             { id: "owner",       nombre: "Owner",            color: "#C4855A", editable: false },
@@ -3019,6 +3027,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     let DB = {}; let ROL = 'none'; let SUC_ACTIVA = ''; let USUARIO_EQUIPO = '';
     let USUARIO_ACTIVO = null; let ROL_SIMULADO = null;
+    var CLIENTE_ACTIVO = null; // the brand/client currently logged in or active
     let _adsExpanded = new Set();
 
     /* ── Selector de Periodo Global — Dashboard ── */
@@ -3249,6 +3258,47 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (p.notas === undefined) { p.notas = ''; _s9fix = true; }
             });
             if (_s9fix) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
+        // Sprint 10 migration — clientes: 3-level hierarchy (agencia → cliente → sucursal)
+        if (!DB.clientes || !DB.clientes.length) {
+            DB.clientes = JSON.parse(JSON.stringify(DATOS_SEMILLA.clientes || []));
+            // Auto-assign cliente_id to sucursales by matching ID prefix
+            (DB.sucursales || []).forEach(s => {
+                if (s.cliente_id) return; // already assigned
+                // Try to match by ID prefix: "mammut_norte" → "mammut", "aitama_xxx" → "aitama"
+                const baseId = s.id.split('_')[0];
+                let cl = DB.clientes.find(c => c.id === 'cl_' + baseId || c._base === baseId);
+                if (!cl) {
+                    // Create a new client for this sucursal
+                    cl = { id: 'cl_' + s.id, nombre: s.nombre, color: s.color, tipo: s.tipo || 'wellness', password: s.password, _base: s.id };
+                    DB.clientes.push(cl);
+                }
+                s.cliente_id = cl.id;
+            });
+            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+        // Ensure all sucursales have cliente_id
+        {
+            let _s10fix = false;
+            (DB.sucursales || []).forEach(s => {
+                if (!s.cliente_id) {
+                    const baseId = s.id.split('_')[0];
+                    let cl = (DB.clientes || []).find(c => c.id === 'cl_' + baseId || c._base === baseId);
+                    if (!cl) {
+                        cl = { id: 'cl_' + s.id, nombre: s.nombre, color: s.color, tipo: s.tipo || 'wellness', password: s.password, _base: s.id };
+                        if (!DB.clientes) DB.clientes = [];
+                        DB.clientes.push(cl);
+                    }
+                    s.cliente_id = cl.id;
+                    _s10fix = true;
+                }
+            });
+            // Ensure all proveedores_central have cliente_id field
+            (DB.proveedores_central || []).forEach(p => {
+                if (p.cliente_id === undefined) { p.cliente_id = null; _s10fix = true; }
+            });
+            if (_s10fix) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
         // Sprint 5 migration — briefing expanded structure
@@ -4824,9 +4874,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const miembro = (suc.equipo_miembros || []).find(m => m.password === btoa(pwd));
             if (miembro) { ROL = 'equipo'; USUARIO_EQUIPO = miembro.nombre; iniciarApp(suc.id); return; }
         }
+        // Check client-level password (director login — sees all their sucursales)
+        let cl = (DB.clientes || []).find(c => c.password === btoa(pwd));
+        if (cl) {
+            ROL = 'cliente'; CLIENTE_ACTIVO = cl;
+            const clSucs = DB.sucursales.filter(s => s.cliente_id === cl.id);
+            iniciarApp(clSucs.length ? clSucs[0].id : DB.sucursales[0].id);
+            return;
+        }
+        // Check sucursal-level password (branch login)
         let s = DB.sucursales.find(x => x.password === btoa(pwd));
-        if (s) { ROL = 'cliente'; iniciarApp(s.id); }
-        else { document.getElementById('error-login').style.opacity = 1; setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000); }
+        if (s) {
+            ROL = 'cliente';
+            CLIENTE_ACTIVO = (DB.clientes || []).find(c => c.id === s.cliente_id) || null;
+            iniciarApp(s.id);
+            return;
+        }
+        // Error
+        document.getElementById('error-login').style.opacity = 1; setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000);
     }
 
     function cerrarSesion() { _bgDefault(); location.reload(); }
@@ -4846,7 +4911,22 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('selector-sucursal').style.display = '';
             document.getElementById('etiqueta-cliente').style.display = 'none';
             const sel = document.getElementById('selector-sucursal');
-            sel.innerHTML = DB.sucursales.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+            // Group sucursales by cliente
+            const _clMap = {};
+            DB.sucursales.forEach(s => {
+                const clId = s.cliente_id || '_sin_cliente';
+                if (!_clMap[clId]) _clMap[clId] = { nombre: (DB.clientes||[]).find(c=>c.id===clId)?.nombre || 'Sin cliente', sucs: [] };
+                _clMap[clId].sucs.push(s);
+            });
+            const _sucClientes = Object.keys(_clMap);
+            if (_sucClientes.length > 1) {
+                sel.innerHTML = _sucClientes.map(clId => {
+                    const opts = _clMap[clId].sucs.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+                    return `<optgroup label="${_clMap[clId].nombre}">${opts}</optgroup>`;
+                }).join('');
+            } else {
+                sel.innerHTML = DB.sucursales.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+            }
             sel.value = SUC_ACTIVA;
         } else if (ROL === 'equipo') {
             document.getElementById('badge-rol').className = 'badge-rol badge-equipo';
@@ -4863,13 +4943,25 @@ document.addEventListener('DOMContentLoaded', function() {
             const miTareasNav = document.querySelector('[data-target="vista-mis-tareas"]');
             if (miTareasNav) miTareasNav.classList.add('activo');
         } else {
+            // Cliente — single branch or director (multi-branch)
             document.getElementById('badge-rol').className = 'badge-rol badge-cliente';
-            (document.getElementById('badge-rol-text')||document.getElementById('badge-rol')).innerText = 'Cliente (Lector)';
+            const _clNombre = CLIENTE_ACTIVO?.nombre || (DB.sucursales.find(s=>s.id===id)||{}).nombre || 'Cliente';
+            (document.getElementById('badge-rol-text')||document.getElementById('badge-rol')).innerText = _clNombre + ' · Cliente';
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = '');
             document.querySelectorAll('.req-equipo').forEach(el => el.style.display = 'none');
-            document.getElementById('selector-sucursal').style.display = 'none';
-            document.getElementById('etiqueta-cliente').style.display = 'block';
+            // Show sucursal switcher if client has multiple sucursales
+            const _clSucs = CLIENTE_ACTIVO ? DB.sucursales.filter(s => s.cliente_id === CLIENTE_ACTIVO.id) : [];
+            if (_clSucs.length > 1) {
+                const sel = document.getElementById('selector-sucursal');
+                sel.innerHTML = _clSucs.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+                sel.value = id;
+                sel.style.display = '';
+                document.getElementById('etiqueta-cliente').style.display = 'none';
+            } else {
+                document.getElementById('selector-sucursal').style.display = 'none';
+                document.getElementById('etiqueta-cliente').style.display = 'block';
+            }
         }
         // Apply dynamic permissions — infer rol_id from ROL when USUARIO_ACTIVO is null (legacy login)
         if (DB.permisos) {
@@ -8770,8 +8862,17 @@ ${_coverHtml}
     function _getProveedores(sucId) {
         const central = DB.proveedores_central || [];
         if (!sucId) return central;
-        // Returns proveedores available to this sucursal: those with no sucursal restriction OR assigned to this sucursal
-        return central.filter(p => !p.sucursales || p.sucursales.length === 0 || p.sucursales.includes(sucId));
+        const suc = (DB.sucursales || []).find(s => s.id === sucId);
+        const clienteId = suc?.cliente_id || null;
+        return central.filter(p => {
+            // Agencia-level (cliente_id null/undefined): visible to all
+            if (!p.cliente_id) return true;
+            // Client-specific: only matching client
+            if (p.cliente_id !== clienteId) return false;
+            // Further sucursal restriction
+            if (p.sucursales && p.sucursales.length > 0 && !p.sucursales.includes(sucId)) return false;
+            return true;
+        });
     }
     function _saveProveedores(sucId, arr) {
         // Legacy compat — when editing from the per-project admin view we just guardarBD
@@ -8953,6 +9054,7 @@ ${_coverHtml}
         // Populate filter selects
         const catSel = document.getElementById('filtro-prov-cat');
         const sucSel = document.getElementById('filtro-prov-suc');
+        const clSel  = document.getElementById('filtro-prov-cliente');
         if (catSel) {
             const cats = [...new Set(central.map(p => p.categoria).filter(Boolean))].sort();
             const curCat = catSel.value;
@@ -8962,15 +9064,21 @@ ${_coverHtml}
             const curSuc = sucSel.value;
             sucSel.innerHTML = `<option value="">Todos los proyectos</option>` + (DB.sucursales||[]).map(s => `<option value="${s.id}" ${s.id===curSuc?'selected':''}>${s.nombre}</option>`).join('');
         }
+        if (clSel) {
+            const curCl = clSel.value;
+            clSel.innerHTML = `<option value="">Todos los clientes</option>` + (DB.clientes||[]).map(c => `<option value="${c.id}" ${c.id===curCl?'selected':''}>${c.nombre}</option>`).join('');
+        }
 
-        const filtCat  = catSel?.value || '';
-        const filtTipo = document.getElementById('filtro-prov-tipo')?.value || '';
-        const filtSuc  = sucSel?.value || '';
+        const filtCat     = catSel?.value || '';
+        const filtTipo    = document.getElementById('filtro-prov-tipo')?.value || '';
+        const filtSuc     = sucSel?.value || '';
+        const filtCliente = clSel?.value || '';
 
         let filtered = central.filter(p => {
-            if (filtCat  && p.categoria !== filtCat)  return false;
-            if (filtTipo && p.tipo     !== filtTipo)  return false;
-            if (filtSuc  && p.sucursales && p.sucursales.length > 0 && !p.sucursales.includes(filtSuc)) return false;
+            if (filtCat     && p.categoria !== filtCat)  return false;
+            if (filtTipo    && p.tipo      !== filtTipo)  return false;
+            if (filtSuc     && p.sucursales && p.sucursales.length > 0 && !p.sucursales.includes(filtSuc)) return false;
+            if (filtCliente && (p.cliente_id || '') !== filtCliente) return false;
             return true;
         });
 
@@ -8990,15 +9098,21 @@ ${_coverHtml}
                 ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(196,133,90,.12);color:var(--color-primario);border:1px solid rgba(196,133,90,.2);">Exclusivo</span>`
                 : `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(74,144,217,.1);color:#4A90D9;border:1px solid rgba(74,144,217,.2);">Compartido</span>`;
 
+            const _clienteNombre = (DB.clientes||[]).find(c=>c.id===p.cliente_id)?.nombre || '';
+            const _clienteBadge = p.cliente_id
+                ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(0,0,0,.06);color:var(--texto-principal);">${_clienteNombre||p.cliente_id}</span>`
+                : `<span style="font-size:10px;color:var(--texto-secundario);">Agencia</span>`;
             if (isAdmin) {
                 const sucChecks = sucursales.map(s => {
                     const checked = (p.sucursales||[]).includes(s.id) ? 'checked' : '';
                     return `<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;white-space:nowrap;"><input type="checkbox" ${checked} onchange="const _pc=DB.proveedores_central[${globalIdx}];if(!_pc.sucursales)_pc.sucursales=[];if(this.checked){if(!_pc.sucursales.includes('${s.id}'))_pc.sucursales.push('${s.id}');}else{_pc.sucursales=_pc.sucursales.filter(x=>x!=='${s.id}');}guardarBD();renderProveedoresCentral();">${s.nombre}</label>`;
                 }).join('');
+                const clOpts = `<option value="">Todos los clientes (Agencia)</option>` + (DB.clientes||[]).map(c=>`<option value="${c.id}" ${c.id===(p.cliente_id||'')?'selected':''}>${c.nombre}</option>`).join('');
                 return `<tr>
                     <td><input class="input-celda" style="font-weight:700;" value="${(p.nombre||'').replace(/"/g,'&quot;')}" onchange="DB.proveedores_central[${globalIdx}].nombre=this.value;guardarBD();"></td>
                     <td><select class="select-celda" onchange="DB.proveedores_central[${globalIdx}].categoria=this.value;guardarBD();">${catOpts}</select></td>
                     <td><select class="select-celda" onchange="DB.proveedores_central[${globalIdx}].tipo=this.value;guardarBD();renderProveedoresCentral();">${tipoOpts}</select></td>
+                    <td><select class="select-celda" onchange="DB.proveedores_central[${globalIdx}].cliente_id=this.value||null;guardarBD();renderProveedoresCentral();">${clOpts}</select></td>
                     <td><input class="input-celda" style="font-size:11px;" placeholder="Ciudad, Ciudad..." value="${(p.ciudades||[]).join(', ').replace(/"/g,'&quot;')}" onchange="DB.proveedores_central[${globalIdx}].ciudades=this.value.split(',').map(x=>x.trim()).filter(Boolean);guardarBD();"></td>
                     <td><div style="display:flex;flex-direction:column;gap:4px;">${sucChecks}<div style="margin-top:4px;font-size:10px;color:var(--texto-secundario);">(sin checks = todos)</div></div></td>
                     <td><input class="input-celda" value="${(p.contacto||'').replace(/"/g,'&quot;')}" onchange="DB.proveedores_central[${globalIdx}].contacto=this.value;guardarBD();"></td>
@@ -9011,6 +9125,7 @@ ${_coverHtml}
                     <td style="font-weight:700;">${p.nombre||''}</td>
                     <td>${p.categoria||'—'}</td>
                     <td>${_tipoBadge}</td>
+                    <td>${_clienteBadge}</td>
                     <td style="font-size:12px;">${_ciudades}</td>
                     <td style="font-size:12px;">${_sucNames}</td>
                     <td style="font-size:12px;">${p.contacto||'—'}</td>
@@ -9019,11 +9134,33 @@ ${_coverHtml}
                     <td></td>
                 </tr>`;
             }
-        }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--texto-secundario);padding:24px;">Sin proveedores que coincidan con los filtros.</td></tr>`;
+        }).join('') || `<tr><td colspan="10" style="text-align:center;color:var(--texto-secundario);padding:24px;">Sin proveedores que coincidan con los filtros.</td></tr>`;
     }
 
     function renderAdministracion() {
-        document.getElementById('contenedor-clientes').innerHTML = DB.sucursales.map((s, i) => {
+        const isAdmin = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
+        const _clsMgmt = isAdmin ? `<div style="background:var(--color-tarjeta);border-radius:14px;border:1px solid var(--color-borde);padding:20px;margin-bottom:24px;">
+    <div style="font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.07em;margin-bottom:16px;">Marcas / Clientes</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:12px;">
+        ${(DB.clientes||[]).map((cl,ci) => {
+            const sucCount = DB.sucursales.filter(s=>s.cliente_id===cl.id).length;
+            return `<div style="background:var(--color-fondo);border:1px solid var(--color-borde);border-radius:10px;padding:12px 16px;min-width:180px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <div style="width:14px;height:14px;border-radius:50%;background:${cl.color};flex-shrink:0;"></div>
+                    <input class="input-celda" style="font-weight:700;font-size:14px;padding:0;" value="${cl.nombre.replace(/"/g,'&quot;')}" onchange="DB.clientes[${ci}].nombre=this.value;guardarBD();renderAdministracion();">
+                </div>
+                <div style="font-size:11px;color:var(--texto-secundario);">${sucCount} sucursal${sucCount!==1?'es':''}</div>
+                <div style="margin-top:8px;font-size:10px;font-weight:700;color:var(--texto-secundario);">CONTRASEÑA DIRECTOR</div>
+                <input class="input-celda" style="font-size:12px;border:1px solid var(--color-borde);margin-top:4px;" value="${(()=>{try{return atob(cl.password||'');}catch(e){return cl.password||'';}})()" onchange="DB.clientes[${ci}].password=btoa(this.value);guardarBD();">
+                <button class="btn btn-xs btn-peligro-suave" style="margin-top:8px;width:100%;" onclick="if(confirm('¿Eliminar cliente? Las sucursales quedarán sin cliente asignado.')){DB.clientes.splice(${ci},1);guardarBD();renderAdministracion();}"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Eliminar</button>
+            </div>`;
+        }).join('')}
+        <div style="background:var(--color-fondo);border:2px dashed var(--color-borde);border-radius:10px;padding:12px 16px;min-width:180px;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="const n=prompt('Nombre del cliente/marca:');if(n&&n.trim()){const id='cl_'+Date.now();if(!DB.clientes)DB.clientes=[];DB.clientes.push({id,nombre:n.trim(),color:'#888888',tipo:'wellness',password:btoa(n.trim().toLowerCase()+'26')});guardarBD();renderAdministracion();}">
+            <i class="fa-solid fa-plus" style="margin-right:6px;"></i> Nuevo cliente
+        </div>
+    </div>
+</div>` : '';
+        document.getElementById('contenedor-clientes').innerHTML = _clsMgmt + DB.sucursales.map((s, i) => {
             let decodedPwd = ''; try { decodedPwd = atob(s.password); } catch(e) { decodedPwd = s.password; }
             const usuariosProyecto = (DB.usuarios||[]).filter(u => (u.proyectos||[]).includes(s.id) && u.estado==='activo');
             const _logoActual = _getProyectoLogo(s.id);
@@ -9102,6 +9239,12 @@ ${_coverHtml}
                     <i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="eliminarProyecto(${i})"></i>
                 </div>
                 <div style="font-size:11px;color:var(--texto-secundario);font-family:monospace;margin-bottom:14px;">ID: ${s.id}</div>
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:6px;">CLIENTE / MARCA</label>
+                    <select class="select-celda" style="border:1px solid var(--color-borde);width:100%;border-radius:8px;padding:8px 12px;font-weight:600;" onchange="DB.sucursales[${i}].cliente_id=this.value;guardarBD();renderAdministracion();">
+                        <option value="">Sin cliente</option>${(DB.clientes||[]).map(c=>`<option value="${c.id}" ${c.id===s.cliente_id?'selected':''}>${c.nombre}</option>`).join('')}
+                    </select>
+                </div>
                 <div style="margin-bottom:14px;">
                     <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:6px;">TIPO DE PROYECTO</label>
                     <select class="select-celda" style="border:1px solid var(--color-borde);width:100%;border-radius:8px;padding:8px 12px;font-weight:600;" onchange="cambiarTipoProyecto(${i},this.value)">${tipoOpts}</select>
@@ -14928,10 +15071,12 @@ function _xlsNotificarOrigenManual() {
   function _difundirPost(postId) {
     const srcPost = (DB.datos[SUC_ACTIVA]?.kanban || []).find(k => k.id === postId);
     if (!srcPost) return;
-    const destinos = DB.sucursales.filter(s => s.id !== SUC_ACTIVA);
-    if (!destinos.length) { alert('No hay otras sucursales a las que difundir.'); return; }
+    const sucActiva = DB.sucursales.find(s => s.id === SUC_ACTIVA);
+    const clienteId = sucActiva?.cliente_id;
+    const destinos = DB.sucursales.filter(s => s.id !== SUC_ACTIVA && (!clienteId || s.cliente_id === clienteId));
+    if (!destinos.length) { alert('No hay otras sucursales de esta marca a las que difundir.'); return; }
     const nombres = destinos.map(s => s.nombre).join(', ');
-    if (!confirm(`¿Difundir "${srcPost.titulo}" a: ${nombres}?\n\nSe creará una copia en cada sucursal como punto de partida. Cada equipo podrá adaptarlo.`)) return;
+    if (!confirm(`¿Difundir "${srcPost.titulo}" a las sucursales de ${sucActiva?.nombre||'esta marca'}: ${nombres}?\n\nSe creará una copia en cada sucursal como punto de partida. Cada equipo podrá adaptarlo.`)) return;
     destinos.forEach(s => {
       if (!DB.datos[s.id]) return;
       if (!DB.datos[s.id].kanban) DB.datos[s.id].kanban = [];
