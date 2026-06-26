@@ -1285,14 +1285,40 @@
 
     /* ── Print / PDF export ─────────────────────────── */
     @media print {
-        body * { visibility: hidden !important; }
-        #vista-director, #vista-director * { visibility: visible !important; }
-        #vista-director { position: fixed !important; inset: 0 !important; overflow: visible !important; background: #fff !important; }
-        #vista-director .seccion-app { display: block !important; }
-        #dir-btn-export, #dir-tab-btn-parrilla, #dir-tab-btn-campanas { display: none !important; }
-        #dir-view-parrilla, #dir-view-campanas { display: block !important; }
-        .oculto { display: block !important; visibility: visible !important; }
-        @page { margin: 16mm 12mm; size: A4 landscape; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+
+        /* Ocultar todo excepto la app */
+        #pantalla-login, #btn-hamburguesa, .nav-overlay { display: none !important; }
+
+        /* Deshacer el flex layout de la app para flujo normal de impresión */
+        #pantalla-app { display: block !important; height: auto !important; overflow: visible !important; background: #fff !important; }
+        #pantalla-app > nav { display: none !important; }
+        main { display: block !important; overflow: visible !important; height: auto !important; }
+        .barra-superior, .banner-simulacion { display: none !important; }
+        .area-desplazable { overflow: visible !important; height: auto !important; padding: 0 !important; display: block !important; }
+
+        /* Ocultar todas las secciones */
+        .seccion-app { display: none !important; }
+
+        /* Mostrar SOLO el director, en flujo normal (no fixed) */
+        #vista-director { display: block !important; position: static !important; overflow: visible !important;
+            background: #fff !important; padding: 20px 24px !important; height: auto !important; }
+
+        /* Ocultar controles interactivos del director */
+        #dir-btn-export, #dir-mes-sel, #dir-tabs-row { display: none !important; }
+
+        /* Mostrar todas las vistas de tabs */
+        #dir-view-parrilla, #dir-view-campanas, #dir-view-resultados { display: block !important; }
+
+        /* Grid KPI: exactamente 5 columnas */
+        #dir-exec-strip { grid-template-columns: repeat(5, 1fr) !important; }
+        #dir-kpi-strip  { grid-template-columns: repeat(5, 1fr) !important; }
+
+        /* Saltos de página entre secciones */
+        #dir-view-campanas  { page-break-before: always; break-before: page; }
+        #dir-view-resultados { page-break-before: always; break-before: page; }
+
+        @page { margin: 12mm 10mm; size: A4 landscape; }
     }
 </style>
 ```
@@ -2061,7 +2087,7 @@
                     <div id="dir-exec-strip" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px;"></div>
 
                     <!-- Tabs -->
-                    <div style="display:flex;gap:2px;margin-bottom:24px;background:var(--color-fondo);padding:4px;border-radius:12px;width:fit-content;border:1px solid var(--color-borde);">
+                    <div id="dir-tabs-row" style="display:flex;gap:2px;margin-bottom:24px;background:var(--color-fondo);padding:4px;border-radius:12px;width:fit-content;border:1px solid var(--color-borde);">
                         <button id="dir-tab-btn-parrilla" onclick="dirCambiarTab('parrilla')"
                             style="font-size:13px;font-weight:600;padding:8px 20px;border-radius:9px;border:none;cursor:pointer;transition:.2s;background:#fff;color:var(--texto-principal);box-shadow:0 1px 4px rgba(0,0,0,.08);">
                             <i class="fa-solid fa-table-cells" style="margin-right:6px;font-size:11px;"></i>Parrilla del mes
@@ -3611,10 +3637,20 @@ document.addEventListener('DOMContentLoaded', function() {
             const m = p.montos_mes && p.montos_mes[mi];
             return s + ((m ? (Number(m.inversion)||0) + (Number(m.colaboracion)||0) : 0));
         }, 0);
-        const totReal = pres.reduce((s,p) => {
+        const totRealPres = pres.reduce((s,p) => {
             const m = p.montos_mes && p.montos_mes[mi];
             return s + (m ? (Number(m.real)||0) : 0);
         }, 0);
+        // Si presupuesto.real está vacío, usar suma de inversión de ads activos del mes como proxy
+        const mesStr = `${year}-${String(month).padStart(2,'0')}`;
+        const adsInvMes = (d.ads||[]).reduce((s,a) => {
+            if (a.estado === 'Borrador') return s;
+            const ini = (a.inicio||'').substring(0,7);
+            const fin = (a.fin||'').substring(0,7);
+            if (ini <= mesStr && (fin === '' || fin >= mesStr)) return s + (Number(a.inversion)||0);
+            return s;
+        }, 0);
+        const totReal = totRealPres > 0 ? totRealPres : adsInvMes;
         const burnPct = totPlan > 0 ? Math.min(100, Math.round(totReal / totPlan * 100)) : 0;
         const burnColor = burnPct > 100 ? '#EF4444' : burnPct > 85 ? '#FBBC05' : '#34A853';
 
@@ -3632,15 +3668,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         const totalContenido = kanban.length + stories.length;
         const publicados = kanban.filter(p=>p.estado==='Publicado').length + stories.filter(s=>s.estado==='Publicado').length;
+        const listos = kanban.filter(p=>p.estado==='Publicado'||p.estado==='Programado'||p.estado==='Aprobado').length
+                     + stories.filter(s=>s.estado==='Publicado'||s.estado==='Programado').length;
         const revisiones = kanban.filter(p=>p.estado==='Revisión').length;
         const esMesActual = (hoy.getFullYear()===year && hoy.getMonth()+1===month);
         const diasTotal = new Date(year, month, 0).getDate();
         const diasTranscurridos = esMesActual ? Math.min(hoy.getDate(), diasTotal) : diasTotal;
-        const pacePct = totalContenido > 0 && esMesActual
-            ? Math.round(publicados / totalContenido * 100)
-            : (publicados === totalContenido && totalContenido > 0 ? 100 : 0);
-        const paceColor = !esMesActual ? '#34A853' : pacePct >= 70 ? '#34A853' : pacePct >= 40 ? '#FBBC05' : '#EF4444';
-        const paceLabel = !esMesActual ? 'Cerrado' : pacePct >= 70 ? 'En ritmo' : pacePct >= 40 ? 'Atención' : 'Atrasado';
+        // Pace: posts vencidos sin publicar son realmente late; Aprobado/Programado cuenta como "listo"
+        const hoyStr2 = hoy.toISOString().split('T')[0];
+        const vencidosNoPublicados = esMesActual
+            ? kanban.filter(p => p.fecha && p.fecha < hoyStr2 && p.estado !== 'Publicado' && p.estado !== 'Programado').length
+            : 0;
+        const pacePct = totalContenido > 0
+            ? Math.round(listos / totalContenido * 100)
+            : 0;
+        const paceColor = !esMesActual ? '#34A853'
+            : vencidosNoPublicados > 0 ? '#EF4444'
+            : pacePct >= 70 ? '#34A853'
+            : pacePct >= 40 ? '#FBBC05'
+            : '#9CA3AF';
+        const paceLabel = !esMesActual ? 'Cerrado'
+            : vencidosNoPublicados > 0 ? `${vencidosNoPublicados} atrasado${vencidosNoPublicados!==1?'s':''}`
+            : pacePct >= 70 ? 'En ritmo'
+            : pacePct >= 40 ? 'Atención'
+            : 'Pendiente';
 
         // ROI por canal
         const mesIni = new Date(year, month-1, 1);
@@ -3695,7 +3746,7 @@ document.addEventListener('DOMContentLoaded', function() {
             {
                 ic:'fa-layer-group', c:'#8B5CF6',
                 label:'Contenido del mes',
-                value: `${publicados} / ${totalContenido}`,
+                value: `${listos} / ${totalContenido}`,
                 sub2: `${publicados} publicados · ${stories.length} historias`,
                 extra: `<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:20px;background:${paceColor}18;"><span style="width:6px;height:6px;border-radius:50%;background:${paceColor};"></span><span style="font-size:10px;font-weight:700;color:${paceColor};">${paceLabel}</span></div>`
             },
@@ -4344,13 +4395,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const btn = document.getElementById('dir-btn-export');
         if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:13px;"></i> Generando...'; btn.disabled = true; }
 
-        // Asegurar que ambas vistas estén visibles para impresión
+        // Asegurar que todas las vistas estén visibles para impresión
         const vP = document.getElementById('dir-view-parrilla');
         const vC = document.getElementById('dir-view-campanas');
+        const vR = document.getElementById('dir-view-resultados');
         const vPprev = vP ? vP.style.display : '';
         const vCprev = vC ? vC.style.display : '';
+        const vRprev = vR ? vR.style.display : '';
         if (vP) vP.style.display = '';
         if (vC) vC.style.display = '';
+        if (vR) vR.style.display = '';
 
         // Título del documento
         const sub = document.getElementById('dir-subtitulo');
@@ -4364,6 +4418,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.title = prevTitle;
             if (vP) vP.style.display = vPprev;
             if (vC) vC.style.display = vCprev;
+            if (vR) vR.style.display = vRprev;
             if (btn) { btn.innerHTML = '<i class="fa-solid fa-file-arrow-down" style="font-size:13px;"></i> Exportar PDF'; btn.disabled = false; }
         }, 200);
     }
