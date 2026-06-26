@@ -10852,8 +10852,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const username = generarUsername(nombre.trim());
         const pwd = generarPassword();
         if (!DB.usuarios) DB.usuarios = [];
-        DB.usuarios.push({ id, nombre: nombre.trim(), username, puesto:'', password:btoa(pwd), rol_id:'equipo', proyectos:[], ubicacion:'Todas', estado:'activo' });
+        DB.usuarios.push({ id, nombre: nombre.trim(), username, caos_name: username, puesto:'', password:btoa(pwd), rol_id:'equipo', proyectos:[], ubicacion:'Todas', estado:'activo' });
         guardarBD(); renderUsuarios();
+        _caosManageTeam('add', { id: 'm_'+username.replace(/[^a-z0-9]/gi,'_'), name: username, role: '' });
         alert(`Usuario creado.\nUsername: ${username}\nPassword temporal: ${pwd}\n\nGuarda estas credenciales.`);
     }
 
@@ -10916,8 +10917,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!u) return;
         if (USUARIO_ACTIVO && USUARIO_ACTIVO.id === id) { alert('No puedes eliminar tu propio usuario.'); return; }
         if (!confirm(`¿Eliminar permanentemente a ${u.nombre}?\nEsta acción no se puede deshacer.`)) return;
+        const caosName = u.caos_name || u.username;
         DB.usuarios = DB.usuarios.filter(u => u.id !== id);
         guardarBD(); renderUsuarios();
+        _caosManageTeam('remove', { name: caosName });
     }
 
     function limpiarCamposUsuario(id) {
@@ -13000,6 +13003,16 @@ function _xlsNotificarOrigenManual() {
     if (ok) _showToast('\u2713 Completado en CAOS');
     else _showToast('No se pudo actualizar CAOS');
     renderMisTareas();
+  }
+
+  async function _caosManageTeam(action, user) {
+    try {
+      await fetch(`${CAOS_BASE}/manage-team`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': CAOS_KEY },
+        body: JSON.stringify({ action, user })
+      });
+    } catch(e) { console.warn('CAOS manage-team:', e); }
   }
 </script>
 </body>
