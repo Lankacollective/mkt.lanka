@@ -4370,57 +4370,124 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!semsDelMes.length) {
                 semEl.innerHTML = '';
             } else {
-                const totVentas  = semsDelMes.reduce((s,w)=>s+(Number(w.ventas)||0),0);
-                const totDMs     = semsDelMes.reduce((s,w)=>s+(Number(w.dms)||0),0);
-                const totNuevos  = semsDelMes.reduce((s,w)=>s+(Number(w.clientes_nuevos)||0),0);
-                const segIni     = semsDelMes[0]?.seguidores_ini || 0;
-                const segFin     = semsDelMes[semsDelMes.length-1]?.seguidores_fin || 0;
-                const maxVentas  = Math.max(...semsDelMes.map(s=>Number(s.ventas)||0), 1);
+                const totVentas   = semsDelMes.reduce((s,w)=>s+(Number(w.ventas)||0),0);
+                const totDMs      = semsDelMes.reduce((s,w)=>s+(Number(w.dms)||0),0);
+                const totNuevos   = semsDelMes.reduce((s,w)=>s+(Number(w.clientes_nuevos)||0),0);
+                const totViews    = semsDelMes.reduce((s,w)=>s+(Number(w.visualizaciones)||0),0);
+                const segIni      = semsDelMes[0]?.seguidores_ini || 0;
+                const segFin      = semsDelMes[semsDelMes.length-1]?.seguidores_fin || 0;
+                const segGanados  = segFin - segIni;
+                const maxVentas   = Math.max(...semsDelMes.map(s=>Number(s.ventas)||0), 1);
+
+                // Formato de fecha legible: "2026-06-01" → "1 jun"
+                const fmtFechaCorta = f => {
+                    if (!f) return '';
+                    const [,mm,dd] = f.split('-');
+                    const mAbr = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+                    return `${parseInt(dd)} ${mAbr[parseInt(mm)-1]}`;
+                };
+
+                // Tendencia semana a semana
+                const trend = (curr, prev) => {
+                    if (!prev || prev === 0) return '';
+                    const d = curr - prev;
+                    const pct = Math.round(Math.abs(d)/prev*100);
+                    if (d > 0) return `<span style="font-size:10px;font-weight:700;color:#34A853;margin-left:4px;">▲${pct}%</span>`;
+                    if (d < 0) return `<span style="font-size:10px;font-weight:700;color:#EF4444;margin-left:4px;">▼${pct}%</span>`;
+                    return '';
+                };
+
+                // Summary cards (4): ventas, DMs, clientes nuevos, seguidores ganados
+                const summaryCards = [
+                    {l:'Ventas totales',  ic:'fa-peso-sign', c:'#34A853', v: fmtMon(totVentas)},
+                    {l:'DMs del mes',     ic:'fa-envelope',  c:'#4A90D9', v: fmtNum(totDMs)},
+                    {l:'Clientes nuevos', ic:'fa-star',       c:'#8B5CF6', v: fmtNum(totNuevos)},
+                    {l:'Seguidores ganados', ic:'fa-user-plus',c:'#EC4899',
+                     v: segGanados > 0 ? `+${segGanados.toLocaleString('es-MX')}` : (segIni > 0 ? `${segIni.toLocaleString('es-MX')} → ${segFin.toLocaleString('es-MX')}` : '—')}
+                ].map(k=>`
+                    <div style="background:#fff;border:1px solid var(--color-borde);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;">
+                        <div style="width:32px;height:32px;border-radius:9px;background:${k.c}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i class="fa-solid ${k.ic}" style="font-size:12px;color:${k.c};"></i>
+                        </div>
+                        <div>
+                            <div style="font-size:15px;font-weight:800;">${k.v}</div>
+                            <div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--texto-secundario);">${k.l}</div>
+                        </div>
+                    </div>`).join('');
+
+                // Tabla: UN SOLO grid (header + filas + totales)
+                // Columnas: [Semana] [Ventas barra+valor] [DMs] [Cl.Nuevos] [Seg.+] [Ticket]
+                const COL_SEM = '160px 1fr 70px 80px 70px 90px';
+                const hS = (t, right) => `<div style="padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);background:var(--color-fondo);border-bottom:1px solid var(--color-borde);${right?'text-align:right;':''}">${t}</div>`;
+
+                const dataRowsSem = semsDelMes.map((s, idx) => {
+                    const v    = Number(s.ventas)||0;
+                    const bw   = Math.round(v/maxVentas*100);
+                    const prev = semsDelMes[idx-1];
+                    const bdr  = idx < semsDelMes.length-1 ? '1px solid var(--color-borde)' : 'none';
+                    const segG = (Number(s.seguidores_fin)||0) - (Number(s.seguidores_ini)||0);
+                    const rango = s.fecha_hasta
+                        ? `${fmtFechaCorta(s.fecha)} – ${fmtFechaCorta(s.fecha_hasta)}`
+                        : fmtFechaCorta(s.fecha);
+                    return `
+                        <div style="padding:12px 12px 12px 16px;border-bottom:${bdr};">
+                            <div style="font-size:13px;font-weight:700;">${s.semana||'Sem.'}</div>
+                            <div style="font-size:10px;color:var(--texto-secundario);margin-top:1px;">${rango}</div>
+                        </div>
+                        <div style="padding:12px;display:flex;align-items:center;gap:8px;border-bottom:${bdr};">
+                            <div style="flex:1;height:5px;border-radius:5px;background:#34A85318;overflow:hidden;">
+                                <div style="height:100%;width:${bw}%;background:#34A853;border-radius:5px;"></div>
+                            </div>
+                            <span style="font-size:12px;font-weight:700;color:#34A853;min-width:54px;text-align:right;">${fmtMon(v)}</span>
+                            ${trend(v, Number(prev?.ventas)||0)}
+                        </div>
+                        <div style="padding:12px;text-align:right;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:flex-end;border-bottom:${bdr};">
+                            ${fmtNum(Number(s.dms)||0)}${trend(Number(s.dms)||0, Number(prev?.dms)||0)}
+                        </div>
+                        <div style="padding:12px;text-align:right;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:flex-end;border-bottom:${bdr};">
+                            ${fmtNum(Number(s.clientes_nuevos)||0)}${trend(Number(s.clientes_nuevos)||0, Number(prev?.clientes_nuevos)||0)}
+                        </div>
+                        <div style="padding:12px;text-align:right;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:flex-end;border-bottom:${bdr};color:${segG>0?'#34A853':segG<0?'#EF4444':'var(--texto-principal)'};">
+                            ${segG > 0 ? '+'+segG.toLocaleString('es-MX') : segG < 0 ? segG.toLocaleString('es-MX') : '—'}
+                        </div>
+                        <div style="padding:12px;text-align:right;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:flex-end;border-bottom:${bdr};">
+                            ${Number(s.ticket_medio)>0 ? fmtMon(s.ticket_medio) : '—'}
+                        </div>
+                    `;
+                }).join('');
+
+                // Fila de totales
+                const avgTicket = semsDelMes.filter(s=>Number(s.ticket_medio)>0);
+                const ticketProm = avgTicket.length ? avgTicket.reduce((a,s)=>a+(Number(s.ticket_medio)||0),0)/avgTicket.length : 0;
+                const totalRowSem = `
+                    <div style="padding:11px 12px 11px 16px;background:var(--color-fondo);">
+                        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);">Total</div>
+                    </div>
+                    <div style="padding:11px 12px;display:flex;align-items:center;gap:8px;background:var(--color-fondo);">
+                        <div style="flex:1;height:5px;border-radius:5px;background:var(--color-borde);"></div>
+                        <span style="font-size:12px;font-weight:800;color:#34A853;min-width:54px;text-align:right;">${fmtMon(totVentas)}</span>
+                    </div>
+                    <div style="padding:11px 12px;text-align:right;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:flex-end;background:var(--color-fondo);">${fmtNum(totDMs)}</div>
+                    <div style="padding:11px 12px;text-align:right;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:flex-end;background:var(--color-fondo);">${fmtNum(totNuevos)}</div>
+                    <div style="padding:11px 12px;text-align:right;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:flex-end;background:var(--color-fondo);color:${segGanados>0?'#34A853':'var(--texto-principal)'};">
+                        ${segGanados > 0 ? '+'+segGanados.toLocaleString('es-MX') : '—'}
+                    </div>
+                    <div style="padding:11px 12px;text-align:right;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:flex-end;background:var(--color-fondo);">
+                        ${ticketProm > 0 ? fmtMon(Math.round(ticketProm)) : '—'}
+                    </div>
+                `;
 
                 semEl.innerHTML = `
                     <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin:0 0 14px;">
                         <i class="fa-solid fa-calendar-week" style="margin-right:6px;color:var(--color-primario);"></i>Semana a semana — ${meses[mi]}
                     </h3>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:16px;">
-                        ${[
-                            {l:'Ventas totales',ic:'fa-peso-sign',c:'#34A853',v:fmtMon(totVentas)},
-                            {l:'DMs del mes',   ic:'fa-envelope', c:'#4A90D9',v:fmtNum(totDMs)},
-                            {l:'Clientes nuevos',ic:'fa-star',    c:'#8B5CF6',v:fmtNum(totNuevos)},
-                            {l:'Seguidores',    ic:'fa-user-plus',c:'#EC4899',v:`${segIni>0?segIni.toLocaleString('es-MX'):'—'} → ${segFin>0?segFin.toLocaleString('es-MX'):'—'}`}
-                        ].map(k=>`<div style="background:#fff;border:1px solid var(--color-borde);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:10px;">
-                            <div style="width:32px;height:32px;border-radius:9px;background:${k.c}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                <i class="fa-solid ${k.ic}" style="font-size:12px;color:${k.c};"></i>
-                            </div>
-                            <div><div style="font-size:15px;font-weight:800;">${k.v}</div><div style="font-size:10px;font-weight:600;text-transform:uppercase;color:var(--texto-secundario);">${k.l}</div></div>
-                        </div>`).join('')}
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+                        ${summaryCards}
                     </div>
-                    <div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;">
-                        <div style="display:grid;grid-template-columns:auto 1fr auto auto auto auto;border-bottom:1px solid var(--color-borde);">
-                            ${['Semana','Ventas','Ventas','DMs','Cl. Nuevos','Ticket'].map((h,i)=>
-                                `<div style="padding:10px ${i===0?'16px':'12px'};font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);${i>1?'text-align:right;':''}">${i===2?'':h}</div>`
-                            ).join('')}
-                        </div>
-                        ${semsDelMes.map((s,idx) => {
-                            const v  = Number(s.ventas)||0;
-                            const bw = Math.round(v/maxVentas*100);
-                            const border = idx < semsDelMes.length-1 ? 'border-bottom:1px solid var(--color-borde);' : '';
-                            const segGain = (Number(s.seguidores_fin)||0) - (Number(s.seguidores_ini)||0);
-                            return `
-                                <div style="padding:12px 16px;${border}">
-                                    <div style="font-size:13px;font-weight:700;">${s.semana||'Sem.'}</div>
-                                    <div style="font-size:10px;color:var(--texto-secundario);">${s.fecha||''}</div>
-                                </div>
-                                <div style="padding:12px 12px;${border}display:flex;align-items:center;gap:6px;">
-                                    <div style="flex:1;height:6px;border-radius:6px;background:#34A85318;overflow:hidden;">
-                                        <div style="height:100%;width:${bw}%;background:#34A853;border-radius:6px;"></div>
-                                    </div>
-                                </div>
-                                <div style="padding:12px 12px;${border}text-align:right;font-size:13px;font-weight:700;">${fmtMon(v)}</div>
-                                <div style="padding:12px 12px;${border}text-align:right;font-size:13px;font-weight:600;">${fmtNum(Number(s.dms)||0)}</div>
-                                <div style="padding:12px 12px;${border}text-align:right;font-size:13px;font-weight:600;">${fmtNum(Number(s.clientes_nuevos)||0)}</div>
-                                <div style="padding:12px 12px;${border}text-align:right;font-size:13px;font-weight:600;">${Number(s.ticket_medio)>0?fmtMon(s.ticket_medio):'—'}</div>
-                            `;
-                        }).join('')}
+                    <div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;display:grid;grid-template-columns:${COL_SEM};">
+                        ${hS('Semana')} ${hS('Ventas')} ${hS('DMs',true)} ${hS('Cl. Nuevos',true)} ${hS('Seg. +',true)} ${hS('Ticket',true)}
+                        ${dataRowsSem}
+                        ${totalRowSem}
                     </div>`;
             }
         }
