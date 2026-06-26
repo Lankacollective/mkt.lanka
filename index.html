@@ -2083,6 +2083,9 @@
                         </div>
                     </div>
 
+                    <!-- Brand Kit bar -->
+                    <div id="dir-brand-bar" style="margin-bottom:16px;"></div>
+
                     <!-- Resumen Ejecutivo (siempre visible) -->
                     <div id="dir-exec-strip" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:28px;"></div>
 
@@ -3347,6 +3350,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (_adMetaMigrated) guardarBD();
 
+        // Migrate: brand_kit on sucursales
+        let _bkMigrated = false;
+        (DB.sucursales||[]).forEach(s => {
+            if (!s.brand_kit) {
+                s.brand_kit = {
+                    paleta: [{ nombre:'Primario', hex: s.color||'#C4855A', uso:'' }],
+                    tipografias: [
+                        { tipo:'Título', nombre:'', uso:'' },
+                        { tipo:'Cuerpo', nombre:'', uso:'' },
+                        { tipo:'Acento', nombre:'', uso:'' }
+                    ],
+                    tono_voz: [],
+                    no_usar: [],
+                    referencias: []
+                };
+                _bkMigrated = true;
+            }
+        });
+        if (_bkMigrated) guardarBD();
+
         // ── Migración DEMO: rellenar Mammut con datos demo si está vacío ──
         _aplicarDemoMammut();
 
@@ -3618,10 +3641,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const sub = document.getElementById('dir-subtitulo');
         if (sub) sub.textContent = `${suc.nombre||''} — ${meses[mesMonth-1]} ${mesYear}`;
 
+        _renderDirectorBrandBar(suc);
         _renderDirectorExec(d, mesYear, mesMonth);
         _renderDirectorParrilla(d, mesYear, mesMonth);
         _renderDirectorCampanas(d, mesYear, mesMonth);
         _renderDirectorResultados(d, mesYear, mesMonth);
+    }
+
+    function _renderDirectorBrandBar(suc) {
+        const el = document.getElementById('dir-brand-bar');
+        if (!el) return;
+        const bk = suc.brand_kit;
+        if (!bk || (bk.paleta.length === 0 && bk.tipografias.every(t=>!t.nombre) && bk.tono_voz.length === 0)) { el.innerHTML = ''; return; }
+        const swatches = bk.paleta.map(c=>`<div title="${c.nombre} · ${c.hex}" style="width:22px;height:22px;border-radius:6px;background:${c.hex};border:1px solid rgba(0,0,0,.12);flex-shrink:0;cursor:default;"></div>`).join('');
+        const tipoPrin = bk.tipografias.find(t=>t.tipo==='Título'&&t.nombre) || bk.tipografias.find(t=>t.nombre);
+        const tono = bk.tono_voz.slice(0,4).map(t=>`<span style="font-size:10px;font-weight:600;padding:2px 9px;background:rgba(var(--color-primario-rgb,196,133,90),.12);border-radius:100px;color:var(--color-primario);white-space:nowrap;">${t}</span>`).join('');
+        const noUsar = bk.no_usar.slice(0,2).map(n=>`<span style="font-size:10px;font-weight:600;padding:2px 9px;background:rgba(239,68,68,.1);border-radius:100px;color:#EF4444;white-space:nowrap;"><i class="fa-solid fa-ban" style="font-size:8px;margin-right:3px;"></i>${n}</span>`).join('');
+        el.innerHTML = `<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 16px;background:var(--color-tarjeta);border-radius:12px;border:1px solid var(--color-borde);">
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);white-space:nowrap;flex-shrink:0;">Brand Kit</span>
+            <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">${swatches}</div>
+            ${tipoPrin ? `<span style="font-size:11px;font-weight:600;color:var(--texto-secundario);white-space:nowrap;flex-shrink:0;"><i class="fa-solid fa-font" style="margin-right:4px;font-size:10px;opacity:.5;"></i>${tipoPrin.nombre}</span>` : ''}
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">${tono}</div>
+            ${noUsar ? `<div style="display:flex;gap:5px;flex-wrap:wrap;">${noUsar}</div>` : ''}
+            <button class="btn btn-xs btn-fantasma" style="margin-left:auto;font-size:10px;flex-shrink:0;" onclick="irA('vista-config');renderAdministracion();"><i class="fa-solid fa-pen" style="font-size:9px;margin-right:4px;"></i>Editar</button>
+        </div>`;
     }
 
     function _renderDirectorExec(d, year, month) {
@@ -8878,6 +8921,81 @@ document.addEventListener('DOMContentLoaded', function() {
                     ${_isOwnerForConfig?'':'readonly'}
                     onchange="const _si=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');if(_si){_si.drive_contenido_url=this.value;guardarBD();}">
                 ${_sucDrive.drive_contenido_url ? `<a href="${_sucDrive.drive_contenido_url}" target="_blank" rel="noopener" class="btn btn-fantasma btn-xs"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:4px;"></i>Abrir</a>` : ''}
+            </div>
+        </div>`;
+
+        // Card: Brand Kit (full width)
+        const _sucBK = DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{};
+        const _bk = _sucBK.brand_kit || { paleta:[], tipografias:[], tono_voz:[], no_usar:[], referencias:[] };
+        confHTML += `<div style="${_cardStyle} grid-column:span 2;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+                <i class="fa-solid fa-palette" style="color:var(--color-primario);font-size:14px;"></i>
+                <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Brand Kit</b>
+                <span style="font-size:11px;color:var(--color-primario);font-weight:600;">· ${_sucNombre}</span>
+                <span style="font-size:11px;color:var(--texto-secundario);margin-left:auto;">Paleta · Tipografías · Tono · Moodboard</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;">
+                <div>
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:12px;">Paleta de colores</div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:24px;">
+                        ${_bk.paleta.map((c,i) => `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+                            <div style="position:relative;width:52px;height:52px;border-radius:12px;background:${c.hex};border:1px solid rgba(0,0,0,.10);overflow:hidden;" title="${c.hex}">
+                                ${_isOwnerForConfig ? `<input type="color" value="${c.hex}" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;"
+                                    onchange="const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.paleta[${i}].hex=this.value;this.closest('[style*=border-radius]').style.background=this.value;guardarBD();">` : ''}
+                            </div>
+                            ${_isOwnerForConfig
+                                ? `<input class="input-celda" value="${c.nombre}" style="width:56px;text-align:center;font-size:10px;padding:2px 4px;"
+                                    onchange="const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.paleta[${i}].nombre=this.value;guardarBD();">`
+                                : `<span style="font-size:10px;font-weight:600;">${c.nombre}</span>`}
+                            <code style="font-size:9px;color:var(--texto-secundario);">${c.hex.toUpperCase()}</code>
+                            ${_isOwnerForConfig ? `<i class="fa-solid fa-times" style="font-size:9px;color:#bbb;cursor:pointer;" onclick="const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.paleta.splice(${i},1);guardarBD();renderAdministracion();"></i>` : ''}
+                        </div>`).join('')}
+                        ${_isOwnerForConfig ? `<div style="display:flex;flex-direction:column;align-items:center;gap:5px;">
+                            <div style="width:52px;height:52px;border-radius:12px;border:2px dashed var(--color-borde);cursor:pointer;display:flex;align-items:center;justify-content:center;background:var(--color-fondo);"
+                                onclick="const _n=prompt('Nombre del color (ej. Secundario):');if(_n&&_n.trim()){const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.paleta.push({nombre:_n.trim(),hex:'#CCCCCC',uso:''});guardarBD();renderAdministracion();}">
+                                <i class="fa-solid fa-plus" style="color:var(--texto-secundario);font-size:14px;"></i>
+                            </div>
+                            <span style="font-size:10px;color:var(--texto-secundario);">Agregar</span>
+                        </div>` : ''}
+                    </div>
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:10px;">Tipografías</div>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        ${_bk.tipografias.map((t,i) => `<div style="display:grid;grid-template-columns:70px 1fr;gap:8px;align-items:center;padding:8px 12px;background:var(--color-fondo);border-radius:8px;">
+                            <span style="font-size:10px;font-weight:700;color:var(--color-primario);text-transform:uppercase;">${t.tipo}</span>
+                            ${_isOwnerForConfig
+                                ? `<div style="display:flex;gap:6px;">
+                                    <input class="input-celda" value="${t.nombre}" style="flex:1;font-size:12px;" placeholder="Nombre de fuente..."
+                                        onchange="const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.tipografias[${i}].nombre=this.value;guardarBD();">
+                                    <input class="input-celda" value="${t.uso}" style="width:100px;font-size:11px;" placeholder="Uso (Headlines...)"
+                                        onchange="const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.tipografias[${i}].uso=this.value;guardarBD();">
+                                   </div>`
+                                : `<div><span style="font-size:12px;font-weight:600;">${t.nombre||'—'}</span>${t.uso?`<span style="font-size:10px;color:var(--texto-secundario);margin-left:8px;">${t.uso}</span>`:''}</div>`}
+                        </div>`).join('')}
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-bottom:10px;">Tono de voz</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                        ${_bk.tono_voz.map((t,i) => `<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:rgba(var(--color-primario-rgb,196,133,90),.12);border-radius:100px;font-size:11px;font-weight:600;color:var(--color-primario);">${t}${_isOwnerForConfig?`<i class="fa-solid fa-times" style="font-size:8px;cursor:pointer;" onclick="const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.tono_voz.splice(${i},1);guardarBD();renderAdministracion();"></i>`:''}</span>`).join('')}
+                        ${_isOwnerForConfig ? `<button class="btn btn-xs btn-fantasma" style="border-radius:100px;" onclick="const _n=prompt('Keyword del tono de voz (ej. Cálido, Experto):');if(_n&&_n.trim()){const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.tono_voz.push(_n.trim());guardarBD();renderAdministracion();}">+ Agregar</button>` : ''}
+                    </div>
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-top:20px;margin-bottom:10px;">No usar / Evitar</div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+                        ${_bk.no_usar.map((n,i) => `<span style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:rgba(239,68,68,.1);border-radius:100px;font-size:11px;font-weight:600;color:#EF4444;"><i class="fa-solid fa-ban" style="font-size:8px;"></i>${n}${_isOwnerForConfig?`<i class="fa-solid fa-times" style="font-size:8px;cursor:pointer;margin-left:2px;" onclick="const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.no_usar.splice(${i},1);guardarBD();renderAdministracion();"></i>`:''}</span>`).join('')}
+                        ${_isOwnerForConfig ? `<button class="btn btn-xs btn-fantasma" style="border-radius:100px;" onclick="const _n=prompt('¿Qué evitar? (color, estilo, palabra):');if(_n&&_n.trim()){const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.no_usar.push(_n.trim());guardarBD();renderAdministracion();}">+ Agregar</button>` : ''}
+                    </div>
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--texto-secundario);margin-top:20px;margin-bottom:10px;">Referencias visuales · Moodboard</div>
+                    ${_bk.referencias && _bk.referencias.length > 0 ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px;margin-bottom:10px;">
+                        ${_bk.referencias.map((r,i) => `<div style="position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:var(--color-fondo);">
+                            <img src="${r.url}" alt="" style="width:100%;height:100%;object-fit:cover;" loading="lazy" onerror="this.style.display='none'">
+                            ${_isOwnerForConfig ? `<div style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.65);border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');_bks.brand_kit.referencias.splice(${i},1);guardarBD();renderAdministracion();"><i class="fa-solid fa-times" style="color:#fff;font-size:8px;"></i></div>` : ''}
+                        </div>`).join('')}
+                    </div>` : `<p style="font-size:12px;color:var(--texto-secundario);margin-bottom:8px;">Sin imágenes de referencia aún.</p>`}
+                    ${_isOwnerForConfig ? `<div style="display:flex;gap:8px;">
+                        <input id="bk-ref-url-inp" class="input-celda" style="flex:1;font-size:12px;" placeholder="URL de imagen (Pinterest, Drive, etc.)...">
+                        <button class="btn btn-xs btn-primario" onclick="const _u=document.getElementById('bk-ref-url-inp').value.trim();if(_u){const _bks=DB.sucursales.find(s=>s.id==='${SUC_ACTIVA}');if(!_bks.brand_kit.referencias)_bks.brand_kit.referencias=[];_bks.brand_kit.referencias.push({url:_u,nota:''});document.getElementById('bk-ref-url-inp').value='';guardarBD();renderAdministracion();}">Agregar</button>
+                    </div>` : ''}
+                </div>
             </div>
         </div>`;
 
