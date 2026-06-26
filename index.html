@@ -3362,6 +3362,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Evita que un navegador nuevo sin localStorage sobreescriba datos reales.
     let _supabaseVerificado = false;
     let _localChangedDuringInit = false; // usuario editó antes de que Supabase confirmara
+    let _hadLocalData = false; // true solo si localStorage tenía datos reales al cargar
     let _supabaseRetryTimer = null;
 
     let _guardarBDTimer = null;
@@ -3377,8 +3378,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         if (!window.__supabase || !_supabaseVerificado) {
-            // Marcar que hubo cambios locales antes de que Supabase confirmara
-            if (window.__supabase && !_supabaseVerificado) _localChangedDuringInit = true;
+            // Solo marcar cambios locales si el browser tenía datos reales al inicio.
+            // Sin localStorage previo → Supabase siempre gana (evita sobreescribir con datos vacíos).
+            if (window.__supabase && !_supabaseVerificado && _hadLocalData) _localChangedDuringInit = true;
             return;
         }
 
@@ -3419,8 +3421,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (guardado) {
             try {
                 DB = JSON.parse(guardado);
-                // Usuario existente con datos locales: ya es seguro guardar en Supabase
-                // NO activar _supabaseVerificado aquí — esperar confirmación de Supabase
+                _hadLocalData = true; // browser tenía datos reales — cambios locales son válidos
                 console.log('✓ Datos cargados desde localStorage — esperando confirmación de Supabase');
             } catch(e) { console.warn('localStorage corrupto, usando semilla'); }
         }
@@ -3442,11 +3443,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (!error && data?.data && Object.keys(data.data).length > 0) {
                         const yaEnApp = !!SUC_ACTIVA;
                         clearTimeout(_supabaseRetryTimer);
-                        if (_localChangedDuringInit) {
-                            // El usuario editó mientras Supabase cargaba — los cambios locales son más recientes
+                        if (_localChangedDuringInit && _hadLocalData) {
+                            // El usuario editó datos reales mientras Supabase cargaba — local más reciente
                             _supabaseVerificado = true;
                             _localChangedDuringInit = false;
-                            console.log('⚠ Cambios locales durante init — subiendo versión local a Supabase (no sobreescribir)');
+                            console.log('⚠ Cambios locales durante init — subiendo versión local a Supabase');
                             guardarBD();
                         } else {
                             // Sin cambios locales — Supabase es la fuente de verdad
