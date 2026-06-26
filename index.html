@@ -4275,52 +4275,87 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // ── Engagement por formato ────────────────────────────────────────────
         if (engEl) {
-            const eng = d.engagement_formato || [];
-            if (!eng.length) {
+            const engRaw = d.engagement_formato || [];
+            if (!engRaw.length) {
                 engEl.innerHTML = '';
             } else {
-                const maxAlc = Math.max(...eng.map(e=>Number(e.alcance)||0), 1);
+                // Ordenar por Engagement Rate descendente (mejor primero)
+                const eng = [...engRaw].map(e => ({
+                    ...e,
+                    _alc: Number(e.alcance)||0,
+                    _int: Number(e.interacciones)||0,
+                    _gua: Number(e.guardados)||0,
+                    _com: Number(e.compartidos)||0,
+                    _er:  (Number(e.alcance)||0) > 0 ? (Number(e.interacciones)||0) / (Number(e.alcance)||0) * 100 : 0
+                })).sort((a,b) => b._er - a._er);
+
+                const maxAlc = Math.max(...eng.map(e=>e._alc), 1);
                 const fmtIco = { 'Reel':'fa-film', 'Carrusel':'fa-images', 'Historia':'fa-mobile-screen', 'Foto':'fa-image' };
                 const fmtCol = { 'Reel':'#4A90D9', 'Carrusel':'#8B5CF6', 'Historia':'#EC4899', 'Foto':'#F59E0B' };
+
+                // Totales para fila de resumen
+                const totAlc = eng.reduce((s,e)=>s+e._alc,0);
+                const totInt = eng.reduce((s,e)=>s+e._int,0);
+                const totGua = eng.reduce((s,e)=>s+e._gua,0);
+                const totCom = eng.reduce((s,e)=>s+e._com,0);
+                const avgEr  = totAlc > 0 ? (totInt/totAlc*100) : 0;
+
+                const erColor = er => er >= 5 ? '#34A853' : er >= 2 ? '#FBBC05' : '#EF4444';
+                const erBadge = er => `<span style="display:inline-flex;align-items:center;font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px;background:${erColor(er)}18;color:${erColor(er)};">${er.toFixed(1)}%</span>`;
+
+                // La tabla usa UN SOLO contenedor grid — header + filas de datos en el mismo grid
+                // grid-template-columns: [formato] [alcance+barra] [ER] [interacciones] [guardados] [compartidos]
+                const COL = '200px 1fr 80px 90px 80px 90px';
+                const hCell = (txt, right) => `<div style="padding:10px 12px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);background:var(--color-fondo);border-bottom:1px solid var(--color-borde);${right?'text-align:right;':''}">${txt}</div>`;
+
+                const dataRows = eng.map((e, idx) => {
+                    const pct  = Math.round(e._alc/maxAlc*100);
+                    const col  = fmtCol[e.formato]||'var(--color-primario)';
+                    const ico  = fmtIco[e.formato]||'fa-file';
+                    const bdr  = idx < eng.length-1 ? '1px solid var(--color-borde)' : 'none';
+                    return `
+                        <div style="padding:13px 12px 13px 16px;display:flex;align-items:center;gap:10px;border-bottom:${bdr};">
+                            <div style="width:28px;height:28px;border-radius:8px;background:${col}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                                <i class="fa-solid ${ico}" style="font-size:11px;color:${col};"></i>
+                            </div>
+                            <div style="font-size:13px;font-weight:700;line-height:1.2;">${e.formato}</div>
+                        </div>
+                        <div style="padding:13px 12px;display:flex;align-items:center;gap:8px;border-bottom:${bdr};">
+                            <div style="flex:1;height:5px;border-radius:5px;background:${col}18;overflow:hidden;">
+                                <div style="height:100%;width:${pct}%;background:${col};border-radius:5px;"></div>
+                            </div>
+                            <span style="font-size:12px;font-weight:700;color:${col};min-width:40px;text-align:right;">${fmtNum(e._alc)}</span>
+                        </div>
+                        <div style="padding:13px 12px;text-align:right;display:flex;align-items:center;justify-content:flex-end;border-bottom:${bdr};">${erBadge(e._er)}</div>
+                        <div style="padding:13px 12px;text-align:right;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:flex-end;border-bottom:${bdr};">${fmtNum(e._int)}</div>
+                        <div style="padding:13px 12px;text-align:right;font-size:13px;font-weight:600;color:var(--texto-secundario);display:flex;align-items:center;justify-content:flex-end;border-bottom:${bdr};">${e._gua > 0 ? fmtNum(e._gua) : '<span style="opacity:.35">—</span>'}</div>
+                        <div style="padding:13px 12px;text-align:right;font-size:13px;font-weight:600;color:var(--texto-secundario);display:flex;align-items:center;justify-content:flex-end;border-bottom:${bdr};">${fmtNum(e._com)}</div>
+                    `;
+                }).join('');
+
+                // Fila de totales
+                const totalRow = `
+                    <div style="padding:12px 12px 12px 16px;display:flex;align-items:center;gap:10px;background:var(--color-fondo);">
+                        <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);">Total</div>
+                    </div>
+                    <div style="padding:12px;display:flex;align-items:center;gap:8px;background:var(--color-fondo);">
+                        <div style="flex:1;height:5px;border-radius:5px;background:var(--color-borde);"></div>
+                        <span style="font-size:12px;font-weight:800;min-width:40px;text-align:right;">${fmtNum(totAlc)}</span>
+                    </div>
+                    <div style="padding:12px;text-align:right;display:flex;align-items:center;justify-content:flex-end;background:var(--color-fondo);">${erBadge(avgEr)}</div>
+                    <div style="padding:12px;text-align:right;font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:flex-end;background:var(--color-fondo);">${fmtNum(totInt)}</div>
+                    <div style="padding:12px;text-align:right;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:flex-end;background:var(--color-fondo);">${totGua > 0 ? fmtNum(totGua) : '<span style="opacity:.35">—</span>'}</div>
+                    <div style="padding:12px;text-align:right;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:flex-end;background:var(--color-fondo);">${fmtNum(totCom)}</div>
+                `;
+
                 engEl.innerHTML = `
                     <h3 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin:0 0 14px;">
                         <i class="fa-solid fa-chart-pie" style="margin-right:6px;color:var(--color-primario);"></i>Rendimiento por formato de contenido
                     </h3>
-                    <div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;">
-                        <div style="display:grid;grid-template-columns:auto 1fr auto auto auto;border-bottom:1px solid var(--color-borde);">
-                            ${['Formato','Alcance','Interacciones','Guardados','Compartidos'].map((h,i)=>`<div style="padding:10px ${i===0?'16px':'12px'};font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--texto-secundario);${i>1?'text-align:right;':''}">${h}</div>`).join('')}
-                        </div>
-                        ${eng.map((e,idx) => {
-                            const alc  = Number(e.alcance)||0;
-                            const int  = Number(e.interacciones)||0;
-                            const gua  = Number(e.guardados)||0;
-                            const com  = Number(e.compartidos)||0;
-                            const pct  = Math.round(alc/maxAlc*100);
-                            const col  = fmtCol[e.formato]||'var(--color-primario)';
-                            const ico  = fmtIco[e.formato]||'fa-file';
-                            const engRate = alc > 0 ? ((int/alc)*100).toFixed(1) : '0';
-                            const border = idx < eng.length-1 ? 'border-bottom:1px solid var(--color-borde);' : '';
-                            return `
-                                <div style="padding:14px 16px;${border}display:flex;align-items:center;gap:10px;">
-                                    <div style="width:30px;height:30px;border-radius:8px;background:${col}15;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                                        <i class="fa-solid ${ico}" style="font-size:12px;color:${col};"></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-size:13px;font-weight:700;">${e.formato}</div>
-                                        <div style="font-size:10px;color:var(--texto-secundario);">Eng. rate ${engRate}%</div>
-                                    </div>
-                                </div>
-                                <div style="padding:14px 12px;${border}display:flex;align-items:center;gap:8px;">
-                                    <div style="flex:1;height:6px;border-radius:6px;background:${col}18;overflow:hidden;">
-                                        <div style="height:100%;width:${pct}%;background:${col};border-radius:6px;"></div>
-                                    </div>
-                                    <span style="font-size:12px;font-weight:700;color:${col};min-width:44px;text-align:right;">${fmtNum(alc)}</span>
-                                </div>
-                                <div style="padding:14px 12px;${border}text-align:right;font-size:13px;font-weight:700;">${fmtNum(int)}</div>
-                                <div style="padding:14px 12px;${border}text-align:right;font-size:13px;font-weight:700;">${gua > 0 ? fmtNum(gua) : '—'}</div>
-                                <div style="padding:14px 12px;${border}text-align:right;font-size:13px;font-weight:700;">${fmtNum(com)}</div>
-                            `;
-                        }).join('')}
+                    <div style="background:#fff;border:1px solid var(--color-borde);border-radius:16px;overflow:hidden;display:grid;grid-template-columns:${COL};">
+                        ${hCell('Formato')} ${hCell('Alcance')} ${hCell('ER%',true)} ${hCell('Interacciones',true)} ${hCell('Guardados',true)} ${hCell('Compartidos',true)}
+                        ${dataRows}
+                        ${totalRow}
                     </div>`;
             }
         }
