@@ -1297,6 +1297,10 @@
 </style>
 ```
 
+<!-- Google Drive Picker (carga lazy al abrir el picker por primera vez) -->
+<script src="https://apis.google.com/js/api.js" async defer id="_gapi_script"></script>
+<script src="https://accounts.google.com/gsi/client" async defer id="_gis_script"></script>
+
 <!-- Pasos 2-4: Supabase client + credenciales inyectadas en build -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
@@ -1677,8 +1681,10 @@
                             <button id="btn-vista-parrilla" class="btn-vista activo" onclick="cambiarVistaCalendario('parrilla')"><i class="fa-solid fa-list"></i> Parrilla</button>
                             <button id="btn-vista-kanban" class="btn-vista" onclick="cambiarVistaCalendario('kanban')"><i class="fa-solid fa-columns"></i> Kanban</button>
                         </div>
+                        <button id="btn-carpeta-drive" class="btn btn-fantasma" style="display:none;" onclick="const _u=(DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).drive_contenido_url;if(_u)window.open(_u,'_blank');else alert('Configura la carpeta Drive en Configuración → Carpeta Drive.');"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:4px;"></i> Carpeta Drive</button>
                         <button class="btn btn-fantasma req-agencia" onclick="abrirImportarJSON()"><i class="fa-solid fa-file-code"></i> Importar semana</button>
                         <button class="btn btn-fantasma req-agencia" onclick="_abrirImportarPostIA()"><i class="fa-solid fa-wand-magic-sparkles"></i> Importar post IA</button>
+                        <button class="btn btn-fantasma req-agencia" onclick="_abrirImportarParrilla()" style="background:linear-gradient(135deg,rgba(var(--primario-rgb),.08),rgba(var(--primario-rgb),.04));border-color:rgba(var(--primario-rgb),.25);"><i class="fa-solid fa-calendar-week" style="color:var(--color-primario);"></i> Importar parrilla completa</button>
                         <button class="btn btn-primario req-agencia" onclick="agregarElemento('kanban')"><i class="fa-solid fa-plus"></i> Nueva Tarea</button>
                     </div>
                 </div>
@@ -1784,7 +1790,7 @@
                 <div class="encabezado-seccion">
                     <div>
                         <h1>Mis Tareas</h1>
-                        <p id="mis-tareas-subtitulo">Publicaciones asignadas — tus contenidos a producir.</p>
+                        <p id="mis-tareas-subtitulo">Tus publicaciones asignadas y tareas de CAOS.</p>
                     </div>
                 </div>
                 <div id="mis-tareas-lista" style="display:flex; flex-direction:column; gap:14px;"></div>
@@ -2253,6 +2259,34 @@
             <div style="display:flex;gap:8px;">
                 <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
                 <button class="btn btn-primario" id="btn-importar-post-ia" onclick="importarPostIA()"><i class="fa-solid fa-bolt"></i> Importar y vincular</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Importar Parrilla Completa -->
+<div class="fondo-modal" id="modal-importar-parrilla">
+    <div class="modal-caja" style="max-width:760px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-calendar-week" style="color:var(--color-primario);margin-right:10px;"></i>Importar Parrilla Completa</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:24px;">
+            <p style="font-size:13px;color:var(--texto-secundario);margin-bottom:6px;line-height:1.6;">Pega el JSON de la parrilla del mes. Se importarán todos los posts, sus stories vinculadas y las stories independientes de una sola vez.</p>
+            <div style="background:rgba(var(--primario-rgb),.05);border:1px solid rgba(var(--primario-rgb),.15);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:var(--texto-secundario);line-height:1.7;">
+                <strong style="color:var(--color-primario);">Formato esperado:</strong>
+                <code style="display:block;margin-top:4px;font-size:11px;white-space:pre;">{ "parrilla": { "mes": "2026-07", "posts": [ { "titulo":"...", "fecha":"YYYY-MM-DD", "hora":"HH:MM", "tipo":"reel|carrusel|historia|asmr", "caption_instagram":"...", "pauta": { ... }, "stories": [ ... ] } ], "stories_independientes": [ { "dia":"YYYY-MM-DD", "hora":"HH:MM", "tipo":"foto|video", "copy":"...", "cta":"...", "descripcion_visual":"..." } ] } }</code>
+            </div>
+            <textarea id="parrilla-json-textarea" class="json-textarea" rows="14" placeholder='{ "parrilla": { "mes": "2026-07", "posts": [ ... ], "stories_independientes": [ ... ] } }'></textarea>
+            <div id="parrilla-error" style="display:none;color:var(--color-peligro);font-size:13px;font-weight:600;margin-top:12px;padding:10px 14px;background:rgba(234,67,53,0.06);border-radius:8px;"></div>
+            <div id="parrilla-resultado" style="display:none;margin-top:12px;padding:14px;background:rgba(34,197,94,.06);border-radius:10px;border:1px solid rgba(34,197,94,.25);font-size:13px;line-height:1.9;color:#15803D;font-weight:500;"></div>
+            <div id="parrilla-progreso" style="display:none;margin-top:12px;padding:10px 14px;background:rgba(var(--primario-rgb),.05);border-radius:8px;font-size:13px;color:var(--texto-secundario);"></div>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:space-between;align-items:center;border-radius:0 0 20px 20px;">
+            <span style="font-size:12px;color:var(--texto-secundario);">Posts existentes en la misma fecha+tipo se omiten (no se sobreescriben).</span>
+            <div style="display:flex;gap:8px;">
+                <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+                <button class="btn btn-primario" id="btn-importar-parrilla" onclick="importarParrillaCompleta()"><i class="fa-solid fa-calendar-week"></i> Importar parrilla</button>
             </div>
         </div>
     </div>
@@ -2890,21 +2924,21 @@ document.addEventListener('DOMContentLoaded', function() {
             control_accesos: { owner:true, lanka_team:false, direccion:false, coordinador:false, equipo:false },
             auditoria:       { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
             stories:         { owner:true, lanka_team:true,  direccion:true,  coordinador:true,  equipo:false },
-            mis_tareas:      { owner:false,lanka_team:false, direccion:false, coordinador:true,  equipo:true  },
+            mis_tareas:      { owner:true, lanka_team:false, direccion:true,  coordinador:true,  equipo:true  },
             usuarios:        { owner:true, lanka_team:true,  direccion:false, coordinador:false, equipo:false },
             catalogo:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false },
             director:        { owner:true, lanka_team:true,  direccion:true,  coordinador:false, equipo:false }
         },
         usuarios: [
-            { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      puesto:"Socio Director",   password:btoa("Lanka2026"),   rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
-            { id:"u_angeles", nombre:"Ángeles Fernández", username:"angeles.fernandez",  puesto:"Fotógrafa",        password:btoa("angeles26"),   rol_id:"direccion",   proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
-            { id:"u_dulce",   nombre:"Dulce",             username:"dulce",              puesto:"Asistente",        password:btoa("dulce26"),     rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
-            { id:"u_sergio",  nombre:"Sergio",            username:"sergio",             puesto:"Videógrafo",       password:btoa("sergio26"),    rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
-            { id:"u_mathias", nombre:"Mathias",           username:"mathias",            puesto:"Lanka Team",       password:btoa("lankateam26"), rol_id:"lanka_team",  proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
-            { id:"u_carlos",  nombre:"Carlos Vega",       username:"carlos.vega",        puesto:"Director General", password:btoa("carlos26"),    rol_id:"direccion",   proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
-            { id:"u_sofia",   nombre:"Sofía Herrera",     username:"sofia.herrera",      puesto:"Coordinadora",     password:btoa("sofia26"),     rol_id:"coordinador", proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
-            { id:"u_diego",   nombre:"Diego Ramírez",     username:"diego.ramirez",      puesto:"Videógrafo",       password:btoa("diego26"),     rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
-            { id:"u_ana",     nombre:"Ana Torres",        username:"ana.torres",         puesto:"Fotógrafa",        password:btoa("ana26"),       rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" }
+            { id:"u_paola",   nombre:"Paola Sagrero",     username:"paola.sagrero",      caos_name:"Paola Sagrero",            puesto:"Socio Director",   password:btoa("Lanka2026"),   rol_id:"owner",       proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
+            { id:"u_angeles", nombre:"Ángeles Fernández", username:"angeles.fernandez",  caos_name:"angeles.fernandez",        puesto:"Fotógrafa",        password:btoa("angeles26"),   rol_id:"direccion",   proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_dulce",   nombre:"Dulce",             username:"dulce",              caos_name:"dulce",                    puesto:"Asistente",        password:btoa("dulce26"),     rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_sergio",  nombre:"Sergio",            username:"sergio",             caos_name:"sergio",                   puesto:"Videógrafo",       password:btoa("sergio26"),    rol_id:"equipo",      proyectos:["aitama"],          ubicacion:"Morelia - Aitama",           estado:"activo" },
+            { id:"u_mathias", nombre:"Mathias",           username:"mathias",            caos_name:"Mathias Neudörfer Hecker", puesto:"Lanka Team",       password:btoa("lankateam26"), rol_id:"lanka_team",  proyectos:["aitama","mammut"], ubicacion:"Todas",                     estado:"activo" },
+            { id:"u_carlos",  nombre:"Carlos Vega",       username:"carlos.vega",        caos_name:"carlos.vega",              puesto:"Director General", password:btoa("carlos26"),    rol_id:"direccion",   proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_sofia",   nombre:"Sofía Herrera",     username:"sofia.herrera",      caos_name:"sofia.herrera",            puesto:"Coordinadora",     password:btoa("sofia26"),     rol_id:"coordinador", proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_diego",   nombre:"Diego Ramírez",     username:"diego.ramirez",      caos_name:"diego.ramirez",            puesto:"Videógrafo",       password:btoa("diego26"),     rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" },
+            { id:"u_ana",     nombre:"Ana Torres",        username:"ana.torres",         caos_name:"ana.torres",               puesto:"Fotógrafa",        password:btoa("ana26"),       rol_id:"equipo",      proyectos:["mammut"],          ubicacion:"Morelia - Mammut Centro",    estado:"activo" }
         ],
         ubicaciones: ["Morelia - Aitama", "Morelia - Mammut Centro", "Mammut Chapultepec", "Todas"]
     };
@@ -3006,6 +3040,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let _s3migrated = false;
         if (!DB.roles_sistema) { DB.roles_sistema = JSON.parse(JSON.stringify(DATOS_SEMILLA.roles_sistema)); _s3migrated = true; }
         if (!DB.permisos)      { DB.permisos      = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos));      _s3migrated = true; }
+        // Ensure all permission keys from seed exist (handles stale localStorage from old versions)
+        Object.keys(DATOS_SEMILLA.permisos).forEach(mod => { if (!DB.permisos[mod]) { DB.permisos[mod] = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos[mod])); _s3migrated = true; } });
+        // mis_tareas is not user-editable — always sync from seed to pick up role additions
+        DB.permisos.mis_tareas = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos.mis_tareas));
         if (!DB.ubicaciones)   { DB.ubicaciones   = JSON.parse(JSON.stringify(DATOS_SEMILLA.ubicaciones));   _s3migrated = true; }
         if (!DB.usuarios) {
             DB.usuarios = JSON.parse(JSON.stringify(DATOS_SEMILLA.usuarios));
@@ -3015,9 +3053,16 @@ document.addEventListener('DOMContentLoaded', function() {
             DB.usuarios.forEach(u => { if (u.puesto === undefined) u.puesto = ''; });
             // Add Mathias if missing
             if (!DB.usuarios.find(u => u.id === 'u_mathias')) {
-                DB.usuarios.push({ id:"u_mathias", nombre:"Mathias", username:"mathias", puesto:"Lanka Team", password:btoa("lankateam26"), rol_id:"lanka_team", proyectos:["aitama","mammut"], ubicacion:"Todas", estado:"activo" });
+                DB.usuarios.push({ id:"u_mathias", nombre:"Mathias", username:"mathias", caos_name:"Mathias Neudörfer Hecker", puesto:"Lanka Team", password:btoa("lankateam26"), rol_id:"lanka_team", proyectos:["aitama","mammut"], ubicacion:"Todas", estado:"activo" });
                 _s3migrated = true;
             }
+            // Sync caos_name from seed for all existing users
+            DB.usuarios.forEach(u => {
+                const seed = DATOS_SEMILLA.usuarios.find(s => s.id === u.id);
+                if (seed && !u.caos_name) { u.caos_name = seed.caos_name; _s3migrated = true; }
+                // Add password from seed for users missing it (pre-Sprint3 localStorage)
+                if (seed && !u.password) { u.password = seed.password; _s3migrated = true; }
+            });
         }
         if (_s3migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
 
@@ -4393,7 +4438,7 @@ document.addEventListener('DOMContentLoaded', function() {
             (document.getElementById('badge-rol-text')||document.getElementById('badge-rol')).innerText = USUARIO_EQUIPO + ' · Equipo';
             document.querySelectorAll('.req-agencia').forEach(el => el.style.display = 'none');
             document.querySelectorAll('.req-no-equipo').forEach(el => el.style.display = 'none');
-            document.querySelectorAll('.req-equipo').forEach(el => el.style.display = '');
+            document.querySelectorAll('.req-equipo').forEach(el => el.style.display = 'block');
             document.getElementById('selector-sucursal').style.display = 'none';
             document.getElementById('etiqueta-cliente').style.display = 'block';
             // Navigate to Mis Tareas by default
@@ -4411,12 +4456,16 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('selector-sucursal').style.display = 'none';
             document.getElementById('etiqueta-cliente').style.display = 'block';
         }
-        // Sprint 3: apply dynamic permissions when user is logged via new system
-        if (USUARIO_ACTIVO && DB.permisos) aplicarPermisos(USUARIO_ACTIVO.rol_id);
+        // Apply dynamic permissions — infer rol_id from ROL when USUARIO_ACTIVO is null (legacy login)
+        if (DB.permisos) {
+            const _aplRol = USUARIO_ACTIVO?.rol_id || (ROL === 'equipo' ? 'equipo' : ROL === 'cliente' ? 'cliente' : 'owner');
+            aplicarPermisos(_aplRol);
+        }
         aplicarGradiente();
         renderTodas();
         _pushInit();
         setTimeout(_renderNotifPushBtn, 600);
+        setTimeout(_pushAutoPrompt, 2000);
         // Nav colapsable: init only once
         if (!document.getElementById('nav-tooltip')) initNavCollapse();
         // Sync moneda selector to active project
@@ -4484,7 +4533,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
         if(lista === 'proveedores') { const _pa=_getProveedores(SUC_ACTIVA); _pa.push({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:""}); _saveProveedores(SUC_ACTIVA,_pa); renderAdministracion(); return; }
-        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') sendToCAOS({ title: n.titulo, project: 'Marketing', assignee: n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); renderTodas();
+        DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') { const _u = (DB.usuarios||[]).find(u => u.nombre === n.asignado_a); sendToCAOS({ title: n.titulo, assignee: _u?.caos_name || n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); } renderTodas();
     }
 
     /* ====================================================
@@ -6838,21 +6887,108 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Fallback: pegar URL manualmente (usado si el Picker falla)
     function _addDriveLinkToPost(postId, idx) {
         const raw = prompt('Pega el link de Google Drive (imagen o video):');
         if (!raw) return;
         const driveId = _extractDriveId(raw.trim());
         if (!driveId) { _showToast('No se reconoció el ID de Drive — usa un link tipo /file/d/...'); return; }
-        const thumbUrl  = 'https://drive.google.com/thumbnail?id=' + driveId + '&sz=w600';
-        const embedUrl  = 'https://drive.google.com/file/d/' + driveId + '/preview';
+        _saveDriveFileToPost(postId, driveId, 'Drive:' + driveId.substring(0,10));
+    }
+
+    function _saveDriveFileToPost(postId, driveId, nombre) {
+        const thumbUrl = 'https://drive.google.com/thumbnail?id=' + driveId + '&sz=w600';
+        const embedUrl = 'https://drive.google.com/file/d/' + driveId + '/preview';
         const ki = (DB.datos[SUC_ACTIVA].kanban||[]).findIndex(k=>k.id===postId);
         if (ki < 0) return;
         const k = DB.datos[SUC_ACTIVA].kanban[ki];
         if (!k.archivos) k.archivos = [];
-        k.archivos.push({ nombre: 'Drive:' + driveId.substring(0,10), preview_url: embedUrl, thumbnail_url: thumbUrl, drive_id: driveId });
+        k.archivos.push({ nombre: nombre||('Drive:'+driveId.substring(0,10)), preview_url: embedUrl, thumbnail_url: thumbUrl, drive_id: driveId });
         guardarBD();
         renderOrquestacion();
-        _showToast('Link de Drive vinculado ✓');
+        _showToast('✓ Archivo vinculado desde Drive');
+    }
+
+    /* ===== GOOGLE DRIVE PICKER ===== */
+    const _GAPI_KEY      = 'AIzaSyBjsWc6MunqKuTK8ENUKaf2POCY8QGRv_o';
+    const _GOAUTH_CLIENT = '279622918546-fcoc7slmscqqir247q8jv5p43n3cbpj3.apps.googleusercontent.com';
+    let _gapiReady = false, _gapiToken = null;
+
+    function _drivePickerEnsureReady() {
+        return new Promise((resolve) => {
+            if (_gapiReady) { resolve(true); return; }
+            const check = () => {
+                if (window.gapi && window.google?.accounts) {
+                    gapi.load('picker', () => { _gapiReady = true; resolve(true); });
+                } else {
+                    setTimeout(check, 300);
+                }
+            };
+            check();
+        });
+    }
+
+    async function _drivePickerAbrir(postId, idx) {
+        _showToast('Abriendo Google Drive…');
+        const ready = await Promise.race([
+            _drivePickerEnsureReady(),
+            new Promise(r => setTimeout(() => r(false), 6000))
+        ]);
+        if (!ready) {
+            // Fallback si los scripts no cargaron
+            _showToast('No se pudo cargar el Picker — pega el link manualmente');
+            _addDriveLinkToPost(postId, idx);
+            return;
+        }
+
+        const _buildPicker = (token) => {
+            const suc      = DB.sucursales.find(s => s.id === SUC_ACTIVA);
+            const folderId = _extractDriveId((suc?.drive_contenido_url) || '');
+
+            let imgView = new google.picker.DocsView(google.picker.ViewId.DOCS_IMAGES)
+                .setIncludeFolders(true);
+            let vidView = new google.picker.DocsView(google.picker.ViewId.DOCS_VIDEOS)
+                .setIncludeFolders(true);
+            let allView = new google.picker.DocsView()
+                .setIncludeFolders(true)
+                .setSelectFolderEnabled(false);
+            if (folderId) {
+                imgView = imgView.setParent(folderId);
+                vidView = vidView.setParent(folderId);
+                allView = allView.setParent(folderId);
+            }
+
+            new google.picker.PickerBuilder()
+                .setTitle(folderId ? 'Seleccionar archivo del proyecto' : 'Seleccionar archivo de Drive')
+                .addView(imgView)
+                .addView(vidView)
+                .addView(allView)
+                .setOAuthToken(token)
+                .setDeveloperKey(_GAPI_KEY)
+                .setCallback((data) => {
+                    if (data.action !== google.picker.Action.PICKED) return;
+                    const f = data.docs[0];
+                    _saveDriveFileToPost(postId, f.id, f.name || ('Drive:' + f.id.substring(0,10)));
+                })
+                .build()
+                .setVisible(true);
+        };
+
+        // Reusar token si sigue vigente
+        if (_gapiToken && _gapiToken.exp > Date.now()) {
+            _buildPicker(_gapiToken.token);
+            return;
+        }
+
+        google.accounts.oauth2.initTokenClient({
+            client_id: _GOAUTH_CLIENT,
+            scope: 'https://www.googleapis.com/auth/drive.readonly',
+            callback: (resp) => {
+                if (resp.error) { _showToast('Error Google: ' + resp.error); return; }
+                _gapiToken = { token: resp.access_token, exp: Date.now() + (resp.expires_in - 60) * 1000 };
+                _buildPicker(resp.access_token);
+            }
+        }).requestAccessToken({ prompt: _gapiToken ? '' : '' });
     }
 
     function _syncArchivoLocalToDam(postId, filename, postIdx, thumbUrl, videoUrl) {
@@ -7044,7 +7180,7 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
     ${canEdit ? `<div style="display:flex;gap:6px;margin-top:8px;"><input class="input-celda" style="flex:1;border:1px solid var(--color-borde);border-radius:8px;padding:6px 10px;font-size:12px;" placeholder="Pega la URL del documento de Drive..." value="${_docUrl}" onclick="event.stopPropagation()" onchange="event.stopPropagation();${_kp}.drive_doc_url=this.value.trim();guardarBD();renderOrquestacion()"></div>` : ''}
     ${_docBadge}
-    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();_handlePostFileUpload(this,'${t.id}',${idx})"><i class="fa-solid fa-folder-open"></i> Archivo local</label><button class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Vincular archivo de Google Drive" onclick="event.stopPropagation();_addDriveLinkToPost('${t.id}',${idx})"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:3px;"></i>Link Drive</button>` : ''}${_archivoLocalBadge}</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">${canEdit ? `<label class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Seleccionar archivo local" onclick="event.stopPropagation()"><input type="file" accept="image/*,video/*" style="display:none;" onclick="event.stopPropagation()" onchange="event.stopPropagation();_handlePostFileUpload(this,'${t.id}',${idx})"><i class="fa-solid fa-folder-open"></i> Archivo local</label><button class="btn btn-xs btn-fantasma" style="cursor:pointer;" title="Vincular archivo de Google Drive" onclick="event.stopPropagation();_drivePickerAbrir('${t.id}',${idx})"><i class="fa-brands fa-google-drive" style="color:#4285F4;margin-right:3px;"></i>Desde Drive</button>` : ''}${_archivoLocalBadge}</div>
     ${_previewBlock}
   </div>
   ${_sep}
@@ -7103,6 +7239,12 @@ document.addEventListener('DOMContentLoaded', function() {
         const d = DB.datos[SUC_ACTIVA];
         const canEdit = _getPermisos('calendario', 'editar');
         const ro = canEdit ? '' : 'readonly';
+        // Mostrar botón carpeta Drive si el proyecto tiene URL configurada
+        const _btnDrive = document.getElementById('btn-carpeta-drive');
+        if (_btnDrive) {
+            const _driveUrl = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).drive_contenido_url||'';
+            _btnDrive.style.display = _driveUrl ? '' : 'none';
+        }
         let kHTML = {'Ideas':'','Producción':'','Revisión':'','Programado':'','Publicado':''};
         let pHTML = '';
         let targetOpts = d.target.map(t => `<option value="${t.id}">${t.segmento}</option>`).join('');
@@ -7129,7 +7271,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('contenedor-parrilla').innerHTML = pHTML;
         // Restore expanded state
         _openCardIds.forEach(id => { const el = document.getElementById(id); if (el) el.classList.add('open'); });
-        document.querySelectorAll('.req-agencia').forEach(el => el.style.display = ROL === 'cliente' ? 'none' : '');
+        document.querySelectorAll('.req-agencia').forEach(el => el.style.display = (ROL === 'cliente' || ROL === 'equipo') ? 'none' : '');
     }
 
     // ── DAM: constantes de categorías ────────────────────────────────
@@ -7211,7 +7353,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!contenedor) return;
 
         const _damProjDrive = (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).drive_contenido_url || '';
-        const _damDriveBar = _damProjDrive
+        const _damDriveBar = (canEdit && _damProjDrive)
             ? `<div style="grid-column:1/-1;margin-bottom:4px;"><a href="${_damProjDrive}" target="_blank" rel="noopener" class="btn btn-fantasma" style="display:inline-flex;align-items:center;gap:8px;"><i class="fa-brands fa-google-drive" style="color:#4285F4;font-size:13px;"></i> Abrir carpeta del proyecto en Drive</a></div>`
             : '';
 
@@ -9614,12 +9756,46 @@ document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('notif-push-btn-wrap');
         if (!el) return;
         const estado = await _pushEstado();
-        if (estado === 'unsupported') { el.innerHTML = ''; return; }
+        if (estado === 'unsupported' || estado === 'denied') { el.innerHTML = ''; return; }
         if (estado === 'subscribed') {
             el.innerHTML = `<button class="btn btn-xs btn-fantasma" style="font-size:10px;color:var(--texto-secundario);" onclick="_pushCancelar()"><i class="fa-solid fa-bell-slash" style="margin-right:4px;"></i>Desactivar push</button>`;
         } else {
             el.innerHTML = `<button class="btn btn-xs btn-primario" style="font-size:10px;" onclick="_pushSolicitar()"><i class="fa-solid fa-bell" style="margin-right:4px;"></i>Activar notificaciones push</button>`;
         }
+    }
+
+    async function _pushAutoPrompt() {
+        // Mostrar banner una sola vez por usuario/browser para pedir permiso
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+        if (Notification.permission === 'denied') return;
+        const key = '_push_prompt_' + (USUARIO_ACTIVO?.id || 'guest');
+        if (localStorage.getItem(key)) return;
+        const estado = await _pushEstado();
+        if (estado === 'subscribed') return;
+        // Marcar como mostrado antes de crear el banner
+        localStorage.setItem(key, '1');
+        const banner = document.createElement('div');
+        banner.id = '_push_banner';
+        banner.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1C1A17;color:#fff;border-radius:14px;padding:14px 20px;display:flex;align-items:center;gap:14px;z-index:99990;box-shadow:0 8px 32px rgba(0,0,0,.35);max-width:420px;width:92vw;animation:_slideUp .3s ease;';
+        banner.innerHTML = `
+            <i class="fa-solid fa-bell" style="color:#C4855A;font-size:20px;flex-shrink:0;"></i>
+            <div style="flex:1;min-width:0;">
+                <div style="font-size:13px;font-weight:700;margin-bottom:2px;">Activar notificaciones</div>
+                <div style="font-size:11px;opacity:.7;line-height:1.4;">Recibe alertas de aprobaciones, rechazos y menciones aunque tengas la app cerrada.</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-shrink:0;">
+                <button class="btn btn-xs btn-primario" style="font-size:11px;white-space:nowrap;" onclick="document.getElementById('_push_banner')?.remove();_pushSolicitar()">Activar</button>
+                <button style="background:none;border:none;color:#fff;opacity:.5;cursor:pointer;font-size:16px;padding:2px 6px;" onclick="document.getElementById('_push_banner')?.remove()" title="Cerrar">×</button>
+            </div>`;
+        if (!document.getElementById('_push_banner_style')) {
+            const st = document.createElement('style');
+            st.id = '_push_banner_style';
+            st.textContent = '@keyframes _slideUp{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}';
+            document.head.appendChild(st);
+        }
+        document.body.appendChild(banner);
+        // Auto-cierra a los 12 segundos
+        setTimeout(() => banner.remove(), 12000);
     }
 
     /* ============= PARTE 4 — GUIÓN GENERADO POR IA ============= */
@@ -11188,41 +11364,107 @@ document.addEventListener('DOMContentLoaded', function() {
        SPRINT 2 — NUEVAS FUNCIONES
        ================================================================ */
 
-    function renderMisTareas() {
+    async function renderMisTareas() {
         const el = document.getElementById('mis-tareas-lista');
         if (!el) return;
-        if (ROL !== 'equipo') { el.innerHTML = ''; return; }
+        const rolId = USUARIO_ACTIVO?.rol_id || '';
+        const esGestor = ['owner', 'direccion', 'lanka_team'].includes(rolId);
+        if (ROL === 'cliente') { el.innerHTML = ''; return; }
+
+        // --- Sección 1: publicaciones del kanban asignadas (solo equipo/coordinador) ---
         const kanban = DB.datos[SUC_ACTIVA].kanban || [];
-        const mis = kanban.filter(t => t.asignado_a === USUARIO_EQUIPO);
-        if (!mis.length) {
-            el.innerHTML = `<div style="text-align:center; padding:72px 40px; color:var(--texto-secundario); background:#FFFFFF; border-radius:20px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave);"><i class="fa-solid fa-list-check" style="font-size:44px; opacity:0.18; display:block; margin-bottom:20px; color:var(--color-primario);"></i><p style="font-size:15px; font-weight:600; color:var(--texto-principal); margin-bottom:8px;">Sin tareas asignadas</p><p style="font-size:13px;">Aquí aparecerán las publicaciones que te asignen.</p></div>`;
-            return;
-        }
+        const mis = esGestor ? [] : kanban.filter(t => t.asignado_a === USUARIO_EQUIPO);
         const estadoCls = { 'Ideas': 'estado-pendiente', 'Producción': 'estado-produccion', 'Revisión': 'estado-revisar', 'Programado': 'estado-listo' };
-        el.innerHTML = [...mis].sort((a, b) => new Date(a.fecha+'T'+(a.hora||'00:00')) - new Date(b.fecha+'T'+(b.hora||'00:00'))).map(t => {
-            const cls = estadoCls[t.estado] || 'estado-pendiente';
-            const tagsH = t.tags ? t.tags.split(',').map(tag => { let l = tag.trim().toLowerCase(); let c = 'gris'; if(l.includes('reel')) c='reel'; if(l.includes('asmr')) c='asmr'; if(l.includes('pauta')) c='pauta'; return `<span class="tag ${c}">${tag.trim()}</span>`; }).join('') : '';
-            return `<div class="mis-tareas-card">
-                <div class="mis-tareas-fecha">
-                    <div class="mis-tareas-hora">${t.fecha}</div>
-                    <div class="mis-tareas-dia-val">${t.hora || '—'}</div>
-                </div>
-                <div style="flex:1; min-width:0;">
-                    <div style="font-family:var(--font-display); font-size:16px; font-weight:800; margin-bottom:6px; line-height:1.3; color:var(--texto-principal);">${t.titulo}</div>
-                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">${tagsH}</div>
-                    ${t.copy ? `<div style="font-size:13px; color:var(--texto-secundario); line-height:1.5; font-style:italic; border-left:3px solid var(--color-borde-fuerte); padding-left:10px;">${t.copy.substring(0,120)}${t.copy.length>120?'…':''}</div>` : ''}
-                </div>
-                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0;">
-                    <span class="estado-badge ${cls}">${t.estado}</span>
-                    ${t.estado !== 'Programado' ? `<button class="btn btn-xs btn-primario" onclick="completarTarea('${t.id}')"><i class="fa-solid fa-check"></i> Completar</button>` : `<span style="font-size:11px; color:var(--color-exito); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Listo</span>`}
-                </div>
-            </div>`;
-        }).join('');
+        let kanbanHTML = '';
+        if (mis.length) {
+            kanbanHTML = [...mis].sort((a,b)=>new Date(a.fecha+'T'+(a.hora||'00:00'))-new Date(b.fecha+'T'+(b.hora||'00:00'))).map(t => {
+                const cls = estadoCls[t.estado] || 'estado-pendiente';
+                const tagsH = t.tags ? t.tags.split(',').map(tag => { let l=tag.trim().toLowerCase(); let c='gris'; if(l.includes('reel'))c='reel'; if(l.includes('asmr'))c='asmr'; if(l.includes('pauta'))c='pauta'; return `<span class="tag ${c}">${tag.trim()}</span>`; }).join('') : '';
+                return `<div class="mis-tareas-card">
+                    <div class="mis-tareas-fecha">
+                        <div class="mis-tareas-hora">${t.fecha}</div>
+                        <div class="mis-tareas-dia-val">${t.hora || '—'}</div>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-family:var(--font-display); font-size:16px; font-weight:800; margin-bottom:6px; line-height:1.3; color:var(--texto-principal);">${t.titulo}</div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:8px;">${tagsH}</div>
+                        ${t.copy ? `<div style="font-size:13px; color:var(--texto-secundario); line-height:1.5; font-style:italic; border-left:3px solid var(--color-borde-fuerte); padding-left:10px;">${t.copy.substring(0,120)}${t.copy.length>120?'…':''}</div>` : ''}
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px; flex-shrink:0;">
+                        <span class="estado-badge ${cls}">${t.estado}</span>
+                        ${t.estado !== 'Programado' ? `<button class="btn btn-xs btn-primario" onclick="completarTarea('${t.id}')"><i class="fa-solid fa-check"></i> Completar</button>` : `<span style="font-size:11px; color:var(--color-exito); font-weight:700;"><i class="fa-solid fa-circle-check"></i> Listo</span>`}
+                    </div>
+                </div>`;
+            }).join('');
+        } else {
+            kanbanHTML = `<div style="text-align:center; padding:32px 24px; color:var(--texto-secundario); background:#FFFFFF; border-radius:16px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); font-size:13px; font-weight:600;">Sin publicaciones asignadas</div>`;
+        }
+
+        el.innerHTML = `
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--color-borde);">
+                <h3 style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--texto-secundario); margin:0;">Producción asignada</h3>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:14px; margin-bottom:28px;">${kanbanHTML}</div>
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; padding-bottom:8px; border-bottom:2px solid var(--color-borde);">
+                <h3 style="font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:0.06em; color:var(--texto-secundario); margin:0;">Tareas</h3>
+                <button class="btn btn-xs btn-fantasma" onclick="renderMisTareas()" title="Recargar"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+            <div id="caos-tareas-lista" style="display:flex; flex-direction:column; gap:10px;">
+                <div style="text-align:center; padding:24px; color:var(--texto-secundario); font-size:13px;"><i class="fa-solid fa-spinner fa-spin" style="margin-right:6px;"></i> Cargando…</div>
+            </div>
+        `;
+
+        // --- Sección 2: tareas (async desde CAOS) ---
+        try {
+            const caosNombre = USUARIO_ACTIVO?.caos_name || USUARIO_ACTIVO?.username || '';
+            const verTodas = ['coordinador', 'owner', 'direccion', 'lanka_team'].includes(rolId);
+            let qs = caosNombre ? `?assignee=${encodeURIComponent(caosNombre)}` : '';
+            if (!verTodas && !qs) qs = `?assignee=${encodeURIComponent(USUARIO_EQUIPO)}`;
+            const tareas = await _caosGetTareas(qs);
+            const caosEl = document.getElementById('caos-tareas-lista');
+            if (!caosEl) return;
+            const activas = tareas.filter(t => t.status !== 'done');
+            if (!activas.length) {
+                caosEl.innerHTML = `<div style="text-align:center; padding:32px 24px; background:#FFFFFF; border-radius:16px; border:1px solid var(--color-borde); box-shadow:var(--sombra-suave); font-size:13px; font-weight:600; color:var(--texto-secundario);">Sin tareas pendientes en CAOS</div>`;
+                return;
+            }
+            const priorCls = { alta:'#ef4444', media:'#f59e0b', baja:'#6b7280' };
+            const statusLabel = { inbox:'Inbox', todo:'Por hacer', doing:'En progreso', done:'Hecho' };
+            caosEl.innerHTML = activas.map(t => {
+                const pc = priorCls[t.priority] || '#6b7280';
+                const sl = statusLabel[t.status] || (t.status||'');
+                const tid = t.id || t.title;
+                return `<div class="mis-tareas-card">
+                    <div class="mis-tareas-fecha" style="min-width:70px;">
+                        <div class="mis-tareas-hora">${t.date || '—'}</div>
+                        <div class="mis-tareas-dia-val" style="font-size:13px;">${t.time || ''}</div>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-size:15px; font-weight:800; margin-bottom:5px; color:var(--texto-principal);">${t.title}</div>
+                        ${t.description ? `<div style="font-size:12px; color:var(--texto-secundario); line-height:1.5;">${t.description.substring(0,100)}${t.description.length>100?'…':''}</div>` : ''}
+                        ${t.assignee ? `<div style="font-size:11px; color:var(--texto-secundario); margin-top:4px;"><i class="fa-solid fa-user" style="margin-right:3px;opacity:0.5;"></i>${t.assignee}</div>` : ''}
+                    </div>
+                    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px; flex-shrink:0;">
+                        ${t.priority ? `<span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:100px; background:${pc}1a; color:${pc}; border:1px solid ${pc}40;">${t.priority.toUpperCase()}</span>` : ''}
+                        <span style="font-size:11px; font-weight:600; color:var(--texto-secundario);">${sl}</span>
+                        ${t.status !== 'done' ? `<button class="btn btn-xs btn-primario" onclick="_caosMarcarDone(${JSON.stringify(tid)})"><i class="fa-solid fa-check"></i> Listo</button>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            const caosEl = document.getElementById('caos-tareas-lista');
+            if (caosEl) caosEl.innerHTML = `<div style="text-align:center; padding:20px; color:var(--texto-secundario); font-size:13px; border-radius:12px; border:1px solid var(--color-borde);">No se pudo cargar CAOS — <button class="btn btn-xs btn-fantasma" onclick="renderMisTareas()">Reintentar</button></div>`;
+        }
     }
 
     function completarTarea(id) {
         const t = DB.datos[SUC_ACTIVA].kanban.find(x => x.id === id);
-        if (t) { t.estado = 'Programado'; guardarBD(); renderMisTareas(); }
+        if (t) {
+            t.estado = 'Programado';
+            guardarBD();
+            _caosUpdateTarea(t.titulo, { status: 'done' });
+            renderMisTareas();
+        }
     }
 
     function generarShootingDesdeParrilla() {
@@ -11466,7 +11708,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         // Show Mi Trabajo section header if role has mis_tareas access
         const hasMisTareas = !!(DB.permisos.mis_tareas && DB.permisos.mis_tareas[rol_id]);
-        document.querySelectorAll('.req-equipo').forEach(el => { el.style.display = hasMisTareas ? '' : 'none'; });
+        document.querySelectorAll('.req-equipo').forEach(el => { el.style.display = hasMisTareas ? 'block' : 'none'; });
         // Update role badge
         const rol = (DB.roles_sistema||[]).find(r => r.id === rol_id);
         if (rol && USUARIO_ACTIVO) {
@@ -11602,8 +11844,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const username = generarUsername(nombre.trim());
         const pwd = generarPassword();
         if (!DB.usuarios) DB.usuarios = [];
-        DB.usuarios.push({ id, nombre: nombre.trim(), username, puesto:'', password:btoa(pwd), rol_id:'equipo', proyectos:[], ubicacion:'Todas', estado:'activo' });
+        DB.usuarios.push({ id, nombre: nombre.trim(), username, caos_name: username, puesto:'', password:btoa(pwd), rol_id:'equipo', proyectos:[], ubicacion:'Todas', estado:'activo' });
         guardarBD(); renderUsuarios();
+        _caosManageTeam('add', { id: 'm_'+username.replace(/[^a-z0-9]/gi,'_'), name: username, role: '' });
         alert(`Usuario creado.\nUsername: ${username}\nPassword temporal: ${pwd}\n\nGuarda estas credenciales.`);
     }
 
@@ -11666,8 +11909,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!u) return;
         if (USUARIO_ACTIVO && USUARIO_ACTIVO.id === id) { alert('No puedes eliminar tu propio usuario.'); return; }
         if (!confirm(`¿Eliminar permanentemente a ${u.nombre}?\nEsta acción no se puede deshacer.`)) return;
+        const caosName = u.caos_name || u.username;
         DB.usuarios = DB.usuarios.filter(u => u.id !== id);
         guardarBD(); renderUsuarios();
+        _caosManageTeam('remove', { name: caosName });
     }
 
     function limpiarCamposUsuario(id) {
@@ -12164,6 +12409,106 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('post-ia-resultado').style.display = 'none';
         document.getElementById('modal-importar-post-ia').classList.add('activo');
         setTimeout(() => document.getElementById('post-ia-json-textarea').focus(), 200);
+    }
+
+    function _abrirImportarParrilla() {
+        document.getElementById('parrilla-json-textarea').value = '';
+        document.getElementById('parrilla-error').style.display = 'none';
+        document.getElementById('parrilla-resultado').style.display = 'none';
+        document.getElementById('parrilla-progreso').style.display = 'none';
+        document.getElementById('modal-importar-parrilla').classList.add('activo');
+        setTimeout(() => document.getElementById('parrilla-json-textarea').focus(), 200);
+    }
+
+    async function importarParrillaCompleta() {
+        const raw    = (document.getElementById('parrilla-json-textarea').value || '').trim();
+        const errEl  = document.getElementById('parrilla-error');
+        const resEl  = document.getElementById('parrilla-resultado');
+        const progEl = document.getElementById('parrilla-progreso');
+        const btnEl  = document.getElementById('btn-importar-parrilla');
+        errEl.style.display = 'none'; resEl.style.display = 'none'; progEl.style.display = 'none';
+
+        // ── PASO 1: PARSEAR ────────────────────────────────────────────
+        let parsed;
+        try { parsed = JSON.parse(raw); } catch(e) {
+            errEl.textContent = 'JSON inválido: ' + e.message; errEl.style.display = 'block'; return;
+        }
+        const parrilla = parsed.parrilla;
+        if (!parrilla) { errEl.textContent = 'Falta el campo raíz "parrilla"'; errEl.style.display = 'block'; return; }
+        const posts = Array.isArray(parrilla.posts) ? parrilla.posts : [];
+        const storiesInd = Array.isArray(parrilla.stories_independientes) ? parrilla.stories_independientes : [];
+        if (!posts.length && !storiesInd.length) {
+            errEl.textContent = 'La parrilla no contiene posts ni stories independientes'; errEl.style.display = 'block'; return;
+        }
+
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d) { errEl.textContent = 'Proyecto activo no encontrado'; errEl.style.display = 'block'; return; }
+
+        // ── PASO 2: PROCESAR POSTS ─────────────────────────────────────
+        btnEl.disabled = true;
+        progEl.style.display = 'block';
+        progEl.textContent = 'Importando…';
+
+        let importados = 0, omitidos = 0, errores = [];
+        const tiposOk = ['carrusel','reel','historia','asmr'];
+
+        for (let i = 0; i < posts.length; i++) {
+            const p = posts[i];
+            progEl.textContent = `Procesando post ${i+1} de ${posts.length}…`;
+            if (!p.titulo || !p.fecha || !p.hora || !p.tipo) {
+                errores.push(`Post ${i+1}: faltan campos obligatorios (titulo, fecha, hora, tipo)`);
+                omitidos++; continue;
+            }
+            if (!tiposOk.includes((p.tipo||'').toLowerCase())) {
+                errores.push(`Post ${i+1} "${p.titulo}": tipo no válido "${p.tipo}"`);
+                omitidos++; continue;
+            }
+            try {
+                await _ejecutarImportPost({ post: p }, null);
+                importados++;
+            } catch(e) {
+                errores.push(`Post ${i+1} "${p.titulo}": ${e.message}`);
+                omitidos++;
+            }
+        }
+
+        // ── PASO 3: STORIES INDEPENDIENTES ────────────────────────────
+        if (!d.stories_ind) d.stories_ind = [];
+        let storiesAgregadas = 0;
+        for (const s of storiesInd) {
+            if (!s.dia && !s.fecha) continue;
+            const newStory = {
+                id: 'si_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+                fecha: s.dia || s.fecha,
+                hora: s.hora || '09:00',
+                tipo: (s.tipo || 'foto').toLowerCase(),
+                copy: s.copy || '',
+                cta: s.cta || '',
+                descripcion_visual: s.descripcion_visual || '',
+                estado: 'idea',
+                ts_creacion: new Date().toISOString()
+            };
+            d.stories_ind.push(newStory);
+            storiesAgregadas++;
+        }
+
+        // ── PASO 4: GUARDAR Y RENDERIZAR ──────────────────────────────
+        guardarBD();
+        renderOrquestacion();
+        btnEl.disabled = false;
+        progEl.style.display = 'none';
+
+        // ── PASO 5: MOSTRAR RESULTADO ──────────────────────────────────
+        let html = `<b>Importación completada</b><br>`;
+        html += `✅ Posts importados: <b>${importados}</b><br>`;
+        html += `📸 Stories independientes: <b>${storiesAgregadas}</b><br>`;
+        if (omitidos) html += `⚠️ Omitidos: <b>${omitidos}</b><br>`;
+        if (errores.length) {
+            html += `<details style="margin-top:8px;"><summary style="cursor:pointer;font-size:12px;color:#f59e0b;">Ver errores (${errores.length})</summary><ul style="margin:6px 0 0 12px;font-size:11px;color:#f59e0b;">` +
+                errores.map(e => `<li>${e}</li>`).join('') + '</ul></details>';
+        }
+        resEl.innerHTML = html;
+        resEl.style.display = 'block';
     }
 
     function _formatManychatFlujo(mc) {
@@ -13699,35 +14044,68 @@ function _xlsNotificarOrigenManual() {
 </div>
 <div id="notif-overlay" onclick="_toggleNotifPanel()" style="display:none;position:fixed;inset:0;z-index:8999;background:rgba(0,0,0,.15);"></div>
 
-<!-- CAOS Integration -->
+<!-- CAOS Integration v2 -->
 <script>
-  const CAOS_API = 'https://tmypjnoapglzdidrurqq.supabase.co/functions/v1/add-task';
-  const CAOS_KEY = 'caos_sk_lnk_7xK9mP2vQr3bN8dTw';
-  async function sendToCAOS({ title, description = '', project = '', assignee = '', date = '', notes = '' }) {
+  const CAOS_BASE = 'https://tmypjnoapglzdidrurqq.supabase.co/functions/v1';
+  const CAOS_KEY  = 'caos_sk_lnk_7xK9mP2vQr3bN8dTw';
+
+  function _caosProyecto() {
+    return (DB.sucursales||[]).find(s=>s.id===SUC_ACTIVA)?.nombre || 'Marketing';
+  }
+
+  async function sendToCAOS({ title, description='', project='', assignee='', date='', notes='' }) {
     try {
-      const res = await fetch(CAOS_API, {
+      const res = await fetch(`${CAOS_BASE}/add-task`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': CAOS_KEY
-        },
-        body: JSON.stringify({
-          title,
-          description,
-          project,
-          assignee,
-          date,
-          notes,
-          source: 'mkt-lanka'
-        })
+        headers: { 'Content-Type': 'application/json', 'x-api-key': CAOS_KEY },
+        body: JSON.stringify({ title, description, project: project || _caosProyecto(), assignee, date, notes, status: 'todo', source: 'mkt-lanka' })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error');
-      alert('\u2713 Tarea enviada a CAOS');
+      _showToast('\u2713 Tarea creada en CAOS');
       return data;
-    } catch (e) {
-      alert('Error enviando a CAOS: ' + e.message);
+    } catch(e) {
+      _showToast('Error CAOS: ' + e.message);
     }
+  }
+
+  async function _caosGetTareas(filtros='') {
+    const res = await fetch(`${CAOS_BASE}/get-tasks${filtros}`, {
+      headers: { 'x-api-key': CAOS_KEY }
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.tasks || data.data || []);
+  }
+
+  async function _caosUpdateTarea(idOrTitle, fields) {
+    try {
+      const idLike = typeof idOrTitle === 'string' && /^[a-f0-9-]{10,}$/i.test(idOrTitle);
+      const body = idLike ? { id: idOrTitle, ...fields } : { title: idOrTitle, ...fields };
+      const res = await fetch(`${CAOS_BASE}/update-task`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': CAOS_KEY },
+        body: JSON.stringify(body)
+      });
+      return res.ok;
+    } catch { return false; }
+  }
+
+  async function _caosMarcarDone(idOrTitle) {
+    const ok = await _caosUpdateTarea(idOrTitle, { status: 'done' });
+    if (ok) _showToast('\u2713 Completado en CAOS');
+    else _showToast('No se pudo actualizar CAOS');
+    renderMisTareas();
+  }
+
+  async function _caosManageTeam(action, user) {
+    try {
+      await fetch(`${CAOS_BASE}/manage-team`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': CAOS_KEY },
+        body: JSON.stringify({ action, user })
+      });
+    } catch(e) { console.warn('CAOS manage-team:', e); }
   }
 </script>
 </body>
