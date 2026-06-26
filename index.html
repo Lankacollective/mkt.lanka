@@ -11387,9 +11387,16 @@ document.addEventListener('DOMContentLoaded', function() {
         // --- Sección 2: tareas (async desde CAOS) ---
         try {
             const caosNombre = USUARIO_ACTIVO?.caos_name || USUARIO_ACTIVO?.username || '';
-            const verTodas = ['coordinador', 'owner', 'direccion', 'lanka_team'].includes(rolId);
-            let qs = caosNombre ? `?assignee=${encodeURIComponent(caosNombre)}` : '';
-            if (!verTodas && !qs) qs = `?assignee=${encodeURIComponent(USUARIO_EQUIPO)}`;
+            const esDireccionGlobal = ['owner', 'lanka_team'].includes(rolId);
+            let qs;
+            if (esDireccionGlobal) {
+                // Owner/lankateam: filter by active project to avoid unrelated tasks from other CAOS projects
+                const proyNombre = _caosProyecto();
+                qs = proyNombre ? `?project=${encodeURIComponent(proyNombre)}` : '';
+            } else {
+                qs = caosNombre ? `?assignee=${encodeURIComponent(caosNombre)}` : '';
+                if (!qs && USUARIO_EQUIPO) qs = `?assignee=${encodeURIComponent(USUARIO_EQUIPO)}`;
+            }
             const tareas = await _caosGetTareas(qs);
             const caosEl = document.getElementById('caos-tareas-lista');
             if (!caosEl) return;
