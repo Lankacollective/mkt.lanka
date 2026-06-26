@@ -1421,7 +1421,7 @@
         <div class="menu-titulo req-agencia">Administración</div>
         <ul class="menu-nav req-agencia">
             <li class="item-nav" data-target="vista-clientes"><i class="fa-solid fa-users-gear"></i> Proyectos</li>
-            <li class="item-nav" data-target="vista-proveedores"><i class="fa-solid fa-address-book"></i> Proveedores</li>
+            <li class="item-nav" data-target="vista-proveedores" onclick="irA('vista-proveedores');renderProveedoresCentral()"><i class="fa-solid fa-address-book"></i> Proveedores</li>
             <li class="item-nav" data-target="vista-config"><i class="fa-solid fa-gear"></i> Configuración</li>
             <li class="item-nav" data-target="vista-usuarios" onclick="irA('vista-usuarios');renderUsuarios()"><i class="fa-solid fa-id-card"></i> Usuarios</li>
             <li class="item-nav" data-target="vista-control-accesos" onclick="irA('vista-control-accesos');renderControlAccesos()"><i class="fa-solid fa-shield-halved"></i> Control de Accesos</li>
@@ -1994,10 +1994,41 @@
 
             <section id="vista-proveedores" class="seccion-app oculto">
                 <div class="encabezado-seccion" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><h1>Directorio Proveedores</h1><p>Contactos y medios externos.</p></div>
+                    <div><h1>Directorio Central de Proveedores</h1><p>Un solo directorio compartido entre todos los proyectos. Filtra por categoría, tipo o sucursal.</p></div>
                     <button class="btn btn-primario req-agencia" onclick="agregarElemento('proveedores')"><i class="fa-solid fa-plus"></i> Proveedor</button>
                 </div>
-                <div class="tarjeta"><table class="tabla-editable"><thead><tr><th>Nombre</th><th>Categoría</th><th>Contacto</th><th>Forma Pago</th><th class="req-agencia"></th></tr></thead><tbody id="tabla-proveedores"></tbody></table></div>
+                <div class="tarjeta" style="margin-bottom:16px;">
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                        <select id="filtro-prov-cat" class="select-celda" style="min-width:140px;" onchange="renderProveedoresCentral()">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                        <select id="filtro-prov-tipo" class="select-celda" style="min-width:140px;" onchange="renderProveedoresCentral()">
+                            <option value="">Compartido + Exclusivo</option>
+                            <option value="compartido">Solo compartidos</option>
+                            <option value="exclusivo">Solo exclusivos</option>
+                        </select>
+                        <select id="filtro-prov-suc" class="select-celda" style="min-width:160px;" onchange="renderProveedoresCentral()">
+                            <option value="">Todos los proyectos</option>
+                        </select>
+                        <span id="filtro-prov-count" style="font-size:12px;color:var(--texto-secundario);margin-left:4px;"></span>
+                    </div>
+                </div>
+                <div class="tarjeta">
+                    <table class="tabla-editable" id="tabla-proveedores-central">
+                        <thead><tr>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Tipo</th>
+                            <th>Dónde opera</th>
+                            <th>Proyectos</th>
+                            <th>Contacto</th>
+                            <th>Forma Pago</th>
+                            <th>Notas</th>
+                            <th class="req-agencia"></th>
+                        </tr></thead>
+                        <tbody id="tabla-proveedores"></tbody>
+                    </table>
+                </div>
             </section>
 
             <section id="vista-config" class="seccion-app oculto">
@@ -2930,6 +2961,15 @@ document.addEventListener('DOMContentLoaded', function() {
             { nombre:"Rotulación Michoacán",   categoria:"Producción",  contacto:"info@rotulacionmich.mx",     forma_pago:"Transferencia"},
             { nombre:"@foodie_morelia",        categoria:"Medios",      contacto:"foodie_morelia@gmail.com",   forma_pago:"Transferencia"}
         ],
+        proveedores_central: [
+            { id:"pc_001", nombre:"Meta Business",         categoria:"Medios",     contacto:"meta@ad.com",               forma_pago:"TC",            tipo:"compartido", ciudades:[], sucursales:[], notas:"" },
+            { id:"pc_002", nombre:"Google Ads",            categoria:"Medios",     contacto:"google@billing.com",         forma_pago:"TC",            tipo:"compartido", ciudades:[], sucursales:[], notas:"" },
+            { id:"pc_003", nombre:"Lanka Colectivo",       categoria:"Agencia",    contacto:"hola@lankacollective.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:[], sucursales:[], notas:"" },
+            { id:"pc_004", nombre:"Estudio Diego Ramírez", categoria:"Producción", contacto:"diego.ramirez@studio.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:[], sucursales:[], notas:"" },
+            { id:"pc_005", nombre:"Impresos Rápidos MRL",  categoria:"Producción", contacto:"ventas@impresosrapidos.mx",  forma_pago:"Efectivo",      tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"" },
+            { id:"pc_006", nombre:"Rotulación Michoacán",  categoria:"Producción", contacto:"info@rotulacionmich.mx",     forma_pago:"Transferencia", tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"" },
+            { id:"pc_007", nombre:"@foodie_morelia",       categoria:"Medios",     contacto:"foodie_morelia@gmail.com",   forma_pago:"Transferencia", tipo:"compartido", ciudades:["Morelia"], sucursales:[], notas:"" }
+        ],
         roles_sistema: [
             { id: "owner",       nombre: "Owner",            color: "#C4855A", editable: false },
             { id: "direccion",   nombre: "Dirección",        color: "#4A90D9", editable: true  },
@@ -3174,6 +3214,41 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             });
             if (_s8m) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
+        // Sprint 9 migration — Directorio Central de Proveedores
+        if (!DB.proveedores_central) {
+            const _central = JSON.parse(JSON.stringify(DATOS_SEMILLA.proveedores_central));
+            const _normNombre = n => (n||'').toLowerCase().trim();
+            // Absorb per-sucursal providers not already in central
+            if (DB.sucursales) {
+                DB.sucursales.forEach(s => {
+                    const _perSuc = s.proveedores_config || [];
+                    _perSuc.forEach(p => {
+                        const exists = _central.find(c => _normNombre(c.nombre) === _normNombre(p.nombre));
+                        if (exists) {
+                            // Tag with this sucursal if not already there
+                            if (!exists.sucursales.includes(s.id)) exists.sucursales.push(s.id);
+                        } else {
+                            _central.push({ id:'pc_' + Date.now() + '_' + Math.random().toString(36).slice(2,5), nombre:p.nombre||'', categoria:p.categoria||'', contacto:p.contacto||'', forma_pago:p.forma_pago||'', tipo:'compartido', ciudades:[], sucursales:[s.id], notas:'' });
+                        }
+                    });
+                });
+            }
+            DB.proveedores_central = _central;
+            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+        // Ensure each proveedor_central has all fields
+        if (DB.proveedores_central) {
+            let _s9fix = false;
+            DB.proveedores_central.forEach((p,i) => {
+                if (!p.id) { p.id = 'pc_' + Date.now() + '_' + i; _s9fix = true; }
+                if (!p.tipo) { p.tipo = 'compartido'; _s9fix = true; }
+                if (!Array.isArray(p.ciudades)) { p.ciudades = []; _s9fix = true; }
+                if (!Array.isArray(p.sucursales)) { p.sucursales = []; _s9fix = true; }
+                if (p.notas === undefined) { p.notas = ''; _s9fix = true; }
+            });
+            if (_s9fix) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
         // Sprint 5 migration — briefing expanded structure
@@ -4861,7 +4936,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if(lista === 'presupuesto') n = { categoria:"Nueva", item:"Ítem", tipo:"Pauta digital", montos_mes:Array.from({length: 12}, () => ({inversion: 0, colaboracion: 0, real: 0})) };
         if(lista === 'facturas') n = { folio:"F-", proveedor:"", concepto:"", monto:0, estado:"Pendiente" };
         if(lista === 'target') n = { id:"t"+Date.now(), segmento:"Nuevo Segmento", sexo:"Ambos", nivel:"A/B", ubicacion:"" };
-        if(lista === 'proveedores') { const _pa=_getProveedores(SUC_ACTIVA); _pa.push({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:""}); _saveProveedores(SUC_ACTIVA,_pa); renderAdministracion(); return; }
+        if(lista === 'proveedores') { _provCentralAdd({nombre:"Nuevo proveedor", categoria:"", contacto:"", forma_pago:"", tipo:"compartido", ciudades:[], sucursales:[], notas:""}); renderProveedoresCentral(); return; }
         DB.datos[SUC_ACTIVA][lista].push(n); guardarBD(); if(lista === 'kanban') { const _u = (DB.usuarios||[]).find(u => u.nombre === n.asignado_a); sendToCAOS({ title: n.titulo, assignee: _u?.caos_name || n.asignado_a || '', date: n.fecha || '', notes: n.estado || '' }); } renderTodas();
     }
 
@@ -4891,7 +4966,7 @@ document.addEventListener('DOMContentLoaded', function() {
         _actualizarLogoHeader();
         [renderDashboard, renderInsights, renderOrquestacion, renderDAM,
          renderPresupuesto, renderFacturas, renderBriefing, renderMood,
-         renderEstrategia, renderAdministracion,
+         renderEstrategia, renderAdministracion, renderProveedoresCentral,
          () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas,
          renderDirector
         ].forEach(fn => { try { fn(); } catch(e) { console.error('[renderTodas]', fn.name, e); } });
@@ -8660,14 +8735,30 @@ ${_coverHtml}
 
     // ── Per-project data helpers ────────────────────────────────────
     function _getProveedores(sucId) {
-        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
-        if (suc && Array.isArray(suc.proveedores_config)) return suc.proveedores_config;
-        if ((DB.proveedores||[]).length>0) return JSON.parse(JSON.stringify(DB.proveedores));
-        return [];
+        const central = DB.proveedores_central || [];
+        if (!sucId) return central;
+        // Returns proveedores available to this sucursal: those with no sucursal restriction OR assigned to this sucursal
+        return central.filter(p => !p.sucursales || p.sucursales.length === 0 || p.sucursales.includes(sucId));
     }
-    function _saveProveedores(sucId,arr) {
-        const suc = (DB.sucursales||[]).find(s=>s.id===sucId);
-        if (suc) { suc.proveedores_config = arr; guardarBD(); }
+    function _saveProveedores(sucId, arr) {
+        // Legacy compat — when editing from the per-project admin view we just guardarBD
+        // (the caller is updating DB.proveedores_central directly in new flow)
+        guardarBD();
+    }
+    function _provCentralAdd(prov) {
+        if (!DB.proveedores_central) DB.proveedores_central = [];
+        prov.id = prov.id || ('pc_' + Date.now() + '_' + Math.random().toString(36).slice(2,5));
+        if (!Array.isArray(prov.ciudades)) prov.ciudades = [];
+        if (!Array.isArray(prov.sucursales)) prov.sucursales = [];
+        if (prov.notas === undefined) prov.notas = '';
+        if (!prov.tipo) prov.tipo = 'compartido';
+        DB.proveedores_central.push(prov);
+        guardarBD();
+    }
+    function _provCentralDelete(id) {
+        if (!DB.proveedores_central) return;
+        DB.proveedores_central = DB.proveedores_central.filter(p => p.id !== id);
+        guardarBD();
     }
 
     function _getFormatos(sucId) {
@@ -8820,6 +8911,84 @@ ${_coverHtml}
         renderTiposProyecto();
     }
 
+    function renderProveedoresCentral() {
+        const tbEl = document.getElementById('tabla-proveedores');
+        if (!tbEl) return;
+        const central = DB.proveedores_central || [];
+        const isAdmin = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
+
+        // Populate filter selects
+        const catSel = document.getElementById('filtro-prov-cat');
+        const sucSel = document.getElementById('filtro-prov-suc');
+        if (catSel) {
+            const cats = [...new Set(central.map(p => p.categoria).filter(Boolean))].sort();
+            const curCat = catSel.value;
+            catSel.innerHTML = `<option value="">Todas las categorías</option>` + cats.map(c => `<option value="${c}" ${c===curCat?'selected':''}>${c}</option>`).join('');
+        }
+        if (sucSel) {
+            const curSuc = sucSel.value;
+            sucSel.innerHTML = `<option value="">Todos los proyectos</option>` + (DB.sucursales||[]).map(s => `<option value="${s.id}" ${s.id===curSuc?'selected':''}>${s.nombre}</option>`).join('');
+        }
+
+        const filtCat  = catSel?.value || '';
+        const filtTipo = document.getElementById('filtro-prov-tipo')?.value || '';
+        const filtSuc  = sucSel?.value || '';
+
+        let filtered = central.filter(p => {
+            if (filtCat  && p.categoria !== filtCat)  return false;
+            if (filtTipo && p.tipo     !== filtTipo)  return false;
+            if (filtSuc  && p.sucursales && p.sucursales.length > 0 && !p.sucursales.includes(filtSuc)) return false;
+            return true;
+        });
+
+        const countEl = document.getElementById('filtro-prov-count');
+        if (countEl) countEl.textContent = `${filtered.length} proveedor${filtered.length !== 1 ? 'es' : ''}`;
+
+        const cats = DB.desplegables?.cat_proveedor || [];
+        const sucursales = DB.sucursales || [];
+
+        tbEl.innerHTML = filtered.map(p => {
+            const globalIdx = central.findIndex(c => c.id === p.id);
+            const catOpts = cats.map(c => `<option value="${c}" ${c===p.categoria?'selected':''}>${c}</option>`).join('');
+            const tipoOpts = ['compartido','exclusivo'].map(t => `<option value="${t}" ${t===p.tipo?'selected':''}>${t.charAt(0).toUpperCase()+t.slice(1)}</option>`).join('');
+            const _sucNames = (p.sucursales||[]).map(id => sucursales.find(s=>s.id===id)?.nombre || id).join(', ') || '<span style="color:var(--texto-secundario);font-size:11px;">Todos</span>';
+            const _ciudades = (p.ciudades||[]).join(', ') || '—';
+            const _tipoBadge = p.tipo === 'exclusivo'
+                ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(196,133,90,.12);color:var(--color-primario);border:1px solid rgba(196,133,90,.2);">Exclusivo</span>`
+                : `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;background:rgba(74,144,217,.1);color:#4A90D9;border:1px solid rgba(74,144,217,.2);">Compartido</span>`;
+
+            if (isAdmin) {
+                const sucChecks = sucursales.map(s => {
+                    const checked = (p.sucursales||[]).includes(s.id) ? 'checked' : '';
+                    return `<label style="display:flex;align-items:center;gap:4px;font-size:11px;cursor:pointer;white-space:nowrap;"><input type="checkbox" ${checked} onchange="const _pc=DB.proveedores_central[${globalIdx}];if(!_pc.sucursales)_pc.sucursales=[];if(this.checked){if(!_pc.sucursales.includes('${s.id}'))_pc.sucursales.push('${s.id}');}else{_pc.sucursales=_pc.sucursales.filter(x=>x!=='${s.id}');}guardarBD();renderProveedoresCentral();">${s.nombre}</label>`;
+                }).join('');
+                return `<tr>
+                    <td><input class="input-celda" style="font-weight:700;" value="${(p.nombre||'').replace(/"/g,'&quot;')}" onchange="DB.proveedores_central[${globalIdx}].nombre=this.value;guardarBD();"></td>
+                    <td><select class="select-celda" onchange="DB.proveedores_central[${globalIdx}].categoria=this.value;guardarBD();">${catOpts}</select></td>
+                    <td><select class="select-celda" onchange="DB.proveedores_central[${globalIdx}].tipo=this.value;guardarBD();renderProveedoresCentral();">${tipoOpts}</select></td>
+                    <td><input class="input-celda" style="font-size:11px;" placeholder="Ciudad, Ciudad..." value="${(p.ciudades||[]).join(', ').replace(/"/g,'&quot;')}" onchange="DB.proveedores_central[${globalIdx}].ciudades=this.value.split(',').map(x=>x.trim()).filter(Boolean);guardarBD();"></td>
+                    <td><div style="display:flex;flex-direction:column;gap:4px;">${sucChecks}<div style="margin-top:4px;font-size:10px;color:var(--texto-secundario);">(sin checks = todos)</div></div></td>
+                    <td><input class="input-celda" value="${(p.contacto||'').replace(/"/g,'&quot;')}" onchange="DB.proveedores_central[${globalIdx}].contacto=this.value;guardarBD();"></td>
+                    <td><input class="input-celda" value="${(p.forma_pago||'').replace(/"/g,'&quot;')}" onchange="DB.proveedores_central[${globalIdx}].forma_pago=this.value;guardarBD();"></td>
+                    <td><input class="input-celda" style="font-size:11px;" placeholder="Notas..." value="${(p.notas||'').replace(/"/g,'&quot;')}" onchange="DB.proveedores_central[${globalIdx}].notas=this.value;guardarBD();"></td>
+                    <td><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="if(confirm('¿Eliminar?'))_provCentralDelete('${p.id}');renderProveedoresCentral();"></i></td>
+                </tr>`;
+            } else {
+                return `<tr>
+                    <td style="font-weight:700;">${p.nombre||''}</td>
+                    <td>${p.categoria||'—'}</td>
+                    <td>${_tipoBadge}</td>
+                    <td style="font-size:12px;">${_ciudades}</td>
+                    <td style="font-size:12px;">${_sucNames}</td>
+                    <td style="font-size:12px;">${p.contacto||'—'}</td>
+                    <td style="font-size:12px;">${p.forma_pago||'—'}</td>
+                    <td style="font-size:12px;color:var(--texto-secundario);">${p.notas||''}</td>
+                    <td></td>
+                </tr>`;
+            }
+        }).join('') || `<tr><td colspan="9" style="text-align:center;color:var(--texto-secundario);padding:24px;">Sin proveedores que coincidan con los filtros.</td></tr>`;
+    }
+
     function renderAdministracion() {
         document.getElementById('contenedor-clientes').innerHTML = DB.sucursales.map((s, i) => {
             let decodedPwd = ''; try { decodedPwd = atob(s.password); } catch(e) { decodedPwd = s.password; }
@@ -8921,18 +9090,10 @@ ${_coverHtml}
                 ${equipoSection}
             </div>`;
         }).join('');
-        // ── Proveedores (per project) ──────────────────────────────
-        const _provs = _getProveedores(SUC_ACTIVA);
-        document.getElementById('tabla-proveedores').innerHTML = _provs.map((p,i) => {
-            let catP = DB.desplegables.cat_proveedor.map(c=>`<option ${c===p.categoria?'selected':''}>${c}</option>`).join('');
-            return `<tr>
-                <td><input class="input-celda" style="font-weight:700;" value="${p.nombre||''}" onchange="const _pa=_getProveedores('${SUC_ACTIVA}');_pa[${i}].nombre=this.value;_saveProveedores('${SUC_ACTIVA}',_pa);"></td>
-                <td><select class="select-celda" onchange="const _pa=_getProveedores('${SUC_ACTIVA}');_pa[${i}].categoria=this.value;_saveProveedores('${SUC_ACTIVA}',_pa);">${catP}</select></td>
-                <td><input class="input-celda" value="${p.contacto||''}" onchange="const _pa=_getProveedores('${SUC_ACTIVA}');_pa[${i}].contacto=this.value;_saveProveedores('${SUC_ACTIVA}',_pa);"></td>
-                <td><input class="input-celda" value="${p.forma_pago||''}" onchange="const _pa=_getProveedores('${SUC_ACTIVA}');_pa[${i}].forma_pago=this.value;_saveProveedores('${SUC_ACTIVA}',_pa);"></td>
-                <td><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="_cfgDeleteItem('proveedores',${i})"></i></td>
-            </tr>`;
-        }).join('');
+        // ── Proveedores — now rendered in its own vista via renderProveedoresCentral() ──
+        if (document.getElementById('tabla-proveedores') && !document.getElementById('vista-proveedores')?.classList.contains('oculto')) {
+            renderProveedoresCentral();
+        }
 
         // ── Config por proyecto (Formatos + Servicios) + Global ──────
         const _isOwnerForConfig = USUARIO_ACTIVO && USUARIO_ACTIVO.rol_id === 'owner' && !ROL_SIMULADO;
