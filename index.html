@@ -1387,8 +1387,8 @@
             <li class="item-nav" data-target="vista-catalogo" onclick="irA('vista-catalogo');renderCatalogo()"><i class="fa-solid fa-book-open"></i> Catálogo</li>
         </ul>
 
-        <div class="menu-titulo req-equipo">Mi Trabajo</div>
-        <ul class="menu-nav req-equipo">
+        <div id="nav-mi-trabajo-header" class="menu-titulo" style="display:none;">Mi Trabajo</div>
+        <ul id="nav-mi-trabajo-list" class="menu-nav" style="display:none;">
             <li class="item-nav" data-target="vista-mis-tareas"><i class="fa-solid fa-list-check"></i> Mis Tareas</li>
         </ul>
 
@@ -11676,9 +11676,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const perms = DB.permisos[mod];
             item.style.display = (perms && perms[rol_id]) ? '' : 'none';
         });
-        // Show Mi Trabajo section header if role has mis_tareas access
+        // Show Mi Trabajo section directly via ID (no class dependency)
         const hasMisTareas = !!(DB.permisos.mis_tareas && DB.permisos.mis_tareas[rol_id]);
-        document.querySelectorAll('.req-equipo').forEach(el => { el.style.display = hasMisTareas ? 'block' : 'none'; });
+        const _mtH = document.getElementById('nav-mi-trabajo-header');
+        const _mtL = document.getElementById('nav-mi-trabajo-list');
+        if (_mtH) _mtH.style.display = hasMisTareas ? '' : 'none';
+        if (_mtL) _mtL.style.display = hasMisTareas ? '' : 'none';
         // Update role badge
         const rol = (DB.roles_sistema||[]).find(r => r.id === rol_id);
         if (rol && USUARIO_ACTIVO) {
@@ -11730,7 +11733,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('banner-simulacion-rol').innerText = rol ? rol.nombre : rol_id;
         // Re-apply from scratch: show all items first then restrict
         document.querySelectorAll('.item-nav[data-target]').forEach(el => el.style.display = '');
-        document.querySelectorAll('.req-equipo').forEach(el => el.style.display = '');
         aplicarPermisos(rol_id);
     }
 
@@ -11740,7 +11742,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const sel = document.getElementById('ver-como-select'); if (sel) sel.value = '';
         // Re-apply from scratch with actual user role
         document.querySelectorAll('.item-nav[data-target]').forEach(el => el.style.display = '');
-        document.querySelectorAll('.req-equipo').forEach(el => el.style.display = '');
         if (USUARIO_ACTIVO) aplicarPermisos(USUARIO_ACTIVO.rol_id);
         // Navigate to first visible section
         const firstVisible = document.querySelector('.item-nav[data-target]:not([style*="none"])');
