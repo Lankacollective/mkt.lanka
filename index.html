@@ -2808,11 +2808,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     { id:"t_m4", segmento:"Universitarios 18-25",  sexo:"Ambos",  nivel:"C+",  ubicacion:"Zona Universitaria Morelia" }
                 ],
                 ads: [
-                    { id:"a_m1", nombre:"Awareness — Pizza Artesanal Morelia", categoria:"Awareness",     plataforma:"Meta",   inversion:10400, alcance:48200, clics:1940, conversiones:186, cpr:55.9, segmento:"Foodies 25-38 · Morelia 5km", estado:"Activa",  inicio:"2026-05-01", fin:"2026-06-30" },
-                    { id:"a_m2", nombre:"Jueves 2x1 — Conversión",             categoria:"Conversión",    plataforma:"Meta",   inversion:4800,  alcance:22100, clics:1120, conversiones:94,  cpr:51.1, segmento:"Parejas 22-35 · Morelia",    estado:"Activa",  inicio:"2026-05-15", fin:"2026-07-31" },
-                    { id:"a_m3", nombre:"Google Local — Búsqueda pizza",       categoria:"Performance",   plataforma:"Google", inversion:3950,  alcance:18400, clics:2310, conversiones:145, cpr:27.2, segmento:"Búsqueda: pizza morelia",      estado:"Activa",  inicio:"2026-01-01", fin:"2026-12-31" },
-                    { id:"a_m4", nombre:"Retargeting — Visitantes web",        categoria:"Retargeting",   plataforma:"Meta",   inversion:1500,  alcance:8900,  clics:420,  conversiones:38,  cpr:39.5, segmento:"Visitantes web últimos 30d",   estado:"Pausada", inicio:"2026-04-01", fin:"2026-05-31" },
-                    { id:"a_m5", nombre:"Lanzamiento Pizza Verano 2026",       categoria:"Lanzamiento",   plataforma:"Meta",   inversion:0,     alcance:0,     clics:0,    conversiones:0,   cpr:0,    segmento:"Foodies 22-40 · Morelia",     estado:"Borrador",inicio:"2026-07-05", fin:"2026-07-31" }
+                    { id:"a_m1", nombre:"Awareness — Pizza Artesanal Morelia", categoria:"Awareness",     plataforma:"Meta",   inversion:10400, alcance:48200, clics:1940, conversiones:186, cpr:55.9, meta_alcance:55000, meta_clics:2200, meta_conversiones:200, meta_cpr:50, segmento:"Foodies 25-38 · Morelia 5km", estado:"Activa",  inicio:"2026-05-01", fin:"2026-06-30" },
+                    { id:"a_m2", nombre:"Jueves 2x1 — Conversión",             categoria:"Conversión",    plataforma:"Meta",   inversion:4800,  alcance:22100, clics:1120, conversiones:94,  cpr:51.1, meta_alcance:25000, meta_clics:1200, meta_conversiones:100, meta_cpr:45, segmento:"Parejas 22-35 · Morelia",    estado:"Activa",  inicio:"2026-05-15", fin:"2026-07-31" },
+                    { id:"a_m3", nombre:"Google Local — Búsqueda pizza",       categoria:"Performance",   plataforma:"Google", inversion:3950,  alcance:18400, clics:2310, conversiones:145, cpr:27.2, meta_alcance:20000, meta_clics:2500, meta_conversiones:150, meta_cpr:25, segmento:"Búsqueda: pizza morelia",      estado:"Activa",  inicio:"2026-01-01", fin:"2026-12-31" },
+                    { id:"a_m4", nombre:"Retargeting — Visitantes web",        categoria:"Retargeting",   plataforma:"Meta",   inversion:1500,  alcance:8900,  clics:420,  conversiones:38,  cpr:39.5, meta_alcance:10000, meta_clics:500,  meta_conversiones:40,  meta_cpr:35, segmento:"Visitantes web últimos 30d",   estado:"Pausada", inicio:"2026-04-01", fin:"2026-05-31" },
+                    { id:"a_m5", nombre:"Lanzamiento Pizza Verano 2026",       categoria:"Lanzamiento",   plataforma:"Meta",   inversion:0,     alcance:0,     clics:0,    conversiones:0,   cpr:0,    meta_alcance:40000, meta_clics:1800, meta_conversiones:120, meta_cpr:40, segmento:"Foodies 22-40 · Morelia",     estado:"Borrador",inicio:"2026-07-05", fin:"2026-07-31" }
                 ],
                 offline: [
                     { id:"of_m1", nombre:"Menú impreso — Diseño Verano 2026",  categoria:"Impreso",     cantidad:200, proveedor:"Impresos Rápidos MRL", costo_unit:45,  estado:"Producción", entrega:"2026-06-28" },
@@ -3308,6 +3308,18 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         if (_cardMigrated) guardarBD();
+
+        // Migrate: meta_* fields on ads
+        let _adMetaMigrated = false;
+        (DB.sucursales||[]).forEach(s => {
+            (DB.datos[s.id]?.ads||[]).forEach(a => {
+                if (a.meta_alcance     === undefined) { a.meta_alcance     = 0; _adMetaMigrated = true; }
+                if (a.meta_conversiones=== undefined) { a.meta_conversiones= 0; _adMetaMigrated = true; }
+                if (a.meta_clics       === undefined) { a.meta_clics       = 0; _adMetaMigrated = true; }
+                if (a.meta_cpr         === undefined) { a.meta_cpr         = 0; _adMetaMigrated = true; }
+            });
+        });
+        if (_adMetaMigrated) guardarBD();
 
         // ── Migración DEMO: rellenar Mammut con datos demo si está vacío ──
         _aplicarDemoMammut();
@@ -10621,12 +10633,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div>${lbl('Plataforma')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'plataforma',this.value)"><option ${a.plataforma==='Meta'?'selected':''}>Meta</option><option ${a.plataforma==='Google'?'selected':''}>Google</option><option ${a.plataforma==='TikTok'?'selected':''}>TikTok</option><option ${!['Meta','Google','TikTok'].includes(a.plataforma)?'selected':''}>Otro</option></select></div>
                     <div>${lbl('Estado')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'estado',this.value)"><option ${a.estado==='Borrador'?'selected':''}>Borrador</option><option ${a.estado==='Activa'?'selected':''}>Activa</option><option ${a.estado==='Pausada'?'selected':''}>Pausada</option><option ${a.estado==='Finalizada'?'selected':''}>Finalizada</option></select></div>
                 </div>
-                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:14px;">
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:6px;">
                     <div>${lbl('Inversión $')}${inp(a.inversion,'inversion',i,'number')}</div>
-                    <div>${lbl('Alcance')}${inp(a.alcance,'alcance',i,'number')}</div>
-                    <div>${lbl('Clics')}${inp(a.clics,'clics',i,'number')}</div>
-                    <div>${lbl('Conversiones')}${inp(a.conversiones,'conversiones',i,'number')}</div>
-                    <div>${lbl('CPR $')}${inp(a.cpr,'cpr',i,'number')}</div>
+                    <div>${lbl('Alcance real')}${inp(a.alcance,'alcance',i,'number')}</div>
+                    <div>${lbl('Clics reales')}${inp(a.clics,'clics',i,'number')}</div>
+                    <div>${lbl('Conversiones reales')}${inp(a.conversiones,'conversiones',i,'number')}</div>
+                    <div>${lbl('CPR real $')}${inp(a.cpr,'cpr',i,'number')}</div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;padding:12px 14px;background:rgba(var(--color-primario-rgb,196,133,90),0.05);border-radius:10px;border:1px solid rgba(var(--color-primario-rgb,196,133,90),0.15);">
+                    <div style="grid-column:1/-1;font-size:10px;font-weight:700;color:var(--color-primario);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Metas esperadas</div>
+                    <div>${lbl('Meta alcance')}${inp(a.meta_alcance||0,'meta_alcance',i,'number')}</div>
+                    <div>${lbl('Meta clics')}${inp(a.meta_clics||0,'meta_clics',i,'number')}</div>
+                    <div>${lbl('Meta conversiones')}${inp(a.meta_conversiones||0,'meta_conversiones',i,'number')}</div>
+                    <div>${lbl('CPR objetivo $')}${inp(a.meta_cpr||0,'meta_cpr',i,'number')}</div>
                 </div>
                 <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;align-items:end;">
                     <div>${lbl('Segmento / Audiencia')}${_renderAdSegmentoSelect(d.target||[], a, i)}</div>
@@ -10652,10 +10671,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     </div>
                     <div class="ad-cell"><div class="ad-cell-label">Inversión</div><div class="ad-cell-value">$${Number(a.inversion).toLocaleString()}</div></div>
-                    <div class="ad-cell"><div class="ad-cell-label">Alcance</div><div class="ad-cell-value">${Number(a.alcance).toLocaleString()}</div></div>
-                    <div class="ad-cell"><div class="ad-cell-label">Clics</div><div class="ad-cell-value">${Number(a.clics).toLocaleString()}</div></div>
-                    <div class="ad-cell"><div class="ad-cell-label">Conversiones</div><div class="ad-cell-value" style="color:var(--color-exito);">${a.conversiones}</div></div>
-                    <div class="ad-cell"><div class="ad-cell-label">CPR</div><div class="ad-cell-value">${a.cpr>0&&a.cpr<30?`<span style="color:var(--color-exito)">$${a.cpr}</span>`:`$${a.cpr}`}</div></div>
+                    <div class="ad-cell"><div class="ad-cell-label">Alcance</div><div class="ad-cell-value">${Number(a.alcance).toLocaleString()}</div>${(a.meta_alcance>0)?`<div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${Math.round(Number(a.alcance)/a.meta_alcance*100)}% de ${Number(a.meta_alcance).toLocaleString()}</div>`:''}</div>
+                    <div class="ad-cell"><div class="ad-cell-label">Clics</div><div class="ad-cell-value">${Number(a.clics).toLocaleString()}</div>${(a.meta_clics>0)?`<div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${Math.round(Number(a.clics)/a.meta_clics*100)}% de ${Number(a.meta_clics).toLocaleString()}</div>`:''}</div>
+                    <div class="ad-cell"><div class="ad-cell-label">Conversiones</div><div class="ad-cell-value" style="color:var(--color-exito);">${a.conversiones}</div>${(a.meta_conversiones>0)?`<div style="font-size:10px;color:var(--texto-secundario);margin-top:2px;">${Math.round(Number(a.conversiones)/a.meta_conversiones*100)}% de ${Number(a.meta_conversiones).toLocaleString()}</div>`:''}</div>
+                    <div class="ad-cell"><div class="ad-cell-label">CPR</div><div class="ad-cell-value">${a.cpr>0&&a.cpr<30?`<span style="color:var(--color-exito)">$${a.cpr}</span>`:`$${a.cpr}`}</div>${(a.meta_cpr>0)?`<div style="font-size:10px;color:${Number(a.cpr)>0&&Number(a.cpr)<=a.meta_cpr?'var(--color-exito)':'var(--texto-secundario)'};margin-top:2px;">meta $${a.meta_cpr}</div>`:''}</div>
                     <div class="ad-cell" style="text-align:center;">
                         ${canEdit ? `<i id="ad-chevron-${i}" class="fa-solid fa-chevron-down" style="color:var(--texto-secundario);font-size:11px;transition:transform .2s;${isOpen?'transform:rotate(180deg)':''}"></i>` : ''}
                     </div>
@@ -10676,7 +10695,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function actualizarAd(i, campo, valor) {
         const a = (DB.datos[SUC_ACTIVA].ads||[])[i];
         if (!a) return;
-        a[campo] = ['inversion','alcance','clics','conversiones','cpr'].includes(campo) ? (Number(valor)||0) : valor;
+        a[campo] = ['inversion','alcance','clics','conversiones','cpr','meta_alcance','meta_conversiones','meta_clics','meta_cpr'].includes(campo) ? (Number(valor)||0) : valor;
         guardarBD();
         if (campo === 'inversion' || campo === 'estado') _syncAdsToPresupuesto();
         _refreshAdsKpi();
@@ -10730,7 +10749,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function nuevoAd() {
-        const n = { id:'a'+Date.now(), nombre:"Nueva Campaña", categoria:"", plataforma:"Meta", inversion:0, alcance:0, clics:0, conversiones:0, cpr:0, segmento:"Segmento · Ubicación", estado:"Activa", inicio:new Date().toISOString().split('T')[0], fin:"" };
+        const n = { id:'a'+Date.now(), nombre:"Nueva Campaña", categoria:"", plataforma:"Meta", inversion:0, alcance:0, clics:0, conversiones:0, cpr:0, meta_alcance:0, meta_conversiones:0, meta_clics:0, meta_cpr:0, segmento:"Segmento · Ubicación", estado:"Activa", inicio:new Date().toISOString().split('T')[0], fin:"" };
         DB.datos[SUC_ACTIVA].ads.push(n); guardarBD(); renderAdsTable(); setTimeout(renderAdsCharts, 50);
     }
 
