@@ -3031,6 +3031,8 @@ document.addEventListener('DOMContentLoaded', function() {
             DB.usuarios.forEach(u => {
                 const seed = DATOS_SEMILLA.usuarios.find(s => s.id === u.id);
                 if (seed && !u.caos_name) { u.caos_name = seed.caos_name; _s3migrated = true; }
+                // Add password from seed for users missing it (pre-Sprint3 localStorage)
+                if (seed && !u.password) { u.password = seed.password; _s3migrated = true; }
             });
         }
         if (_s3migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
@@ -4424,8 +4426,11 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('selector-sucursal').style.display = 'none';
             document.getElementById('etiqueta-cliente').style.display = 'block';
         }
-        // Sprint 3: apply dynamic permissions when user is logged via new system
-        if (USUARIO_ACTIVO && DB.permisos) aplicarPermisos(USUARIO_ACTIVO.rol_id);
+        // Apply dynamic permissions — infer rol_id from ROL when USUARIO_ACTIVO is null (legacy login)
+        if (DB.permisos) {
+            const _aplRol = USUARIO_ACTIVO?.rol_id || (ROL === 'equipo' ? 'equipo' : ROL === 'cliente' ? 'cliente' : 'owner');
+            aplicarPermisos(_aplRol);
+        }
         aplicarGradiente();
         renderTodas();
         _pushInit();
