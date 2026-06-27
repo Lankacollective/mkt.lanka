@@ -3301,6 +3301,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (_s10fix) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
 
+        // Sprint 10b migration — upsert seed clients to ensure correct passwords always
+        {
+            let _s10b = false;
+            if (!DB.clientes) { DB.clientes = []; _s10b = true; }
+            (DATOS_SEMILLA.clientes || []).forEach(seedCl => {
+                const existing = DB.clientes.find(c => c.id === seedCl.id);
+                if (!existing) {
+                    DB.clientes.push(JSON.parse(JSON.stringify(seedCl)));
+                    _s10b = true;
+                } else if (existing.password !== seedCl.password) {
+                    existing.password = seedCl.password;
+                    _s10b = true;
+                }
+            });
+            if (_s10b) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        }
+
         // Sprint 5 migration — briefing expanded structure
         if (DB.datos) {
             let _s5migrated = false;
@@ -12753,10 +12770,6 @@ ${_coverHtml}
             const initials = u.nombre.split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase() || '?';
             let pwd = ''; try { pwd = atob(u.password); } catch(e) {}
             const rolesOpts = (DB.roles_sistema||[]).map(r => `<option value="${r.id}" ${r.id===u.rol_id?'selected':''}>${r.nombre}</option>`).join('');
-            const _uPids = u.proyectos && u.proyectos.length ? u.proyectos : [SUC_ACTIVA];
-            const _uUbics = [...new Set(_uPids.flatMap(pid => _getUbicacionesSuc(pid)))];
-            if (!_uUbics.includes('Todas')) _uUbics.unshift('Todas');
-            const ubicOpts  = _uUbics.map(ub => `<option value="${ub}" ${ub===u.ubicacion?'selected':''}>${ub}</option>`).join('');
             const proyOpts  = (DB.sucursales||[]).map(p => `<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;padding:6px 12px;border:1px solid var(--color-borde);border-radius:8px;background:var(--color-tarjeta);"><input type="checkbox" id="u-proy-${u.id}-${p.id}" ${(u.proyectos||[]).includes(p.id)?'checked':''}> ${p.nombre}</label>`).join('');
             return `<div class="usuario-card" id="u-card-${u.id}">
                 <div class="usuario-card-header" onclick="toggleExpandirUsuario('${u.id}')">
@@ -12781,7 +12794,6 @@ ${_coverHtml}
                             <div class="pwd-field-wrap"><input class="input-celda" id="u-pwd-${u.id}" type="password" value="${pwd}" style="border:1px solid var(--color-borde);font-family:monospace;"><i class="fa-solid fa-eye pwd-toggle-eye" onclick="togglePwd('u-pwd-${u.id}')"></i></div>
                             <button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="resetPasswordUsuario('${u.id}')"><i class="fa-solid fa-rotate"></i> Resetear password</button>
                         </div>
-                        <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Ubicación</label><select class="select-celda" id="u-ubicacion-${u.id}" style="border:1px solid var(--color-borde);">${ubicOpts}</select></div>
                     </div>
                     <div style="margin-bottom:18px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:10px;">Proyectos asignados</label><div style="display:flex;gap:10px;flex-wrap:wrap;">${proyOpts}</div></div>
                     <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--color-borde);">
