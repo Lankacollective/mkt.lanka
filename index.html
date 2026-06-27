@@ -9151,7 +9151,7 @@ ${_coverHtml}
                 </div>
                 <div style="font-size:11px;color:var(--texto-secundario);">${sucCount} sucursal${sucCount!==1?'es':''}</div>
                 <div style="margin-top:8px;font-size:10px;font-weight:700;color:var(--texto-secundario);">CONTRASEÑA DIRECTOR</div>
-                <input class="input-celda" style="font-size:12px;border:1px solid var(--color-borde);margin-top:4px;" value="${(()=>{try{return atob(cl.password||'');}catch(e){return cl.password||'';}})()" onchange="DB.clientes[${ci}].password=btoa(this.value);guardarBD();">
+                <input class="input-celda" style="font-size:12px;border:1px solid var(--color-borde);margin-top:4px;" value="${(()=>{try{return atob(cl.password||'');}catch(e){return cl.password||'';}})()}" onchange="DB.clientes[${ci}].password=btoa(this.value);guardarBD();">
                 <button class="btn btn-xs btn-peligro-suave" style="margin-top:8px;width:100%;" onclick="if(confirm('¿Eliminar cliente? Las sucursales quedarán sin cliente asignado.')){DB.clientes.splice(${ci},1);guardarBD();renderAdministracion();}"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Eliminar</button>
             </div>`;
         }).join('')}
