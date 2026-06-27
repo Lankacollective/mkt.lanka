@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0A0A0A">
 
-```
 <title>LANKA - Marketing OS</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
@@ -1318,10 +1317,20 @@
         #dir-view-campanas  { page-break-before: always; break-before: page; }
         #dir-view-resultados { page-break-before: always; break-before: page; }
 
+        /* Ocultar nav móvil inferior y botones de toggle */
+        #bottom-nav { display: none !important; }
+        #dir-parrilla-btn-cal, #dir-parrilla-btn-feed { display: none !important; }
+
+        /* Mostrar AMBAS vistas de parrilla (cal + feed) en el PDF */
+        #dir-parrilla-grid { display: block !important; }
+        #dir-parrilla-feed { display: block !important; page-break-before: always; break-before: page; }
+
+        /* Ocultar botón Editar del Brand Kit */
+        #dir-brand-bar button { display: none !important; }
+
         @page { margin: 12mm 10mm; size: A4 landscape; }
     }
 </style>
-```
 
 <!-- Google Drive Picker (carga lazy al abrir el picker por primera vez) -->
 <script src="https://apis.google.com/js/api.js" async defer id="_gapi_script"></script>
@@ -1337,7 +1346,6 @@
 </head>
 <body class="tema-login">
 
-```
 <div id="pantalla-login">
     <div style="font-size:64px; font-weight:900; letter-spacing:-0.04em; margin-bottom:2px; color:#FFFFFF; font-family:var(--font-display); animation: fadeUp 0.6s ease both;">LANKA</div>
     <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.25em; color:rgba(196,133,90,0.7); margin-bottom:52px; animation: fadeUp 0.6s 0.1s ease both;">Marketing OS 2027</div>
@@ -4810,7 +4818,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const btn = document.getElementById('dir-btn-export');
         if (btn) { btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="font-size:13px;"></i> Generando...'; btn.disabled = true; }
 
-        // Asegurar que todas las vistas estén visibles para impresión
+        // Mostrar todas las vistas de tabs
         const vP = document.getElementById('dir-view-parrilla');
         const vC = document.getElementById('dir-view-campanas');
         const vR = document.getElementById('dir-view-resultados');
@@ -4820,6 +4828,17 @@ document.addEventListener('DOMContentLoaded', function() {
         if (vP) vP.style.display = '';
         if (vC) vC.style.display = '';
         if (vR) vR.style.display = '';
+
+        // Forzar render del feed visual si aún no tiene contenido
+        const feedEl = document.getElementById('dir-parrilla-feed');
+        const feedPrev = feedEl ? feedEl.style.display : '';
+        if (feedEl && !feedEl.innerHTML.trim()) {
+            const d = DB.datos[SUC_ACTIVA];
+            const sel = document.getElementById('dir-mes-sel');
+            const mesVal = sel ? sel.value : `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+            const [mesYear, mesMonth] = mesVal.split('-').map(Number);
+            _renderDirectorFeed(d, mesYear, mesMonth);
+        }
 
         // Título del documento
         const sub = document.getElementById('dir-subtitulo');
@@ -4834,8 +4853,9 @@ document.addEventListener('DOMContentLoaded', function() {
             if (vP) vP.style.display = vPprev;
             if (vC) vC.style.display = vCprev;
             if (vR) vR.style.display = vRprev;
+            if (feedEl) feedEl.style.display = feedPrev;
             if (btn) { btn.innerHTML = '<i class="fa-solid fa-file-arrow-down" style="font-size:13px;"></i> Exportar PDF'; btn.disabled = false; }
-        }, 200);
+        }, 400);
     }
 
     // ─── FIN MODO DIRECTOR ────────────────────────────────────────────────────
