@@ -11684,24 +11684,25 @@ ${_coverHtml}
                     <div>${lbl('Estado')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'estado',this.value)"><option ${a.estado==='Borrador'?'selected':''}>Borrador</option><option ${a.estado==='Activa'?'selected':''}>Activa</option><option ${a.estado==='Pausada'?'selected':''}>Pausada</option><option ${a.estado==='Finalizada'?'selected':''}>Finalizada</option></select></div>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:6px;">
-                    <div>${lbl('Inversión $')}${inp(a.inversion,'inversion',i,'number')}</div>
+                    <div>${lbl('Inversión ('+_monedaProy()+')')}${inp(a.inversion,'inversion',i,'number')}</div>
                     <div>${lbl('Alcance real')}${inp(a.alcance,'alcance',i,'number')}</div>
                     <div>${lbl('Clics reales')}${inp(a.clics,'clics',i,'number')}</div>
                     <div>${lbl('Conversiones reales')}${inp(a.conversiones,'conversiones',i,'number')}</div>
-                    <div>${lbl('CPR real $')}${inp(a.cpr,'cpr',i,'number')}</div>
+                    <div>${lbl('CPR real ('+_monedaProy()+')')}${inp(a.cpr,'cpr',i,'number')}</div>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;padding:12px 14px;background:rgba(var(--color-primario-rgb,196,133,90),0.05);border-radius:10px;border:1px solid rgba(var(--color-primario-rgb,196,133,90),0.15);">
                     <div style="grid-column:1/-1;font-size:10px;font-weight:700;color:var(--color-primario);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Metas esperadas</div>
                     <div>${lbl('Meta alcance')}${inp(a.meta_alcance||0,'meta_alcance',i,'number')}</div>
                     <div>${lbl('Meta clics')}${inp(a.meta_clics||0,'meta_clics',i,'number')}</div>
                     <div>${lbl('Meta conversiones')}${inp(a.meta_conversiones||0,'meta_conversiones',i,'number')}</div>
-                    <div>${lbl('CPR objetivo $')}${inp(a.meta_cpr||0,'meta_cpr',i,'number')}</div>
+                    <div>${lbl('CPR objetivo ('+_monedaProy()+')')}${inp(a.meta_cpr||0,'meta_cpr',i,'number')}</div>
                 </div>
                 <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;align-items:end;">
                     <div>${lbl('Segmento / Audiencia')}${_renderAdSegmentoSelect(d.target||[], a, i)}</div>
                     <div>${lbl('Fecha inicio')}${inp(a.inicio||'','inicio',i,'date')}</div>
                     <div>${lbl('Fecha fin')}${inp(a.fin||'','fin',i,'date')}</div>
                 </div>
+                <div id="ad-warn-${i}" style="margin-top:12px;">${(()=>{const ws=_adWarnings(a);return ws.length?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400E;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>${ws.join('<br>')}</div>`:'';})()}</div>
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--color-borde);display:flex;justify-content:flex-end;">
                     <button class="btn btn-xs btn-peligro-suave" onclick="delObj('ads',${i})"><i class="fa-solid fa-trash"></i> Eliminar campaña</button>
                 </div>
@@ -11742,10 +11743,50 @@ ${_coverHtml}
         if (chevron) chevron.style.transform = _adsExpanded.has(i) ? 'rotate(180deg)' : '';
     }
 
+    // Toast no intrusivo reutilizable (Fase 0)
+    function _toast(msg, tipo) {
+        let t = document.getElementById('_lanka_toast');
+        if (!t) { t = document.createElement('div'); t.id = '_lanka_toast';
+            t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;max-width:90vw;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.18);opacity:0;transition:opacity .2s;pointer-events:none;';
+            document.body.appendChild(t); }
+        const col = tipo==='error' ? '#DC2626' : tipo==='warn' ? '#B45309' : '#15803D';
+        const bg  = tipo==='error' ? '#FEE2E2' : tipo==='warn' ? '#FEF3C7' : '#DCFCE7';
+        t.style.background = bg; t.style.color = col; t.textContent = msg;
+        t.style.opacity = 1; clearTimeout(t._tmr);
+        t._tmr = setTimeout(() => { t.style.opacity = 0; }, tipo==='error'?5000:3500);
+    }
+    function _monedaProy() { return (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).moneda || 'MXN'; }
+    const _ADS_NUM_FIELDS = ['inversion','alcance','clics','conversiones','cpr','meta_alcance','meta_conversiones','meta_clics','meta_cpr'];
+    // Advertencias de consistencia derivadas SOLO de los datos (siempre exactas)
+    function _adWarnings(a) {
+        const w = []; const n = k => Number(a[k])||0;
+        const mon = _monedaProy();
+        if (n('alcance') && n('clics') > n('alcance')) w.push('Clics ('+n('clics').toLocaleString()+') mayores que Alcance ('+n('alcance').toLocaleString()+'). Revisa la captura.');
+        if (n('clics') && n('conversiones') > n('clics')) w.push('Conversiones mayores que Clics: improbable, revisa los datos.');
+        if (n('inversion') && n('conversiones')) {
+            const cprCalc = n('inversion')/n('conversiones');
+            if (n('cpr') && Math.abs(n('cpr')-cprCalc)/cprCalc > 0.3)
+                w.push('CPR capturado ('+mon+' $'+n('cpr')+') no cuadra con Inversión/Conversiones ('+mon+' $'+cprCalc.toFixed(1)+'). ¿Moneda equivocada o gasto acumulado vs. diario?');
+        }
+        if (a.estado==='Activa' && n('inversion')>0 && n('conversiones')===0)
+            w.push('Campaña activa con inversión y 0 conversiones — verifica el seguimiento de conversiones.');
+        if (a.inicio && a.fin && a.fin < a.inicio) w.push('La fecha de fin es anterior a la de inicio.');
+        return w;
+    }
+
     function actualizarAd(i, campo, valor) {
         const a = (DB.datos[SUC_ACTIVA].ads||[])[i];
         if (!a) return;
-        a[campo] = ['inversion','alcance','clics','conversiones','cpr','meta_alcance','meta_conversiones','meta_clics','meta_cpr'].includes(campo) ? (Number(valor)||0) : valor;
+        if (_ADS_NUM_FIELDS.includes(campo)) {
+            const raw = String(valor).trim().replace(/[\s,]/g,'');   // tolera separadores de miles
+            const num = Number(raw);
+            if (raw === '') { a[campo] = 0; }
+            else if (!isFinite(num) || num < 0) {
+                _toast('Valor inválido en "'+campo+'": debe ser un número ≥ 0. Se mantuvo el valor anterior.', 'error');
+                renderAdsTable();   // revierte el input (a[campo] no cambió; el panel sigue abierto)
+                return;
+            } else { a[campo] = num; }
+        } else { a[campo] = valor; }
         guardarBD();
         if (campo === 'inversion' || campo === 'estado') _syncAdsToPresupuesto();
         _refreshAdsKpi();
@@ -11767,6 +11808,11 @@ ${_coverHtml}
             if (cells[2] && campo==='clics')     cells[2].textContent = Number(a.clics).toLocaleString();
             if (cells[3] && campo==='conversiones') cells[3].textContent = a.conversiones;
         }
+        // Refresca advertencias de consistencia y avisa si aparece una nueva
+        const warnEl = document.getElementById('ad-warn-'+i);
+        const ws = _adWarnings(a);
+        if (warnEl) warnEl.innerHTML = ws.length ? `<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400E;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>${ws.join('<br>')}</div>` : '';
+        if (ws.length && _ADS_NUM_FIELDS.includes(campo)) _toast(ws[0], 'warn');
     }
 
     function renderAdsCharts() {
