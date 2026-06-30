@@ -1392,6 +1392,7 @@
 
         <div class="menu-titulo req-no-equipo">Inteligencia</div>
         <ul class="menu-nav req-no-equipo">
+            <li class="item-nav" data-target="vista-ceo" style="background:linear-gradient(135deg,var(--color-primario)18,var(--color-primario)06);border:1px solid var(--color-primario)25;font-weight:700;"><i class="fa-solid fa-chart-pie"></i> Resumen Ejecutivo</li>
             <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-gauge-high"></i> Dashboard</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
             <li class="item-nav" data-target="vista-director" style="margin-top:6px;background:linear-gradient(135deg,var(--color-primario)14,var(--color-primario)05);border:1px solid var(--color-primario)25;font-weight:700;color:var(--color-primario);"><i class="fa-solid fa-clapperboard" style="color:var(--color-primario);"></i> Modo Director</li>
@@ -2104,6 +2105,10 @@
             </section>
 
             <!-- ═══ MODO DIRECTOR ═══════════════════════════════════════════════ -->
+            <section id="vista-ceo" class="seccion-app oculto">
+                <div id="ceo-landing" style="padding:28px 32px;max-width:1200px;margin:0 auto;"></div>
+            </section>
+
             <section id="vista-director" class="seccion-app oculto">
                 <div style="padding:28px 32px;max-width:1400px;">
 
@@ -3585,6 +3590,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (target === 'vista-shooting') renderShootingGrid();
                 if (target === 'vista-dam') { _damFiltro='all'; renderDAM(); }
                 if (target === 'vista-director') renderDirector();
+                if (target === 'vista-ceo') renderLandingCEO();
             });
         });
     });
@@ -3803,6 +3809,103 @@ document.addEventListener('DOMContentLoaded', function() {
         if (f.includes('storia') || f.includes('stories') || f.includes('historia')) return 'fa-mobile-screen';
         if (f.includes('carrusel') || f.includes('carousel')) return 'fa-images';
         return 'fa-image';
+    }
+
+    // Lleva al Socio-Director a la parrilla del Modo Director para revisar/aprobar
+    function _ceoIrAParrilla() {
+        const items = document.querySelectorAll('.item-nav');
+        items.forEach(n => n.classList.remove('activo'));
+        document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto'));
+        const dv = document.getElementById('vista-director');
+        if (dv) dv.classList.remove('oculto');
+        const navD = document.querySelector('[data-target="vista-director"]');
+        if (navD) navD.classList.add('activo');
+        if (typeof renderDirector === 'function') renderDirector();
+        if (typeof dirCambiarTab === 'function') dirCambiarTab('parrilla');
+    }
+
+    // Vista CEO de aterrizaje del Socio-Director (Fase 0 #3): 4 números + semáforo +
+    // "Qué funcionó / Qué cambiamos" + CTA a la parrilla. Cero operación.
+    function renderLandingCEO() {
+        const el = document.getElementById('ceo-landing');
+        if (!el) return;
+        const d   = DB.datos[SUC_ACTIVA] || {};
+        const suc = DB.sucursales.find(s => s.id === SUC_ACTIVA) || {};
+        const mon = suc.moneda || 'MXN';
+        const tipo = suc.tipo || 'wellness';
+        const ads = d.ads || [];
+        const kb  = d.kanban || [];
+        const sum = (arr, f) => arr.reduce((a, x) => a + (Number(f(x)) || 0), 0);
+        const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        const alcanceAds = sum(ads, a => a.alcance);
+        const alcanceOrg = sum(kb,  t => (t.metricas || {}).alcance);
+        const alcanceTotal = alcanceAds + alcanceOrg;
+        const metaAlcance  = sum(ads, a => a.meta_alcance);
+        const inversion    = sum(ads, a => a.inversion);
+        const convPauta    = sum(ads, a => a.conversiones);
+        const ventasCont   = sum(kb,  t => (t.metricas || {}).ventas);
+        const resultados   = convPauta + ventasCont;
+        const leads        = sum(kb,  t => (t.metricas || {}).leads);
+        const activas      = ads.filter(a => a.estado === 'Activa').length;
+        const pend         = kb.filter(t => t.estado === 'Revisión').length;
+        const resLabel = tipo === 'restaurante' ? 'Órdenes atribuidas' : tipo === 'wellness' ? 'Citas / reservas' : 'Ventas atribuidas';
+
+        let semColor = '#9CA3AF', semTxt = 'Sin meta definida', ratio = null;
+        if (metaAlcance > 0) {
+            ratio = alcanceTotal / metaAlcance;
+            if (ratio >= 0.9)      { semColor = '#22C55E'; semTxt = 'En meta'; }
+            else if (ratio >= 0.6) { semColor = '#FBBC05'; semTxt = 'Cerca de meta'; }
+            else                   { semColor = '#EF4444'; semTxt = 'Por debajo de meta'; }
+        }
+
+        const kpi = (label, val, sub, color, icon) => `
+            <div style="background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:16px;padding:22px 24px;">
+              <div style="display:flex;align-items:center;gap:8px;color:var(--texto-secundario);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;"><i class="fa-solid ${icon}" style="color:${color};"></i>${label}</div>
+              <div style="font-family:var(--font-display);font-weight:800;font-size:34px;line-height:1;color:var(--texto-principal);">${val}</div>
+              <div style="font-size:12px;color:var(--texto-secundario);margin-top:8px;">${sub || ''}</div>
+            </div>`;
+
+        const semCard = `
+            <div style="background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;justify-content:center;">
+              <div style="display:flex;align-items:center;gap:10px;"><span style="width:16px;height:16px;border-radius:50%;background:${semColor};box-shadow:0 0 0 4px ${semColor}22;flex-shrink:0;"></span><span style="font-family:var(--font-display);font-weight:800;font-size:20px;">${semTxt}</span></div>
+              <div style="font-size:12px;color:var(--texto-secundario);margin-top:10px;">${ratio != null ? 'Alcance al ' + Math.round(ratio * 100) + '% de la meta' : 'Define metas con tu equipo LANKA'}</div>
+            </div>`;
+
+        const header = `
+            <div style="margin-bottom:24px;">
+              <div style="font-size:13px;color:var(--texto-secundario);font-weight:600;text-transform:capitalize;">${esc(suc.nombre || '')} · ${new Date().toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}</div>
+              <h1 style="margin:4px 0 0;font-size:26px;font-weight:800;font-family:var(--font-display);">Resumen Ejecutivo</h1>
+            </div>`;
+
+        const cta = `
+            <div style="margin-top:24px;">
+              <button onclick="_ceoIrAParrilla()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:800;padding:16px;border-radius:14px;border:none;background:var(--color-primario);color:#fff;cursor:pointer;">
+                <i class="fa-solid fa-clapperboard"></i>${pend > 0 ? 'Revisar y aprobar parrilla · ' + pend + ' pendiente' + (pend !== 1 ? 's' : '') : 'Ver la parrilla — todo al día'}
+              </button>
+            </div>`;
+
+        const wc = `
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:24px;">
+              <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:16px;padding:20px;">
+                <div style="font-weight:800;color:#15803D;font-size:13px;margin-bottom:10px;"><i class="fa-solid fa-arrow-trend-up" style="margin-right:6px;"></i>Qué está funcionando</div>
+                <div style="font-size:14px;color:#166534;white-space:pre-wrap;line-height:1.5;">${esc((d.txt_working || '').trim()) || '<span style="opacity:.6;">Tu equipo LANKA lo actualizará en el próximo reporte.</span>'}</div>
+              </div>
+              <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:16px;padding:20px;">
+                <div style="font-weight:800;color:#C2410C;font-size:13px;margin-bottom:10px;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i>Qué vamos a cambiar</div>
+                <div style="font-size:14px;color:#9A3412;white-space:pre-wrap;line-height:1.5;">${esc((d.txt_change || '').trim()) || '<span style="opacity:.6;">Tu equipo LANKA lo actualizará en el próximo reporte.</span>'}</div>
+              </div>
+            </div>`;
+
+        el.innerHTML = header
+            + `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">`
+            + kpi('Alcance del periodo', alcanceTotal.toLocaleString('es-MX'), (metaAlcance > 0 ? Math.round(ratio * 100) + '% de la meta' : 'sin meta definida') + (alcanceOrg ? ' · ' + alcanceOrg.toLocaleString('es-MX') + ' orgánico' : ''), '#4A90D9', 'fa-eye')
+            + kpi('Inversión en pauta', formatMoneda(inversion, mon), activas + ' campaña' + (activas !== 1 ? 's' : '') + ' activa' + (activas !== 1 ? 's' : ''), '#C4855A', 'fa-bullhorn')
+            + kpi(resLabel, resultados.toLocaleString('es-MX'), leads.toLocaleString('es-MX') + ' leads/DMs · ' + convPauta.toLocaleString('es-MX') + ' de pauta', '#22C55E', 'fa-bullseye')
+            + semCard
+            + `</div>`
+            + cta
+            + wc;
     }
 
     function renderDirector() {
@@ -5058,6 +5161,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('selector-sucursal').style.display = 'none';
                 document.getElementById('etiqueta-cliente').style.display = 'block';
             }
+            // Aterriza en la Vista CEO (Resumen Ejecutivo), no en la operación
+            document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto'));
+            const _ceoView = document.getElementById('vista-ceo');
+            if (_ceoView) _ceoView.classList.remove('oculto');
+            document.querySelectorAll('.item-nav').forEach(n => n.classList.remove('activo'));
+            const _ceoNav = document.querySelector('[data-target="vista-ceo"]');
+            if (_ceoNav) _ceoNav.classList.add('activo');
         }
         // Apply dynamic permissions — infer rol_id from ROL when USUARIO_ACTIVO is null (legacy login)
         if (DB.permisos) {
@@ -5167,7 +5277,7 @@ document.addEventListener('DOMContentLoaded', function() {
          renderPresupuesto, renderFacturas, renderBriefing, renderMood,
          renderEstrategia, renderAdministracion, renderProveedoresCentral,
          () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas,
-         renderDirector
+         renderDirector, renderLandingCEO
         ].forEach(fn => { try { fn(); } catch(e) { console.error('[renderTodas]', fn.name, e); } });
         _renderNotifBadge();
         setTimeout(() => {
