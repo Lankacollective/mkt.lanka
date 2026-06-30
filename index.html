@@ -3089,7 +3089,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     (payload) => {
                         if (payload.new?.data &&
                                 payload.new.updated_by !== (USUARIO_ACTIVO?.username || 'unknown')) {
-                            DB = payload.new.data;
+                            const incoming = payload.new.data;
+                            const incomingCount = _dbTotalItems(incoming);
+                            const currentCount  = _dbTotalItems(DB);
+                            if (currentCount > 10 && incomingCount < currentCount * 0.5) {
+                                console.error('⚠ Tiempo real BLOQUEADO: la actualización de', payload.new.updated_by,
+                                    'trae', incomingCount, 'items vs', currentCount, 'actuales — posible pérdida de datos. Se ignora.');
+                                const s = document.getElementById('status-save');
+                                if (s) {
+                                    s.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Cambio remoto sospechoso bloqueado — revisa consola';
+                                    s.style.color = '#EA4335';
+                                    s.style.opacity = 1;
+                                }
+                                return;
+                            }
+                            DB = incoming;
                             localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
                             if (typeof renderTodas === 'function') renderTodas();
                             console.log('✓ Tiempo real — actualización de:', payload.new.updated_by);
@@ -3644,6 +3658,19 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✓ Demo Mammut: datos cargados correctamente');
     }
 
+    // Cuenta elementos reales (kanban, ads, dam, etc.) en todos los proyectos de un DB.
+    // Se usa para detectar colapsos: si lo que llega tiene muchos menos items que lo
+    // que ya tenemos cargado, es señal de un guardado vacío/parcial pisando datos buenos.
+    function _dbTotalItems(db) {
+        if (!db || !db.datos) return 0;
+        let total = 0;
+        Object.values(db.datos).forEach(proyecto => {
+            if (!proyecto || typeof proyecto !== 'object') return;
+            Object.values(proyecto).forEach(v => { if (Array.isArray(v)) total += v.length; });
+        });
+        return total;
+    }
+
     // Paso 5: guardarBD — guarda en localStorage Y Supabase
     // Protege Supabase: solo se escribe después de confirmar qué hay allá.
     // Evita que un navegador nuevo sin localStorage sobreescriba datos reales.
@@ -3737,15 +3764,27 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.log('⚠ Cambios locales durante init — subiendo versión local a Supabase');
                             guardarBD();
                         } else {
-                            // Sin cambios locales — Supabase es la fuente de verdad
-                            DB = data.data;
-                            const _antesDemo = !DB._mammut_demo_v1;
-                            _aplicarDemoMammut();
-                            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-                            _supabaseVerificado = true; _migrarPwHash();
-                            if (_antesDemo && DB._mammut_demo_v1) guardarBD();
-                            console.log('✓ Datos en vivo desde Supabase:', data.updated_at);
-                            if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                            const incomingCount = _dbTotalItems(data.data);
+                            const currentCount  = _dbTotalItems(DB);
+                            if (_hadLocalData && currentCount > 10 && incomingCount < currentCount * 0.5) {
+                                // Supabase trae muchos menos items que el localStorage local —
+                                // probable colapso en la nube. Conservar lo local y volver a subirlo.
+                                console.error('⚠ Carga BLOQUEADA: Supabase tiene', incomingCount,
+                                    'items vs', currentCount, 'locales — posible pérdida en la nube. Conservando datos locales y resubiendo.');
+                                _supabaseVerificado = true; _migrarPwHash();
+                                guardarBD();
+                                if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                            } else {
+                                // Sin cambios locales — Supabase es la fuente de verdad
+                                DB = data.data;
+                                const _antesDemo = !DB._mammut_demo_v1;
+                                _aplicarDemoMammut();
+                                localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                                _supabaseVerificado = true; _migrarPwHash();
+                                if (_antesDemo && DB._mammut_demo_v1) guardarBD();
+                                console.log('✓ Datos en vivo desde Supabase:', data.updated_at);
+                                if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                            }
                         }
                     } else if (!error) {
                         clearTimeout(_supabaseRetryTimer);
