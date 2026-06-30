@@ -1392,6 +1392,7 @@
 
         <div class="menu-titulo req-no-equipo">Inteligencia</div>
         <ul class="menu-nav req-no-equipo">
+            <li class="item-nav" data-target="vista-ceo" style="background:linear-gradient(135deg,var(--color-primario)18,var(--color-primario)06);border:1px solid var(--color-primario)25;font-weight:700;"><i class="fa-solid fa-chart-pie"></i> Resumen Ejecutivo</li>
             <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-gauge-high"></i> Dashboard</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
             <li class="item-nav" data-target="vista-director" style="margin-top:6px;background:linear-gradient(135deg,var(--color-primario)14,var(--color-primario)05);border:1px solid var(--color-primario)25;font-weight:700;color:var(--color-primario);"><i class="fa-solid fa-clapperboard" style="color:var(--color-primario);"></i> Modo Director</li>
@@ -2104,6 +2105,10 @@
             </section>
 
             <!-- ═══ MODO DIRECTOR ═══════════════════════════════════════════════ -->
+            <section id="vista-ceo" class="seccion-app oculto">
+                <div id="ceo-landing" style="padding:28px 32px;max-width:1200px;margin:0 auto;"></div>
+            </section>
+
             <section id="vista-director" class="seccion-app oculto">
                 <div style="padding:28px 32px;max-width:1400px;">
 
@@ -3084,7 +3089,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     (payload) => {
                         if (payload.new?.data &&
                                 payload.new.updated_by !== (USUARIO_ACTIVO?.username || 'unknown')) {
-                            DB = payload.new.data;
+                            const incoming = payload.new.data;
+                            const incomingCount = _dbTotalItems(incoming);
+                            const currentCount  = _dbTotalItems(DB);
+                            if (currentCount > 10 && incomingCount < currentCount * 0.5) {
+                                console.error('⚠ Tiempo real BLOQUEADO: la actualización de', payload.new.updated_by,
+                                    'trae', incomingCount, 'items vs', currentCount, 'actuales — posible pérdida de datos. Se ignora.');
+                                const s = document.getElementById('status-save');
+                                if (s) {
+                                    s.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Cambio remoto sospechoso bloqueado — revisa consola';
+                                    s.style.color = '#EA4335';
+                                    s.style.opacity = 1;
+                                }
+                                return;
+                            }
+                            DB = incoming;
                             localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
                             if (typeof renderTodas === 'function') renderTodas();
                             console.log('✓ Tiempo real — actualización de:', payload.new.updated_by);
@@ -3318,7 +3337,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!existing) {
                     DB.clientes.push(JSON.parse(JSON.stringify(seedCl)));
                     _s10b = true;
-                } else if (existing.password !== seedCl.password) {
+                } else if (!existing.password) {
+                    // Solo restaurar si falta; NO sobrescribir (evita revertir el hash a btoa)
                     existing.password = seedCl.password;
                     _s10b = true;
                 }
@@ -3584,6 +3604,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (target === 'vista-shooting') renderShootingGrid();
                 if (target === 'vista-dam') { _damFiltro='all'; renderDAM(); }
                 if (target === 'vista-director') renderDirector();
+                if (target === 'vista-ceo') renderLandingCEO();
             });
         });
     });
@@ -3635,6 +3656,19 @@ document.addEventListener('DOMContentLoaded', function() {
             DB.proveedores = JSON.parse(JSON.stringify(DATOS_SEMILLA.proveedores));
         DB._mammut_demo_v1 = true;
         console.log('✓ Demo Mammut: datos cargados correctamente');
+    }
+
+    // Cuenta elementos reales (kanban, ads, dam, etc.) en todos los proyectos de un DB.
+    // Se usa para detectar colapsos: si lo que llega tiene muchos menos items que lo
+    // que ya tenemos cargado, es señal de un guardado vacío/parcial pisando datos buenos.
+    function _dbTotalItems(db) {
+        if (!db || !db.datos) return 0;
+        let total = 0;
+        Object.values(db.datos).forEach(proyecto => {
+            if (!proyecto || typeof proyecto !== 'object') return;
+            Object.values(proyecto).forEach(v => { if (Array.isArray(v)) total += v.length; });
+        });
+        return total;
     }
 
     // Paso 5: guardarBD — guarda en localStorage Y Supabase
@@ -3725,24 +3759,36 @@ document.addEventListener('DOMContentLoaded', function() {
                         clearTimeout(_supabaseRetryTimer);
                         if (_localChangedDuringInit && _hadLocalData) {
                             // El usuario editó datos reales mientras Supabase cargaba — local más reciente
-                            _supabaseVerificado = true;
+                            _supabaseVerificado = true; _migrarPwHash();
                             _localChangedDuringInit = false;
                             console.log('⚠ Cambios locales durante init — subiendo versión local a Supabase');
                             guardarBD();
                         } else {
-                            // Sin cambios locales — Supabase es la fuente de verdad
-                            DB = data.data;
-                            const _antesDemo = !DB._mammut_demo_v1;
-                            _aplicarDemoMammut();
-                            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-                            _supabaseVerificado = true;
-                            if (_antesDemo && DB._mammut_demo_v1) guardarBD();
-                            console.log('✓ Datos en vivo desde Supabase:', data.updated_at);
-                            if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                            const incomingCount = _dbTotalItems(data.data);
+                            const currentCount  = _dbTotalItems(DB);
+                            if (_hadLocalData && currentCount > 10 && incomingCount < currentCount * 0.5) {
+                                // Supabase trae muchos menos items que el localStorage local —
+                                // probable colapso en la nube. Conservar lo local y volver a subirlo.
+                                console.error('⚠ Carga BLOQUEADA: Supabase tiene', incomingCount,
+                                    'items vs', currentCount, 'locales — posible pérdida en la nube. Conservando datos locales y resubiendo.');
+                                _supabaseVerificado = true; _migrarPwHash();
+                                guardarBD();
+                                if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                            } else {
+                                // Sin cambios locales — Supabase es la fuente de verdad
+                                DB = data.data;
+                                const _antesDemo = !DB._mammut_demo_v1;
+                                _aplicarDemoMammut();
+                                localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                                _supabaseVerificado = true; _migrarPwHash();
+                                if (_antesDemo && DB._mammut_demo_v1) guardarBD();
+                                console.log('✓ Datos en vivo desde Supabase:', data.updated_at);
+                                if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                            }
                         }
                     } else if (!error) {
                         clearTimeout(_supabaseRetryTimer);
-                        _supabaseVerificado = true;
+                        _supabaseVerificado = true; _migrarPwHash();
                         _localChangedDuringInit = false;
                         console.log('✓ Supabase vacío — usuario nuevo, listo para guardar');
                         guardarBD();
@@ -3766,7 +3812,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
         } else {
             // Sin Supabase configurado: modo completamente local
-            _supabaseVerificado = true;
+            _supabaseVerificado = true; _migrarPwHash();
         }
         // Retorna inmediatamente — UI disponible sin esperar Supabase
     }
@@ -3802,6 +3848,103 @@ document.addEventListener('DOMContentLoaded', function() {
         if (f.includes('storia') || f.includes('stories') || f.includes('historia')) return 'fa-mobile-screen';
         if (f.includes('carrusel') || f.includes('carousel')) return 'fa-images';
         return 'fa-image';
+    }
+
+    // Lleva al Socio-Director a la parrilla del Modo Director para revisar/aprobar
+    function _ceoIrAParrilla() {
+        const items = document.querySelectorAll('.item-nav');
+        items.forEach(n => n.classList.remove('activo'));
+        document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto'));
+        const dv = document.getElementById('vista-director');
+        if (dv) dv.classList.remove('oculto');
+        const navD = document.querySelector('[data-target="vista-director"]');
+        if (navD) navD.classList.add('activo');
+        if (typeof renderDirector === 'function') renderDirector();
+        if (typeof dirCambiarTab === 'function') dirCambiarTab('parrilla');
+    }
+
+    // Vista CEO de aterrizaje del Socio-Director (Fase 0 #3): 4 números + semáforo +
+    // "Qué funcionó / Qué cambiamos" + CTA a la parrilla. Cero operación.
+    function renderLandingCEO() {
+        const el = document.getElementById('ceo-landing');
+        if (!el) return;
+        const d   = DB.datos[SUC_ACTIVA] || {};
+        const suc = DB.sucursales.find(s => s.id === SUC_ACTIVA) || {};
+        const mon = suc.moneda || 'MXN';
+        const tipo = suc.tipo || 'wellness';
+        const ads = d.ads || [];
+        const kb  = d.kanban || [];
+        const sum = (arr, f) => arr.reduce((a, x) => a + (Number(f(x)) || 0), 0);
+        const esc = s => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        const alcanceAds = sum(ads, a => a.alcance);
+        const alcanceOrg = sum(kb,  t => (t.metricas || {}).alcance);
+        const alcanceTotal = alcanceAds + alcanceOrg;
+        const metaAlcance  = sum(ads, a => a.meta_alcance);
+        const inversion    = sum(ads, a => a.inversion);
+        const convPauta    = sum(ads, a => a.conversiones);
+        const ventasCont   = sum(kb,  t => (t.metricas || {}).ventas);
+        const resultados   = convPauta + ventasCont;
+        const leads        = sum(kb,  t => (t.metricas || {}).leads);
+        const activas      = ads.filter(a => a.estado === 'Activa').length;
+        const pend         = kb.filter(t => t.estado === 'Revisión').length;
+        const resLabel = tipo === 'restaurante' ? 'Órdenes atribuidas' : tipo === 'wellness' ? 'Citas / reservas' : 'Ventas atribuidas';
+
+        let semColor = '#9CA3AF', semTxt = 'Sin meta definida', ratio = null;
+        if (metaAlcance > 0) {
+            ratio = alcanceTotal / metaAlcance;
+            if (ratio >= 0.9)      { semColor = '#22C55E'; semTxt = 'En meta'; }
+            else if (ratio >= 0.6) { semColor = '#FBBC05'; semTxt = 'Cerca de meta'; }
+            else                   { semColor = '#EF4444'; semTxt = 'Por debajo de meta'; }
+        }
+
+        const kpi = (label, val, sub, color, icon) => `
+            <div style="background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:16px;padding:22px 24px;">
+              <div style="display:flex;align-items:center;gap:8px;color:var(--texto-secundario);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px;"><i class="fa-solid ${icon}" style="color:${color};"></i>${label}</div>
+              <div style="font-family:var(--font-display);font-weight:800;font-size:34px;line-height:1;color:var(--texto-principal);">${val}</div>
+              <div style="font-size:12px;color:var(--texto-secundario);margin-top:8px;">${sub || ''}</div>
+            </div>`;
+
+        const semCard = `
+            <div style="background:var(--color-tarjeta);border:1px solid var(--color-borde);border-radius:16px;padding:22px 24px;display:flex;flex-direction:column;justify-content:center;">
+              <div style="display:flex;align-items:center;gap:10px;"><span style="width:16px;height:16px;border-radius:50%;background:${semColor};box-shadow:0 0 0 4px ${semColor}22;flex-shrink:0;"></span><span style="font-family:var(--font-display);font-weight:800;font-size:20px;">${semTxt}</span></div>
+              <div style="font-size:12px;color:var(--texto-secundario);margin-top:10px;">${ratio != null ? 'Alcance al ' + Math.round(ratio * 100) + '% de la meta' : 'Define metas con tu equipo LANKA'}</div>
+            </div>`;
+
+        const header = `
+            <div style="margin-bottom:24px;">
+              <div style="font-size:13px;color:var(--texto-secundario);font-weight:600;text-transform:capitalize;">${esc(suc.nombre || '')} · ${new Date().toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}</div>
+              <h1 style="margin:4px 0 0;font-size:26px;font-weight:800;font-family:var(--font-display);">Resumen Ejecutivo</h1>
+            </div>`;
+
+        const cta = `
+            <div style="margin-top:24px;">
+              <button onclick="_ceoIrAParrilla()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;font-size:15px;font-weight:800;padding:16px;border-radius:14px;border:none;background:var(--color-primario);color:#fff;cursor:pointer;">
+                <i class="fa-solid fa-clapperboard"></i>${pend > 0 ? 'Revisar y aprobar parrilla · ' + pend + ' pendiente' + (pend !== 1 ? 's' : '') : 'Ver la parrilla — todo al día'}
+              </button>
+            </div>`;
+
+        const wc = `
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-top:24px;">
+              <div style="background:#F0FDF4;border:1px solid #86EFAC;border-radius:16px;padding:20px;">
+                <div style="font-weight:800;color:#15803D;font-size:13px;margin-bottom:10px;"><i class="fa-solid fa-arrow-trend-up" style="margin-right:6px;"></i>Qué está funcionando</div>
+                <div style="font-size:14px;color:#166534;white-space:pre-wrap;line-height:1.5;">${esc((d.txt_working || '').trim()) || '<span style="opacity:.6;">Tu equipo LANKA lo actualizará en el próximo reporte.</span>'}</div>
+              </div>
+              <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:16px;padding:20px;">
+                <div style="font-weight:800;color:#C2410C;font-size:13px;margin-bottom:10px;"><i class="fa-solid fa-wand-magic-sparkles" style="margin-right:6px;"></i>Qué vamos a cambiar</div>
+                <div style="font-size:14px;color:#9A3412;white-space:pre-wrap;line-height:1.5;">${esc((d.txt_change || '').trim()) || '<span style="opacity:.6;">Tu equipo LANKA lo actualizará en el próximo reporte.</span>'}</div>
+              </div>
+            </div>`;
+
+        el.innerHTML = header
+            + `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">`
+            + kpi('Alcance del periodo', alcanceTotal.toLocaleString('es-MX'), (metaAlcance > 0 ? Math.round(ratio * 100) + '% de la meta' : 'sin meta definida') + (alcanceOrg ? ' · ' + alcanceOrg.toLocaleString('es-MX') + ' orgánico' : ''), '#4A90D9', 'fa-eye')
+            + kpi('Inversión en pauta', formatMoneda(inversion, mon), activas + ' campaña' + (activas !== 1 ? 's' : '') + ' activa' + (activas !== 1 ? 's' : ''), '#C4855A', 'fa-bullhorn')
+            + kpi(resLabel, resultados.toLocaleString('es-MX'), leads.toLocaleString('es-MX') + ' leads/DMs · ' + convPauta.toLocaleString('es-MX') + ' de pauta', '#22C55E', 'fa-bullseye')
+            + semCard
+            + `</div>`
+            + cta
+            + wc;
     }
 
     function renderDirector() {
@@ -4892,40 +5035,98 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function ejecutarLogin(e) {
+    // ===== Contraseñas: hash de un solo sentido (Fase 0) =====
+    // Reemplaza el btoa() reversible. Formato almacenado: 'v2$<saltHex>$<sha256Hex>'.
+    // Compatibilidad hacia atrás: si el valor guardado es btoa() legado, se acepta una vez
+    // y se reescribe a hash al primer login correcto (_maybeUpgradePwd).
+    async function _hashPwd(pwd, saltHex) {
+        const salt = saltHex || Array.from(crypto.getRandomValues(new Uint8Array(8))).map(b=>b.toString(16).padStart(2,'0')).join('');
+        const data = new TextEncoder().encode(salt + '|' + pwd);
+        const buf = await crypto.subtle.digest('SHA-256', data);
+        const hex = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+        return 'v2$' + salt + '$' + hex;
+    }
+    async function _verifyPwd(pwd, stored) {
+        if (!stored) return false;
+        if (typeof stored === 'string' && stored.startsWith('v2$')) {
+            const parts = stored.split('$');
+            return (await _hashPwd(pwd, parts[1])) === stored;
+        }
+        // Legado btoa() — comparar como antes (se actualiza a hash tras login correcto)
+        try { return stored === btoa(pwd); } catch(e) { return stored === pwd; }
+    }
+    async function _maybeUpgradePwd(obj, pwd) {
+        if (obj && (!obj.password || !String(obj.password).startsWith('v2$'))) {
+            obj.password = await _hashPwd(pwd);
+            guardarBD();
+        }
+    }
+    // Convierte todas las contraseñas btoa() del blob a hash. Idempotente (guard DB._pwHashed).
+    async function _migrarPwHash() {
+        if (!DB || DB._pwHashed) return;
+        const conv = async (obj) => {
+            if (obj && obj.password && !String(obj.password).startsWith('v2$')) {
+                let plain; try { plain = atob(obj.password); } catch(e) { plain = obj.password; }
+                obj.password = await _hashPwd(plain);
+            }
+        };
+        for (const u of (DB.usuarios||[])) await conv(u);
+        for (const c of (DB.clientes||[])) await conv(c);
+        for (const s of (DB.sucursales||[])) { await conv(s); for (const m of (s.equipo_miembros||[])) await conv(m); }
+        DB._pwHashed = true;
+        localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+        guardarBD();
+        console.log('✓ Contraseñas migradas a hash');
+    }
+    // Muestra una credencial UNA sola vez (el sistema ya no la guarda en claro)
+    function _credencialUnica(quien, pwd) {
+        alert('🔑 Credencial de acceso\n\n' + quien + '\nContraseña: ' + pwd + '\n\nGuárdala ahora — el sistema ya no podrá mostrarla de nuevo.');
+    }
+
+    async function ejecutarLogin(e) {
         e.preventDefault();
         const pwd = document.getElementById('input-password').value;
-        // 1. Try DB.usuarios (Sprint 3 system)
-        const usuario = (DB.usuarios || []).find(u => u.password === btoa(pwd) && u.estado === 'activo');
-        if (usuario) {
-            USUARIO_ACTIVO = usuario; USUARIO_EQUIPO = usuario.nombre; ROL_SIMULADO = null;
-            ROL = (usuario.rol_id === 'equipo' || usuario.rol_id === 'coordinador') ? 'equipo' : 'agencia';
-            const primerProyecto = (usuario.proyectos && usuario.proyectos.length) ? usuario.proyectos[0] : DB.sucursales[0].id;
-            iniciarApp(primerProyecto);
-            return;
+        // 1. DB.usuarios (sistema Sprint 3)
+        for (const u of (DB.usuarios || [])) {
+            if (u.estado === 'activo' && await _verifyPwd(pwd, u.password)) {
+                await _maybeUpgradePwd(u, pwd);
+                USUARIO_ACTIVO = u; USUARIO_EQUIPO = u.nombre; ROL_SIMULADO = null;
+                ROL = (u.rol_id === 'equipo' || u.rol_id === 'coordinador') ? 'equipo' : 'agencia';
+                const primerProyecto = (u.proyectos && u.proyectos.length) ? u.proyectos[0] : DB.sucursales[0].id;
+                iniciarApp(primerProyecto);
+                return;
+            }
         }
-        // 2. Fallback: legacy passwords
+        // 2. Fallback: contraseñas legado
         USUARIO_ACTIVO = null; ROL_SIMULADO = null;
-        if (btoa(pwd) === btoa('Lanka2026')) { ROL = 'agencia'; iniciarApp(DB.sucursales[0].id); return; }
-        for (let suc of DB.sucursales) {
-            const miembro = (suc.equipo_miembros || []).find(m => m.password === btoa(pwd));
-            if (miembro) { ROL = 'equipo'; USUARIO_EQUIPO = miembro.nombre; iniciarApp(suc.id); return; }
+        if (pwd === 'Lanka2026') { ROL = 'agencia'; iniciarApp(DB.sucursales[0].id); return; }
+        for (const suc of DB.sucursales) {
+            for (const m of (suc.equipo_miembros || [])) {
+                if (await _verifyPwd(pwd, m.password)) {
+                    await _maybeUpgradePwd(m, pwd);
+                    ROL = 'equipo'; USUARIO_EQUIPO = m.nombre; iniciarApp(suc.id); return;
+                }
+            }
         }
-        // Check client-level password (director login — sees all their sucursales)
-        let cl = (DB.clientes || []).find(c => c.password === btoa(pwd));
-        if (cl) {
-            ROL = 'cliente'; CLIENTE_ACTIVO = cl;
-            const clSucs = DB.sucursales.filter(s => s.cliente_id === cl.id);
-            iniciarApp(clSucs.length ? clSucs[0].id : DB.sucursales[0].id);
-            return;
+        // Contraseña de cliente/director (ve todas sus sucursales)
+        for (const cl of (DB.clientes || [])) {
+            if (await _verifyPwd(pwd, cl.password)) {
+                await _maybeUpgradePwd(cl, pwd);
+                ROL = 'cliente'; CLIENTE_ACTIVO = cl;
+                const clSucs = DB.sucursales.filter(s => s.cliente_id === cl.id);
+                iniciarApp(clSucs.length ? clSucs[0].id : DB.sucursales[0].id);
+                return;
+            }
         }
-        // Check sucursal-level password (branch login)
-        let s = DB.sucursales.find(x => x.password === btoa(pwd));
-        if (s) {
-            ROL = 'cliente';
-            CLIENTE_ACTIVO = (DB.clientes || []).find(c => c.id === s.cliente_id) || null;
-            iniciarApp(s.id);
-            return;
+        // Contraseña de sucursal
+        for (const s of DB.sucursales) {
+            if (await _verifyPwd(pwd, s.password)) {
+                await _maybeUpgradePwd(s, pwd);
+                ROL = 'cliente';
+                CLIENTE_ACTIVO = (DB.clientes || []).find(c => c.id === s.cliente_id) || null;
+                iniciarApp(s.id);
+                return;
+            }
         }
         // Error
         document.getElementById('error-login').style.opacity = 1; setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000);
@@ -4999,6 +5200,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('selector-sucursal').style.display = 'none';
                 document.getElementById('etiqueta-cliente').style.display = 'block';
             }
+            // Aterriza en la Vista CEO (Resumen Ejecutivo), no en la operación
+            document.querySelectorAll('.seccion-app').forEach(s => s.classList.add('oculto'));
+            const _ceoView = document.getElementById('vista-ceo');
+            if (_ceoView) _ceoView.classList.remove('oculto');
+            document.querySelectorAll('.item-nav').forEach(n => n.classList.remove('activo'));
+            const _ceoNav = document.querySelector('[data-target="vista-ceo"]');
+            if (_ceoNav) _ceoNav.classList.add('activo');
         }
         // Apply dynamic permissions — infer rol_id from ROL when USUARIO_ACTIVO is null (legacy login)
         if (DB.permisos) {
@@ -5108,7 +5316,7 @@ document.addEventListener('DOMContentLoaded', function() {
          renderPresupuesto, renderFacturas, renderBriefing, renderMood,
          renderEstrategia, renderAdministracion, renderProveedoresCentral,
          () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas,
-         renderDirector
+         renderDirector, renderLandingCEO
         ].forEach(fn => { try { fn(); } catch(e) { console.error('[renderTodas]', fn.name, e); } });
         _renderNotifBadge();
         setTimeout(() => {
@@ -7554,6 +7762,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Engagement de un post a partir de sus métricas manuales (Fase 0 #5)
+    function _engPost(m) {
+        m = m || {};
+        const a = Number(m.alcance)||0;
+        if (!a) return null;
+        const inter = (Number(m.interacciones)||0)+(Number(m.guardados)||0)+(Number(m.comentarios)||0)+(Number(m.compartidos)||0);
+        return inter/a*100;
+    }
+    function _recalcEngPost(id) {
+        const d = DB.datos[SUC_ACTIVA]; const t = (d.kanban||[]).find(x=>x.id===id); if(!t) return;
+        const e = _engPost(t.metricas); const el = document.getElementById('eng-'+id);
+        if (el) el.textContent = (e==null) ? '—' : e.toFixed(1)+'%';
+    }
+
     function _buildKanbanCard(t, idx, d, canEdit, ro, suc_info, targetOpts) {
         const _SUC = SUC_ACTIVA;
         const _kp  = `DB.datos['${_SUC}'].kanban[${idx}]`;
@@ -7718,6 +7940,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (_approvalHtml) _approvalHtml = `${_sep}${_lbl('<i class="fa-solid fa-stamp" style="color:#D97706;font-size:12px;"></i>','Aprobación')}${_approvalHtml}`;
 
+        // Resultados del post — métricas manuales (Fase 0 #5 · prepara el bucle contenido→resultado)
+        const _met = t.metricas || {};
+        const _pub = t.estado === 'Publicado';
+        const _mFL = txt => `<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:4px;">${txt}</div>`;
+        const _metInp = (campo, ph) => `<input class="input-celda" type="number" inputmode="numeric" min="0" ${ro} style="border:1px solid var(--color-borde);" value="${_met[campo]!=null?_met[campo]:''}" placeholder="${ph||'0'}" onclick="event.stopPropagation()" onchange="${_kp}.metricas=(${_kp}.metricas||{});${_kp}.metricas.${campo}=Math.max(0,Number(this.value)||0);guardarBD();_recalcEngPost('${t.id}')">`;
+        const _engNow = _engPost(_met);
+        const _metricasSection = `${_sep}${_lbl('<i class="fa-solid fa-chart-simple" style="color:#15803D;font-size:12px;"></i>','Resultados del post'+(_pub?'':' · se llenan tras publicar'))}
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px;${_pub?'':'opacity:.65;'}">
+    <div>${_mFL('Alcance')}${_metInp('alcance')}</div>
+    <div>${_mFL('Interacciones')}${_metInp('interacciones')}</div>
+    <div>${_mFL('Guardados')}${_metInp('guardados')}</div>
+    <div>${_mFL('Comentarios')}${_metInp('comentarios')}</div>
+    <div>${_mFL('Compartidos')}${_metInp('compartidos')}</div>
+    <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+      ${_mFL('Engagement')}
+      <div style="font-family:var(--font-display);font-weight:800;font-size:18px;color:#15803D;"><span id="eng-${t.id}">${_engNow!=null?_engNow.toFixed(1)+'%':'—'}</span></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;padding:12px 14px;background:rgba(21,128,61,.05);border-radius:10px;border:1px solid rgba(21,128,61,.15);">
+    <div>${_mFL('Leads / DMs generados')}${_metInp('leads')}</div>
+    <div>${_mFL((suc_info&&suc_info.tipo==='restaurante')?'Órdenes atribuidas':'Ventas / citas atribuidas')}${_metInp('ventas')}</div>
+  </div>`;
+
         // Cover image — visible en estado colapsado
         const _estColor = t.estado==='Publicado'?'#15803D':t.estado==='Programado'?'#8B5CF6':t.estado==='Revisión'?'#F59E0B':t.estado==='Aprobado'?'#22C55E':'#9CA3AF';
         const _coverHtml = _firstThumb ? `<div style="position:relative;overflow:hidden;border-radius:16px 16px 0 0;cursor:pointer;" onclick="this.closest('.content-card').classList.toggle('open')">
@@ -7822,6 +8067,7 @@ ${_coverHtml}
     </div>
     ${canEdit?`<select class="select-celda" style="font-size:11px;margin-top:6px;" onclick="event.stopPropagation()" onchange="if(!this.value)return;const _svArr=(DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[]);if(!_svArr.includes(this.value)){_svArr.push(this.value);}this.value='';guardarBD();renderOrquestacion();">${_storyAddOpts}</select>`:''}
   </div>
+  ${_metricasSection}
   ${_approvalHtml}
   ${_renderVinculosPost(t)}
   ${_canScope ? `<div style="margin-top:20px;border-top:1px solid var(--color-borde);padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
@@ -9190,17 +9436,16 @@ ${_coverHtml}
                 ${DB.sucursales.filter(s=>s.cliente_id===cl.id).map(s=>`<div style="font-size:11px;color:var(--texto-secundario);padding:2px 0;display:flex;align-items:center;gap:6px;"><div style="width:6px;height:6px;border-radius:50%;background:${s.color};flex-shrink:0;"></div><span style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;" onclick="cambiarProyecto('${s.id}')">${s.nombre}</span></div>`).join('')}
                 <button class="btn btn-xs btn-primario" style="margin-top:8px;width:100%;font-size:11px;" onclick="nuevoCliente('${cl.id}')"><i class="fa-solid fa-plus" style="margin-right:4px;"></i>Agregar sucursal</button>
                 <div style="margin-top:8px;font-size:10px;font-weight:700;color:var(--texto-secundario);">CONTRASEÑA DIRECTOR</div>
-                <input class="input-celda" style="font-size:12px;border:1px solid var(--color-borde);margin-top:4px;" value="${(()=>{try{return atob(cl.password||'');}catch(e){return cl.password||'';}})()}" onchange="DB.clientes[${ci}].password=btoa(this.value);guardarBD();">
+                <button class="btn btn-xs btn-fantasma" style="margin-top:4px;width:100%;font-size:11px;" onclick="cambiarPwdCliente(${ci})"><i class="fa-solid fa-key" style="margin-right:4px;"></i>Cambiar contraseña</button>
                 <button class="btn btn-xs btn-peligro-suave" style="margin-top:8px;width:100%;" onclick="if(confirm('¿Eliminar cliente? Las sucursales quedarán sin cliente asignado.')){DB.clientes.splice(${ci},1);guardarBD();renderAdministracion();}"><i class="fa-solid fa-trash" style="margin-right:4px;"></i>Eliminar</button>
             </div>`;
         }).join('')}
-        <div style="background:var(--color-fondo);border:2px dashed var(--color-borde);border-radius:10px;padding:12px 16px;min-width:180px;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="const n=prompt('Nombre del cliente/marca:');if(n&&n.trim()){const id='cl_'+Date.now();if(!DB.clientes)DB.clientes=[];DB.clientes.push({id,nombre:n.trim(),color:'#888888',tipo:'wellness',password:btoa(n.trim().toLowerCase()+'26')});guardarBD();renderAdministracion();}">
+        <div style="background:var(--color-fondo);border:2px dashed var(--color-borde);border-radius:10px;padding:12px 16px;min-width:180px;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="(async()=>{const n=prompt('Nombre del cliente/marca:');if(n&&n.trim()){const id='cl_'+Date.now();if(!DB.clientes)DB.clientes=[];const p=n.trim().toLowerCase()+'26';DB.clientes.push({id,nombre:n.trim(),color:'#888888',tipo:'wellness',password:await _hashPwd(p)});guardarBD();renderAdministracion();_credencialUnica('Director · '+n.trim(),p);}})()">
             <i class="fa-solid fa-plus" style="margin-right:6px;"></i> Nuevo cliente
         </div>
     </div>
 </div>` : '';
         document.getElementById('contenedor-clientes').innerHTML = _clsMgmt + DB.sucursales.map((s, i) => {
-            let decodedPwd = ''; try { decodedPwd = atob(s.password); } catch(e) { decodedPwd = s.password; }
             const usuariosProyecto = (DB.usuarios||[]).filter(u => (u.proyectos||[]).includes(s.id) && u.estado==='activo');
             const _logoActual = _getProyectoLogo(s.id);
             const _logoPreview = _logoActual
@@ -9289,7 +9534,7 @@ ${_coverHtml}
                     <select class="select-celda" style="border:1px solid var(--color-borde);width:100%;border-radius:8px;padding:8px 12px;font-weight:600;" onchange="cambiarTipoProyecto(${i},this.value)">${tipoOpts}</select>
                     <div style="font-size:11px;color:var(--texto-secundario);margin-top:4px;"><i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>Define qué métricas aparecen en el Dashboard.</div>
                 </div>
-                <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;">CONTRASEÑA CLIENTE</label><input class="input-celda" style="border:1px solid var(--color-borde);font-family:monospace;margin-top:6px;" value="${decodedPwd}" onchange="DB.sucursales[${i}].password=btoa(this.value);guardarBD();"></div>
+                <div style="margin-bottom:14px;"><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:6px;">CONTRASEÑA CLIENTE</label><button class="btn btn-xs btn-fantasma" style="width:100%;" onclick="cambiarPwdSucursal(${i})"><i class="fa-solid fa-key" style="margin-right:4px;"></i>Cambiar contraseña</button></div>
                 <div style="margin-bottom:14px;">
                     <label style="font-size:10px;font-weight:700;color:var(--texto-secundario);letter-spacing:.05em;display:block;margin-bottom:6px;">MONEDA</label>
                     <select class="select-celda" style="border:1px solid var(--color-borde);width:100%;border-radius:8px;padding:8px 12px;font-weight:600;"
@@ -9779,11 +10024,29 @@ ${_coverHtml}
         if (navItem) navItem.classList.add('activo');
     }
 
+    async function cambiarPwdCliente(ci) {
+        const cl = (DB.clientes||[])[ci]; if (!cl) return;
+        const nueva = prompt('Nueva contraseña de director para "' + cl.nombre + '":');
+        if (!nueva || !nueva.trim()) return;
+        cl.password = await _hashPwd(nueva.trim()); guardarBD();
+        _credencialUnica('Director · ' + cl.nombre, nueva.trim());
+    }
+
+    async function cambiarPwdSucursal(i) {
+        const s = (DB.sucursales||[])[i]; if (!s) return;
+        const nueva = prompt('Nueva contraseña de cliente para "' + s.nombre + '":');
+        if (!nueva || !nueva.trim()) return;
+        s.password = await _hashPwd(nueva.trim()); guardarBD();
+        _credencialUnica('Cliente · ' + s.nombre, nueva.trim());
+    }
+
     function nuevoCliente(clienteId) {
         const id = 'p_' + Date.now();
         const _clBase = clienteId ? (DB.clientes||[]).find(c=>c.id===clienteId) : null;
         const _nombre = _clBase ? _clBase.nombre + ' Sucursal ' + ((DB.sucursales.filter(s=>s.cliente_id===clienteId).length)+1) : "Nuevo Proyecto";
-        DB.sucursales.push({ id: id, nombre: _nombre, color: _clBase?.color||"#333333", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 100000, password: btoa("123"), equipo_miembros: [], cliente_id: clienteId||null });
+        const _nuevaSuc = { id: id, nombre: _nombre, color: _clBase?.color||"#333333", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 100000, password: '', equipo_miembros: [], cliente_id: clienteId||null };
+        DB.sucursales.push(_nuevaSuc);
+        _hashPwd('123').then(h => { _nuevaSuc.password = h; guardarBD(); });
         const _mesesCortos = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: (PRESETS_METRICAS.wellness||[]).map(p=>({...p})), productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})), kpi_semanal: [], engagement_formato: [] };
         guardarBD(); iniciarApp(id);
@@ -10757,7 +11020,7 @@ ${_coverHtml}
             } else if (u) {
                 identifier = u.id;
             } else {
-                identifier = m.password ? atob(m.password) : m.nombre;
+                identifier = m.nombre;
             }
             result.push({ nombre: m.nombre, identifier });
         });
@@ -11608,24 +11871,25 @@ ${_coverHtml}
                     <div>${lbl('Estado')}<select class="select-celda" style="border:1px solid var(--color-borde);" onchange="actualizarAd(${i},'estado',this.value)"><option ${a.estado==='Borrador'?'selected':''}>Borrador</option><option ${a.estado==='Activa'?'selected':''}>Activa</option><option ${a.estado==='Pausada'?'selected':''}>Pausada</option><option ${a.estado==='Finalizada'?'selected':''}>Finalizada</option></select></div>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:6px;">
-                    <div>${lbl('Inversión $')}${inp(a.inversion,'inversion',i,'number')}</div>
+                    <div>${lbl('Inversión ('+_monedaProy()+')')}${inp(a.inversion,'inversion',i,'number')}</div>
                     <div>${lbl('Alcance real')}${inp(a.alcance,'alcance',i,'number')}</div>
                     <div>${lbl('Clics reales')}${inp(a.clics,'clics',i,'number')}</div>
                     <div>${lbl('Conversiones reales')}${inp(a.conversiones,'conversiones',i,'number')}</div>
-                    <div>${lbl('CPR real $')}${inp(a.cpr,'cpr',i,'number')}</div>
+                    <div>${lbl('CPR real ('+_monedaProy()+')')}${inp(a.cpr,'cpr',i,'number')}</div>
                 </div>
                 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;padding:12px 14px;background:rgba(var(--color-primario-rgb,196,133,90),0.05);border-radius:10px;border:1px solid rgba(var(--color-primario-rgb,196,133,90),0.15);">
                     <div style="grid-column:1/-1;font-size:10px;font-weight:700;color:var(--color-primario);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Metas esperadas</div>
                     <div>${lbl('Meta alcance')}${inp(a.meta_alcance||0,'meta_alcance',i,'number')}</div>
                     <div>${lbl('Meta clics')}${inp(a.meta_clics||0,'meta_clics',i,'number')}</div>
                     <div>${lbl('Meta conversiones')}${inp(a.meta_conversiones||0,'meta_conversiones',i,'number')}</div>
-                    <div>${lbl('CPR objetivo $')}${inp(a.meta_cpr||0,'meta_cpr',i,'number')}</div>
+                    <div>${lbl('CPR objetivo ('+_monedaProy()+')')}${inp(a.meta_cpr||0,'meta_cpr',i,'number')}</div>
                 </div>
                 <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px;align-items:end;">
                     <div>${lbl('Segmento / Audiencia')}${_renderAdSegmentoSelect(d.target||[], a, i)}</div>
                     <div>${lbl('Fecha inicio')}${inp(a.inicio||'','inicio',i,'date')}</div>
                     <div>${lbl('Fecha fin')}${inp(a.fin||'','fin',i,'date')}</div>
                 </div>
+                <div id="ad-warn-${i}" style="margin-top:12px;">${(()=>{const ws=_adWarnings(a);return ws.length?`<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400E;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>${ws.join('<br>')}</div>`:'';})()}</div>
                 <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--color-borde);display:flex;justify-content:flex-end;">
                     <button class="btn btn-xs btn-peligro-suave" onclick="delObj('ads',${i})"><i class="fa-solid fa-trash"></i> Eliminar campaña</button>
                 </div>
@@ -11666,10 +11930,50 @@ ${_coverHtml}
         if (chevron) chevron.style.transform = _adsExpanded.has(i) ? 'rotate(180deg)' : '';
     }
 
+    // Toast no intrusivo reutilizable (Fase 0)
+    function _toast(msg, tipo) {
+        let t = document.getElementById('_lanka_toast');
+        if (!t) { t = document.createElement('div'); t.id = '_lanka_toast';
+            t.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;max-width:90vw;padding:12px 18px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 6px 24px rgba(0,0,0,.18);opacity:0;transition:opacity .2s;pointer-events:none;';
+            document.body.appendChild(t); }
+        const col = tipo==='error' ? '#DC2626' : tipo==='warn' ? '#B45309' : '#15803D';
+        const bg  = tipo==='error' ? '#FEE2E2' : tipo==='warn' ? '#FEF3C7' : '#DCFCE7';
+        t.style.background = bg; t.style.color = col; t.textContent = msg;
+        t.style.opacity = 1; clearTimeout(t._tmr);
+        t._tmr = setTimeout(() => { t.style.opacity = 0; }, tipo==='error'?5000:3500);
+    }
+    function _monedaProy() { return (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).moneda || 'MXN'; }
+    const _ADS_NUM_FIELDS = ['inversion','alcance','clics','conversiones','cpr','meta_alcance','meta_conversiones','meta_clics','meta_cpr'];
+    // Advertencias de consistencia derivadas SOLO de los datos (siempre exactas)
+    function _adWarnings(a) {
+        const w = []; const n = k => Number(a[k])||0;
+        const mon = _monedaProy();
+        if (n('alcance') && n('clics') > n('alcance')) w.push('Clics ('+n('clics').toLocaleString()+') mayores que Alcance ('+n('alcance').toLocaleString()+'). Revisa la captura.');
+        if (n('clics') && n('conversiones') > n('clics')) w.push('Conversiones mayores que Clics: improbable, revisa los datos.');
+        if (n('inversion') && n('conversiones')) {
+            const cprCalc = n('inversion')/n('conversiones');
+            if (n('cpr') && Math.abs(n('cpr')-cprCalc)/cprCalc > 0.3)
+                w.push('CPR capturado ('+mon+' $'+n('cpr')+') no cuadra con Inversión/Conversiones ('+mon+' $'+cprCalc.toFixed(1)+'). ¿Moneda equivocada o gasto acumulado vs. diario?');
+        }
+        if (a.estado==='Activa' && n('inversion')>0 && n('conversiones')===0)
+            w.push('Campaña activa con inversión y 0 conversiones — verifica el seguimiento de conversiones.');
+        if (a.inicio && a.fin && a.fin < a.inicio) w.push('La fecha de fin es anterior a la de inicio.');
+        return w;
+    }
+
     function actualizarAd(i, campo, valor) {
         const a = (DB.datos[SUC_ACTIVA].ads||[])[i];
         if (!a) return;
-        a[campo] = ['inversion','alcance','clics','conversiones','cpr','meta_alcance','meta_conversiones','meta_clics','meta_cpr'].includes(campo) ? (Number(valor)||0) : valor;
+        if (_ADS_NUM_FIELDS.includes(campo)) {
+            const raw = String(valor).trim().replace(/[\s,]/g,'');   // tolera separadores de miles
+            const num = Number(raw);
+            if (raw === '') { a[campo] = 0; }
+            else if (!isFinite(num) || num < 0) {
+                _toast('Valor inválido en "'+campo+'": debe ser un número ≥ 0. Se mantuvo el valor anterior.', 'error');
+                renderAdsTable();   // revierte el input (a[campo] no cambió; el panel sigue abierto)
+                return;
+            } else { a[campo] = num; }
+        } else { a[campo] = valor; }
         guardarBD();
         if (campo === 'inversion' || campo === 'estado') _syncAdsToPresupuesto();
         _refreshAdsKpi();
@@ -11691,6 +11995,11 @@ ${_coverHtml}
             if (cells[2] && campo==='clics')     cells[2].textContent = Number(a.clics).toLocaleString();
             if (cells[3] && campo==='conversiones') cells[3].textContent = a.conversiones;
         }
+        // Refresca advertencias de consistencia y avisa si aparece una nueva
+        const warnEl = document.getElementById('ad-warn-'+i);
+        const ws = _adWarnings(a);
+        if (warnEl) warnEl.innerHTML = ws.length ? `<div style="background:#FEF3C7;border:1px solid #FCD34D;border-radius:8px;padding:10px 12px;font-size:12px;color:#92400E;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:6px;"></i>${ws.join('<br>')}</div>` : '';
+        if (ws.length && _ADS_NUM_FIELDS.includes(campo)) _toast(ws[0], 'warn');
     }
 
     function renderAdsCharts() {
@@ -12788,7 +13097,6 @@ ${_coverHtml}
         el.innerHTML = usuarios.map(u => {
             const rol = (DB.roles_sistema||[]).find(r => r.id === u.rol_id) || { nombre: u.rol_id, color:'#888' };
             const initials = u.nombre.split(' ').slice(0,2).map(n=>n[0]||'').join('').toUpperCase() || '?';
-            let pwd = ''; try { pwd = atob(u.password); } catch(e) {}
             const rolesOpts = (DB.roles_sistema||[]).map(r => `<option value="${r.id}" ${r.id===u.rol_id?'selected':''}>${r.nombre}</option>`).join('');
             const proyOpts  = (DB.sucursales||[]).map(p => `<label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;cursor:pointer;padding:6px 12px;border:1px solid var(--color-borde);border-radius:8px;background:var(--color-tarjeta);"><input type="checkbox" id="u-proy-${u.id}-${p.id}" ${(u.proyectos||[]).includes(p.id)?'checked':''}> ${p.nombre}</label>`).join('');
             return `<div class="usuario-card" id="u-card-${u.id}">
@@ -12811,7 +13119,7 @@ ${_coverHtml}
                         <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Puesto real</label><input class="input-celda" id="u-puesto-${u.id}" value="${u.puesto||''}" placeholder="Fotógrafa, Cosmetóloga..." style="border:1px solid var(--color-borde);"></div>
                         <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Rol del sistema</label><select class="select-celda" id="u-rol-${u.id}" style="border:1px solid var(--color-borde);">${rolesOpts}</select></div>
                         <div><label style="font-size:10px;font-weight:700;color:var(--texto-secundario);text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px;">Contraseña</label>
-                            <div class="pwd-field-wrap"><input class="input-celda" id="u-pwd-${u.id}" type="password" value="${pwd}" style="border:1px solid var(--color-borde);font-family:monospace;"><i class="fa-solid fa-eye pwd-toggle-eye" onclick="togglePwd('u-pwd-${u.id}')"></i></div>
+                            <div class="pwd-field-wrap"><input class="input-celda" id="u-pwd-${u.id}" type="password" value="" placeholder="Nueva contraseña (vacío = sin cambio)" style="border:1px solid var(--color-borde);font-family:monospace;"><i class="fa-solid fa-eye pwd-toggle-eye" onclick="togglePwd('u-pwd-${u.id}')"></i></div>
                             <button class="btn btn-xs btn-fantasma" style="margin-top:6px;" onclick="resetPasswordUsuario('${u.id}')"><i class="fa-solid fa-rotate"></i> Resetear password</button>
                         </div>
                     </div>
@@ -12833,20 +13141,20 @@ ${_coverHtml}
         if (card) card.classList.toggle('expandido');
     }
 
-    function nuevoUsuario() {
+    async function nuevoUsuario() {
         const nombre = prompt('Nombre completo del nuevo usuario:');
         if (!nombre || !nombre.trim()) return;
         const id = 'u_' + Date.now();
         const username = generarUsername(nombre.trim());
         const pwd = generarPassword();
         if (!DB.usuarios) DB.usuarios = [];
-        DB.usuarios.push({ id, nombre: nombre.trim(), username, caos_name: username, puesto:'', password:btoa(pwd), rol_id:'equipo', proyectos:[], ubicacion:'Todas', estado:'activo' });
+        DB.usuarios.push({ id, nombre: nombre.trim(), username, caos_name: username, puesto:'', password: await _hashPwd(pwd), rol_id:'equipo', proyectos:[], ubicacion:'Todas', estado:'activo' });
         guardarBD(); renderUsuarios();
         _caosManageTeam('add', { id: 'm_'+username.replace(/[^a-z0-9]/gi,'_'), name: username, role: '' });
-        alert(`Usuario creado.\nUsername: ${username}\nPassword temporal: ${pwd}\n\nGuarda estas credenciales.`);
+        _credencialUnica('@' + username, pwd);
     }
 
-    function guardarUsuario(id) {
+    async function guardarUsuario(id) {
         const u = (DB.usuarios||[]).find(u => u.id === id);
         if (!u) return;
         u.nombre   = document.getElementById('u-nombre-'+id)?.value.trim() || u.nombre;
@@ -12854,7 +13162,7 @@ ${_coverHtml}
         u.puesto   = document.getElementById('u-puesto-'+id)?.value.trim() || '';
         u.rol_id   = document.getElementById('u-rol-'+id)?.value || u.rol_id;
         const newPwd = document.getElementById('u-pwd-'+id)?.value;
-        if (newPwd) u.password = btoa(newPwd);
+        if (newPwd) { u.password = await _hashPwd(newPwd); _credencialUnica('@' + u.username, newPwd); }
         u.ubicacion = document.getElementById('u-ubicacion-'+id)?.value || u.ubicacion;
         const proyectos = [];
         (DB.sucursales||[]).forEach(p => { const cb = document.getElementById('u-proy-'+id+'-'+p.id); if (cb && cb.checked) proyectos.push(p.id); });
@@ -12868,9 +13176,8 @@ ${_coverHtml}
     function copiarCredenciales(id) {
         const u = (DB.usuarios||[]).find(u => u.id === id);
         if (!u) return;
-        let pwd = ''; try { pwd = atob(u.password); } catch(e) {}
         const proyectos = (u.proyectos||[]).map(pid => (DB.sucursales.find(s=>s.id===pid)||{nombre:pid}).nombre).join(', ') || '—';
-        const texto = `Usuario: ${u.username}\nPassword: ${pwd}\nProyecto: ${proyectos}\nUbicación: ${u.ubicacion||'—'}`;
+        const texto = `Usuario: ${u.username}\nProyecto: ${proyectos}\nUbicación: ${u.ubicacion||'—'}\n(Contraseña: usa "Resetear password" para generar y ver una nueva)`;
         if (navigator.clipboard) {
             navigator.clipboard.writeText(texto).then(() => alert('Credenciales copiadas al portapapeles.'));
         } else {
@@ -12880,16 +13187,16 @@ ${_coverHtml}
         }
     }
 
-    function resetPasswordUsuario(id) {
+    async function resetPasswordUsuario(id) {
         if (!confirm('¿Generar una nueva contraseña automática para este usuario?')) return;
         const u = (DB.usuarios||[]).find(u => u.id === id);
         if (!u) return;
         const newPwd = generarPassword();
-        u.password = btoa(newPwd);
+        u.password = await _hashPwd(newPwd);
         guardarBD();
         const input = document.getElementById('u-pwd-'+id);
-        if (input) { input.value = newPwd; input.type = 'text'; }
-        alert(`Nueva contraseña generada:\n${newPwd}\n\nGuárdala ahora — no podrás verla de nuevo.`);
+        if (input) { input.value = ''; }
+        _credencialUnica('@' + u.username, newPwd);
     }
 
     function suspenderUsuario(id) {
