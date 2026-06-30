@@ -10,8 +10,13 @@
 
 <title>LANKA - Marketing OS</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"></noscript>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" defer></script>
 
@@ -3159,20 +3164,19 @@ document.addEventListener('DOMContentLoaded', function() {
             { nombre: "Sergio", rol: "Videógrafo", password: btoa("sergio26") },
             { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
         ];
+        let _aitamaMigrated = false;
         if (DB.sucursales) {
             DB.sucursales.forEach(suc => {
-                if (!suc.equipo_miembros) suc.equipo_miembros = [];
+                if (!suc.equipo_miembros) { suc.equipo_miembros = []; _aitamaMigrated = true; }
                 if (suc.id === 'aitama') {
-                    // Merge: add any missing default member or fill in missing passwords
                     _aitamaDefaults.forEach(dm => {
                         const ex = suc.equipo_miembros.find(m => m.nombre === dm.nombre);
-                        if (!ex) { suc.equipo_miembros.push(dm); }
-                        else if (!ex.password) { ex.password = dm.password; }
+                        if (!ex) { suc.equipo_miembros.push(dm); _aitamaMigrated = true; }
+                        else if (!ex.password) { ex.password = dm.password; _aitamaMigrated = true; }
                     });
                 }
             });
-            // Persist migration so next load has correct data
-            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+            if (_aitamaMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
         if (DB.datos) {
             Object.keys(DB.datos).forEach(sid => {
@@ -3456,7 +3460,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 DB.desplegables.formatos_contenido = ["Reel", "Carrusel", "Historia", "Story"];
                 _tipoMigrated = true;
             }
-            // Sync existing kpi_semanal → historico_mensual.ventas/dms on load
+            // Sync kpi_semanal → historico_mensual en memoria (computed on every load, no persist needed)
             DB.sucursales.forEach(s => {
                 const datos = DB.datos[s.id];
                 if (!datos || !(datos.kpi_semanal||[]).length) return;
@@ -3472,7 +3476,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         datos.historico_mensual[mi].dms    += sem.dms    || 0;
                     }
                 });
-                _tipoMigrated = true;
             });
             if (_tipoMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
         }
