@@ -3754,6 +3754,53 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch(e) {
             console.warn('project_data overlay omitido (tabla aún no existe o error de red):', e.message);
         }
+        // Fase 1: también sincronizar la lista de proyectos desde la tabla projects
+        await _aplicarProjectsTableOverlay(yaEnApp);
+    }
+
+    // Fase 1: la tabla `projects` es la fuente de verdad para QUÉ proyectos existen.
+    // guardarBD() puede sobreescribir el array sucursales del blob si alguien guarda
+    // desde un browser que no tenía un proyecto nuevo. Este overlay agrega al blob
+    // cualquier proyecto que esté en la tabla pero no en DB.sucursales, y persiste
+    // el resultado para que funcione offline también.
+    async function _aplicarProjectsTableOverlay(yaEnApp) {
+        if (!window.__supabase) return;
+        try {
+            const { data: rows, error } = await window.__supabase
+                .from('projects')
+                .select('id, nombre, tipo, cliente_id, color, moneda, pto_anual, categorias_servicio, drive_contenido_url, brand_kit');
+            if (error || !rows || !rows.length) return;
+            if (!DB.sucursales) DB.sucursales = [];
+            const existentes = new Set(DB.sucursales.map(s => s.id));
+            let cambio = false;
+            rows.forEach(row => {
+                if (!existentes.has(row.id)) {
+                    DB.sucursales.push({
+                        id:                  row.id,
+                        nombre:              row.nombre,
+                        tipo:                row.tipo || 'otro',
+                        cliente_id:          row.cliente_id || null,
+                        color:               row.color || '#333333',
+                        moneda:              row.moneda || 'MXN',
+                        pto_anual:           row.pto_anual || 0,
+                        categorias_servicio: row.categorias_servicio || [],
+                        drive_contenido_url: row.drive_contenido_url || '',
+                        brand_kit:           row.brand_kit || {},
+                        password:            '',
+                        equipo_miembros:     [],
+                        pct_intercambio:     0
+                    });
+                    cambio = true;
+                }
+            });
+            if (cambio) {
+                console.log('✓ projects: sucursales nuevas agregadas desde tabla:', rows.filter(r => !existentes.has(r.id)).map(r => r.id));
+                guardarBD(); // persiste al blob y localStorage para que funcione offline
+                if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+            }
+        } catch(e) {
+            console.warn('projects overlay omitido (tabla aún no existe o error de red):', e.message);
+        }
     }
 
     async function guardarBD() {
@@ -3792,6 +3839,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         updated_by: user
                     });
                     if (!pdError) _projectDataMeta[SUC_ACTIVA] = now;
+                    // Fase 1: mantener projects sincronizado con el metadata de sucursal activa
+                    const _suc = (DB.sucursales||[]).find(s => s.id === SUC_ACTIVA);
+                    if (_suc) {
+                        window.__supabase.from('projects').upsert({
+                            id: SUC_ACTIVA,
+                            nombre: _suc.nombre, tipo: _suc.tipo || 'otro',
+                            cliente_id: _suc.cliente_id || null, color: _suc.color || '#333333',
+                            moneda: _suc.moneda || 'MXN', pto_anual: _suc.pto_anual || 0,
+                            categorias_servicio: _suc.categorias_servicio || [],
+                            drive_contenido_url: _suc.drive_contenido_url || '',
+                            brand_kit: _suc.brand_kit || {},
+                            updated_at: now, updated_by: user
+                        }).then(({ error }) => { if (error) console.warn('projects upsert:', error.message); });
+                    }
                 }
                 await window.__supabase.from('lanka_db').upsert({
                     id: 'main',
@@ -10144,6 +10205,15 @@ ${_coverHtml}
         const _nombre = _clBase ? _clBase.nombre + ' Sucursal ' + ((DB.sucursales.filter(s=>s.cliente_id===clienteId).length)+1) : "Nuevo Proyecto";
         const _nuevaSuc = { id: id, nombre: _nombre, color: _clBase?.color||"#333333", tipo: "wellness", pct_intercambio: 0.0, pto_anual: 100000, password: '', equipo_miembros: [], cliente_id: clienteId||null };
         DB.sucursales.push(_nuevaSuc);
+        // Fase 1: también insertar en la tabla projects para que sea server-authoritative
+        if (window.__supabase) {
+            window.__supabase.from('projects').insert({
+                id: id, nombre: _nombre,
+                tipo: 'wellness', cliente_id: clienteId || null,
+                color: _clBase?.color || '#333333', moneda: 'MXN',
+                pto_anual: 100000, categorias_servicio: [], drive_contenido_url: ''
+            }).then(({ error }) => { if (error) console.warn('projects insert:', error.message); });
+        }
         _hashPwd('123').then(h => { _nuevaSuc.password = h; guardarBD(); });
         const _mesesCortos = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
         DB.datos[id] = { highlights: [{ label: "Ventas", val: "0" }, { label: "Seguidores", val: "0" }, { label: "DMs", val: "0" }], rendimiento: (PRESETS_METRICAS.wellness||[]).map(p=>({...p})), productos: [], objetivos: [], insights: [], txt_working: "", txt_change: "", kanban: [], dam: [], presupuesto: [], facturas: [], target: [], mood: Array.from({length: 12}, () => ({ emocion: "", bebida: "", producto: "" })), briefing: { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }, ads: [], offline: [], shooting: [], stories_ind: [], historico_mensual: Array.from({length:12},(_,i)=>({mes:_mesesCortos[i],ventas:0,seguidores:0,dms:0})), kpi_semanal: [], engagement_formato: [] };
