@@ -7613,6 +7613,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Engagement de un post a partir de sus métricas manuales (Fase 0 #5)
+    function _engPost(m) {
+        m = m || {};
+        const a = Number(m.alcance)||0;
+        if (!a) return null;
+        const inter = (Number(m.interacciones)||0)+(Number(m.guardados)||0)+(Number(m.comentarios)||0)+(Number(m.compartidos)||0);
+        return inter/a*100;
+    }
+    function _recalcEngPost(id) {
+        const d = DB.datos[SUC_ACTIVA]; const t = (d.kanban||[]).find(x=>x.id===id); if(!t) return;
+        const e = _engPost(t.metricas); const el = document.getElementById('eng-'+id);
+        if (el) el.textContent = (e==null) ? '—' : e.toFixed(1)+'%';
+    }
+
     function _buildKanbanCard(t, idx, d, canEdit, ro, suc_info, targetOpts) {
         const _SUC = SUC_ACTIVA;
         const _kp  = `DB.datos['${_SUC}'].kanban[${idx}]`;
@@ -7777,6 +7791,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         if (_approvalHtml) _approvalHtml = `${_sep}${_lbl('<i class="fa-solid fa-stamp" style="color:#D97706;font-size:12px;"></i>','Aprobación')}${_approvalHtml}`;
 
+        // Resultados del post — métricas manuales (Fase 0 #5 · prepara el bucle contenido→resultado)
+        const _met = t.metricas || {};
+        const _pub = t.estado === 'Publicado';
+        const _mFL = txt => `<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--texto-secundario);margin-bottom:4px;">${txt}</div>`;
+        const _metInp = (campo, ph) => `<input class="input-celda" type="number" inputmode="numeric" min="0" ${ro} style="border:1px solid var(--color-borde);" value="${_met[campo]!=null?_met[campo]:''}" placeholder="${ph||'0'}" onclick="event.stopPropagation()" onchange="${_kp}.metricas=(${_kp}.metricas||{});${_kp}.metricas.${campo}=Math.max(0,Number(this.value)||0);guardarBD();_recalcEngPost('${t.id}')">`;
+        const _engNow = _engPost(_met);
+        const _metricasSection = `${_sep}${_lbl('<i class="fa-solid fa-chart-simple" style="color:#15803D;font-size:12px;"></i>','Resultados del post'+(_pub?'':' · se llenan tras publicar'))}
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px;${_pub?'':'opacity:.65;'}">
+    <div>${_mFL('Alcance')}${_metInp('alcance')}</div>
+    <div>${_mFL('Interacciones')}${_metInp('interacciones')}</div>
+    <div>${_mFL('Guardados')}${_metInp('guardados')}</div>
+    <div>${_mFL('Comentarios')}${_metInp('comentarios')}</div>
+    <div>${_mFL('Compartidos')}${_metInp('compartidos')}</div>
+    <div style="display:flex;flex-direction:column;justify-content:flex-end;">
+      ${_mFL('Engagement')}
+      <div style="font-family:var(--font-display);font-weight:800;font-size:18px;color:#15803D;"><span id="eng-${t.id}">${_engNow!=null?_engNow.toFixed(1)+'%':'—'}</span></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;padding:12px 14px;background:rgba(21,128,61,.05);border-radius:10px;border:1px solid rgba(21,128,61,.15);">
+    <div>${_mFL('Leads / DMs generados')}${_metInp('leads')}</div>
+    <div>${_mFL((suc_info&&suc_info.tipo==='restaurante')?'Órdenes atribuidas':'Ventas / citas atribuidas')}${_metInp('ventas')}</div>
+  </div>`;
+
         // Cover image — visible en estado colapsado
         const _estColor = t.estado==='Publicado'?'#15803D':t.estado==='Programado'?'#8B5CF6':t.estado==='Revisión'?'#F59E0B':t.estado==='Aprobado'?'#22C55E':'#9CA3AF';
         const _coverHtml = _firstThumb ? `<div style="position:relative;overflow:hidden;border-radius:16px 16px 0 0;cursor:pointer;" onclick="this.closest('.content-card').classList.toggle('open')">
@@ -7881,6 +7918,7 @@ ${_coverHtml}
     </div>
     ${canEdit?`<select class="select-celda" style="font-size:11px;margin-top:6px;" onclick="event.stopPropagation()" onchange="if(!this.value)return;const _svArr=(DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas=DB.datos['${_SUC}'].kanban[${idx}].stories_vinculadas||[]);if(!_svArr.includes(this.value)){_svArr.push(this.value);}this.value='';guardarBD();renderOrquestacion();">${_storyAddOpts}</select>`:''}
   </div>
+  ${_metricasSection}
   ${_approvalHtml}
   ${_renderVinculosPost(t)}
   ${_canScope ? `<div style="margin-top:20px;border-top:1px solid var(--color-borde);padding-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
