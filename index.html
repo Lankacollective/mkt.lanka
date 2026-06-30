@@ -1351,7 +1351,8 @@
     <div style="font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.25em; color:rgba(196,133,90,0.7); margin-bottom:52px; animation: fadeUp 0.6s 0.1s ease both;">Marketing OS 2027</div>
     
     <form class="form-login" onsubmit="ejecutarLogin(event)" style="animation: fadeUp 0.6s 0.2s ease both;">
-        <input type="password" id="input-password" class="input-login" placeholder="Clave de acceso" autocomplete="off" autofocus>
+        <input type="email" id="input-email" class="input-login" placeholder="Correo electrónico" autocomplete="email">
+        <input type="password" id="input-password" class="input-login" placeholder="Contraseña" autocomplete="current-password">
         <button type="submit" class="btn-login">Ingresar</button>
         <div id="error-login" style="color:var(--color-peligro); opacity:0; font-size:13px; font-weight:600; text-align:center; transition: 0.3s; margin-top:8px;">Acceso denegado.</div>
     </form>
@@ -5240,8 +5241,53 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function ejecutarLogin(e) {
         e.preventDefault();
+        const email = (document.getElementById('input-email')?.value || '').trim().toLowerCase();
         const pwd = document.getElementById('input-password').value;
-        // 1. DB.usuarios (sistema Sprint 3)
+
+        // ── Path A: Supabase Auth (cuando hay correo) ────────────────────────
+        if (email && window.__supabase) {
+            const { data, error } = await window.__supabase.auth.signInWithPassword({ email, password: pwd });
+            if (error) {
+                document.getElementById('error-login').style.opacity = 1;
+                setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000);
+                return;
+            }
+            const meta = data.user.user_metadata || {};
+            const legacyId = meta.user_legacy_id;
+            const rolId = meta.rol_id || 'equipo';
+
+            // Intentar encontrar al usuario en el sistema legado
+            const uLegacy = legacyId ? (DB.usuarios || []).find(u => u.id === legacyId) : null;
+            if (uLegacy) {
+                USUARIO_ACTIVO = uLegacy;
+                USUARIO_EQUIPO = uLegacy.nombre;
+            } else {
+                USUARIO_ACTIVO = { id: legacyId || data.user.id, nombre: meta.nombre || email, rol_id: rolId, proyectos: [], estado: 'activo' };
+                USUARIO_EQUIPO = USUARIO_ACTIVO.nombre;
+            }
+            ROL_SIMULADO = null;
+
+            if (rolId === 'cliente') {
+                ROL = 'cliente';
+                const { data: membros } = await window.__supabase.from('project_members').select('project_id').eq('auth_user_id', data.user.id);
+                const proyIds = (membros || []).map(m => m.project_id);
+                USUARIO_ACTIVO.proyectos = proyIds;
+                const firstSuc = DB.sucursales.find(s => proyIds.includes(s.id));
+                CLIENTE_ACTIVO = firstSuc ? (DB.clientes || []).find(c => c.id === firstSuc.cliente_id) || null : null;
+                iniciarApp(proyIds.length ? proyIds[0] : DB.sucursales[0].id);
+            } else {
+                ROL = (rolId === 'equipo' || rolId === 'coordinador') ? 'equipo' : 'agencia';
+                if (!USUARIO_ACTIVO.proyectos?.length) {
+                    const { data: membros } = await window.__supabase.from('project_members').select('project_id').eq('auth_user_id', data.user.id);
+                    USUARIO_ACTIVO.proyectos = (membros || []).map(m => m.project_id);
+                }
+                const primerProyecto = USUARIO_ACTIVO.proyectos?.length ? USUARIO_ACTIVO.proyectos[0] : DB.sucursales[0].id;
+                iniciarApp(primerProyecto);
+            }
+            return;
+        }
+
+        // ── Path B: Sistema legado (sin correo) ─────────────────────────────
         for (const u of (DB.usuarios || [])) {
             if (u.estado === 'activo' && await _verifyPwd(pwd, u.password)) {
                 await _maybeUpgradePwd(u, pwd);
@@ -5252,7 +5298,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
-        // 2. Fallback: contraseñas legado
         USUARIO_ACTIVO = null; ROL_SIMULADO = null;
         if (pwd === 'Lanka2026') { ROL = 'agencia'; iniciarApp(DB.sucursales[0].id); return; }
         for (const suc of DB.sucursales) {
@@ -5263,7 +5308,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
         }
-        // Contraseña de cliente/director (ve todas sus sucursales)
         for (const cl of (DB.clientes || [])) {
             if (await _verifyPwd(pwd, cl.password)) {
                 await _maybeUpgradePwd(cl, pwd);
@@ -5273,7 +5317,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
-        // Contraseña de sucursal
         for (const s of DB.sucursales) {
             if (await _verifyPwd(pwd, s.password)) {
                 await _maybeUpgradePwd(s, pwd);
@@ -5283,11 +5326,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
         }
-        // Error
-        document.getElementById('error-login').style.opacity = 1; setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000);
+        document.getElementById('error-login').style.opacity = 1;
+        setTimeout(() => document.getElementById('error-login').style.opacity = 0, 3000);
     }
 
-    function cerrarSesion() { _bgDefault(); location.reload(); }
+    async function cerrarSesion() {
+        if (window.__supabase) await window.__supabase.auth.signOut().catch(() => {});
+        _bgDefault();
+        location.reload();
+    }
 
     function iniciarApp(id) {
         SUC_ACTIVA = id;
