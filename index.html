@@ -3103,10 +3103,48 @@ document.addEventListener('DOMContentLoaded', function() {
                                 }
                                 return;
                             }
+                            // Fase 1: no dejar que este blob (puede traer un proyecto desactualizado
+                            // si esta UPDATE se generó antes de un guardado más reciente vía
+                            // project_data) pise el contenido que ya tenemos de un proyecto más
+                            // fresco según _projectDataMeta.
+                            if (incoming.datos && Object.keys(_projectDataMeta).length) {
+                                Object.keys(_projectDataMeta).forEach(pid => {
+                                    if (DB.datos && DB.datos[pid] && _projectDataMeta[pid] >= payload.new.updated_at) {
+                                        incoming.datos[pid] = DB.datos[pid];
+                                    }
+                                });
+                            }
                             DB = incoming;
                             localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
                             if (typeof renderTodas === 'function') renderTodas();
                             console.log('✓ Tiempo real — actualización de:', payload.new.updated_by);
+                        }
+                    }
+                )
+                .subscribe();
+            // Fase 1: canal aparte para cambios por proyecto (project_data) — cada
+            // proyecto se actualiza solo, sin tocar el resto del blob.
+            window.__supabase
+                .channel('project_data_changes')
+                .on('postgres_changes',
+                    { event: '*', schema: 'public', table: 'project_data' },
+                    (payload) => {
+                        if (payload.new?.project_id && payload.new?.data &&
+                                payload.new.updated_by !== (USUARIO_ACTIVO?.username || 'unknown')) {
+                            const pid = payload.new.project_id;
+                            const incomingCount = _projectItemCount(payload.new.data);
+                            const currentCount  = _projectItemCount(DB.datos && DB.datos[pid]);
+                            if (currentCount > 5 && incomingCount < currentCount * 0.5) {
+                                console.error('⚠ Tiempo real (proyecto', pid, ') BLOQUEADO: trae', incomingCount,
+                                    'items vs', currentCount, 'actuales — posible pérdida de datos. Se ignora.');
+                                return;
+                            }
+                            if (!DB.datos) DB.datos = {};
+                            DB.datos[pid] = payload.new.data;
+                            _projectDataMeta[pid] = payload.new.updated_at;
+                            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                            if (typeof renderTodas === 'function') renderTodas();
+                            console.log('✓ Tiempo real (proyecto', pid, ') — actualización de:', payload.new.updated_by);
                         }
                     }
                 )
@@ -3658,17 +3696,19 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('✓ Demo Mammut: datos cargados correctamente');
     }
 
-    // Cuenta elementos reales (kanban, ads, dam, etc.) en todos los proyectos de un DB.
+    // Cuenta elementos reales (kanban, ads, dam, etc.) dentro de UN proyecto.
+    function _projectItemCount(proyecto) {
+        if (!proyecto || typeof proyecto !== 'object') return 0;
+        let total = 0;
+        Object.values(proyecto).forEach(v => { if (Array.isArray(v)) total += v.length; });
+        return total;
+    }
+    // Cuenta elementos reales en todos los proyectos de un DB.
     // Se usa para detectar colapsos: si lo que llega tiene muchos menos items que lo
     // que ya tenemos cargado, es señal de un guardado vacío/parcial pisando datos buenos.
     function _dbTotalItems(db) {
         if (!db || !db.datos) return 0;
-        let total = 0;
-        Object.values(db.datos).forEach(proyecto => {
-            if (!proyecto || typeof proyecto !== 'object') return;
-            Object.values(proyecto).forEach(v => { if (Array.isArray(v)) total += v.length; });
-        });
-        return total;
+        return Object.values(db.datos).reduce((sum, p) => sum + _projectItemCount(p), 0);
     }
 
     // Paso 5: guardarBD — guarda en localStorage Y Supabase
@@ -3680,6 +3720,41 @@ document.addEventListener('DOMContentLoaded', function() {
     let _supabaseRetryTimer = null;
 
     let _guardarBDTimer = null;
+    // Fase 1: último updated_at con el que CADA proyecto se guardó en project_data.
+    // Se usa para no dejar que un guardado del blob lanka_db (que puede traer una
+    // copia vieja de un proyecto) pise contenido ya guardado más reciente vía
+    // project_data por esta u otra pestaña.
+    let _projectDataMeta = {};
+
+    // Fase 1: trae el contenido más reciente de cada proyecto desde project_data
+    // y lo superpone sobre DB.datos. Repara el caso en que el blob lanka_db quedó
+    // desactualizado para un proyecto porque otra pestaña lo guardó después vía
+    // project_data. No-op seguro si la tabla todavía no existe (migración no aplicada).
+    async function _aplicarProjectDataOverlay(yaEnApp) {
+        if (!window.__supabase) return;
+        try {
+            const { data: rows, error } = await window.__supabase.from('project_data').select('project_id, data, updated_at');
+            if (error || !rows || !rows.length) return;
+            if (!DB.datos) DB.datos = {};
+            let cambio = false;
+            rows.forEach(row => {
+                _projectDataMeta[row.project_id] = row.updated_at;
+                const incomingCount = _projectItemCount(row.data);
+                const currentCount  = _projectItemCount(DB.datos[row.project_id]);
+                if (incomingCount >= currentCount) {
+                    if (incomingCount > currentCount) cambio = true;
+                    DB.datos[row.project_id] = row.data;
+                }
+            });
+            if (cambio) {
+                localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                console.log('✓ project_data: contenido de proyecto actualizado desde fila individual');
+                if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+            }
+        } catch(e) {
+            console.warn('project_data overlay omitido (tabla aún no existe o error de red):', e.message);
+        }
+    }
 
     async function guardarBD() {
         // 1. localStorage siempre inmediato (síncrono, sin red)
@@ -3701,12 +3776,28 @@ document.addEventListener('DOMContentLoaded', function() {
         // 2. Supabase: debounce 900ms — cancela writes anteriores si el usuario sigue escribiendo
         clearTimeout(_guardarBDTimer);
         _guardarBDTimer = setTimeout(async () => {
+            const now = new Date().toISOString();
+            const user = USUARIO_ACTIVO?.username || 'unknown';
             try {
+                // Fase 1, primer corte: el proyecto activo se guarda también en su propia
+                // fila (project_data) — así una pestaña editando AITAMA nunca pisa lo que
+                // otra pestaña esté guardando de MAMMUT al mismo tiempo. Best-effort: si la
+                // tabla aún no existe (migración no aplicada), se ignora sin romper nada —
+                // el blob completo en lanka_db sigue siendo el respaldo.
+                if (SUC_ACTIVA && DB.datos && DB.datos[SUC_ACTIVA]) {
+                    const { error: pdError } = await window.__supabase.from('project_data').upsert({
+                        project_id: SUC_ACTIVA,
+                        data: DB.datos[SUC_ACTIVA],
+                        updated_at: now,
+                        updated_by: user
+                    });
+                    if (!pdError) _projectDataMeta[SUC_ACTIVA] = now;
+                }
                 await window.__supabase.from('lanka_db').upsert({
                     id: 'main',
                     data: DB,
-                    updated_at: new Date().toISOString(),
-                    updated_by: USUARIO_ACTIVO?.username || 'unknown'
+                    updated_at: now,
+                    updated_by: user
                 });
                 const s2 = document.getElementById('status-save');
                 if (s2) {
@@ -3763,6 +3854,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             _localChangedDuringInit = false;
                             console.log('⚠ Cambios locales durante init — subiendo versión local a Supabase');
                             guardarBD();
+                            _aplicarProjectDataOverlay(yaEnApp);
                         } else {
                             const incomingCount = _dbTotalItems(data.data);
                             const currentCount  = _dbTotalItems(DB);
@@ -3774,6 +3866,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 _supabaseVerificado = true; _migrarPwHash();
                                 guardarBD();
                                 if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                                _aplicarProjectDataOverlay(yaEnApp);
                             } else {
                                 // Sin cambios locales — Supabase es la fuente de verdad
                                 DB = data.data;
@@ -3784,6 +3877,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 if (_antesDemo && DB._mammut_demo_v1) guardarBD();
                                 console.log('✓ Datos en vivo desde Supabase:', data.updated_at);
                                 if (yaEnApp && typeof renderTodas === 'function') renderTodas();
+                                _aplicarProjectDataOverlay(yaEnApp);
                             }
                         }
                     } else if (!error) {
