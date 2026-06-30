@@ -20,6 +20,14 @@ Estimaciones reales para **1 dev sobre vanilla JS + Supabase, archivo único de 
 | OAuth Instagram/Meta + Edge Functions de sync + tabla `metrics` | 40-55 | **Muy alto** (auto-KPIs) | App Review iniciada día 1 |
 | Dashboard y Ad Performance leyendo de `metrics` | 20-30 | Alto | metrics poblada |
 
+## Fase 1.5 — Granularidad por ítem, anti-colisión intra-proyecto (~40-60 h · propuesta 2026-06-30)
+| Feature | Horas | Impacto | Prerrequisito |
+|---|---|---|---|
+| Tablas por tipo de ítem (`kanban_cards`, `catalog_items`, `ads`, `facturas`, ...) en vez de un JSON por proyecto | 25-35 | Alto (cierra colisión intra-proyecto) | `project_data` (Fase 1) |
+| Migrar lecturas/escrituras de cada módulo del front a su tabla nueva, dual-write temporal contra `project_data` | 15-25 | Alto | tablas nuevas |
+
+> `project_data` (Fase 1) ya resolvió que un proyecto no pise a otro. Sigue sin resolver que, dentro del *mismo* proyecto, dos personas editando a la vez (dos tarjetas de Kanban, dos productos del catálogo) se pisen entre sí — eso requiere una fila por ítem, no por proyecto.
+
 ## Fase 2 — Motor de insights básico (acumulado 3-4 meses · ~120-160 h)
 | Feature | Horas | Impacto | Prerrequisito |
 |---|---|---|---|
