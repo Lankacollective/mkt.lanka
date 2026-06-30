@@ -231,7 +231,7 @@ git push -u origin fix/nombre-descriptivo
 
 ---
 
-## PENDIENTES
+## PENDIENTES (mkt.lanka)
 
 - [ ] Supabase Storage para videos completos (hoy solo guarda primer frame JPEG)
 - [ ] Múltiples archivos por post
@@ -239,6 +239,61 @@ git push -u origin fix/nombre-descriptivo
 - [ ] Notificaciones push (infraestructura lista: tablas `reminders` + `push_subscriptions`)
 - [ ] Módulo CAOS integrado en mkt.lanka
 - [ ] Refactorizar `renderOrquestacion()` para updates parciales (evita colapso de cards)
+
+---
+
+## AUDITORÍA LANKA HQ — 30 de junio de 2026
+
+**Repo:** `lankacollective/lanka_hq` (Next.js) · **Supabase:** `ulbqvgvzvkxztfaaekmr` · **Vercel:** `lanka-hq` (`prj_hLwaZAWNFMajrxD47dGmYSmPsBoH`)
+
+### Qué es vs qué no es
+- **Lanka HQ** = sistema operativo interno de Lanka (Paola + Mathias). No se vende. Gestiona el día a día de la empresa.
+- **Lanka Manager** = producto externo para clientes F&B (diagnóstico de rentabilidad, 63 preguntas, en construcción, vive en `lanka-manager.vercel.app`). Sí se vende.
+- Mostrar Lanka HQ en redes no es pitch de venta — es credencial ("esta agencia se construye sus propias herramientas"), que funciona como puente de confianza hacia Lanka Manager.
+
+### Arquitectura confirmada
+- Workspace único hardcodeado: `WORKSPACE_ID = 'lanka_hq_next'` (sin multi-tenant).
+- Tabla `workspace`: columnas `kpis`, `modelo`, `roadmap`, `config` — todas **jsonb sin validación de schema**. Una forma inesperada (ej. `{}` en vez de `[]`) crashea la hidratación de React sin ningún error visible server-side.
+- **Causa raíz del bug original** ("la página no cargaba"): `workspace.kpis` se guardó como objeto `{}` en vez de array `[]`; `modules/hoy/Hoy.tsx` llamaba `state.kpis.some(...)` esperando array → crash silencioso. Se corrigió con `UPDATE workspace SET kpis = '[]'::jsonb`.
+- `lib/store.tsx` (~769 líneas): Provider central — localStorage fallback, mappers Supabase↔state, `seedDB`, `loadFromDB`, toda la API de acciones (sticker/task/assembly/case/modelo/roadmap), y suscripciones realtime vía `supabase.channel('relational_sync')` con `postgres_changes` por tabla (stickers, tasks, assemblies, vault_items, client_cases).
+- **CAOS y las tareas de Lanka HQ son dos sistemas separados y desconectados**: CAOS vive en el proyecto Supabase `tmypjnoapglzdidrurqq` (Edge Functions + curl), Lanka HQ tiene su propia tabla `tasks` en `ulbqvgvzvkxztfaaekmr` accedida desde el store de React. No hay sync entre ambos hoy.
+- Escrituras a Supabase eran "fire-and-forget": todo `.then(() => undefined)`, descartando cualquier error — el estado local y la BD podían divergir sin ninguna señal.
+- `app/api/generate-tasks/route.ts`: ya usa `@anthropic-ai/sdk` con allowlist de modelos (`claude-haiku-4-5-20251001`, `claude-sonnet-4-6`), toma stickers seleccionados + contexto de estrategia, devuelve tasks/subtasks estructuradas en JSON. Es el patrón/template a reutilizar para cualquier feature de IA futura, tanto en HQ como en Lanka Manager.
+- `vercel.json` tenía una config inválida que rompía el build — se eliminó (commit `c2d97ed`).
+
+### Fixes bloqueantes — estado
+1. ✅ **Blindaje de tipos JSONB** — aplicado. `loadFromDB()` ahora valida con `Array.isArray`/`typeof` antes de usar `kpis`/`modelo`/`roadmap`/`config`; si la forma es inesperada, usa defaults en vez de crashear, y loggea el problema en vez de fallar en silencio.
+2. ✅ **Errores de escritura visibles** — aplicado. Se agregó helper `logDbError(context, error)`; los ~17 call-sites de escritura en `store.tsx` (addSticker, updateSticker, deleteSticker, addTask, updateTask, deleteTask, createAssemblyFromQueue, updateAssembly, assemblyToTask, archiveAssembly, quickAssemble, addCase, updateCase, deleteCase, addAiTasks, seedDB, sync de workspace) ahora capturan `{ error }` y lo loggean con contexto en vez de descartarlo.
+   - **Pushed a `main` de `lanka_hq`:** commit `ed39cdbc03a122843e98c2a215e91284e1086109`.
+3. ⏳ **Postura de acceso (Vercel Deployment Protection)** — **pendiente, decisión de Paola.** No existe herramienta MCP para alternar esto remotamente (revisado el listado completo de `mcp__Vercel__*`, ninguna gestiona protección de deployment/proyecto). Es un trade-off real: acceso público como "showcase" en redes vs. exposición de datos de negocio/financieros si `client_cases` se llena con info real de clientes. Opciones:
+   - (a) Reactivar "Require Log In" en el dashboard de Vercel manualmente (acción no remota).
+   - (b) Construir Supabase Auth + RLS por usuario antes de poblar datos financieros reales de clientes en `client_cases`.
+
+### Checklist de mejora — 🟠 Importante (no bloqueante, pendiente)
+- Reconciliar CAOS vs. tareas de Lanka HQ — decidir cuál es la fuente única de verdad (fricción recurrente).
+- Hacer que la lógica de re-seed de `loadFromDB` no sobreescriba datos de la nube ante errores transitorios.
+- Limpiar módulos huérfanos: assembly / automations / command-center / dashboard / master-os.
+- Decidir si poblar o esconder módulos vacíos: Hoy (tasks=0), Bóveda (0), Casos (0).
+
+### Insertados en esta sesión
+- 7 stickers nuevos en Supabase (`stickers`, proyecto `ulbqvgvzvkxztfaaekmr`), categorizados por tags: Boca a Boca (tareas), El número shock (tareas-Ganchos), Observador en la sala (storytelling-Framework), Visitar 3 veces (storytelling-Framework), Relatividad vs. Absolutismo (storytelling-Framework), Mostrar herramienta antes que el output (tareas-Ganchos), Caballo de Troya (ya existía).
+- Tarea CAOS creada: id `t1782798067187906` — "Comprar dominio lankahq.io", proyecto LANKA HQ, fecha 2026-07-15, prioridad media, nota "$37.99/año".
+
+---
+
+## BLUEPRINT LANKA MANAGER — 30 de junio de 2026
+
+Producto externo de diagnóstico de rentabilidad F&B. Vive en `lanka-manager.vercel.app`, en construcción.
+
+### Reutilización de arquitectura de Lanka HQ
+- `client_cases` (ya existe en `ulbqvgvzvkxztfaaekmr`, stage: prospecto→diagnóstico→implementación→seguimiento→cerrado, con `maturity_score` y `kpis` jsonb ya con forma F&B) se reutiliza como registro maestro del cliente.
+- Patrón de IA de `app/api/generate-tasks/route.ts` (Anthropic SDK + allowlist de modelos + input estructurado → output JSON estructurado) es el template para el motor de interpretación del diagnóstico de 63 preguntas.
+
+### Tablas nuevas propuestas
+- `diagnostic_questions` — banco de las 63 preguntas.
+- `diagnostic_responses` — respuestas por cliente/sesión.
+- `diagnostic_results` — resultados/score interpretado.
+- **Decisión a tomar ahora, no después:** todas multi-tenant desde el día uno vía `workspace_id`/`client_id` — evitar repetir el error de `WORKSPACE_ID` hardcodeado encontrado en Lanka HQ.
 
 ---
 
@@ -265,6 +320,11 @@ mcp__github__get_file_contents
 owner: lankacollective | repo: mkt.lanka | branch: docs/contexto-sesion | path: CONTEXTO_SESION.md
 ```
 
+**Pendientes Lanka HQ (próxima sesión):**
+- [ ] Decidir postura de acceso (Vercel auth vs. Supabase RLS) — fix #3 bloqueante
+- [ ] Reconciliar CAOS ↔ tareas Lanka HQ
+- [ ] Arrancar schema multi-tenant de Lanka Manager (diagnostic_questions/responses/results)
+
 ---
 
-*Actualizado: 24 de junio de 2026 — PRs #13–#22*
+*Actualizado: 30 de junio de 2026 — Auditoría Lanka HQ (fixes 1+2 aplicados) + Blueprint Lanka Manager*
