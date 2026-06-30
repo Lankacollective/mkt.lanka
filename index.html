@@ -5243,9 +5243,13 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('selector-sucursal').style.display = '';
             document.getElementById('etiqueta-cliente').style.display = 'none';
             const sel = document.getElementById('selector-sucursal');
+            // Filter by the user's allowed projects when logged in via DB.usuarios
+            const _sucPermitidas = (USUARIO_ACTIVO?.proyectos?.length)
+                ? DB.sucursales.filter(s => USUARIO_ACTIVO.proyectos.includes(s.id))
+                : DB.sucursales;
             // Group sucursales by cliente
             const _clMap = {};
-            DB.sucursales.forEach(s => {
+            _sucPermitidas.forEach(s => {
                 const clId = s.cliente_id || '_sin_cliente';
                 if (!_clMap[clId]) _clMap[clId] = { nombre: (DB.clientes||[]).find(c=>c.id===clId)?.nombre || 'Sin cliente', sucs: [] };
                 _clMap[clId].sucs.push(s);
@@ -5257,7 +5261,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     return `<optgroup label="${_clMap[clId].nombre}">${opts}</optgroup>`;
                 }).join('');
             } else {
-                sel.innerHTML = DB.sucursales.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
+                sel.innerHTML = _sucPermitidas.map(s => `<option value="${s.id}">${s.nombre}</option>`).join('');
             }
             sel.value = SUC_ACTIVA;
         } else if (ROL === 'equipo') {
