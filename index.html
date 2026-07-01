@@ -3408,7 +3408,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
 
-        if (changed) guardarBD();
+        // During init (_supabaseVerificado is false), Supabase project_data may have
+        // newer data (e.g. seeded reports). Skip the write here; _aplicarProjectDataOverlay
+        // will call _ensureDefaults() again once all Supabase data is merged, at which
+        // point _supabaseVerificado is true and we can safely persist.
+        if (changed && _supabaseVerificado) guardarBD();
     }
 
     function _aplicarDemoMammut() {
@@ -3499,6 +3503,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Fase 1: también sincronizar la lista de proyectos desde la tabla projects
         await _aplicarProjectsTableOverlay(yaEnApp);
+
+        // Now that all Supabase data is merged into DB, re-run ensure-defaults so any
+        // new fields are added to the fresh data, and save it (_supabaseVerificado is
+        // already true at this point so guardarBD() will run if needed).
+        _ensureDefaults();
     }
 
     // Fase 1: la tabla `projects` es la fuente de verdad para QUÉ proyectos existen.
