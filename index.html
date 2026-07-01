@@ -1401,6 +1401,7 @@
             <li class="item-nav" data-target="vista-ceo" style="background:linear-gradient(135deg,var(--color-primario)18,var(--color-primario)06);border:1px solid var(--color-primario)25;font-weight:700;"><i class="fa-solid fa-chart-pie"></i> Resumen Ejecutivo</li>
             <li class="item-nav activo" data-target="vista-resumen"><i class="fa-solid fa-gauge-high"></i> Dashboard</li>
             <li class="item-nav" data-target="vista-insights"><i class="fa-solid fa-flask-vial"></i> Laboratorio Insights</li>
+            <li class="item-nav" data-target="vista-reportes" onclick="irA('vista-reportes');renderReportes()"><i class="fa-solid fa-chart-bar"></i> Reportes Mensuales</li>
             <li class="item-nav" data-target="vista-director" style="margin-top:6px;background:linear-gradient(135deg,var(--color-primario)14,var(--color-primario)05);border:1px solid var(--color-primario)25;font-weight:700;color:var(--color-primario);"><i class="fa-solid fa-clapperboard" style="color:var(--color-primario);"></i> Modo Director</li>
         </ul>
 
@@ -1711,6 +1712,22 @@
                         </thead>
                         <tbody id="body-insights"></tbody>
                     </table>
+                </div>
+            </section>
+
+            <section id="vista-reportes" class="seccion-app oculto">
+                <div class="encabezado-seccion" style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <h1>Reportes Mensuales</h1>
+                        <p>Análisis formal por mes: ventas, KPIs, equipo y recomendaciones estratégicas.</p>
+                    </div>
+                    <button class="btn btn-primario req-agencia" onclick="_abrirNuevoReporte()"><i class="fa-solid fa-plus"></i> Nuevo Reporte</button>
+                </div>
+                <div id="reportes-grid" style="display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));"></div>
+                <div id="reportes-empty" style="display:none;text-align:center;padding:64px 24px;color:var(--texto-secundario);">
+                    <i class="fa-solid fa-chart-bar" style="font-size:40px;opacity:.25;margin-bottom:16px;display:block;"></i>
+                    <div style="font-size:14px;font-weight:600;">Sin reportes aún</div>
+                    <div style="font-size:13px;margin-top:4px;">Crea el primer análisis mensual con el botón de arriba.</div>
                 </div>
             </section>
 
@@ -2288,6 +2305,57 @@
             </div>
             <p style="color:var(--texto-secundario);font-size:13px;">El reporte consolidado está listo para descarga.</p>
             <button class="btn btn-primario" style="margin-top:24px;" onclick="descargarReporteCSV()">Descargar Archivo</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Reporte Mensual -->
+<div class="fondo-modal" id="modal-reporte-mensual">
+    <div class="modal-caja" style="max-width:860px;max-height:90vh;overflow-y:auto;padding:0;">
+        <div id="rep-mensual-content"></div>
+    </div>
+</div>
+
+<!-- Modal: Nuevo Reporte Mensual -->
+<div class="fondo-modal" id="modal-nuevo-reporte">
+    <div class="modal-caja" style="max-width:660px;">
+        <div class="modal-header">
+            <h3><i class="fa-solid fa-chart-bar" style="color:var(--color-primario);margin-right:10px;"></i> Nuevo Reporte Mensual</h3>
+            <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div style="padding:24px;display:grid;gap:16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <label style="font-size:12px;font-weight:600;color:var(--texto-secundario);display:block;margin-bottom:6px;">MES</label>
+                    <input type="month" id="nr-periodo" class="input-celda" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--color-borde);font-size:14px;">
+                </div>
+                <div>
+                    <label style="font-size:12px;font-weight:600;color:var(--texto-secundario);display:block;margin-bottom:6px;">OBJETIVO DEL MES ($)</label>
+                    <input type="number" id="nr-objetivo" class="input-celda" placeholder="30000" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--color-borde);font-size:14px;">
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div>
+                    <label style="font-size:12px;font-weight:600;color:var(--texto-secundario);display:block;margin-bottom:6px;">VENTAS TOTALES ($)</label>
+                    <input type="number" id="nr-ventas" class="input-celda" placeholder="36270" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--color-borde);font-size:14px;">
+                </div>
+                <div>
+                    <label style="font-size:12px;font-weight:600;color:var(--texto-secundario);display:block;margin-bottom:6px;">MES ANTERIOR ($)</label>
+                    <input type="number" id="nr-mes-ant" class="input-celda" placeholder="29630" style="width:100%;padding:10px 12px;border-radius:10px;border:1px solid var(--color-borde);font-size:14px;">
+                </div>
+            </div>
+            <div>
+                <label style="font-size:12px;font-weight:600;color:var(--texto-secundario);display:block;margin-bottom:6px;">ANÁLISIS EJECUTIVO</label>
+                <textarea id="nr-analisis" class="textarea-apple" rows="4" placeholder="Describe el desempeño del mes, puntos clave y contexto..."></textarea>
+            </div>
+            <div>
+                <label style="font-size:12px;font-weight:600;color:var(--texto-secundario);display:block;margin-bottom:6px;">RECOMENDACIONES (una por línea)</label>
+                <textarea id="nr-recs" class="textarea-apple" rows="3" placeholder="Activar campaña de verano&#10;Paquete combo micropig + limpieza"></textarea>
+            </div>
+        </div>
+        <div style="padding:16px 24px;border-top:1px solid var(--color-borde);background:#FAFAFA;display:flex;justify-content:flex-end;gap:8px;border-radius:0 0 20px 20px;">
+            <button class="btn btn-fantasma" onclick="cerrarModales()">Cancelar</button>
+            <button class="btn btn-primario" onclick="_guardarNuevoReporte()"><i class="fa-solid fa-check"></i> Guardar Reporte</button>
         </div>
     </div>
 </div>
@@ -7621,6 +7689,215 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!el || !d) return;
         if (!d.insights) d.insights = [];
         el.innerHTML = d.insights.map((ins, i) => `<tr><td><input type="date" class="input-celda" value="${ins.f}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].f=this.value;guardarBD()"></td><td><input class="input-celda" style="font-weight:700;" value="${ins.c}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].c=this.value;guardarBD()"></td><td><input class="input-celda" value="${ins.r}" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].r=this.value;guardarBD()"></td><td><textarea class="input-celda" style="resize:vertical; min-height:40px;" ${ro} onchange="DB.datos['${SUC_ACTIVA}'].insights[${i}].a=this.value;guardarBD()">${ins.a}</textarea></td><td class="req-agencia"><i class="fa-solid fa-trash" style="color:#ccc;cursor:pointer;" onclick="delObj('insights',${i})"></i></td></tr>`).join('');
+    }
+
+    // ── Reportes Mensuales ──────────────────────────────────────────
+    function renderReportes() {
+        const d = DB.datos[SUC_ACTIVA];
+        const grid = document.getElementById('reportes-grid');
+        const empty = document.getElementById('reportes-empty');
+        if (!grid) return;
+        const reportes = (d && d.reportes_mensuales) ? [...d.reportes_mensuales].reverse() : [];
+        grid.style.display = reportes.length ? 'grid' : 'none';
+        empty.style.display = reportes.length ? 'none' : 'block';
+        const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        grid.innerHTML = reportes.map((r, i) => {
+            const idx = d.reportes_mensuales.length - 1 - i;
+            const pct_obj = r.ventas_objetivo ? ((r.ventas_total / r.ventas_objetivo - 1) * 100).toFixed(1) : null;
+            const pct_ant = r.ventas_mes_anterior ? ((r.ventas_total / r.ventas_mes_anterior - 1) * 100).toFixed(1) : null;
+            const colorObj = pct_obj !== null ? (parseFloat(pct_obj) >= 0 ? '#15803D' : '#DC2626') : '';
+            const colorAnt = pct_ant !== null ? (parseFloat(pct_ant) >= 0 ? '#15803D' : '#DC2626') : '';
+            const [ano, mes] = (r.periodo || '').split('-');
+            const mesNombre = mes ? MESES[parseInt(mes) - 1] : r.mes || 'Sin fecha';
+            const suc = DB.sucursales.find(s => s.id === SUC_ACTIVA);
+            const color = (suc && suc.color) || 'var(--color-primario)';
+            return `<div class="tarjeta" style="cursor:pointer;transition:box-shadow .2s,transform .2s;border-top:3px solid ${color};" onclick="_verReporteMensual(${idx})" onmouseover="this.style.boxShadow='0 8px 30px rgba(0,0,0,.12)';this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='';this.style.transform=''">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                    <div>
+                        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-secundario);">${ano || ''}</div>
+                        <div style="font-size:22px;font-weight:800;font-family:var(--font-display);letter-spacing:-.02em;color:var(--texto-principal);">${mesNombre}</div>
+                    </div>
+                    <span style="font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;background:${parseFloat(pct_obj)>=0?'rgba(21,128,61,.1)':'rgba(220,38,38,.1)'};color:${colorObj};">${pct_obj !== null ? (parseFloat(pct_obj) >= 0 ? '+' : '') + pct_obj + '% vs obj.' : ''}</span>
+                </div>
+                <div style="font-size:32px;font-weight:800;font-family:var(--font-display);letter-spacing:-.03em;margin-bottom:4px;">${_fmt(r.ventas_total)}</div>
+                <div style="display:flex;gap:16px;font-size:12px;color:var(--texto-secundario);margin-bottom:16px;">
+                    ${pct_ant !== null ? `<span style="color:${colorAnt};font-weight:600;">${parseFloat(pct_ant)>=0?'+':''}${pct_ant}% vs ${mesNombre==='Enero'?'Dic':MESES[parseInt(mes)-2]} ant.</span>` : ''}
+                    ${r.ticket_promedio ? `<span>Ticket prom. ${_fmt(r.ticket_promedio)}</span>` : ''}
+                </div>
+                ${r.analisis_ejecutivo ? `<div style="font-size:13px;color:var(--texto-secundario);line-height:1.55;border-top:1px solid var(--color-borde);padding-top:12px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">${r.analisis_ejecutivo}</div>` : ''}
+                <div style="margin-top:14px;display:flex;justify-content:flex-end;">
+                    <span style="font-size:12px;font-weight:600;color:var(--color-primario);display:flex;align-items:center;gap:5px;">Ver análisis completo <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i></span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function _fmt(n) {
+        if (!n && n !== 0) return '—';
+        return '$' + Number(n).toLocaleString('es-MX', {minimumFractionDigits:0});
+    }
+
+    function _verReporteMensual(idx) {
+        const d = DB.datos[SUC_ACTIVA];
+        const r = d && d.reportes_mensuales && d.reportes_mensuales[idx];
+        if (!r) return;
+        const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const [ano, mes] = (r.periodo || '').split('-');
+        const mesNombre = mes ? MESES[parseInt(mes) - 1] : r.mes || '';
+        const suc = DB.sucursales.find(s => s.id === SUC_ACTIVA);
+        const color = (suc && suc.color) || '#C4855A';
+        const pct_obj = r.ventas_objetivo ? ((r.ventas_total / r.ventas_objetivo - 1) * 100).toFixed(1) : null;
+        const pct_ant = r.ventas_mes_anterior ? ((r.ventas_total / r.ventas_mes_anterior - 1) * 100).toFixed(1) : null;
+
+        const kpisHero = [
+            { label: 'Ventas totales', value: _fmt(r.ventas_total), sub: pct_obj !== null ? `${parseFloat(pct_obj)>=0?'+':''}${pct_obj}% vs objetivo`, subColor: parseFloat(pct_obj)>=0?'#15803D':'#DC2626' },
+            { label: 'Objetivo', value: _fmt(r.ventas_objetivo), sub: '' },
+            { label: 'Ticket promedio', value: r.ticket_promedio ? _fmt(r.ticket_promedio) : '—', sub: r.servicios_count ? `${r.servicios_count} servicios` : '' },
+            { label: 'vs Mes anterior', value: pct_ant !== null ? `${parseFloat(pct_ant)>=0?'+':''}${pct_ant}%` : '—', sub: _fmt(r.ventas_mes_anterior), subColor: parseFloat(pct_ant)>=0?'#15803D':'#DC2626' }
+        ];
+
+        const periodosHtml = (r.periodos||[]).length ? `
+            <div style="margin-bottom:28px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-secundario);margin-bottom:12px;">Ventas por periodo</div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                ${(r.periodos||[]).map(p => {
+                    const pct = r.ventas_total ? Math.round(p.total / r.ventas_total * 100) : 0;
+                    return `<div>
+                        <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:5px;">
+                            <span>${p.label}</span><span>${_fmt(p.total)} <span style="color:var(--texto-secundario);font-weight:400;font-size:11px;">(${pct}%)</span></span>
+                        </div>
+                        <div style="height:8px;background:rgba(0,0,0,.06);border-radius:100px;overflow:hidden;">
+                            <div style="height:100%;width:${pct}%;background:${color};border-radius:100px;transition:width .6s ease;"></div>
+                        </div>
+                    </div>`;
+                }).join('')}
+                </div>
+            </div>` : '';
+
+        const serviciosHtml = (r.servicios||[]).length ? `
+            <div style="margin-bottom:28px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-secundario);margin-bottom:12px;">Mix de servicios</div>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                ${(r.servicios||[]).map(s => `<div>
+                    <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-bottom:5px;">
+                        <span>${s.nombre}</span><span>${s.monto ? _fmt(s.monto) : ''} <span style="color:var(--texto-secundario);font-weight:400;font-size:11px;">(${s.pct}%)</span></span>
+                    </div>
+                    <div style="height:8px;background:rgba(0,0,0,.06);border-radius:100px;overflow:hidden;">
+                        <div style="height:100%;width:${s.pct}%;background:${color}88;border-radius:100px;"></div>
+                    </div>
+                </div>`).join('')}
+                </div>
+            </div>` : '';
+
+        const fortalezasHtml = (r.fortalezas||[]).length ? `
+            <div>
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#15803D;margin-bottom:10px;"><i class="fa-solid fa-arrow-trend-up" style="margin-right:5px;"></i>Fortalezas</div>
+                <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;">
+                ${(r.fortalezas||[]).map(f=>`<li style="font-size:13px;line-height:1.5;color:var(--texto-principal);">${f}</li>`).join('')}
+                </ul>
+            </div>` : '';
+
+        const areasMejoraHtml = (r.areas_mejora||[]).length ? `
+            <div>
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#D97706;margin-bottom:10px;"><i class="fa-solid fa-triangle-exclamation" style="margin-right:5px;"></i>Áreas de mejora</div>
+                <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;">
+                ${(r.areas_mejora||[]).map(a=>`<li style="font-size:13px;line-height:1.5;color:var(--texto-principal);">${a}</li>`).join('')}
+                </ul>
+            </div>` : '';
+
+        const recsHtml = (r.recomendaciones||[]).length ? `
+            <div style="margin-bottom:28px;">
+                <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-secundario);margin-bottom:12px;">Recomendaciones estratégicas</div>
+                <ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px;">
+                ${(r.recomendaciones||[]).map(rec=>`<li style="font-size:13px;line-height:1.55;color:var(--texto-principal);padding-left:4px;">${rec}</li>`).join('')}
+                </ol>
+            </div>` : '';
+
+        const isOwner = USUARIO_ACTIVO && (USUARIO_ACTIVO.rol_id === 'owner' || USUARIO_ACTIVO.rol_id === 'lanka_team') && !ROL_SIMULADO;
+        const deleteBtn = isOwner ? `<button class="btn btn-fantasma btn-sm" style="color:var(--color-peligro);" onclick="_eliminarReporte(${idx})"><i class="fa-solid fa-trash-can" style="font-size:11px;"></i></button>` : '';
+
+        document.getElementById('rep-mensual-content').innerHTML = `
+            <div style="position:sticky;top:0;z-index:2;background:var(--color-fondo,#f5f5f5);border-bottom:1px solid var(--color-borde);border-radius:20px 20px 0 0;padding:20px 28px 18px;display:flex;justify-content:space-between;align-items:center;">
+                <div>
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-secundario);">${suc ? suc.nombre : SUC_ACTIVA} · ${ano}</div>
+                    <div style="font-size:24px;font-weight:800;font-family:var(--font-display);letter-spacing:-.02em;">${mesNombre}</div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    ${deleteBtn}
+                    <button class="btn-fantasma btn-sm" onclick="cerrarModales()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+            <div style="padding:28px;">
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px;">
+                ${kpisHero.map(k=>`<div style="background:rgba(0,0,0,.03);border-radius:14px;padding:16px;">
+                    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-secundario);margin-bottom:6px;">${k.label}</div>
+                    <div style="font-size:20px;font-weight:800;font-family:var(--font-display);letter-spacing:-.02em;">${k.value}</div>
+                    ${k.sub ? `<div style="font-size:11px;font-weight:600;color:${k.subColor||'var(--texto-secundario)'};margin-top:3px;">${k.sub}</div>` : ''}
+                </div>`).join('')}
+                </div>
+                ${periodosHtml}
+                ${serviciosHtml}
+                ${r.analisis_ejecutivo ? `<div style="margin-bottom:28px;">
+                    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-secundario);margin-bottom:12px;">Análisis ejecutivo</div>
+                    <div style="font-size:14px;line-height:1.7;color:var(--texto-principal);white-space:pre-line;">${r.analisis_ejecutivo}</div>
+                </div>` : ''}
+                ${(fortalezasHtml || areasMejoraHtml) ? `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px;padding:20px;background:rgba(0,0,0,.02);border-radius:14px;">${fortalezasHtml}${areasMejoraHtml}</div>` : ''}
+                ${recsHtml}
+            </div>
+        `;
+        document.getElementById('modal-reporte-mensual').classList.add('activo');
+    }
+
+    function _eliminarReporte(idx) {
+        if (!confirm('¿Eliminar este reporte? Esta acción no se puede deshacer.')) return;
+        const d = DB.datos[SUC_ACTIVA];
+        d.reportes_mensuales.splice(idx, 1);
+        guardarBD();
+        cerrarModales();
+        renderReportes();
+    }
+
+    function _abrirNuevoReporte() {
+        document.getElementById('nr-periodo').value = '';
+        document.getElementById('nr-objetivo').value = '';
+        document.getElementById('nr-ventas').value = '';
+        document.getElementById('nr-mes-ant').value = '';
+        document.getElementById('nr-analisis').value = '';
+        document.getElementById('nr-recs').value = '';
+        document.getElementById('modal-nuevo-reporte').classList.add('activo');
+    }
+
+    function _guardarNuevoReporte() {
+        const periodo = document.getElementById('nr-periodo').value;
+        const ventas = parseFloat(document.getElementById('nr-ventas').value) || 0;
+        const objetivo = parseFloat(document.getElementById('nr-objetivo').value) || 0;
+        const mesAnt = parseFloat(document.getElementById('nr-mes-ant').value) || 0;
+        const analisis = document.getElementById('nr-analisis').value.trim();
+        const recs = document.getElementById('nr-recs').value.trim().split('\n').filter(Boolean);
+        if (!periodo || !ventas) { alert('Completa al menos el mes y ventas totales.'); return; }
+        const [ano, mes] = periodo.split('-');
+        const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+        const rep = {
+            id: `rep_${SUC_ACTIVA}_${periodo.replace('-','')}`,
+            mes: `${MESES[parseInt(mes)-1]} ${ano}`,
+            periodo,
+            fecha_cierre: new Date().toISOString().split('T')[0],
+            ventas_total: ventas,
+            ventas_objetivo: objetivo || null,
+            ventas_mes_anterior: mesAnt || null,
+            analisis_ejecutivo: analisis,
+            recomendaciones: recs,
+            periodos: [],
+            servicios: [],
+            fortalezas: [],
+            areas_mejora: []
+        };
+        const d = DB.datos[SUC_ACTIVA];
+        if (!d.reportes_mensuales) d.reportes_mensuales = [];
+        d.reportes_mensuales.push(rep);
+        guardarBD();
+        cerrarModales();
+        renderReportes();
     }
 
     // ── DAM ↔ Kanban / Stories helpers ──────────────────────────────
