@@ -7750,7 +7750,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const pct_ant = r.ventas_mes_anterior ? ((r.ventas_total / r.ventas_mes_anterior - 1) * 100).toFixed(1) : null;
 
         const kpisHero = [
-            { label: 'Ventas totales', value: _fmt(r.ventas_total), sub: pct_obj !== null ? `${parseFloat(pct_obj)>=0?'+':''}${pct_obj}% vs objetivo`, subColor: parseFloat(pct_obj)>=0?'#15803D':'#DC2626' },
+                        { label: 'Ventas totales', value: _fmt(r.ventas_total), sub: pct_obj !== null ? `${parseFloat(pct_obj)>=0?'+':''}${pct_obj}% vs objetivo` : '', subColor: parseFloat(pct_obj)>=0?'#15803D':'#DC2626' },
             { label: 'Objetivo', value: _fmt(r.ventas_objetivo), sub: '' },
             { label: 'Ticket promedio', value: r.ticket_promedio ? _fmt(r.ticket_promedio) : '—', sub: r.servicios_count ? `${r.servicios_count} servicios` : '' },
             { label: 'vs Mes anterior', value: pct_ant !== null ? `${parseFloat(pct_ant)>=0?'+':''}${pct_ant}%` : '—', sub: _fmt(r.ventas_mes_anterior), subColor: parseFloat(pct_ant)>=0?'#15803D':'#DC2626' }
