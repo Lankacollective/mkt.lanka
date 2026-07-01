@@ -5273,7 +5273,7 @@ document.addEventListener('DOMContentLoaded', function() {
          renderPresupuesto, renderFacturas, renderBriefing, renderMood,
          renderEstrategia, renderAdministracion, renderProveedoresCentral,
          () => _syncKanbanToAds(false), renderAdsTable, renderOfflineTable, renderShootingGrid, renderStories, renderMisTareas,
-         renderDirector, renderLandingCEO
+         renderDirector, renderLandingCEO, renderReportes
         ].forEach(fn => { try { fn(); } catch(e) { console.error('[renderTodas]', fn.name, e); } });
         _renderNotifBadge();
         setTimeout(() => {
