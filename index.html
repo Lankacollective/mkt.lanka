@@ -3225,473 +3225,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 .subscribe();
         }
         
-        // Migrar datos viejos que no tengan los nuevos arrays
-        const _aitamaDefaults = [
-            { nombre: "Ángeles Fernández", rol: "Fotógrafa", password: btoa("angeles26") },
-            { nombre: "Dulce", rol: "Asistente", password: btoa("dulce26") },
-            { nombre: "Sergio", rol: "Videógrafo", password: btoa("sergio26") },
-            { nombre: "Paola", rol: "Dirección", password: btoa("paola26") }
-        ];
-        let _aitamaMigrated = false;
-        if (DB.sucursales) {
-            DB.sucursales.forEach(suc => {
-                if (!suc.equipo_miembros) { suc.equipo_miembros = []; _aitamaMigrated = true; }
-                if (suc.id === 'aitama') {
-                    _aitamaDefaults.forEach(dm => {
-                        const ex = suc.equipo_miembros.find(m => m.nombre === dm.nombre);
-                        if (!ex) { suc.equipo_miembros.push(dm); _aitamaMigrated = true; }
-                        else if (!ex.password) { ex.password = dm.password; _aitamaMigrated = true; }
-                    });
-                }
-            });
-            if (_aitamaMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-        if (DB.datos) {
-            Object.keys(DB.datos).forEach(sid => {
-                if (!DB.datos[sid].ads) DB.datos[sid].ads = [];
-                if (!DB.datos[sid].offline) DB.datos[sid].offline = [];
-                if (!DB.datos[sid].shooting) DB.datos[sid].shooting = [];
-                if (!DB.datos[sid].stories_ind) DB.datos[sid].stories_ind = [];
-                if (DB.datos[sid].kanban) {
-                    DB.datos[sid].kanban.forEach(k => { if (k.asignado_a === undefined) k.asignado_a = ''; });
-                }
-            });
-        }
-        // Sprint 3 migration — add new system tables if missing
-        let _s3migrated = false;
-        if (!DB.roles_sistema) { DB.roles_sistema = JSON.parse(JSON.stringify(DATOS_SEMILLA.roles_sistema)); _s3migrated = true; }
-        if (!DB.permisos)      { DB.permisos      = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos));      _s3migrated = true; }
-        // Ensure all permission keys from seed exist (handles stale localStorage from old versions)
-        Object.keys(DATOS_SEMILLA.permisos).forEach(mod => { if (!DB.permisos[mod]) { DB.permisos[mod] = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos[mod])); _s3migrated = true; } });
-        // mis_tareas is not user-editable — always sync from seed to pick up role additions
-        DB.permisos.mis_tareas = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos.mis_tareas));
-        if (!DB.ubicaciones)   { DB.ubicaciones   = JSON.parse(JSON.stringify(DATOS_SEMILLA.ubicaciones));   _s3migrated = true; }
-        if (!DB.usuarios) {
-            DB.usuarios = JSON.parse(JSON.stringify(DATOS_SEMILLA.usuarios));
-            _s3migrated = true;
-        } else {
-            // Ensure existing users have puesto field
-            DB.usuarios.forEach(u => { if (u.puesto === undefined) u.puesto = ''; });
-            // Add Mathias if missing
-            if (!DB.usuarios.find(u => u.id === 'u_mathias')) {
-                DB.usuarios.push({ id:"u_mathias", nombre:"Mathias", username:"mathias", caos_name:"Mathias Neudörfer Hecker", puesto:"Lanka Team", password:btoa("lankateam26"), rol_id:"lanka_team", proyectos:["aitama","mammut"], ubicacion:"Todas", estado:"activo" });
-                _s3migrated = true;
-            }
-            // Sync caos_name from seed for all existing users
-            DB.usuarios.forEach(u => {
-                const seed = DATOS_SEMILLA.usuarios.find(s => s.id === u.id);
-                if (seed && !u.caos_name) { u.caos_name = seed.caos_name; _s3migrated = true; }
-                // Add password from seed for users missing it (pre-Sprint3 localStorage)
-                if (seed && !u.password) { u.password = seed.password; _s3migrated = true; }
-            });
-        }
-        if (_s3migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-
-        // Sprint 3.1 migration — add new permission modules if missing from existing DB
-        if (DB.permisos) {
-            let _s31migrated = false;
-            const _newModules = { director: { owner:true, lanka_team:true, direccion:true, coordinador:false, equipo:false } };
-            Object.keys(_newModules).forEach(mod => {
-                if (!DB.permisos[mod]) { DB.permisos[mod] = _newModules[mod]; _s31migrated = true; }
-            });
-            if (_s31migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 4 migration — presupuesto: {directa,intercambio} → {inversion,colaboracion}
-        if (DB.datos) {
-            let _s4migrated = false;
-            Object.keys(DB.datos).forEach(sid => {
-                (DB.datos[sid].presupuesto || []).forEach(p => {
-                    if (p.montos_mes && p.montos_mes.length && p.montos_mes[0].directa !== undefined) {
-                        p.montos_mes = p.montos_mes.map(m => ({ inversion: m.directa || 0, colaboracion: m.intercambio || 0 }));
-                        _s4migrated = true;
-                    }
-                    if (p.tipo === undefined) { p.tipo = 'Digital'; _s4migrated = true; }
-                });
-            });
-            if (_s4migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 6 migration — campo real en montos_mes
-        if (DB.datos) {
-            let _s6migrated = false;
-            Object.keys(DB.datos).forEach(sid => {
-                (DB.datos[sid].presupuesto || []).forEach(p => {
-                    (p.montos_mes || []).forEach(m => {
-                        if (m.real === undefined) { m.real = 0; _s6migrated = true; }
-                    });
-                });
-            });
-            if (_s6migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 7 migration — DAM campos extendidos + normalización estados/tipos
-        if (DB.datos) {
-            let _s7m = false;
-            Object.keys(DB.datos).forEach(sid => {
-                (DB.datos[sid].dam || []).forEach(a => {
-                    if (a.drive_url === undefined) { a.drive_url = a.url||''; _s7m = true; }
-                    if (a.drive_id === undefined) { a.drive_id = _extractDriveId(a.drive_url); _s7m = true; }
-                    if (a.categoria === undefined) { a.categoria = 'General'; _s7m = true; }
-                    if (a.subcategoria === undefined) { a.subcategoria = ''; _s7m = true; }
-                    if (a.post_vinculado === undefined) { a.post_vinculado = ''; _s7m = true; }
-                    if (a.story_vinculada === undefined) { a.story_vinculada = ''; _s7m = true; }
-                    if (a.shooting_id === undefined) { a.shooting_id = ''; _s7m = true; }
-                    if (a.subido_por === undefined) { a.subido_por = ''; _s7m = true; }
-                    if (a.notas_edicion === undefined) { a.notas_edicion = ''; _s7m = true; }
-                    // Normalizar tipo
-                    const tipoMap = {'fa-film':'video','fa-video':'video','fa-image':'foto','fa-music':'audio','fa-file-pdf':'documento'};
-                    if (tipoMap[a.tipo]) { a.tipo = tipoMap[a.tipo]; _s7m = true; }
-                    else if (!['video','foto','audio','documento'].includes(a.tipo)) { a.tipo='foto'; _s7m=true; }
-                    // Normalizar estado
-                    if (a.estado==='Aprobado') { a.estado='aprobado'; _s7m=true; }
-                    else if (a.estado==='Cambios solicitados') { a.estado='rechazado'; _s7m=true; }
-                    else if (a.estado==='En revisión') { a.estado='en_revision'; _s7m=true; }
-                });
-            });
-            if (_s7m) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 8 migration — scope field for kanban posts (local/global)
-        if (DB.datos) {
-            let _s8m = false;
-            Object.keys(DB.datos).forEach(sid => {
-                (DB.datos[sid].kanban || []).forEach(k => {
-                    if (k.scope === undefined) { k.scope = 'local'; _s8m = true; }
-                });
-            });
-            if (_s8m) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 9 migration — Directorio Central de Proveedores
-        if (!DB.proveedores_central) {
-            const _central = JSON.parse(JSON.stringify(DATOS_SEMILLA.proveedores_central));
-            const _normNombre = n => (n||'').toLowerCase().trim();
-            // Absorb per-sucursal providers not already in central
-            if (DB.sucursales) {
-                DB.sucursales.forEach(s => {
-                    const _perSuc = s.proveedores_config || [];
-                    _perSuc.forEach(p => {
-                        const exists = _central.find(c => _normNombre(c.nombre) === _normNombre(p.nombre));
-                        if (exists) {
-                            // Tag with this sucursal if not already there
-                            if (!exists.sucursales.includes(s.id)) exists.sucursales.push(s.id);
-                        } else {
-                            _central.push({ id:'pc_' + Date.now() + '_' + Math.random().toString(36).slice(2,5), nombre:p.nombre||'', categoria:p.categoria||'', contacto:p.contacto||'', forma_pago:p.forma_pago||'', tipo:'compartido', ciudades:[], sucursales:[s.id], notas:'' });
-                        }
-                    });
-                });
-            }
-            DB.proveedores_central = _central;
-            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-        // Ensure each proveedor_central has all fields
-        if (DB.proveedores_central) {
-            let _s9fix = false;
-            DB.proveedores_central.forEach((p,i) => {
-                if (!p.id) { p.id = 'pc_' + Date.now() + '_' + i; _s9fix = true; }
-                if (!p.tipo) { p.tipo = 'compartido'; _s9fix = true; }
-                if (!Array.isArray(p.ciudades)) { p.ciudades = []; _s9fix = true; }
-                if (!Array.isArray(p.sucursales)) { p.sucursales = []; _s9fix = true; }
-                if (p.notas === undefined) { p.notas = ''; _s9fix = true; }
-            });
-            if (_s9fix) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 10 migration — clientes: 3-level hierarchy (agencia → cliente → sucursal)
-        if (!DB.clientes || !DB.clientes.length) {
-            DB.clientes = JSON.parse(JSON.stringify(DATOS_SEMILLA.clientes || []));
-            // Auto-assign cliente_id to sucursales by matching ID prefix
-            (DB.sucursales || []).forEach(s => {
-                if (s.cliente_id) return; // already assigned
-                // Try to match by ID prefix: "mammut_norte" → "mammut", "aitama_xxx" → "aitama"
-                const baseId = s.id.split('_')[0];
-                let cl = DB.clientes.find(c => c.id === 'cl_' + baseId || c._base === baseId);
-                if (!cl) {
-                    // Create a new client for this sucursal
-                    cl = { id: 'cl_' + s.id, nombre: s.nombre, color: s.color, tipo: s.tipo || 'wellness', password: s.password, _base: s.id };
-                    DB.clientes.push(cl);
-                }
-                s.cliente_id = cl.id;
-            });
-            localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-        // Ensure all sucursales have cliente_id
-        {
-            let _s10fix = false;
-            (DB.sucursales || []).forEach(s => {
-                if (!s.cliente_id) {
-                    const baseId = s.id.split('_')[0];
-                    let cl = (DB.clientes || []).find(c => c.id === 'cl_' + baseId || c._base === baseId);
-                    if (!cl) {
-                        cl = { id: 'cl_' + s.id, nombre: s.nombre, color: s.color, tipo: s.tipo || 'wellness', password: s.password, _base: s.id };
-                        if (!DB.clientes) DB.clientes = [];
-                        DB.clientes.push(cl);
-                    }
-                    s.cliente_id = cl.id;
-                    _s10fix = true;
-                }
-            });
-            // Ensure all proveedores_central have cliente_id field
-            (DB.proveedores_central || []).forEach(p => {
-                if (p.cliente_id === undefined) { p.cliente_id = null; _s10fix = true; }
-            });
-            if (_s10fix) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 10b migration — upsert seed clients to ensure correct passwords always
-        {
-            let _s10b = false;
-            if (!DB.clientes) { DB.clientes = []; _s10b = true; }
-            (DATOS_SEMILLA.clientes || []).forEach(seedCl => {
-                const existing = DB.clientes.find(c => c.id === seedCl.id);
-                if (!existing) {
-                    DB.clientes.push(JSON.parse(JSON.stringify(seedCl)));
-                    _s10b = true;
-                } else if (!existing.password) {
-                    // Solo restaurar si falta; NO sobrescribir (evita revertir el hash a btoa)
-                    existing.password = seedCl.password;
-                    _s10b = true;
-                }
-            });
-            if (_s10b) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 5 migration — briefing expanded structure
-        if (DB.datos) {
-            let _s5migrated = false;
-            Object.keys(DB.datos).forEach(sid => {
-                const b = DB.datos[sid].briefing;
-                if (!b) { DB.datos[sid].briefing = { reglas:[], cofepris:false, cofepris_notas:"", tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{ grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} } }; _s5migrated = true; return; }
-                // Migrate old manychat [{kw, desc}] → new structure
-                if (!Array.isArray(b.manychat)) { b.manychat = []; _s5migrated = true; }
-                else if (b.manychat.length && b.manychat[0].kw !== undefined) {
-                    b.manychat = b.manychat.map((m,mi) => ({ id:'mc_legacy_'+mi, keyword:m.kw||'', mensaje:m.desc||'', objetivo:'Informar', estado:'Activo', activaciones_mes:0 }));
-                    _s5migrated = true;
-                }
-                if (b.tono_ejemplos === undefined)      { b.tono_ejemplos = [];      _s5migrated = true; }
-                if (b.palabras_prohibidas === undefined){ b.palabras_prohibidas = []; _s5migrated = true; }
-                if (b.palabras_clave === undefined)     { b.palabras_clave = [];      _s5migrated = true; }
-                if (b.cofepris === undefined)           { b.cofepris = false;         _s5migrated = true; }
-                if (b.cofepris_notas === undefined)     { b.cofepris_notas = '';      _s5migrated = true; }
-                if (!b.horarios)                        { b.horarios = { grid:{}, por_formato:{reel:"",story:"",post:"",pauta:""} }; _s5migrated = true; }
-                // Migrate rendimiento: add meta field
-                (DB.datos[sid].rendimiento||[]).forEach(r => { if (r.meta === undefined) { r.meta = ''; _s5migrated = true; } });
-                // Migrate: add historico_mensual if missing
-
-                if (!DB.datos[sid].historico_mensual) {
-                    const _mc = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-                    DB.datos[sid].historico_mensual = Array.from({length:12},(_,i)=>({mes:_mc[i],ventas:0,seguidores:0,dms:0}));
-                    _s5migrated = true;
-                }
-            });
-            if (_s5migrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-
-        // Sprint 5 — migrate tipo to sucursales and apply presets
-        if (DB.sucursales) {
-            let _tipoMigrated = false;
-            DB.sucursales.forEach(s => {
-                if (!s.tipo) {
-                    const n = (s.nombre||'').toLowerCase();
-                    s.tipo = (n.includes('wellness')||n.includes('spa')||n.includes('aitama')) ? 'wellness'
-                           : (n.includes('pizza')||n.includes('rest')||n.includes('bar')||n.includes('mammut')) ? 'restaurante'
-                           : 'wellness';
-                    _tipoMigrated = true;
-                }
-                // Apply preset to projects with empty rendimiento
-                const datos = DB.datos[s.id];
-                if (datos && (!datos.rendimiento || datos.rendimiento.length === 0)) {
-                    datos.rendimiento = (PRESETS_METRICAS[s.tipo] || PRESETS_METRICAS.wellness).map(p => ({...p}));
-                    _tipoMigrated = true;
-                }
-            });
-            // Migrate presupuesto tipos to new INVERSION_CATEGORIAS names
-            const _tipoMap = { 'Digital':'Pauta digital', 'Offline':'Materiales offline', 'Producción':'Producción de contenido' };
-            DB.sucursales.forEach(s => {
-                (DB.datos[s.id]?.presupuesto||[]).forEach(p => {
-                    if (_tipoMap[p.tipo]) { p.tipo = _tipoMap[p.tipo]; _tipoMigrated = true; }
-                });
-            });
-            // Migrate kpi_semanal
-            DB.sucursales.forEach(s => {
-                const datos = DB.datos[s.id];
-                if (datos && !datos.kpi_semanal) { datos.kpi_semanal = []; _tipoMigrated = true; }
-            });
-            // Add engagement_formato if missing
-            DB.sucursales.forEach(s => {
-                const datos = DB.datos[s.id];
-                if (datos && !datos.engagement_formato) { datos.engagement_formato = []; _tipoMigrated = true; }
-            });
-            // Add formatos_contenido to desplegables if missing
-            if (!DB.desplegables.formatos_contenido) {
-                DB.desplegables.formatos_contenido = ["Reel", "Carrusel", "Historia", "Story"];
-                _tipoMigrated = true;
-            }
-            // Sync kpi_semanal → historico_mensual en memoria (computed on every load, no persist needed)
-            DB.sucursales.forEach(s => {
-                const datos = DB.datos[s.id];
-                if (!datos || !(datos.kpi_semanal||[]).length) return;
-                const mc = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-                if (!datos.historico_mensual || datos.historico_mensual.length !== 12)
-                    datos.historico_mensual = Array.from({length:12},(_,i)=>({mes:mc[i],ventas:0,seguidores:0,dms:0}));
-                datos.historico_mensual.forEach(h => { h.ventas = 0; h.dms = 0; });
-                datos.kpi_semanal.forEach(sem => {
-                    if (!sem.fecha) return;
-                    const mi = new Date(sem.fecha+'T00:00:00').getMonth();
-                    if (mi >= 0 && mi <= 11) {
-                        datos.historico_mensual[mi].ventas += sem.ventas || 0;
-                        datos.historico_mensual[mi].dms    += sem.dms    || 0;
-                    }
-                });
-            });
-            if (_tipoMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-        }
-        // Migrate: ensure all projects have moneda field (default MXN)
-        let _monedaMigrated = false;
-        (DB.sucursales||[]).forEach(s => { if (!s.moneda) { s.moneda = 'MXN'; _monedaMigrated = true; } });
-        if (_monedaMigrated) localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
-
-        // Migrate: categorias_servicio — default wellness list for Aitama, empty for others
-        let _catSvcMigrated = false;
-        (DB.sucursales||[]).forEach(s => {
-            if (!s.categorias_servicio) {
-                s.categorias_servicio = s.tipo === 'wellness'
-                    ? ["Head Spa","Facial","Masajes","Paquetes","Reductivos","Producto","Otro"]
-                    : [];
-                _catSvcMigrated = true;
-            }
-            // Migrate: servicios — read from localStorage if available, else use preset
-            if (!s.servicios) {
-                try {
-                    const _ls = localStorage.getItem('config_servicios_' + s.id);
-                    s.servicios = _ls ? JSON.parse(_ls) : null;
-                } catch(e) { s.servicios = null; }
-                if (!s.servicios) {
-                    const _preset = { wellness:['Head Spa','Facial Clínico','Masaje Terapéutico','Body Reset','Age Element Mesoestétic','Ainhoa CBD','Consulta'], restaurante:['Pizza','Bebida','Postre','Entrada','Combo','Promoción'], personal:['Consultoría','Conferencia','Mentoría','Contenido patrocinado'], cafeteria:['Café','Bebida','Alimento','Merchandise'], otro:['Servicio','Producto'] };
-                    s.servicios = (_preset[s.tipo] || _preset.otro).slice();
-                }
-                _catSvcMigrated = true;
-            }
-            // Migrate: proveedores_config — read from localStorage if available, else seed from DB.proveedores
-            if (!s.proveedores_config) {
-                try {
-                    const _lsp = localStorage.getItem('proveedores_' + s.id);
-                    s.proveedores_config = _lsp ? JSON.parse(_lsp) : null;
-                } catch(e) { s.proveedores_config = null; }
-                if (!s.proveedores_config) {
-                    s.proveedores_config = (DB.proveedores && DB.proveedores.length) ? JSON.parse(JSON.stringify(DB.proveedores)) : [];
-                }
-                _catSvcMigrated = true;
-            }
-        });
-        if (_catSvcMigrated) guardarBD();
-
-        // Migrate: kpi_metas — move from localStorage (per-device) to DB (shared, Supabase-synced)
-        let _kpiMetaMigrated = false;
-        const _kpiChips = ['mes', 'sem', '3m', 'anio'];
-        (DB.sucursales||[]).forEach(s => {
-            const d = DB.datos[s.id];
-            if (!d) return;
-            if (!d.kpi_metas) {
-                d.kpi_metas = {};
-                _kpiChips.forEach(chip => {
-                    try {
-                        const raw = localStorage.getItem(`lanka_metas_${s.id}_${chip}`);
-                        if (raw) {
-                            const parsed = JSON.parse(raw);
-                            if (Object.keys(parsed).length) d.kpi_metas[chip] = parsed;
-                        }
-                    } catch(e) {}
-                });
-                _kpiMetaMigrated = true;
-            }
-        });
-        if (_kpiMetaMigrated) guardarBD();
-
-        // Migrate: drive_contenido_url on sucursales + new kanban card fields
-        let _cardMigrated = false;
-        (DB.sucursales||[]).forEach(s => {
-            if (s.drive_contenido_url === undefined) { s.drive_contenido_url = ''; _cardMigrated = true; }
-            const datos = DB.datos[s.id];
-            if (!datos) return;
-            (datos.kanban||[]).forEach(k => {
-                if (k.formato           === undefined) { k.formato           = ''; _cardMigrated = true; }
-                if (k.caption_ig        === undefined) { k.caption_ig        = k.copy       || ''; _cardMigrated = true; }
-                if (k.hashtags_ig       === undefined) { k.hashtags_ig       = k.hashtags   || ''; _cardMigrated = true; }
-                if (k.caption_tiktok    === undefined) { k.caption_tiktok    = ''; _cardMigrated = true; }
-                if (k.hashtags_tiktok   === undefined) { k.hashtags_tiktok   = ''; _cardMigrated = true; }
-                if (k.manychat_flujo    === undefined) { k.manychat_flujo    = ''; _cardMigrated = true; }
-                if (k.pauta_activa      === undefined) { k.pauta_activa      = !!(k.pauta && k.pauta.trim()); _cardMigrated = true; }
-                if (k.pauta_nota        === undefined) { k.pauta_nota        = k.pauta || ''; _cardMigrated = true; }
-                if (k.campana_id        === undefined) { k.campana_id        = ''; _cardMigrated = true; }
-                if (k.stories_vinculadas=== undefined) { k.stories_vinculadas= []; _cardMigrated = true; }
-                if (k.drive_doc_url       === undefined) { k.drive_doc_url       = '';   _cardMigrated = true; }
-                if (k.vinculos            === undefined) { k.vinculos            = { stories:[], campana_ad:null, escenas_shooting:[] }; _cardMigrated = true; }
-                if (k.contenido_tecnico   === undefined) { k.contenido_tecnico   = null; _cardMigrated = true; }
-                if (k.manychat_mensajes   === undefined) { k.manychat_mensajes   = [];   _cardMigrated = true; }
-            });
-        });
-        if (_cardMigrated) guardarBD();
-
-        // Migrate: meta_* fields on ads
-        let _adMetaMigrated = false;
-        (DB.sucursales||[]).forEach(s => {
-            (DB.datos[s.id]?.ads||[]).forEach(a => {
-                if (a.meta_alcance     === undefined) { a.meta_alcance     = 0; _adMetaMigrated = true; }
-                if (a.meta_conversiones=== undefined) { a.meta_conversiones= 0; _adMetaMigrated = true; }
-                if (a.meta_clics       === undefined) { a.meta_clics       = 0; _adMetaMigrated = true; }
-                if (a.meta_cpr         === undefined) { a.meta_cpr         = 0; _adMetaMigrated = true; }
-            });
-        });
-        if (_adMetaMigrated) guardarBD();
-
-        // Migrate: brand_kit on sucursales
-        let _bkMigrated = false;
-        (DB.sucursales||[]).forEach(s => {
-            if (!s.brand_kit) {
-                s.brand_kit = {
-                    paleta: [{ nombre:'Primario', hex: s.color||'#C4855A', uso:'' }],
-                    tipografias: [
-                        { tipo:'Título', nombre:'', uso:'' },
-                        { tipo:'Cuerpo', nombre:'', uso:'' },
-                        { tipo:'Acento', nombre:'', uso:'' }
-                    ],
-                    tono_voz: [],
-                    no_usar: [],
-                    referencias: []
-                };
-                _bkMigrated = true;
-            }
-        });
-        if (_bkMigrated) guardarBD();
-
-        // Migrate: brief on shooting sessions
-        let _shBriefMigrated = false;
-        (DB.sucursales||[]).forEach(s => {
-            const bkNoUsar = (s.brand_kit||{}).no_usar || [];
-            (DB.datos[s.id]?.shooting||[]).forEach(sh => {
-                if (!sh.brief) {
-                    sh.brief = { objetivo:'', piezas:[], paleta:[], tipo_luz:'', fondos:'', props:[], look:'', no_hacer:[...bkNoUsar], referencias:[], estado:'sin_brief' };
-                    _shBriefMigrated = true;
-                }
-            });
-        });
-        if (_shBriefMigrated) guardarBD();
-
-        // ── Migración: flujo de aprobación en kanban ──
-        let _approvalMigrated = false;
-        (DB.sucursales||[]).forEach(s => {
-            (DB.datos[s.id]?.kanban||[]).forEach(t => {
-                if (t.aprobado_por   === undefined) { t.aprobado_por   = ''; _approvalMigrated = true; }
-                if (t.aprobado_fecha === undefined) { t.aprobado_fecha = ''; _approvalMigrated = true; }
-                if (t.rechazo_nota   === undefined) { t.rechazo_nota   = ''; _approvalMigrated = true; }
-            });
-        });
-        if (_approvalMigrated) guardarBD();
+        // Asegurar defaults en memoria (reemplaza Sprints 3–10b, ahora en SQL)
+        _ensureDefaults();
 
         // ── Migración DEMO: rellenar Mammut con datos demo si está vacío ──
         _aplicarDemoMammut();
+
+        // ── Callback OAuth de Meta (si venimos de redireccionamiento) ─────
+        _metaHandleOAuthCallback();
 
         document.getElementById('input-comando-ia').addEventListener('keypress', (e) => { if(e.key === 'Enter' && e.target.value.trim() !== '') procesarIA(e.target.value); });
         
@@ -3738,6 +3279,136 @@ document.addEventListener('DOMContentLoaded', function() {
         let num = Number(val) || 0;
         if (moneda !== 'MXN' && tc[moneda]) num = Math.round(num / tc[moneda]);
         return formatMoneda(num, moneda);
+    }
+
+    // ── _ensureDefaults ───────────────────────────────────────────────────────
+    // Remplaza las migraciones in-browser de los Sprints 3–10b.
+    // La SQL migration 20260701010000 ya normalizó Supabase; esto solo cubre
+    // datos que entren viejos desde localStorage en dispositivos no actualizados.
+    // No escribe a Supabase a menos que detecte algo realmente faltante.
+    function _ensureDefaults() {
+        let changed = false;
+
+        // ── Tablas globales ────────────────────────────────────────────────
+        if (!DB.roles_sistema) { DB.roles_sistema = JSON.parse(JSON.stringify(DATOS_SEMILLA.roles_sistema || {})); changed = true; }
+        if (!DB.permisos)      { DB.permisos      = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos || {}));      changed = true; }
+        if (!DB.ubicaciones)   { DB.ubicaciones   = JSON.parse(JSON.stringify(DATOS_SEMILLA.ubicaciones || []));   changed = true; }
+        if (!DB.usuarios)      { DB.usuarios      = JSON.parse(JSON.stringify(DATOS_SEMILLA.usuarios || []));      changed = true; }
+        if (!DB.clientes)      { DB.clientes      = JSON.parse(JSON.stringify(DATOS_SEMILLA.clientes || []));      changed = true; }
+        if (!DB.proveedores_central) { DB.proveedores_central = JSON.parse(JSON.stringify(DATOS_SEMILLA.proveedores_central || [])); changed = true; }
+
+        // Permisos: asegurar todos los módulos del seed
+        Object.keys(DATOS_SEMILLA.permisos || {}).forEach(mod => {
+            if (!DB.permisos[mod]) { DB.permisos[mod] = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos[mod])); changed = true; }
+        });
+        DB.permisos.mis_tareas = JSON.parse(JSON.stringify(DATOS_SEMILLA.permisos.mis_tareas || {}));
+
+        // ── Por proyecto ───────────────────────────────────────────────────
+        const _mc = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const _ARRAYS = ['kanban','ads','offline','shooting','stories_ind','dam',
+                         'insights','presupuesto','facturas','kpi_semanal',
+                         'engagement_formato','reportes_mensuales'];
+        const _TIPO_MAP = {'fa-film':'video','fa-video':'video','fa-image':'foto','fa-music':'audio','fa-file-pdf':'documento'};
+
+        (DB.sucursales || []).forEach(s => {
+            if (!s.moneda)             { s.moneda = 'MXN'; changed = true; }
+            if (!s.brand_kit)          { s.brand_kit = { paleta:[{nombre:'Primario',hex:s.color||'#C4855A',uso:''}], tipografias:[{tipo:'Título',nombre:'',uso:''},{tipo:'Cuerpo',nombre:'',uso:''},{tipo:'Acento',nombre:'',uso:''}], tono_voz:[], no_usar:[], referencias:[] }; changed = true; }
+            if (!s.categorias_servicio){ s.categorias_servicio = s.tipo==='wellness' ? ['Head Spa','Facial','Masajes','Paquetes','Reductivos','Producto','Otro'] : []; changed = true; }
+            if (!s.equipo_miembros)    { s.equipo_miembros = []; changed = true; }
+            if (!s.drive_contenido_url && s.drive_contenido_url !== '') { s.drive_contenido_url = ''; changed = true; }
+            if (!s.cliente_id) {
+                const base = s.id.split('_')[0];
+                const cl = (DB.clientes||[]).find(c => c.id === 'cl_'+base || c._base === base);
+                if (cl) { s.cliente_id = cl.id; changed = true; }
+            }
+
+            const d = DB.datos && DB.datos[s.id];
+            if (!d) return;
+
+            _ARRAYS.forEach(k => { if (!Array.isArray(d[k])) { d[k] = []; changed = true; } });
+            if (!d.kpi_metas) { d.kpi_metas = {}; changed = true; }
+            if (!d.historico_mensual || d.historico_mensual.length !== 12) {
+                d.historico_mensual = _mc.map(m => ({mes:m,ventas:0,seguidores:0,dms:0}));
+                changed = true;
+            }
+            if (!d.briefing) {
+                d.briefing = { reglas:[], cofepris:false, cofepris_notas:'', tono_ejemplos:[], palabras_prohibidas:[], palabras_clave:[], manychat:[], horarios:{grid:{},por_formato:{reel:'',story:'',post:'',pauta:''}} };
+                changed = true;
+            } else {
+                if (!d.briefing.horarios) { d.briefing.horarios = {grid:{},por_formato:{reel:'',story:'',post:'',pauta:''}}; changed = true; }
+                if (!Array.isArray(d.briefing.manychat)) { d.briefing.manychat = []; changed = true; }
+            }
+
+            // Kanban cards
+            d.kanban.forEach(k => {
+                if (k.asignado_a    === undefined) { k.asignado_a    = ''; changed = true; }
+                if (k.scope         === undefined) { k.scope         = 'local'; changed = true; }
+                if (k.formato       === undefined) { k.formato       = ''; changed = true; }
+                if (k.caption_ig    === undefined) { k.caption_ig    = k.copy||''; changed = true; }
+                if (k.hashtags_ig   === undefined) { k.hashtags_ig   = k.hashtags||''; changed = true; }
+                if (k.caption_tiktok=== undefined) { k.caption_tiktok= ''; changed = true; }
+                if (k.hashtags_tiktok===undefined) { k.hashtags_tiktok=''; changed = true; }
+                if (k.aprobado_por  === undefined) { k.aprobado_por  = ''; changed = true; }
+                if (k.aprobado_fecha=== undefined) { k.aprobado_fecha= ''; changed = true; }
+                if (k.rechazo_nota  === undefined) { k.rechazo_nota  = ''; changed = true; }
+                if (k.pauta_activa  === undefined) { k.pauta_activa  = !!(k.pauta&&k.pauta.trim()); changed = true; }
+                if (k.manychat_flujo=== undefined) { k.manychat_flujo= ''; changed = true; }
+                if (!k.vinculos)                   { k.vinculos = {stories:[],campana_ad:null,escenas_shooting:[]}; changed = true; }
+                if (!Array.isArray(k.stories_vinculadas)) { k.stories_vinculadas = []; changed = true; }
+                if (k.drive_doc_url === undefined) { k.drive_doc_url = ''; changed = true; }
+            });
+
+            // DAM normalización
+            d.dam.forEach(a => {
+                if (!a.drive_url) { a.drive_url = a.url||''; changed = true; }
+                if (!a.categoria) { a.categoria = 'General'; changed = true; }
+                if (_TIPO_MAP[a.tipo]) { a.tipo = _TIPO_MAP[a.tipo]; changed = true; }
+                else if (!['video','foto','audio','documento'].includes(a.tipo)) { a.tipo='foto'; changed=true; }
+                if (a.estado==='Aprobado') { a.estado='aprobado'; changed=true; }
+                else if (a.estado==='Cambios solicitados') { a.estado='rechazado'; changed=true; }
+                else if (a.estado==='En revisión') { a.estado='en_revision'; changed=true; }
+            });
+
+            // Ads meta_* fields
+            d.ads.forEach(a => {
+                if (a.meta_alcance      === undefined) { a.meta_alcance      = 0; changed = true; }
+                if (a.meta_conversiones === undefined) { a.meta_conversiones = 0; changed = true; }
+                if (a.meta_clics        === undefined) { a.meta_clics        = 0; changed = true; }
+                if (a.meta_cpr          === undefined) { a.meta_cpr          = 0; changed = true; }
+            });
+
+            // Rendimiento: campo meta
+            (d.rendimiento||[]).forEach(r => { if (r.meta === undefined) { r.meta = ''; changed = true; } });
+
+            // Presupuesto: directa/intercambio → inversion/colaboracion + real
+            d.presupuesto.forEach(p => {
+                if (p.montos_mes?.length && p.montos_mes[0].directa !== undefined) {
+                    p.montos_mes = p.montos_mes.map(m => ({inversion:m.directa||0,colaboracion:m.intercambio||0,real:0}));
+                    changed = true;
+                }
+                (p.montos_mes||[]).forEach(m => { if (m.real === undefined) { m.real = 0; changed = true; } });
+            });
+        });
+
+        // kpi_semanal → historico_mensual (siempre en memoria, sin persist)
+        (DB.sucursales || []).forEach(s => {
+            const d = DB.datos && DB.datos[s.id];
+            if (!d || !(d.kpi_semanal||[]).length) return;
+            const _mc2 = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            if (!d.historico_mensual || d.historico_mensual.length !== 12)
+                d.historico_mensual = _mc2.map(m => ({mes:m,ventas:0,seguidores:0,dms:0}));
+            d.historico_mensual.forEach(h => { h.ventas = 0; h.dms = 0; });
+            d.kpi_semanal.forEach(sem => {
+                if (!sem.fecha) return;
+                const mi = new Date(sem.fecha+'T00:00:00').getMonth();
+                if (mi >= 0 && mi <= 11) {
+                    d.historico_mensual[mi].ventas += sem.ventas || 0;
+                    d.historico_mensual[mi].dms    += sem.dms    || 0;
+                }
+            });
+        });
+
+        if (changed) guardarBD();
     }
 
     function _aplicarDemoMammut() {
@@ -10185,6 +9856,38 @@ ${_coverHtml}
             </div>
         </div>`;
 
+        // Card: Integraciones Meta / Instagram
+        if (_isOwnerForConfig) {
+            confHTML += `<div style="${_cardStyle}" id="meta-integration-card">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                    <i class="fa-brands fa-meta" style="color:#0866ff;font-size:16px;"></i>
+                    <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Meta / Instagram</b>
+                    <span style="font-size:11px;color:var(--color-primario);font-weight:600;">· ${_sucNombre}</span>
+                </div>
+                <p style="font-size:12px;color:var(--texto-secundario);margin-bottom:14px;line-height:1.5;">Conecta la cuenta de Instagram Business para importar métricas automáticamente. Requiere que la cuenta esté vinculada a una Página de Facebook.</p>
+                <div id="meta-status-${SUC_ACTIVA}" style="margin-bottom:12px;"></div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-primario btn-sm" onclick="_metaOAuthStart('${SUC_ACTIVA}')">
+                        <i class="fa-brands fa-instagram" style="margin-right:6px;"></i>Conectar cuenta
+                    </button>
+                    <button class="btn btn-fantasma btn-sm" onclick="_metaFetchNow('${SUC_ACTIVA}')">
+                        <i class="fa-solid fa-rotate" style="margin-right:6px;"></i>Actualizar métricas
+                    </button>
+                </div>
+                <div style="margin-top:14px;padding:10px 14px;background:rgba(8,102,255,.05);border-radius:10px;border:1px solid rgba(8,102,255,.15);">
+                    <div style="font-size:11px;font-weight:700;color:#0866ff;margin-bottom:6px;">PRÓXIMOS PASOS</div>
+                    <ol style="margin:0;padding-left:18px;font-size:12px;color:var(--texto-secundario);line-height:1.8;">
+                        <li>Ve a <strong>Meta for Developers</strong> y crea una App con permisos <code>instagram_basic, instagram_manage_insights, pages_read_engagement</code></li>
+                        <li>Guarda el App ID y App Secret en las variables de entorno de Supabase: <code>META_APP_ID</code>, <code>META_APP_SECRET</code></li>
+                        <li>Haz clic en "Conectar cuenta" — serás redirigido al flujo OAuth de Meta</li>
+                        <li>Al autorizar, las métricas de Instagram se importarán automáticamente cada día</li>
+                    </ol>
+                </div>
+            </div>`;
+            // Cargar estado de conexión
+            setTimeout(() => _metaLoadStatus('${SUC_ACTIVA}'), 100);
+        }
+
         // Card: Brand Kit (full width)
         const _sucBK = DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{};
         const _bk = _sucBK.brand_kit || { paleta:[], tipografias:[], tono_voz:[], no_usar:[], referencias:[] };
@@ -10287,6 +9990,133 @@ ${_coverHtml}
         }
         document.getElementById('contenedor-config').innerHTML = confHTML;
         renderTiposProyecto();
+    }
+
+    // ── Meta OAuth helpers ────────────────────────────────────────────────────
+    const META_APP_ID_ENV = ''; // Configura via window.META_APP_ID en el HTML o variable de entorno
+    const _SUPABASE_FN_URL = window.SUPABASE_URL ? window.SUPABASE_URL.replace('.supabase.co', '.supabase.co/functions/v1') : '';
+
+    async function _metaGetToken() {
+        if (!window.__supabase) return null;
+        const { data: { session } } = await window.__supabase.auth.getSession();
+        return session?.access_token || null;
+    }
+
+    async function _metaLoadStatus(projectId) {
+        const el = document.getElementById(`meta-status-${projectId}`);
+        if (!el) return;
+        const token = await _metaGetToken();
+        if (!token) { el.innerHTML = ''; return; }
+        try {
+            const res = await fetch(`${_SUPABASE_FN_URL}/meta-oauth?project_id=${projectId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            const connections = data.connections || [];
+            if (!connections.length) {
+                el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--texto-secundario);"><i class="fa-solid fa-circle" style="font-size:8px;color:#ccc;"></i>Sin conexión activa</div>`;
+                return;
+            }
+            el.innerHTML = connections.map(c => {
+                const expiry = c.token_expires_at ? new Date(c.token_expires_at) : null;
+                const daysLeft = expiry ? Math.round((expiry - Date.now()) / 86400000) : null;
+                const chip = daysLeft !== null
+                    ? (daysLeft < 7 ? `<span style="background:#FEF3C7;color:#D97706;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;">Expira en ${daysLeft}d</span>`
+                                    : `<span style="background:rgba(21,128,61,.1);color:#15803D;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;">Activo · ${daysLeft}d</span>`)
+                    : '';
+                return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(21,128,61,.05);border:1px solid rgba(21,128,61,.2);border-radius:10px;margin-bottom:6px;">
+                    <i class="fa-brands fa-instagram" style="color:#E1306C;font-size:14px;"></i>
+                    <div style="flex:1;">
+                        <div style="font-size:13px;font-weight:700;">${c.page_name || c.page_id}</div>
+                        ${c.ig_user_id ? `<div style="font-size:11px;color:var(--texto-secundario);">IG ID: ${c.ig_user_id}</div>` : ''}
+                    </div>
+                    ${chip}
+                    <button class="btn btn-xs btn-peligro-suave" onclick="_metaDisconnect('${projectId}','${c.page_id}')"><i class="fa-solid fa-xmark"></i></button>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            el.innerHTML = `<div style="font-size:12px;color:var(--color-peligro);">Error al verificar conexión</div>`;
+        }
+    }
+
+    function _metaOAuthStart(projectId) {
+        const appId = window.META_APP_ID || META_APP_ID_ENV;
+        if (!appId) {
+            alert('Configura META_APP_ID en las variables de entorno de Supabase y en window.META_APP_ID.\n\nInstrucciones en la card de Configuración → Meta / Instagram.');
+            return;
+        }
+        const redirectUri = encodeURIComponent(window.location.origin + window.location.pathname + '?meta_oauth=1&project_id=' + projectId);
+        const scopes = 'instagram_basic,instagram_manage_insights,pages_read_engagement,pages_show_list,business_management';
+        const authUrl = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=code&state=${projectId}`;
+        window.location.href = authUrl;
+    }
+
+    async function _metaHandleOAuthCallback() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('meta_oauth') !== '1') return;
+        const code = params.get('code');
+        const projectId = params.get('state');
+        if (!code || !projectId) return;
+        // Limpiar URL
+        window.history.replaceState({}, '', window.location.pathname);
+        const token = await _metaGetToken();
+        if (!token) { alert('Sesión expirada. Vuelve a iniciar sesión.'); return; }
+        const redirectUri = window.location.origin + window.location.pathname + '?meta_oauth=1&project_id=' + projectId;
+        _showToast('Conectando cuenta Meta…');
+        try {
+            const res = await fetch(`${_SUPABASE_FN_URL}/meta-oauth/exchange`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, project_id: projectId, redirect_uri: redirectUri })
+            });
+            const data = await res.json();
+            if (data.error) { alert('Error al conectar: ' + data.error); return; }
+            const names = (data.connected || []).map(c => c.page_name || c.page_id).join(', ');
+            _showToast(`✓ Conectado: ${names}`);
+            irA('vista-config');
+            renderAdministracion();
+        } catch(e) {
+            alert('Error de red al conectar con Meta.');
+        }
+    }
+
+    async function _metaDisconnect(projectId, pageId) {
+        if (!confirm('¿Desconectar esta cuenta de Instagram?')) return;
+        const token = await _metaGetToken();
+        if (!token) return;
+        const res = await fetch(`${_SUPABASE_FN_URL}/meta-oauth/disconnect`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId, page_id: pageId })
+        });
+        const data = await res.json();
+        if (data.ok) { _showToast('Cuenta desconectada'); _metaLoadStatus(projectId); }
+        else alert('Error: ' + data.error);
+    }
+
+    async function _metaFetchNow(projectId) {
+        const token = await _metaGetToken();
+        if (!token) { alert('Inicia sesión para actualizar métricas.'); return; }
+        const btn = event.target.closest('button');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Actualizando…'; }
+        try {
+            const res = await fetch(`${_SUPABASE_FN_URL}/meta-fetch-metrics`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ project_id: projectId })
+            });
+            const data = await res.json();
+            if (data.error) { alert('Error: ' + data.error); }
+            else {
+                const summary = (data.fetched || []).join(', ') || 'sin datos nuevos';
+                _showToast(`✓ Métricas actualizadas: ${summary}`);
+                if (data.token_warning) setTimeout(() => _showToast('⚠ ' + data.token_warning, 'warning'), 2000);
+            }
+        } catch(e) {
+            alert('Error de red al obtener métricas.');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-rotate" style="margin-right:6px;"></i>Actualizar métricas'; }
+        }
     }
 
     function limpiarDatosPrueba() {
