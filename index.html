@@ -1721,7 +1721,10 @@
                         <h1>Reportes Mensuales</h1>
                         <p>Análisis formal por mes: ventas, KPIs, equipo y recomendaciones estratégicas.</p>
                     </div>
-                    <button class="btn btn-primario req-agencia" onclick="_abrirNuevoReporte()"><i class="fa-solid fa-plus"></i> Nuevo Reporte</button>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <button class="btn btn-fantasma req-agencia" id="btn-generar-reporte-ia" onclick="_generarReporteIA()" style="gap:7px;"><i class="fa-solid fa-wand-magic-sparkles"></i> Generar con IA</button>
+                        <button class="btn btn-primario req-agencia" onclick="_abrirNuevoReporte()"><i class="fa-solid fa-plus"></i> Nuevo Reporte</button>
+                    </div>
                 </div>
                 <div id="reportes-grid" style="display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));"></div>
                 <div id="reportes-empty" style="display:none;text-align:center;padding:64px 24px;color:var(--texto-secundario);">
@@ -7535,6 +7538,63 @@ document.addEventListener('DOMContentLoaded', function() {
         guardarBD();
         cerrarModales();
         renderReportes();
+    }
+
+    async function _generarReporteIA(periodOverride) {
+        const btn = document.getElementById('btn-generar-reporte-ia');
+        const originalHtml = btn ? btn.innerHTML : '';
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando…'; }
+
+        try {
+            const token = await _metaGetToken();
+            if (!token) { alert('Debes iniciar sesión para generar reportes.'); return; }
+
+            // Mostrar selector de mes si no viene override
+            let period = periodOverride;
+            if (!period) {
+                const input = prompt('¿Para qué mes? (formato YYYY-MM, ej. 2026-06)\nDeja vacío para el mes anterior automáticamente.');
+                if (input === null) return; // canceló
+                period = input.trim() || undefined;
+            }
+
+            const body = { project_id: SUC_ACTIVA };
+            if (period) body.period = period;
+
+            const res = await fetch(`${window.SUPABASE_URL}/functions/v1/generate-monthly-report`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const data = await res.json();
+
+            if (!res.ok || data.error) {
+                alert(`Error al generar reporte: ${data.error || res.status}`);
+                return;
+            }
+
+            if (data.skipped) {
+                alert(`No hay datos de KPI para ${data.period}. Carga datos semanales primero.`);
+                return;
+            }
+
+            // Recargar datos desde Supabase para mostrar el reporte recién generado
+            if (window.__supabase) {
+                const { data: pd } = await window.__supabase
+                    .from('project_data').select('data').eq('project_id', SUC_ACTIVA).single();
+                if (pd?.data) {
+                    if (!DB.datos) DB.datos = {};
+                    DB.datos[SUC_ACTIVA] = pd.data;
+                    localStorage.setItem('LANKA_FINAL_2027_PRO', JSON.stringify(DB));
+                }
+            }
+
+            renderReportes();
+            alert(`✓ Reporte de ${data.mes} generado con IA y guardado.`);
+        } catch(e) {
+            alert(`Error: ${e.message}`);
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+        }
     }
 
     function _abrirNuevoReporte() {
