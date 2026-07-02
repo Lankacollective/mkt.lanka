@@ -3154,6 +3154,29 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Paso 6: cargar DB (Supabase → localStorage → semilla)
         await inicializarDB();
+        
+        // Manejo de retorno de OAuth de Meta/Instagram (?code=...&state=...)
+        (async () => {
+            const _mp = new URLSearchParams(window.location.search);
+            const _metaCode = _mp.get('code');
+            const _metaState = _mp.get('state');
+            if (_metaCode && _metaState && window.__supabase) {
+                const { data: { session } } = await window.__supabase.auth.getSession();
+                window.history.replaceState({}, document.title, window.location.pathname);
+                if (session) {
+                    try {
+                        const _r = await fetch(window.SUPABASE_URL + '/functions/v1/meta-oauth/exchange', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'apikey': window.SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token },
+                            body: JSON.stringify({ code: _metaCode, project_id: _metaState, redirect_uri: window.location.origin + '/' })
+                        });
+                        const _d = await _r.json();
+                        if (_d.ok) _toast('Instagram conectado: ' + (_d.connected?.[0]?.page_name || ''), 'ok');
+                        else _toast('Error al conectar Instagram: ' + (_d.error || ''), 'error');
+                    } catch (e) { _toast('Error al conectar Instagram: ' + e.message, 'error'); }
+                }
+            }
+        })();
         // Paso 7: suscripción Realtime — recibir cambios de otros usuarios
         if (window.__supabase) {
             window.__supabase
@@ -10260,6 +10283,19 @@ ${_coverHtml}
             </div>
         </div>`;
 
+                if (_isOwnerForConfig) {
+            confHTML += `<div style="${_cardStyle} grid-column:span 2;">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                    <i class="fa-brands fa-instagram" style="color:var(--color-primario);font-size:14px;"></i>
+                    <b style="font-family:var(--font-display);font-size:13px;text-transform:uppercase;">Integraciones</b>
+                    <span style="font-size:11px;color:var(--color-primario);font-weight:600;">· ${_sucNombre}</span>
+                </div>
+                <div id="integraciones-meta-card">
+                    <p style="font-size:12px;color:var(--texto-secundario);">Cargando estado de la conexión...</p>
+                </div>
+            </div>`;
+        }
+
         confHTML += `</div>`; // cierre grid 2×2
 
         // Datos del sistema — exportar / importar
@@ -10286,6 +10322,7 @@ ${_coverHtml}
             </div>`;
         }
         document.getElementById('contenedor-config').innerHTML = confHTML;
+                if (typeof _cargarEstadoMeta === 'function') _cargarEstadoMeta();
         renderTiposProyecto();
     }
 
@@ -12436,6 +12473,80 @@ ${_coverHtml}
         t.style.background = bg; t.style.color = col; t.textContent = msg;
         t.style.opacity = 1; clearTimeout(t._tmr);
         t._tmr = setTimeout(() => { t.style.opacity = 0; }, tipo==='error'?5000:3500);
+    }
+    
+    // ── Integracion Meta / Instagram ──────────────────────────────────────
+    const META_APP_ID_PUBLIC = '2070729563861771';
+    function _metaRedirectUri() { return window.location.origin + '/'; }
+
+    async function _cargarEstadoMeta() {
+        const cont = document.getElementById('integraciones-meta-card');
+        if (!cont || !window.__supabase) return;
+        const { data: { session } } = await window.__supabase.auth.getSession();
+        if (!session) { cont.innerHTML = '<p style="font-size:12px;color:var(--texto-secundario);">Inicia sesión con tu correo para gestionar integraciones.</p>'; return; }
+        try {
+            const resp = await fetch(window.SUPABASE_URL + '/functions/v1/meta-oauth/status?project_id=' + encodeURIComponent(SUC_ACTIVA), {
+                headers: { 'apikey': window.SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token }
+            });
+            const data = await resp.json();
+            const conexiones = (data.connections || []).filter(c => c.ig_user_id);
+            if (conexiones.length === 0) {
+                cont.innerHTML = '<button class="btn btn-primario btn-sm" onclick="_conectarMeta()"><i class="fa-brands fa-instagram" style="margin-right:6px;"></i>Conectar Instagram</button>';
+            } else {
+                const c = conexiones[0];
+                const dias = c.token_expires_at ? Math.round((new Date(c.token_expires_at) - new Date())/86400000) : null;
+                cont.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                        <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(21,128,61,.1);border-radius:100px;font-size:12px;font-weight:600;color:#15803D;">
+                            <i class="fa-solid fa-circle-check"></i> Conectado: ${c.page_name || 'Instagram'}
+                        </span>
+                        ${dias !== null && dias < 7 ? `<span style="font-size:11px;color:#B45309;">Token expira en ${dias} días</span>` : ''}
+                        <button class="btn btn-fantasma btn-xs" onclick="_actualizarMetricasMeta()"><i class="fa-solid fa-rotate" style="margin-right:4px;"></i>Actualizar métricas</button>
+                        <button class="btn btn-fantasma btn-xs" style="color:#DC2626;" onclick="_desconectarMeta('${c.page_id}')">Desconectar</button>
+                    </div>`;
+            }
+        } catch (e) {
+            cont.innerHTML = '<p style="font-size:12px;color:#DC2626;">Error al revisar la conexión: ' + e.message + '</p>';
+        }
+    }
+
+    function _conectarMeta() {
+        const redirectUri = _metaRedirectUri();
+        const scope = 'pages_show_list,pages_read_engagement,instagram_basic,instagram_manage_insights,business_management';
+        const url = `https://www.facebook.com/v20.0/dialog/oauth?client_id=${META_APP_ID_PUBLIC}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code&state=${encodeURIComponent(SUC_ACTIVA)}`;
+        window.location.href = url;
+    }
+
+    async function _actualizarMetricasMeta() {
+        const { data: { session } } = await window.__supabase.auth.getSession();
+        if (!session) return;
+        _toast('Actualizando métricas de Instagram...', 'ok');
+        try {
+            const resp = await fetch(window.SUPABASE_URL + '/functions/v1/meta-fetch-metrics', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': window.SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token },
+                body: JSON.stringify({ project_id: SUC_ACTIVA })
+            });
+            const data = await resp.json();
+            if (data.ok) _toast('Métricas actualizadas ✓', 'ok');
+            else _toast('Error: ' + (data.error || 'desconocido'), 'error');
+        } catch (e) { _toast('Error: ' + e.message, 'error'); }
+    }
+
+    async function _desconectarMeta(pageId) {
+        if (!confirm('¿Desconectar esta cuenta de Instagram?')) return;
+        const { data: { session } } = await window.__supabase.auth.getSession();
+        if (!session) return;
+        try {
+            const resp = await fetch(window.SUPABASE_URL + '/functions/v1/meta-oauth/disconnect', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': window.SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + session.access_token },
+                body: JSON.stringify({ project_id: SUC_ACTIVA, page_id: pageId })
+            });
+            const data = await resp.json();
+            if (data.ok) { _toast('Desconectado', 'ok'); _cargarEstadoMeta(); }
+            else _toast('Error: ' + (data.error || 'desconocido'), 'error');
+        } catch (e) { _toast('Error: ' + e.message, 'error'); }
     }
     function _monedaProy() { return (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).moneda || 'MXN'; }
     const _ADS_NUM_FIELDS = ['inversion','alcance','clics','conversiones','cpr','meta_alcance','meta_conversiones','meta_clics','meta_cpr'];
