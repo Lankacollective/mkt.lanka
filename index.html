@@ -1390,6 +1390,9 @@
                 <i class="fa-solid fa-upload" style="font-size:11px;color:var(--texto-secundario);width:14px;text-align:center;"></i> Importar datos
                 <input type="file" accept=".json" style="display:none;" onchange="_togglePerfilDropdown();_leerBackupArchivo(this)">
             </label>
+                        <button class="perfil-dd-item" onclick="_cambiarMiPassword()">
+                <i class="fa-solid fa-key" style="font-size:11px;color:var(--texto-secundario);width:14px;text-align:center;"></i> Cambiar mi contraseña
+            </button>
             <div class="perfil-dd-sep"></div>
             <button class="perfil-dd-item" style="color:var(--color-peligro);" onclick="cerrarSesion()">
                 <i class="fa-solid fa-arrow-right-from-bracket" style="font-size:11px;width:14px;text-align:center;"></i> Cerrar sesión
@@ -7030,6 +7033,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (isAnal) {
             setTimeout(() => {
                 _renderDashCharts(DB.datos[SUC_ACTIVA]);
+                                if (typeof _cargarSeguidoresReales === 'function') _cargarSeguidoresReales();
                 window.dispatchEvent(new Event('resize'));
             }, 50);
         }
@@ -12546,6 +12550,62 @@ ${_coverHtml}
             const data = await resp.json();
             if (data.ok) { _toast('Desconectado', 'ok'); _cargarEstadoMeta(); }
             else _toast('Error: ' + (data.error || 'desconocido'), 'error');
+        } catch (e) { _toast('Error: ' + e.message, 'error'); }
+    } 
+    // ── Seguidores reales (reemplaza el grafico manual de kpi_semanal) ────
+    async function _cargarSeguidoresReales() {
+        if (!window.__supabase) return;
+        try {
+            const { data, error } = await window.__supabase
+                .from('metrics')
+                .select('metric_date, value')
+                .eq('project_id', SUC_ACTIVA)
+                .eq('metric_type', 'followers_count')
+                .order('metric_date', { ascending: true });
+            if (error || !data || !data.length) return;
+
+            const c3 = document.getElementById('dash-chart-seg');
+            if (!c3) return;
+            const w3 = c3.parentElement;
+            w3.querySelectorAll('.seg-empty').forEach(e => e.remove());
+            c3.style.display = '';
+            if (typeof destroyChart === 'function') destroyChart('dash-chart-seg');
+            _charts['dash-chart-seg'] = new Chart(c3, {
+                type: 'line',
+                data: {
+                    labels: data.map(r => new Date(r.metric_date + 'T00:00:00').toLocaleDateString('es-MX', { day: 'numeric', month: 'short' })),
+                    datasets: [{
+                        label: 'Seguidores (Instagram real)',
+                        data: data.map(r => Number(r.value)),
+                        borderColor: 'rgba(196,133,90,.9)',
+                        backgroundColor: 'rgba(196,133,90,.12)',
+                        fill: true, tension: .4, pointRadius: 3, spanGaps: true
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: { x: { grid: { color: 'rgba(0,0,0,.06)' }, ticks: { color: '#888', font: { size: 10 } } }, y: { grid: { color: 'rgba(0,0,0,.06)' }, ticks: { color: '#888', font: { size: 10 } } } },
+                    plugins: { legend: { labels: { color: '#888', font: { size: 10 } } } }
+                }
+            });
+        } catch (e) { console.error('Error cargando seguidores reales:', e); }
+    }
+
+    // ── Cambiar mi propia contraseña (cuentas con correo / Supabase Auth) ─
+    async function _cambiarMiPassword() {
+        if (typeof _togglePerfilDropdown === 'function') _togglePerfilDropdown();
+        if (!window.__supabase) return;
+        const { data: { session } } = await window.__supabase.auth.getSession();
+        if (!session) { _toast('Tu cuenta usa el login antiguo — pide a Paola o Mathias que te dé una cuenta con correo.', 'warn'); return; }
+        const nueva = prompt('Nueva contraseña (mínimo 8 caracteres):');
+        if (!nueva) return;
+        if (nueva.length < 8) { _toast('La contraseña debe tener al menos 8 caracteres', 'error'); return; }
+        const confirmar = prompt('Confirma tu nueva contraseña:');
+        if (nueva !== confirmar) { _toast('Las contraseñas no coinciden', 'error'); return; }
+        try {
+            const { error } = await window.__supabase.auth.updateUser({ password: nueva });
+            if (error) { _toast('Error: ' + error.message, 'error'); return; }
+            _toast('Contraseña actualizada ✓', 'ok');
         } catch (e) { _toast('Error: ' + e.message, 'error'); }
     }
     function _monedaProy() { return (DB.sucursales.find(s=>s.id===SUC_ACTIVA)||{}).moneda || 'MXN'; }
